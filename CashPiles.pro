@@ -10,7 +10,6 @@ HEADERS += \
     account.h \
     transferpool.h
 SOURCES += \
-   piles.cpp \
    datatable.cpp \
    tabtable.cpp \
    tabtablerow.cpp \
@@ -19,5 +18,6 @@ SOURCES += \
     txntable.cpp \
     txn.cpp \
     account.cpp \
-    transferpool.cpp
+    transferpool.cpp \
+    main.cpp
 TARGET = CashPiles
