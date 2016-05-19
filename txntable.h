@@ -2,7 +2,6 @@
 #define TXNTABLE_H
 
 #include "account.h"
-#include "transferpool.h"
 
 #include <QMap>
 #include <QObject>
@@ -13,10 +12,13 @@ class TxnTable : public QObject
 {
 public:
    TxnTable(DataTable* data, QObject* parent = 0);
+   QString account() const;
+   QList<Txn> txns() const;
 
 private:
-   QMap<QString, Account> accounts;
-   TransferPool transferPool;
+   // TODO QPriv
+   QString m_account;
+   QList<Txn> m_txns;
 };
 
 #endif

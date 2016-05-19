@@ -8,7 +8,7 @@ HEADERS += \
     txntable.h \
     txn.h \
     account.h \
-    transferpool.h
+    averager.h
 SOURCES += \
    datatable.cpp \
    tabtable.cpp \
@@ -18,6 +18,9 @@ SOURCES += \
     txntable.cpp \
     txn.cpp \
     account.cpp \
-    transferpool.cpp \
-    main.cpp
+    main.cpp \
+    averager.cpp
+OTHER_FILES += \
+    README.md \
+    data.txt
 TARGET = CashPiles

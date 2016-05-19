@@ -26,8 +26,8 @@ TxnTable::TxnTable(DataTable* data, QObject* parent)
 {
    QRegExp rx("Transactions \\((.*)\\)");
    Q_ASSERT(rx.exactMatch(data->title()));
-   QString account = rx.cap(1);
-   qDebug() << "account is " << account;
+   m_account = rx.cap(1);
+   qDebug() << "account is " << m_account;
 
    DataTableRow* header = data->header();
    QStringList keys = header->keys();
@@ -39,7 +39,6 @@ TxnTable::TxnTable(DataTable* data, QObject* parent)
    Txn txn;
    for (int i = 0; i < data->rows(); ++i)
    {
-      qDebug() << i;
       DataTableRow* row = data->row(i);
 
       // read row data
@@ -47,6 +46,10 @@ TxnTable::TxnTable(DataTable* data, QObject* parent)
       if (row->keys().contains("Date"))
       {
          date = QDate::fromString(row->value("Date"), "M/d/yy");
+         while (date.year() < 1980)
+         {
+            date = date.addYears(100);
+         }
          qDebug() << row->value(("Date"));
          qDebug() << date;
          Q_ASSERT(date.isValid());
@@ -65,15 +68,14 @@ TxnTable::TxnTable(DataTable* data, QObject* parent)
       if (date.isValid())
       {
          Q_ASSERT(txn.valid());
-         accounts[account].addTxn(txn);
+         m_txns.append(txn);
          txn.clear();
          txn.setDate(date);
          txn.setAmount(amount);
          txn.setCleared(cleared);
       }
 
-      // if payee signals a split, make sure this was starting a new txn, then
-      // populate txn with validation data
+      // if payee signals a split, make sure it follows split rules
       if (payee == "--split--")
       {
          Q_ASSERT(date.isValid());
@@ -89,53 +91,21 @@ TxnTable::TxnTable(DataTable* data, QObject* parent)
          txnPart.setPile(pile);
          txnPart.setEssential(essential);
          txnPart.setCleared(cleared);
-
-         // add to transfer pool if it is a transfer
-         if (payee.startsWith("@"))
-         {
-            transferPool.addTransfer(amount);
-         }
-
          txn.addPart(txnPart);
       }
    }
 
    // finalize last txn
    Q_ASSERT(txn.valid());
-   accounts[account].addTxn(txn);
+   m_txns.append(txn);
 }
 
+QString TxnTable::account() const
+{
+   return m_account;
+}
 
-
-
-      // TODO save into essentials average if essential
-      // TODO push into the statements container if cleared
-
-      // TODO statements container is sorted list of buckets with date properties
-      // - finding a bucket is the first with a date equal or after the transaction date
-
-
-/*
-to build essential spending reserve, do something like this
-
-- calculate average of essential costs ($/day)
-- starting with first day (earliest xaction), add average to reserve
-- when encountering an essential xaction without a pile, subtract from reserve
-  - if reserve ever becomes negative, add to reserve until 0
-- iterate for all days to present
-
-After doing this, you have the breakdown
-
-- total cash available
-  - (include cleared income and all expenses across all accounts)
-- subtract value of uncategorized essentials pile
-- subtract pile reservations
-- subtract emergency fund reservation
-- what's left is spendable
-
-
-
-How to manage interplay between essentials and piles?
-- essential may have a pile, how does this calculate?
-
-*/
+QList<Txn> TxnTable::txns() const
+{
+   return m_txns;
+}

@@ -10,9 +10,11 @@ class Account
 public:
    int clearedBalance() const;
    QString name() const;
+   int transferBalance() const;
    int workingBalance() const;
 
    void addTxn(Txn const& txn);
+   void addTxns(QList<Txn> const& txns);
 
 private:
    // TODO QPRIV
