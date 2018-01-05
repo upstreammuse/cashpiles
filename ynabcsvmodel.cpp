@@ -1,106 +1,59 @@
 #include "ynabcsvmodel.h"
 
 #include <QDebug>
-
 #include "transaction.h"
 
 YnabCsvModel::YnabCsvModel(QObject* parent) :
-   QObject(parent),
-   m_accountFieldIndex(-1),
-   m_categoryFieldIndex(-1),
-   m_dateFieldIndex(-1),
-   m_fieldCount(0),
-   m_inflowFieldIndex(-1),
-   m_memoFieldIndex(-1),
-   m_nextFieldIndex(0),
-   m_outflowFieldIndex(-1),
-   m_payeeFieldIndex(-1)
+   QObject(parent)
 {
 }
 
-void YnabCsvModel::appendField(const QString& field)
+void YnabCsvModel::appendRecord(const QHash<QString, QString>& record)
 {
-   if (m_accountFieldIndex == size_t(-1) && field == "Account")
+   for (QHash<QString, QString>::const_iterator it(record.begin());
+        it != record.end(); ++it)
    {
-      m_accountFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_accountFieldIndex)
-   {
-      m_accountColumn.append(field);
-   }
-   else if (m_categoryFieldIndex == size_t(-1) && field == "Category")
-   {
-      m_categoryFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_categoryFieldIndex)
-   {
-      m_categoryColumn.append(field);
-   }
-   else if (m_dateFieldIndex == size_t(-1) && field == "Date")
-   {
-      m_dateFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_dateFieldIndex)
-   {
-      m_dateColumn.append(QDate::fromString(field, "MM/dd/yyyy"));
-   }
-   else if (m_inflowFieldIndex == size_t(-1) && field == "Inflow")
-   {
-      m_inflowFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_inflowFieldIndex)
-   {
-      QString fieldCopy(field);
-      m_inflowColumn.append(
-               fieldCopy.replace('$', "").replace(',', "").replace('.', "")
-               .toInt());
-   }
-   else if (m_memoFieldIndex == size_t(-1) && field == "Memo")
-   {
-      m_memoFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_memoFieldIndex)
-   {
-      m_memoColumn.append(field);
-   }
-   else if (m_outflowFieldIndex == size_t(-1) && field == "Outflow")
-   {
-      m_outflowFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_outflowFieldIndex)
-   {
-      QString fieldCopy(field);
-      m_outflowColumn.append(
-               fieldCopy.replace('$', "").replace(',', "").replace('.', "")
-               .toInt());
-   }
-   else if (m_payeeFieldIndex == size_t(-1) && field == "Payee")
-   {
-      m_payeeFieldIndex = m_nextFieldIndex;
-   }
-   else if (m_nextFieldIndex == m_payeeFieldIndex)
-   {
-      m_payeeColumn.append(field);
-   }
-
-   ++m_nextFieldIndex;
-   if (m_fieldCount != 0 && m_nextFieldIndex >= m_fieldCount)
-   {
-      m_nextFieldIndex = 0;
-   }
-}
-
-void YnabCsvModel::setFieldCount(size_t count)
-{
-   if (m_fieldCount == 0)
-   {
-      m_fieldCount = count;
-      if (m_nextFieldIndex >= m_fieldCount)
+      if (it.key() == "Account")
       {
-         m_nextFieldIndex = 0;
+         m_accountColumn.append(it.value());
+      }
+      else if (it.key() == "Category")
+      {
+         m_categoryColumn.append(it.value());
+      }
+      else if (it.key() == "Date")
+      {
+         m_dateColumn.append(QDate::fromString(it.value(), "MM/dd/yyyy"));
+      }
+      else if (it.key() == "Inflow")
+      {
+         QString fieldCopy(it.value());
+         m_inflowColumn.append(
+                  fieldCopy.replace('$', "").replace(',', "").replace('.', "")
+                  .toInt());
+      }
+      else if (it.key() == "Memo")
+      {
+         m_memoColumn.append(it.value());
+      }
+      else if (it.key() == "Outflow")
+      {
+         QString fieldCopy(it.value());
+         m_outflowColumn.append(
+                  fieldCopy.replace('$', "").replace(',', "").replace('.', "")
+                  .toInt());
+      }
+      else if (it.key() == "Payee")
+      {
+         m_payeeColumn.append(it.value());
       }
    }
-   Q_ASSERT(m_fieldCount == count);
+   Q_ASSERT(m_accountColumn.size() == m_categoryColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_dateColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_inflowColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_memoColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_outflowColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_payeeColumn.size());
 }
 
 void YnabCsvModel::showTrans()

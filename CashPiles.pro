@@ -3,18 +3,18 @@ QT += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 HEADERS += \
+   csvreader.h \
    mainwindow.h \
    transaction.h \
-   ynabcsvmodel.h \
-   ynabcsvreader.h \
-    transactionsplit.h
+   transactionsplit.h \
+   ynabcsvmodel.h
 SOURCES += \
+   csvreader.cpp \
    main.cpp \
    mainwindow.cpp \
    transaction.cpp \
-   ynabcsvmodel.cpp \
-   ynabcsvreader.cpp \
-    transactionsplit.cpp
+   transactionsplit.cpp \
+   ynabcsvmodel.cpp
 FORMS += \
    mainwindow.ui
 TARGET = CashPiles

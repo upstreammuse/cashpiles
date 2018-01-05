@@ -1,8 +1,8 @@
 #include <QApplication>
-
+#include <QTimer>
+#include "csvreader.h"
 #include "mainwindow.h"
 #include "ynabcsvmodel.h"
-#include "ynabcsvreader.h"
 
 int main(int argc, char** argv)
 {
@@ -10,16 +10,14 @@ int main(int argc, char** argv)
    MainWindow mw;
    mw.show();
 
-   YnabCsvReader reader("register.csv");
+   CsvReader reader("register.csv");
    YnabCsvModel model;
    QObject::connect(&reader, SIGNAL(done()), &model, SLOT(showTrans()));
-   QObject::connect(&reader, SIGNAL(field(QString)),
-                    &model, SLOT(appendField(QString)));
-   QObject::connect(&reader, SIGNAL(fieldCount(size_t)),
-                    &model, SLOT(setFieldCount(size_t)));
+   QObject::connect(&reader, SIGNAL(record(QHash<QString,QString>)),
+                    &model, SLOT(appendRecord(QHash<QString,QString>)));
    QObject::connect(&model, SIGNAL(transaction(Transaction)),
                     &mw, SLOT(showTransaction(Transaction)));
-   reader.read();
 
+   QTimer::singleShot(0, &reader, SLOT(read()));
    return app.exec();
 }
