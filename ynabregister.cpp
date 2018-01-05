@@ -1,14 +1,14 @@
-#include "ynabcsvmodel.h"
+#include "ynabregister.h"
 
 #include <QDebug>
 #include "transaction.h"
 
-YnabCsvModel::YnabCsvModel(QObject* parent) :
+YnabRegister::YnabRegister(QObject* parent) :
    QObject(parent)
 {
 }
 
-void YnabCsvModel::appendRecord(const QHash<QString, QString>& record)
+void YnabRegister::appendRecord(const QHash<QString, QString>& record)
 {
    for (QHash<QString, QString>::const_iterator it(record.begin());
         it != record.end(); ++it)
@@ -56,7 +56,7 @@ void YnabCsvModel::appendRecord(const QHash<QString, QString>& record)
    Q_ASSERT(m_accountColumn.size() == m_payeeColumn.size());
 }
 
-void YnabCsvModel::showTrans()
+void YnabRegister::showTrans()
 {
    Transaction t;
    for (int i = 0; i < m_accountColumn.size(); ++i)

@@ -1,16 +1,16 @@
-#ifndef YNABCSVMODEL_H
-#define YNABCSVMODEL_H
+#ifndef YNABREGISTER_H
+#define YNABREGISTER_H
 
 #include <QDate>
 #include <QObject>
 #include "transaction.h"
 
-class YnabCsvModel : public QObject
+class YnabRegister : public QObject
 {
    Q_OBJECT
 
 public:
-   explicit YnabCsvModel(QObject* parent = nullptr);
+   explicit YnabRegister(QObject* parent = nullptr);
 
 signals:
    void transaction(const Transaction&);

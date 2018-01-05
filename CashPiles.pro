@@ -7,14 +7,14 @@ HEADERS += \
    mainwindow.h \
    transaction.h \
    transactionsplit.h \
-   ynabcsvmodel.h
+   ynabregister.h
 SOURCES += \
    csvreader.cpp \
    main.cpp \
    mainwindow.cpp \
    transaction.cpp \
    transactionsplit.cpp \
-   ynabcsvmodel.cpp
+   ynabregister.cpp
 FORMS += \
    mainwindow.ui
 TARGET = CashPiles
