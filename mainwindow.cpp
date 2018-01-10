@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QLabel>
 #include "transaction.h"
 
 MainWindow::MainWindow(QWidget* parent) :
@@ -20,32 +19,28 @@ void MainWindow::showTransaction(Transaction const& transaction)
 {
    // TODO build logic to ensure splits are equalized properly
 
-   QMap<QString, QLabel*>::iterator it(m_accounts.find(transaction.account()));
+   // TODO could have option to read budget expense/remaining and compare against transaction values for that month
+
+   QMap<QString, QListWidgetItem*>::iterator it(
+            m_accounts.find(transaction.account()));
    if (it == m_accounts.end())
    {
-      QLabel* namelabel = new QLabel(transaction.account(), ui->accountsBox);
-      ui->accountsBox->layout()->addWidget(namelabel);
-      namelabel->show();
-      QLabel* valuelabel = new QLabel("0", ui->accountsBox);
-      ui->accountsBox->layout()->addWidget(valuelabel);
-      valuelabel->show();
-      it = m_accounts.insert(transaction.account(), valuelabel);
+      new QListWidgetItem(transaction.account(), ui->accountsList);
+      QListWidgetItem* value = new QListWidgetItem("0", ui->accountsList);
+      it = m_accounts.insert(transaction.account(), value);
    }
    int amount = it.value()->text().toInt() + transaction.amount();
    it.value()->setText(QString::number(amount));
 
-   foreach (TransactionSplit split, transaction.splits())
+   foreach (TransactionSplit const& split, transaction.splits())
    {
-      QMap<QString, QLabel*>::iterator it(m_budgets.find(split.category()));
+      QMap<QString, QListWidgetItem*>::iterator it(
+               m_budgets.find(split.category()));
       if (it == m_budgets.end())
       {
-         QLabel* namelabel = new QLabel(split.category(), ui->budgetsBox);
-         ui->budgetsBox->layout()->addWidget(namelabel);
-         namelabel->show();
-         QLabel* valuelabel = new QLabel("0", ui->budgetsBox);
-         ui->budgetsBox->layout()->addWidget(valuelabel);
-         valuelabel->show();
-         it = m_budgets.insert(split.category(), valuelabel);
+         new QListWidgetItem(split.category(), ui->budgetsList);
+         QListWidgetItem* value = new QListWidgetItem("0", ui->budgetsList);
+         it = m_budgets.insert(split.category(), value);
       }
       int amount = it.value()->text().toInt() + split.amount();
       it.value()->setText(QString::number(amount));

@@ -5,7 +5,7 @@
 #include <QMap>
 
 class Transaction;
-class QLabel;
+class QListWidgetItem;
 
 namespace Ui {
    class MainWindow;
@@ -24,8 +24,8 @@ public slots:
 
 private:
    Ui::MainWindow* ui;
-   QMap<QString, QLabel*> m_accounts;
-   QMap<QString, QLabel*> m_budgets;
+   QMap<QString, QListWidgetItem*> m_accounts;
+   QMap<QString, QListWidgetItem*> m_budgets;
 };
 
 #endif
