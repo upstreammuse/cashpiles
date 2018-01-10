@@ -4,7 +4,7 @@
 #include <QHash>
 #include <QMessageBox>
 
-CsvReader::CsvReader(const QString& filename, QObject* parent) :
+CsvReader::CsvReader(QString const& filename, QObject* parent) :
    QObject(parent),
    m_filename(filename)
 {
@@ -19,11 +19,15 @@ void CsvReader::read()
                0, "File not found",
                QString("Could not open the specified CSV file\n(%1)").arg(
                   m_filename));
+      return;
    }
 
    int expectedFieldCount = 0;
    int fieldCount = 0;
-   enum {EMPTY, NORMAL, QUOTED, CLOSED} fieldStatus = EMPTY;
+   enum
+   {
+      EMPTY, NORMAL, NORMAL_ESCAPED, QUOTED, QUOTED_ESCAPED, CLOSED
+   } fieldStatus = EMPTY;
    QString fieldValue;
    QStringList header;
    QByteArray line;
@@ -31,7 +35,7 @@ void CsvReader::read()
 
    while (!(line = f.readLine()).isEmpty())
    {
-      foreach (const char c, line)
+      foreach (char const c, line)
       {
          if (c == ',')
          {
@@ -52,8 +56,16 @@ void CsvReader::read()
                   ++fieldCount;
                   fieldStatus = EMPTY;
                   break;
+               case NORMAL_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = NORMAL;
+                  break;
                case QUOTED:
                   fieldValue += c;
+                  break;
+               case QUOTED_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = QUOTED;
                   break;
             }
          }
@@ -67,15 +79,52 @@ void CsvReader::read()
                case NORMAL:
                   fieldValue += c;
                   break;
+               case NORMAL_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = NORMAL;
+                  break;
                case QUOTED:
                   fieldStatus = CLOSED;
+                  break;
+               case QUOTED_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = QUOTED;
                   break;
                case CLOSED:
                   QMessageBox::critical(
                            0, "Error in file",
                            "There was an error in the CSV file.  An extra "
                            "quote was found when a comma was expected.");
+                  return;
+            }
+         }
+         else if (c == '\\')
+         {
+            switch (fieldStatus)
+            {
+               case EMPTY:
+                  fieldStatus = NORMAL_ESCAPED;
                   break;
+               case NORMAL:
+                  fieldStatus = NORMAL_ESCAPED;
+                  break;
+               case NORMAL_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = NORMAL;
+                  break;
+               case QUOTED:
+                  fieldStatus = QUOTED_ESCAPED;
+                  break;
+               case QUOTED_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = QUOTED;
+                  break;
+               case CLOSED:
+                  QMessageBox::critical(
+                           0, "Error in file",
+                           "There was an error in the CSV file.  An extra "
+                           "backslash was found when a comma was expected.");
+                  return;
             }
          }
          else if (c == '\n')
@@ -111,11 +160,20 @@ void CsvReader::read()
                               0, "Error in file",
                               "There was an error in the CSV file.  The end of "
                               "a line was found when more text was expected.");
+                     return;
                   }
                   fieldCount = 0;
                   break;
+               case NORMAL_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = NORMAL;
+                  break;
                case QUOTED:
                   fieldValue += c;
+                  break;
+               case QUOTED_ESCAPED:
+                  fieldValue += c;
+                  fieldStatus = QUOTED;
                   break;
             }
          }

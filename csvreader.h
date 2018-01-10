@@ -8,14 +8,14 @@ class CsvReader : public QObject
    Q_OBJECT
 
 public:
-   explicit CsvReader(const QString& filename, QObject* parent = nullptr);
+   explicit CsvReader(QString const& filename, QObject* parent = nullptr);
 
 public slots:
    void read();
 
 signals:
    void done();
-   void record(const QHash<QString, QString>&);
+   void record(QHash<QString, QString> const&);
 
 private:
    QString m_filename;

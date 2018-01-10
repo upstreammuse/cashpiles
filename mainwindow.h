@@ -1,10 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QLabel>
 #include <QMainWindow>
+#include <QMap>
 
-#include "transaction.h"
+class Transaction;
+class QLabel;
 
 namespace Ui {
    class MainWindow;
@@ -19,7 +20,7 @@ public:
    ~MainWindow();
 
 public slots:
-   void showTransaction(const Transaction& transaction);
+   void showTransaction(Transaction const& transaction);
 
 private:
    Ui::MainWindow* ui;

@@ -3,7 +3,8 @@
 
 #include <QDate>
 #include <QObject>
-#include "transaction.h"
+
+class Transaction;
 
 class YnabRegister : public QObject
 {
@@ -13,10 +14,10 @@ public:
    explicit YnabRegister(QObject* parent = nullptr);
 
 signals:
-   void transaction(const Transaction&);
+   void transaction(Transaction const&);
 
 public slots:
-   void appendRecord(const QHash<QString, QString>& record);
+   void appendRecord(QHash<QString, QString> const& record);
    void showTrans();
 
 private:

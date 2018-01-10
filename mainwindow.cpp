@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QLabel>
+#include "transaction.h"
+
 MainWindow::MainWindow(QWidget* parent) :
    QMainWindow(parent),
    ui(new Ui::MainWindow)
@@ -13,7 +16,7 @@ MainWindow::~MainWindow()
    delete ui;
 }
 
-void MainWindow::showTransaction(const Transaction& transaction)
+void MainWindow::showTransaction(Transaction const& transaction)
 {
    // TODO build logic to ensure splits are equalized properly
 
@@ -33,18 +36,18 @@ void MainWindow::showTransaction(const Transaction& transaction)
 
    foreach (TransactionSplit split, transaction.splits())
    {
-      QMap<QString, QLabel*>::iterator it(m_budgets.find(split.category));
+      QMap<QString, QLabel*>::iterator it(m_budgets.find(split.category()));
       if (it == m_budgets.end())
       {
-         QLabel* namelabel = new QLabel(split.category, ui->budgetsBox);
+         QLabel* namelabel = new QLabel(split.category(), ui->budgetsBox);
          ui->budgetsBox->layout()->addWidget(namelabel);
          namelabel->show();
          QLabel* valuelabel = new QLabel("0", ui->budgetsBox);
          ui->budgetsBox->layout()->addWidget(valuelabel);
          valuelabel->show();
-         it = m_budgets.insert(split.category, valuelabel);
+         it = m_budgets.insert(split.category(), valuelabel);
       }
-      int amount = it.value()->text().toInt() + split.amount;
+      int amount = it.value()->text().toInt() + split.amount();
       it.value()->setText(QString::number(amount));
    }
 }

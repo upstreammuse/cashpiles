@@ -2,6 +2,7 @@
 #include <QTimer>
 #include "csvreader.h"
 #include "mainwindow.h"
+#include "ynabbudget.h"
 #include "ynabregister.h"
 
 int main(int argc, char** argv)
@@ -10,14 +11,22 @@ int main(int argc, char** argv)
    MainWindow mw;
    mw.show();
 
-   CsvReader reader("register.csv");
+   CsvReader registerReader("register.csv");
    YnabRegister reg;
-   QObject::connect(&reader, SIGNAL(done()), &reg, SLOT(showTrans()));
-   QObject::connect(&reader, SIGNAL(record(QHash<QString,QString>)),
+   QObject::connect(&registerReader, SIGNAL(record(QHash<QString,QString>)),
                     &reg, SLOT(appendRecord(QHash<QString,QString>)));
+   QObject::connect(&registerReader, SIGNAL(done()), &reg, SLOT(showTrans()));
    QObject::connect(&reg, SIGNAL(transaction(Transaction)),
                     &mw, SLOT(showTransaction(Transaction)));
 
-   QTimer::singleShot(0, &reader, SLOT(read()));
+   CsvReader budgetReader("budget.csv");
+   YnabBudget budget;
+   QObject::connect(&budgetReader, SIGNAL(record(QHash<QString,QString>)),
+                    &budget, SLOT(appendRecord(QHash<QString,QString>)));
+   QObject::connect(&budget, SIGNAL(transaction(Transaction)),
+                    &mw, SLOT(showTransaction(Transaction)));
+
+   QTimer::singleShot(0, &registerReader, SLOT(read()));
+   QTimer::singleShot(0, &budgetReader, SLOT(read()));
    return app.exec();
 }

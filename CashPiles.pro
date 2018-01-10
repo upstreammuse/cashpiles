@@ -7,6 +7,7 @@ HEADERS += \
    mainwindow.h \
    transaction.h \
    transactionsplit.h \
+   ynabbudget.h \
    ynabregister.h
 SOURCES += \
    csvreader.cpp \
@@ -14,6 +15,7 @@ SOURCES += \
    mainwindow.cpp \
    transaction.cpp \
    transactionsplit.cpp \
+   ynabbudget.cpp \
    ynabregister.cpp
 FORMS += \
    mainwindow.ui

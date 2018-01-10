@@ -1,6 +1,5 @@
 #include "ynabregister.h"
 
-#include <QDebug>
 #include "transaction.h"
 
 YnabRegister::YnabRegister(QObject* parent) :
@@ -8,7 +7,7 @@ YnabRegister::YnabRegister(QObject* parent) :
 {
 }
 
-void YnabRegister::appendRecord(const QHash<QString, QString>& record)
+void YnabRegister::appendRecord(QHash<QString, QString> const& record)
 {
    for (QHash<QString, QString>::const_iterator it(record.begin());
         it != record.end(); ++it)
@@ -78,12 +77,12 @@ void YnabRegister::showTrans()
       {
          memo = m_memoColumn[i];
       }
-      t.appendSplit(m_payeeColumn[i], m_categoryColumn[i], memo,
-                    m_inflowColumn[i] - m_outflowColumn[i]);
+      t.appendSplit(TransactionSplit(
+                       m_payeeColumn[i], m_categoryColumn[i], memo,
+                       m_inflowColumn[i] - m_outflowColumn[i]));
 
       if (!inSplit)
       {
-         qDebug() << t;
          emit transaction(t);
          t.clear();
       }
