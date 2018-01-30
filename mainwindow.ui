@@ -6,17 +6,83 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1216</width>
-    <height>641</height>
+    <width>1056</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>CashPiles</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
-     <widget class="QListWidget" name="accountsList"/>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Net Worth:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="worth">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Budgetable:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="budgetable">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QListWidget" name="accountsList"/>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QListWidget" name="budgetsList"/>
@@ -28,7 +94,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1216</width>
+     <width>1056</width>
      <height>21</height>
     </rect>
    </property>

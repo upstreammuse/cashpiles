@@ -28,9 +28,11 @@ public slots:
 private:
    Ui::MainWindow* ui;
    QMap<QString, QListWidgetItem*> m_accounts;
+   int m_budgetable;
    QMap<QString, QListWidgetItem*> m_budgets;
    QLocale m_locale;
    QSettings m_settings;
+   int m_worth;
 };
 
 #endif

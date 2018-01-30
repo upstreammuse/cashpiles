@@ -1,3 +1,6 @@
+// TODO need cleared balances, working balances, and last reconciled date/amount
+// for each account
+
 #include <QApplication>
 #include <QTimer>
 #include "csvreader.h"
