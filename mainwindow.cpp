@@ -36,10 +36,7 @@ void MainWindow::showBudget(Transaction const& transaction)
          QListWidgetItem* item = new QListWidgetItem("", ui->budgetsList);
          item->setData(QListWidgetItem::UserType + 0, split.category());
          item->setData(QListWidgetItem::UserType + 1, 0);
-         item->setText(item->data(QListWidgetItem::UserType + 0).toString() +
-                       ":  " +
-                       m_locale.toCurrencyString(
-                          item->data(QListWidgetItem::UserType + 1).toInt()));
+         item->setText("");
          it = m_budgets.insert(split.category(), item);
       }
       int amount = it.value()->data(QListWidgetItem::UserType + 1).toInt();
@@ -47,7 +44,7 @@ void MainWindow::showBudget(Transaction const& transaction)
       it.value()->setData(QListWidgetItem::UserType + 1, amount);
       it.value()->setText(
                it.value()->data(QListWidgetItem::UserType + 0).toString() +
-               ":  " +
+               ": " +
                m_locale.toCurrencyString(
                   it.value()->data(QListWidgetItem::UserType + 1).toDouble() /
                   100));
@@ -68,21 +65,30 @@ void MainWindow::showTransaction(Transaction const& transaction)
       QListWidgetItem* item = new QListWidgetItem("", ui->accountsList);
       item->setData(QListWidgetItem::UserType + 0, transaction.account());
       item->setData(QListWidgetItem::UserType + 1, 0);
-      item->setText(item->data(QListWidgetItem::UserType + 0).toString() +
-                    ":  " +
-                    m_locale.toCurrencyString(
-                       item->data(QListWidgetItem::UserType + 1).toInt()));
+      item->setData(QListWidgetItem::UserType + 2, 0);
+      item->setText("");
       it = m_accounts.insert(transaction.account(), item);
    }
 
    int amount = it.value()->data(QListWidgetItem::UserType + 1).toInt();
    amount += transaction.amount();
    it.value()->setData(QListWidgetItem::UserType + 1, amount);
+   if (transaction.cleared())
+   {
+      amount = it.value()->data(QListWidgetItem::UserType + 2).toInt();
+      amount += transaction.amount();
+      it.value()->setData(QListWidgetItem::UserType + 2, amount);
+   }
+
    it.value()->setText(
             it.value()->data(QListWidgetItem::UserType + 0).toString() +
-            ":  " +
+            "\n\tWorking: " +
             m_locale.toCurrencyString(
                it.value()->data(QListWidgetItem::UserType + 1).toDouble() /
+               100) +
+            ", Cleared: " +
+            m_locale.toCurrencyString(
+               it.value()->data(QListWidgetItem::UserType + 2).toDouble() /
                100));
 
    m_worth += transaction.amount();

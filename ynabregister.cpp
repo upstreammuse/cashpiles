@@ -20,6 +20,21 @@ void YnabRegister::appendRecord(QHash<QString, QString> const& record)
       {
          m_categoryColumn.append(it.value());
       }
+      else if (it.key() == "Cleared")
+      {
+         if (it.value() == "Uncleared")
+         {
+            m_clearedColumn.append(UNCLEARED);
+         }
+         else if (it.value() == "Cleared")
+         {
+            m_clearedColumn.append(CLEARED);
+         }
+         else if (it.value() == "Reconciled")
+         {
+            m_clearedColumn.append(RECONCILED);
+         }
+      }
       else if (it.key() == "Date")
       {
          m_dateColumn.append(QDate::fromString(it.value(), "MM/dd/yyyy"));
@@ -48,6 +63,7 @@ void YnabRegister::appendRecord(QHash<QString, QString> const& record)
       }
    }
    Q_ASSERT(m_accountColumn.size() == m_categoryColumn.size());
+   Q_ASSERT(m_accountColumn.size() == m_clearedColumn.size());
    Q_ASSERT(m_accountColumn.size() == m_dateColumn.size());
    Q_ASSERT(m_accountColumn.size() == m_inflowColumn.size());
    Q_ASSERT(m_accountColumn.size() == m_memoColumn.size());
@@ -57,11 +73,13 @@ void YnabRegister::appendRecord(QHash<QString, QString> const& record)
 
 void YnabRegister::showTrans()
 {
-   Transaction t;
+   Transaction* t = new Transaction;
    for (int i = 0; i < m_accountColumn.size(); ++i)
    {
-      t.setDate(m_dateColumn[i]);
-      t.setAccount(m_accountColumn[i]);
+      t->setDate(m_dateColumn[i]);
+      t->setAccount(m_accountColumn[i]);
+      t->setCleared(m_clearedColumn[i] == CLEARED ||
+                    m_clearedColumn[i] == RECONCILED);
 
       QRegExp rx("Split \\(([0-9]*)/([0-9]*)\\) (.*)");
       bool inSplit = false;
@@ -77,14 +95,15 @@ void YnabRegister::showTrans()
       {
          memo = m_memoColumn[i];
       }
-      t.appendSplit(TransactionSplit(
-                       m_payeeColumn[i], m_categoryColumn[i], memo,
-                       m_inflowColumn[i] - m_outflowColumn[i]));
+      t->appendSplit(TransactionSplit(
+                        m_payeeColumn[i], m_categoryColumn[i], memo,
+                        m_inflowColumn[i] - m_outflowColumn[i]));
 
       if (!inSplit)
       {
-         emit transaction(t);
-         t.clear();
+         emit transaction(*t);
+         delete t;
+         t = new Transaction;
       }
    }
 }

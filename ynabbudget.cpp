@@ -37,10 +37,13 @@ void YnabBudget::appendRecord(QHash<QString, QString> const& record)
    Q_ASSERT(m_budgetColumn.size() == m_categoryColumn.size());
    Q_ASSERT(m_budgetColumn.size() == m_groupColumn.size());
    Q_ASSERT(m_dateColumn.size() == m_dateColumn.size());
+
    Transaction t;
    t.setAccount("");
    t.setDate(m_dateColumn.last());
    t.appendSplit(TransactionSplit("", m_categoryColumn.last(), "",
                                   m_budgetColumn.last()));
+   t.appendSplit(TransactionSplit("", "To be Budgeted", "",
+                                  -m_budgetColumn.last()));
    emit transaction(t);
 }

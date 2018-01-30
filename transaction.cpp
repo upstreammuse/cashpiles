@@ -1,5 +1,10 @@
 #include "transaction.h"
 
+Transaction::Transaction() :
+   m_cleared(false)
+{
+}
+
 QString Transaction::account() const
 {
    return m_account;
@@ -20,16 +25,19 @@ void Transaction::appendSplit(TransactionSplit const& split)
    m_splits.append(split);
 }
 
-void Transaction::clear()
+bool Transaction::cleared() const
 {
-   m_account.clear();
-   m_date = QDate();
-   m_splits.clear();
+   return m_cleared;
 }
 
 void Transaction::setAccount(QString const& account)
 {
    m_account = account;
+}
+
+void Transaction::setCleared(bool cleared)
+{
+   m_cleared = cleared;
 }
 
 void Transaction::setDate(QDate const& date)

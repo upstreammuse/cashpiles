@@ -11,6 +11,14 @@ class YnabRegister : public QObject
    Q_OBJECT
 
 public:
+   enum ClearedStatus
+   {
+      UNCLEARED,
+      CLEARED,
+      RECONCILED
+   };
+
+public:
    explicit YnabRegister(QObject* parent = nullptr);
 
 signals:
@@ -23,6 +31,7 @@ public slots:
 private:
    QStringList m_accountColumn;
    QStringList m_categoryColumn;
+   QList<ClearedStatus> m_clearedColumn;
    QList<QDate> m_dateColumn;
    QList<int> m_inflowColumn;
    QStringList m_memoColumn;
