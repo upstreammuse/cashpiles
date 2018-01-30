@@ -24,7 +24,7 @@ int main(int argc, char** argv)
    QObject::connect(&budgetReader, SIGNAL(record(QHash<QString,QString>)),
                     &budget, SLOT(appendRecord(QHash<QString,QString>)));
    QObject::connect(&budget, SIGNAL(transaction(Transaction)),
-                    &mw, SLOT(showTransaction(Transaction)));
+                    &mw, SLOT(showBudget(Transaction)));
 
    QTimer::singleShot(0, &registerReader, SLOT(read()));
    QTimer::singleShot(0, &budgetReader, SLOT(read()));
