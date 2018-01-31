@@ -1,5 +1,6 @@
 #include "ynabregister.h"
 
+#include <set>
 #include "transaction.h"
 
 YnabRegister::YnabRegister(QObject* parent) :
@@ -73,6 +74,7 @@ void YnabRegister::appendRecord(QHash<QString, QString> const& record)
 
 void YnabRegister::showTrans()
 {
+   std::multiset<Transaction> transactions;
    Transaction* t = new Transaction;
    for (int i = 0; i < m_accountColumn.size(); ++i)
    {
@@ -101,9 +103,14 @@ void YnabRegister::showTrans()
 
       if (!inSplit)
       {
-         emit transaction(*t);
+         transactions.insert(*t);
          delete t;
          t = new Transaction;
       }
+   }
+
+   foreach (Transaction const& t, transactions)
+   {
+      emit transaction(t);
    }
 }

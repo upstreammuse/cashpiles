@@ -3,6 +3,7 @@
 
 #include <QApplication>
 #include <QTimer>
+#include "accountant.h"
 #include "csvreader.h"
 #include "mainwindow.h"
 #include "ynabbudget.h"
@@ -14,11 +15,15 @@ int main(int argc, char** argv)
    MainWindow mw;
    mw.show();
 
+   Accountant accounts;
+
    CsvReader registerReader("register.csv");
    YnabRegister reg;
    QObject::connect(&registerReader, SIGNAL(record(QHash<QString,QString>)),
                     &reg, SLOT(appendRecord(QHash<QString,QString>)));
    QObject::connect(&registerReader, SIGNAL(done()), &reg, SLOT(showTrans()));
+   QObject::connect(&reg, SIGNAL(transaction(Transaction)),
+                    &accounts, SLOT(appendTransaction(Transaction)));
    QObject::connect(&reg, SIGNAL(transaction(Transaction)),
                     &mw, SLOT(showTransaction(Transaction)));
 

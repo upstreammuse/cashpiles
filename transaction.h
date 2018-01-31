@@ -5,11 +5,6 @@
 #include <QList>
 #include "transactionsplit.h"
 
-/* TODO accounts can have a reconciliation date and a value that means that all
- * transactions before that date have to be cleared, and that they will add up
- * to the reconciled value
- */
-
 class Transaction
 {
 public:
@@ -17,14 +12,20 @@ public:
    QString account() const;
    int amount() const;
    void appendSplit(TransactionSplit const& split);
+   int balance() const;
    bool cleared() const;
+   QDate date() const;
+   bool hasBalance() const;
    void setAccount(QString const& account);
    void setCleared(bool cleared);
    void setDate(QDate const& date);
    QList<TransactionSplit> splits() const;
 
+   bool operator<(Transaction const& other) const;
+
 private:
    QString m_account;
+   QList<int> m_balance;
    bool m_cleared;
    QDate m_date;
    QList<TransactionSplit> m_splits;
