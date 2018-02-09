@@ -22,6 +22,7 @@ public:
    explicit YnabRegister(QObject* parent = nullptr);
 
 signals:
+   void finished();
    void transaction(Transaction const&);
 
 public slots:

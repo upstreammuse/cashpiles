@@ -15,6 +15,7 @@ public:
 
 public slots:
    void appendTransaction(Transaction const& transaction);
+   void checkAccounts();
 
 private:
    QMap<QString, Account> m_accounts;

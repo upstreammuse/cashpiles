@@ -10,7 +10,6 @@ YnabBudget::YnabBudget(QObject* parent) :
 
 void YnabBudget::appendRecord(QHash<QString, QString> const& record)
 {
-   // TODO columns might not be needed at all
    for (QHash<QString, QString>::const_iterator it(record.begin());
         it != record.end(); ++it)
    {

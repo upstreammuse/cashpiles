@@ -2,7 +2,9 @@
 
 Account::Account() :
    m_allClear(true),
-   m_balance(0)
+   m_balance(0),
+   // TODO use a real file name or registry
+   m_settings(new QSettings("~/cashpiles.ini", QSettings::IniFormat))
 {
 }
 
@@ -13,6 +15,43 @@ void Account::appendTransaction(Transaction const& transaction)
    verifyName(transaction.account());
    verifyDate(transaction.date());
    verifyBalance(transaction.balance(), transaction.hasBalance());
+   foreach (TransactionSplit const& split, transaction.splits())
+   {
+      if (split.isTransfer())
+      {
+         m_transfers[split.payee()] += split.amount();
+         m_settings->beginGroup("Accounts");
+         m_settings->beginGroup(split.payee());
+         bool onBudget = m_settings->value("onBudget", true).toBool();
+         m_settings->setValue("onBudget", onBudget);
+         m_settings->endGroup();
+         m_settings->endGroup();
+         if (!m_onBudget && split.category() != "")
+         {
+            qWarning("category set on transfer from off-budget account");
+         }
+         else if (m_onBudget && onBudget && split.category() != "")
+         {
+            qWarning("category set on transfer between budget accounts");
+         }
+         else if (m_onBudget && !onBudget && split.category() == "")
+         {
+            qWarning("category not set on transfer to off-budget account");
+         }
+      }
+   }
+}
+
+void Account::matchTransfers(QMap<QString, Account> const& accounts) const
+{
+   for (QHash<QString, int>::const_iterator it(m_transfers.begin());
+        it != m_transfers.end(); ++it)
+   {
+      if (accounts[it.key()].m_transfers[m_name] + it.value() != 0)
+      {
+         qWarning("transfer mismatch between %s and %s", it.key().toStdString().c_str(), m_name.toStdString().c_str());
+      }
+   }
 }
 
 void Account::verifyBalance(int balance, bool hasBalance)
@@ -50,4 +89,11 @@ void Account::verifyName(QString const& name)
       m_name = name;
    }
    Q_ASSERT(m_name == name);
+
+   m_settings->beginGroup("Accounts");
+   m_settings->beginGroup(m_name);
+   m_onBudget = m_settings->value("onBudget", true).toBool();
+   m_settings->setValue("onBudget", m_onBudget);
+   m_settings->endGroup();
+   m_settings->endGroup();
 }

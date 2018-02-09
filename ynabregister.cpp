@@ -1,6 +1,5 @@
 #include "ynabregister.h"
 
-#include <set>
 #include "transaction.h"
 
 YnabRegister::YnabRegister(QObject* parent) :
@@ -74,7 +73,7 @@ void YnabRegister::appendRecord(QHash<QString, QString> const& record)
 
 void YnabRegister::showTrans()
 {
-   std::multiset<Transaction> transactions;
+   QMultiMap<QDate, Transaction> transactions;
    Transaction* t = new Transaction;
    for (int i = 0; i < m_accountColumn.size(); ++i)
    {
@@ -97,13 +96,45 @@ void YnabRegister::showTrans()
       {
          memo = m_memoColumn[i];
       }
+
+      QRegExp rx2("Transfer : (.*)");
+      QString payee;
+      bool isTransfer(false);
+      if (rx2.exactMatch(m_payeeColumn[i]))
+      {
+         payee = rx2.cap(1);
+         isTransfer = true;
+      }
+      else
+      {
+         payee = m_payeeColumn[i];
+      }
+
+      // TODO ynab has a problem with their export format that leaves split transfers inheriting their parent payee "sometimes"
+      // ye gods, what fresh hell... should I file a bug report?
+      // --- oh good, it looks like the latest CSV export fixed it
+      // ..... time for bed!
+      {
+         static int asdf = 0;
+         if (t->account() == "Checking" && isTransfer && payee == "Cash")
+         {
+            asdf += m_inflowColumn[i] - m_outflowColumn[i];
+            qWarning("on %s: checking to cash %d, difference %d", t->date().toString().toStdString().c_str(), m_inflowColumn[i] - m_outflowColumn[i], asdf);
+         }
+         if (t->account() == "Cash" && isTransfer && payee == "Checking")
+         {
+            asdf += m_inflowColumn[i] - m_outflowColumn[i];
+            qWarning("on %s: cash to checking %d, difference %d", t->date().toString().toStdString().c_str(), m_inflowColumn[i] - m_outflowColumn[i], asdf);
+         }
+      }
+
       t->appendSplit(TransactionSplit(
-                        m_payeeColumn[i], m_categoryColumn[i], memo,
-                        m_inflowColumn[i] - m_outflowColumn[i]));
+                        payee, m_categoryColumn[i], memo,
+                        m_inflowColumn[i] - m_outflowColumn[i], isTransfer));
 
       if (!inSplit)
       {
-         transactions.insert(*t);
+         transactions.insertMulti(t->date(), *t);
          delete t;
          t = new Transaction;
       }
@@ -113,4 +144,5 @@ void YnabRegister::showTrans()
    {
       emit transaction(t);
    }
+   emit finished();
 }

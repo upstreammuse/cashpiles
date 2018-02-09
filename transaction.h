@@ -21,8 +21,6 @@ public:
    void setDate(QDate const& date);
    QList<TransactionSplit> splits() const;
 
-   bool operator<(Transaction const& other) const;
-
 private:
    QString m_account;
    QList<int> m_balance;

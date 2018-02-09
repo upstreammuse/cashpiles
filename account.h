@@ -1,6 +1,7 @@
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
+#include <QSettings>
 #include "transaction.h"
 
 class Account
@@ -8,6 +9,7 @@ class Account
 public:
    Account();
    void appendTransaction(Transaction const& transaction);
+   void matchTransfers(QMap<QString, Account> const& accounts) const;
 
 private:
    void verifyBalance(int balance, bool hasBalance);
@@ -19,6 +21,9 @@ private:
    int m_balance;
    QDate m_latestDate;
    QString m_name;
+   bool m_onBudget;
+   QSettings* m_settings;
+   QHash<QString, int> m_transfers;
 };
 
 #endif

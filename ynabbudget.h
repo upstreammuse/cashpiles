@@ -14,7 +14,6 @@ public:
    explicit YnabBudget(QObject* parent = nullptr);
 
 signals:
-   // TODO this is a hack for now
    void transaction(Transaction const&);
 
 public slots:

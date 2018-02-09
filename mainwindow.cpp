@@ -21,12 +21,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::showBudget(Transaction const& transaction)
 {
-   // TODO make separate type for budget entries vs transactions, they are
-   // different things
-
-   // TODO budget entries need to deduct from available amount when they assign
-   // to budget categories
-
    foreach (TransactionSplit const& split, transaction.splits())
    {
       QMap<QString, QListWidgetItem*>::iterator it(
@@ -53,11 +47,6 @@ void MainWindow::showBudget(Transaction const& transaction)
 
 void MainWindow::showTransaction(Transaction const& transaction)
 {
-   // TODO build logic to ensure splits are equalized properly
-
-   // TODO could have option to read budget expense/remaining and compare
-   // against transaction values for that month
-
    QMap<QString, QListWidgetItem*>::iterator it(
             m_accounts.find(transaction.account()));
    if (it == m_accounts.end())

@@ -71,8 +71,3 @@ QList<TransactionSplit> Transaction::splits() const
 {
    return m_splits;
 }
-
-bool Transaction::operator<(Transaction const& other) const
-{
-   return m_date < other.m_date;
-}

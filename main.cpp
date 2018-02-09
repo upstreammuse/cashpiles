@@ -1,5 +1,6 @@
-// TODO need cleared balances, working balances, and last reconciled date/amount
-// for each account
+// TODO add last reconciled date/amount for accounts
+
+// TODO native file format can ensure splits add up correctly
 
 #include <QApplication>
 #include <QTimer>
@@ -24,6 +25,7 @@ int main(int argc, char** argv)
    QObject::connect(&registerReader, SIGNAL(done()), &reg, SLOT(showTrans()));
    QObject::connect(&reg, SIGNAL(transaction(Transaction)),
                     &accounts, SLOT(appendTransaction(Transaction)));
+   QObject::connect(&reg, SIGNAL(finished()), &accounts, SLOT(checkAccounts()));
    QObject::connect(&reg, SIGNAL(transaction(Transaction)),
                     &mw, SLOT(showTransaction(Transaction)));
 
