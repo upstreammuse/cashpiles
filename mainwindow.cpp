@@ -19,6 +19,11 @@ MainWindow::~MainWindow()
    delete ui;
 }
 
+void MainWindow::on_actionImportYnab_triggered()
+{
+   qWarning("tried to import");
+}
+
 void MainWindow::showBudget(Transaction const& transaction)
 {
    foreach (TransactionSplit const& split, transaction.splits())

@@ -22,6 +22,7 @@ public:
    ~MainWindow();
 
 public slots:
+   void on_actionImportYnab_triggered();
    void showBudget(Transaction const& transaction);
    void showTransaction(Transaction const& transaction);
 
