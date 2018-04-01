@@ -25,4 +25,6 @@ SOURCES += \
    ynabregister.cpp
 FORMS += \
    mainwindow.ui
+OTHER_FILES += \
+   CashPiles_File_Format.txt
 TARGET = CashPiles
