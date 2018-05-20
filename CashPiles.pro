@@ -3,6 +3,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
+   include/csvreader.h \
    include/ledger.h \
    include/ledgeraccount.h \
    include/ledgeraccountcommand.h \
@@ -21,6 +22,7 @@ HEADERS += \
    include/nativetransactionentry.h \
    include/settingsdialog.h
 SOURCES += \
+   src/csvreader.cpp \
    src/ledger.cpp \
    src/ledgeraccount.cpp \
    src/ledgeraccountcommand.cpp \

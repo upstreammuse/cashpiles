@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QTimer>
+#include "csvreader.h"
 #include "ledger.h"
 #include "nativemodel.h"
 #include "nativereader.h"
@@ -12,9 +13,12 @@ int main(int argc, char** argv)
    NativeModel model;
    NativeReader reader;
    SettingsDialog sd;
+   CsvReader ynabRegisterReader;
 
    QObject::connect(&sd, SIGNAL(nativeFileSelected(QString)),
                     &reader, SLOT(readAll(QString)));
+   QObject::connect(&sd, SIGNAL(ynabFileSelected(QString)),
+                    &ynabRegisterReader, SLOT(readAll(QString)));
 
    QObject::connect(&reader, SIGNAL(account(NativeAccountCommand)),
                     &model, SLOT(parseAccount(NativeAccountCommand)));
