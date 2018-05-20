@@ -1,26 +1,26 @@
 TEMPLATE = app
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 HEADERS += \
-   datatable.h \
-   tabtable.h \
-   tabtablerow.h \
-   datatablefactory.h \
-   datatablerow.h \
-    txntable.h \
-    txn.h \
-    account.h \
-    averager.h
+   src/datatable.h \
+   src/tabtable.h \
+   src/tabtablerow.h \
+   src/datatablefactory.h \
+   src/datatablerow.h \
+    src/txntable.h \
+    src/txn.h \
+    src/account.h \
+    src/averager.h
 SOURCES += \
-   datatable.cpp \
-   tabtable.cpp \
-   tabtablerow.cpp \
-   datatablefactory.cpp \
-   datatablerow.cpp \
-    txntable.cpp \
-    txn.cpp \
-    account.cpp \
-    main.cpp \
-    averager.cpp
+   src/datatable.cpp \
+   src/tabtable.cpp \
+   src/tabtablerow.cpp \
+   src/datatablefactory.cpp \
+   src/datatablerow.cpp \
+    src/txntable.cpp \
+    src/txn.cpp \
+    src/account.cpp \
+    src/main.cpp \
+    src/averager.cpp
 OTHER_FILES += \
     README.md \
     data.txt
