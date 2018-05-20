@@ -4,10 +4,8 @@
 
 #include <QApplication>
 #include <QTimer>
-#include "accountant.h"
 #include "csvreader.h"
 #include "mainwindow.h"
-#include "settingsdialog.h"
 #include "ynabbudget.h"
 #include "ynabregister.h"
 
@@ -16,19 +14,12 @@ int main(int argc, char** argv)
    QApplication app(argc, argv);
    MainWindow mw;
    mw.show();
-   SettingsDialog sd;
-   sd.show();
-
-   Accountant accounts;
 
    CsvReader registerReader("register.csv");
    YnabRegister reg;
    QObject::connect(&registerReader, SIGNAL(record(QHash<QString,QString>)),
                     &reg, SLOT(appendRecord(QHash<QString,QString>)));
    QObject::connect(&registerReader, SIGNAL(done()), &reg, SLOT(showTrans()));
-   QObject::connect(&reg, SIGNAL(transaction(Transaction)),
-                    &accounts, SLOT(appendTransaction(Transaction)));
-   QObject::connect(&reg, SIGNAL(finished()), &accounts, SLOT(checkAccounts()));
    QObject::connect(&reg, SIGNAL(transaction(Transaction)),
                     &mw, SLOT(showTransaction(Transaction)));
 
