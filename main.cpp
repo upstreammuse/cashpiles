@@ -7,6 +7,7 @@
 #include "accountant.h"
 #include "csvreader.h"
 #include "mainwindow.h"
+#include "settingsdialog.h"
 #include "ynabbudget.h"
 #include "ynabregister.h"
 
@@ -15,6 +16,8 @@ int main(int argc, char** argv)
    QApplication app(argc, argv);
    MainWindow mw;
    mw.show();
+   SettingsDialog sd;
+   sd.show();
 
    Accountant accounts;
 

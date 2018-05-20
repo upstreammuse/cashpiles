@@ -11,7 +11,8 @@ HEADERS += \
    transaction.h \
    transactionsplit.h \
    ynabbudget.h \
-   ynabregister.h
+   ynabregister.h \
+    settingsdialog.h
 SOURCES += \
    account.cpp \
    accountant.cpp \
@@ -22,9 +23,11 @@ SOURCES += \
    transaction.cpp \
    transactionsplit.cpp \
    ynabbudget.cpp \
-   ynabregister.cpp
+   ynabregister.cpp \
+    settingsdialog.cpp
 FORMS += \
-   mainwindow.ui
+   mainwindow.ui \
+    settingsdialog.ui
 OTHER_FILES += \
    CashPiles_File_Format.txt
 TARGET = CashPiles
