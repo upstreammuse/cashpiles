@@ -3,16 +3,20 @@
 
 #include <QDate>
 #include <QMap>
-#include "ledgercommand.h"
+#include "ledgeritem.h"
 
-class LedgerBudgetAllocation : public LedgerCommand
+class LedgerBudgetAllocation : public LedgerItem
 {
 public:
-   LedgerBudgetAllocation(int item, int line);
+   LedgerBudgetAllocation(QString const& filename, int lineNum);
+
    QMap<QString, int> allocations() const;
    void appendAllocation(QString const& category, int amount);
+
    QDate date() const;
    void setDate(QDate const& date);
+
+   void processItem(ItemProcessor* processor);
 
 private:
    QMap<QString, int> m_allocations;

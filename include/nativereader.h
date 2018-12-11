@@ -2,10 +2,7 @@
 #define NATIVEREADER_H
 
 #include <QObject>
-#include "nativeaccountcommand.h"
-#include "nativebudgetcommand.h"
-#include "nativecomment.h"
-#include "nativetransaction.h"
+#include "ledgeraccountcommand.h"
 
 class QIODevice;
 
@@ -14,17 +11,14 @@ class NativeReader : public QObject
    Q_OBJECT
 
 public:
-   explicit NativeReader(QObject* parent = nullptr);
+   explicit NativeReader(QString const& filename, QObject* parent = nullptr);
 
 public slots:
-   void readAll(QString const& filename);
+   void readAll();
 
 signals:
-   void account(NativeAccountCommand const& accountCommand);
-   void budget(NativeBudgetCommand const& budgetCommand);
-   void comment(NativeComment const& comment);
+   void item(LedgerItem*);
    void finished();
-   void transaction(NativeTransaction const& transaction);
 
 private:
    int nextItemNum();
@@ -39,7 +33,14 @@ private:
    void unReadLine(QString const& line);
 
 private:
+   int parseCurrency(QString curr, int line);
+   QDate parseDate(QString const& date, int line);
+   LedgerAccountCommand::Mode parseMode(QString const& command, int line);
+
+private:
+   int m_decimalDigits = -1;
    QIODevice* m_file = nullptr;
+   QString m_filename;
    int m_itemNum = 0;
    int m_lineNum = 0;
    QStringList m_lines;

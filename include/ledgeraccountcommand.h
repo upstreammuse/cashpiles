@@ -3,9 +3,9 @@
 
 #include <QDate>
 #include <QString>
-#include "ledgercommand.h"
+#include "ledgeritem.h"
 
-class LedgerAccountCommand : public LedgerCommand
+class LedgerAccountCommand : public LedgerItem
 {
 public:
    enum class Mode
@@ -16,13 +16,18 @@ public:
    };
 
 public:
-   LedgerAccountCommand(int seqNum, int lineNum);
+   LedgerAccountCommand(QString const& filename, int lineNum);
+
    QString account() const;
-   QDate date() const;
-   Mode mode() const;
    void setAccount(QString const& account);
+
+   QDate date() const;
    void setDate(QDate const& date);
+
+   Mode mode() const;
    void setMode(Mode mode);
+
+   void processItem(ItemProcessor* processor);
 
 private:
    QString m_account;

@@ -3,28 +3,37 @@
 
 #include <QDate>
 #include <QList>
-#include "ledgercommand.h"
 #include "ledgertransactionentry.h"
+#include "ledgeritem.h"
 
-class LedgerTransaction : public LedgerCommand
+class LedgerTransaction : public LedgerItem
 {
 public:
-   LedgerTransaction(int seqNum, int lineNum);
+   LedgerTransaction(QString const& filename, int lineNum);
 
    QString account() const;
    void setAccount(QString const& account);
 
+   int amount() const;
+
+   int balance() const;
+   bool hasBalance() const;
    void setBalance(int balance);
 
+   bool cleared() const;
    void setCleared(bool cleared);
 
    QDate date() const;
    void setDate(QDate const& date);
 
+   QString note() const;
+   bool hasNote() const;
    void setNote(QString const& note);
 
    QList<LedgerTransactionEntry> const& entries() const;
    void appendEntry(LedgerTransactionEntry const& entry);
+
+   void processItem(ItemProcessor* processor);
 
 private:
    QString m_account;

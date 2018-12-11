@@ -3,6 +3,10 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+#include "ledgeraccountcommand.h"
+#include "ledgerbudgetallocation.h"
+#include "ledgercomment.h"
+#include "ledgertransaction.h"
 
 namespace
 {
@@ -57,17 +61,18 @@ namespace
          CURR_RX.arg("amount") + OPTIONAL_RX.arg(SPACE_RX + NOTE_RX) + END_RX);
 }
 
-NativeReader::NativeReader(QObject *parent) :
-   QObject(parent)
+NativeReader::NativeReader(QString const& filename, QObject *parent) :
+   QObject(parent),
+   m_filename(filename)
 {
 }
 
-void NativeReader::readAll(QString const& filename)
+void NativeReader::readAll()
 {
-   m_file = new QFile(filename, this);
+   m_file = new QFile(m_filename, this);
    if (!m_file->open(QIODevice::ReadOnly | QIODevice::Text))
    {
-      qWarning("Unable to open file %s", qPrintable(filename));
+      qWarning("Unable to open file %s", qPrintable(m_filename));
    }
    while (m_file && !m_file->atEnd())
    {
@@ -85,24 +90,26 @@ int NativeReader::nextItemNum()
 
 void NativeReader::processAccount(QRegularExpressionMatch const& match)
 {
-   NativeAccountCommand accountCommand(nextItemNum(), m_lineNum);
-   accountCommand.setAccount(match.captured("account"));
-   accountCommand.setCommand(match.captured("command"));
-   accountCommand.setDate(match.captured("date"));
-   emit account(accountCommand);
+   // TODO fix this crap
+   LedgerAccountCommand* accountCommand =
+         new LedgerAccountCommand(((QFile*)m_file)->fileName(), m_lineNum);
+   accountCommand->setAccount(match.captured("account"));
+   accountCommand->setDate(parseDate(match.captured("date"), m_lineNum));
+   accountCommand->setMode(parseMode(match.captured("command"), m_lineNum));
+   emit item(accountCommand);
 }
 
 void NativeReader::processBudget(QRegularExpressionMatch& match)
 {
-   NativeBudgetCommand budgetCommand(nextItemNum(), m_lineNum);
-   budgetCommand.setDate(match.captured("date"));
+   LedgerBudgetAllocation* budgetCommand = new LedgerBudgetAllocation("TODO", m_lineNum);
+   budgetCommand->setDate(parseDate(match.captured("date"), m_lineNum));
    forever
    {
       QString line(readLine());
       if ((match = budgetLineRx.match(line)).hasMatch())
       {
-         budgetCommand.appendAllocation(match.captured("category"),
-                                        match.captured("amount"));
+         budgetCommand->appendAllocation(match.captured("category"),
+                                         parseCurrency(match.captured("amount"), m_lineNum));
       }
       else
       {
@@ -110,61 +117,81 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
          break;
       }
    }
-   emit budget(budgetCommand);
+   emit item(budgetCommand);
 }
 
 void NativeReader::processComment(QRegularExpressionMatch const& match)
 {
-   NativeComment comment_(nextItemNum(), m_lineNum);
-   comment_.setNote(match.captured("note"));
-   emit comment(comment_);
+   LedgerComment* comment = new LedgerComment("TODO", m_lineNum);
+   comment->setNote(match.captured("note"));
+   emit item(comment);
 }
 
 void NativeReader::processCompactTransaction(
       QRegularExpressionMatch const& match)
 {
-   NativeTransaction transaction_(nextItemNum(), m_lineNum);
-   transaction_.setAccount(match.captured("account"));
-   transaction_.setAmount(match.captured("amount"));
+   // TODO fix this
+   LedgerTransaction* transaction = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
+   transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction_.setBalance(match.captured("balance"));
+      transaction->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
    }
-   transaction_.setCleared(match.captured("cleared"));
-   transaction_.setDate(match.captured("date"));
+   transaction->setCleared(match.captured("cleared") == "*");
+   transaction->setDate(parseDate(match.captured("date"), m_lineNum));
    if (!match.captured("note").isEmpty())
    {
-      transaction_.setNote(match.captured("note"));
+      transaction->setNote(match.captured("note"));
    }
-   NativeTransactionEntry entry;
-   entry.setAmount(match.captured("amount"));
+
+   LedgerTransactionEntry entry;
+   entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
    entry.setCategory(match.captured("category"));
-   entry.setPayee(match.captured("payee"));
-   transaction_.appendEntry(entry);
-   emit transaction(transaction_);
+   if (match.captured("payee").startsWith("@"))
+   {
+      entry.setPayee(match.captured("payee").mid(1));
+      entry.setTransfer(true);
+   }
+   else
+   {
+      entry.setPayee(match.captured("payee"));
+   }
+   transaction->appendEntry(entry);
+
+   emit item(transaction);
 }
 
 void NativeReader::processCompactTransactionOff(
       QRegularExpressionMatch const& match)
 {
-   NativeTransaction transaction_(nextItemNum(), m_lineNum);
-   transaction_.setAccount(match.captured("account"));
-   transaction_.setAmount(match.captured("amount"));
+   // TODO fix this
+   LedgerTransaction* transaction = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
+   transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction_.setBalance(match.captured("balance"));
+      transaction->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
    }
-   transaction_.setCleared(match.captured("cleared"));
-   transaction_.setDate(match.captured("date"));
+   transaction->setCleared(match.captured("cleared") == "*");
+   transaction->setDate(parseDate(match.captured("date"), m_lineNum));
    if (!match.captured("note").isEmpty())
    {
-      transaction_.setNote(match.captured("note"));
+      transaction->setNote(match.captured("note"));
    }
-   NativeTransactionEntry entry;
-   entry.setAmount(match.captured("amount"));
-   entry.setPayee(match.captured("payee"));
-   transaction_.appendEntry(entry);
-   emit transaction(transaction_);
+
+   LedgerTransactionEntry entry;
+   entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
+   if (match.captured("payee").startsWith("@"))
+   {
+      entry.setPayee(match.captured("payee").mid(1));
+      entry.setTransfer(true);
+   }
+   else
+   {
+      entry.setPayee(match.captured("payee"));
+   }
+   transaction->appendEntry(entry);
+
+   emit item(transaction);
 }
 
 void NativeReader::processLine(QString const& line)
@@ -203,18 +230,19 @@ void NativeReader::processLine(QString const& line)
 
 void NativeReader::processTransaction(QRegularExpressionMatch& match)
 {
-   NativeTransaction xact(nextItemNum(), m_lineNum);
-   xact.setAccount(match.captured("account"));
-   xact.setAmount(match.captured("amount"));
+   // TODO fix this
+   LedgerTransaction* xact = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
+
+   xact->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      xact.setBalance(match.captured("balance"));
+      xact->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
    }
-   xact.setCleared(match.captured("cleared"));
-   xact.setDate(match.captured("date"));
+   xact->setCleared(match.captured("cleared") == "*");
+   xact->setDate(parseDate(match.captured("date"), m_lineNum));
    if (!match.captured("note").isEmpty())
    {
-      xact.setNote(match.captured("note"));
+      xact->setNote(match.captured("note"));
    }
 
    forever
@@ -222,26 +250,42 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       QString line(readLine());
       if ((match = txnLineRx.match(line)).hasMatch())
       {
-         NativeTransactionEntry entry;
-         entry.setAmount(match.captured("amount"));
+         LedgerTransactionEntry entry;
+         entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
          entry.setCategory(match.captured("category"));
          if (!match.captured("note").isEmpty())
          {
             entry.setNote(match.captured("note"));
          }
-         entry.setPayee(match.captured("payee"));
-         xact.appendEntry(entry);
+         if (match.captured("payee").startsWith("@"))
+         {
+            entry.setPayee(match.captured("payee").mid(1));
+            entry.setTransfer(true);
+         }
+         else
+         {
+            entry.setPayee(match.captured("payee"));
+         }
+         xact->appendEntry(entry);
       }
       else if ((match = txnLineOffRx.match(line)).hasMatch())
       {
-         NativeTransactionEntry entry;
-         entry.setAmount(match.captured("amount"));
+         LedgerTransactionEntry entry;
+         entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
          if (!match.captured("note").isEmpty())
          {
             entry.setNote(match.captured("note"));
          }
-         entry.setPayee(match.captured("payee"));
-         xact.appendEntry(entry);
+         if (match.captured("payee").startsWith("@"))
+         {
+            entry.setPayee(match.captured("payee").mid(1));
+            entry.setTransfer(true);
+         }
+         else
+         {
+            entry.setPayee(match.captured("payee"));
+         }
+         xact->appendEntry(entry);
       }
       else
       {
@@ -250,7 +294,7 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       }
    }
 
-   emit transaction(xact);
+   emit item(xact);
 }
 
 QString NativeReader::readLine()
@@ -277,4 +321,68 @@ void NativeReader::unReadLine(QString const& line)
 {
    --m_lineNum;
    m_lines.push_back(line);
+}
+
+int NativeReader::parseCurrency(QString curr, int line)
+{
+   curr.remove(QLocale::system().currencySymbol());
+   curr.remove(QLocale::system().groupSeparator());
+   int decimalIndex = curr.indexOf(QLocale::system().decimalPoint());
+   int decimalDigits = curr.length() - decimalIndex - 1;
+   if (m_decimalDigits == -1)
+   {
+      m_decimalDigits = decimalDigits;
+   }
+   else if (m_decimalDigits != decimalDigits)
+   {
+      qWarning("Inconsistent number of decimal digits, line %d", line);
+      exit(EXIT_FAILURE);
+   }
+   curr.remove(QLocale::system().decimalPoint());
+   bool success;
+   int retval = curr.toInt(&success);
+   if (!success)
+   {
+      qWarning("Could not understand currency, line %d", line);
+      exit(EXIT_FAILURE);
+   }
+   return retval;
+}
+
+QDate NativeReader::parseDate(QString const& date, int line)
+{
+   // TODO let this be dynamic to accept dates in any unambiguous format
+   QDate d(QDate::fromString(date, Qt::SystemLocaleShortDate));
+   if (!d.isValid())
+   {
+      qWarning("Unable to read date '%s', expected something like '%s', line "
+               "%d", qPrintable(date),
+               qPrintable(QLocale::system().dateFormat(QLocale::ShortFormat)),
+               line);
+      exit(EXIT_FAILURE);
+   }
+   return d;
+}
+
+LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command,
+                                                   int line)
+{
+   if (command == "on-budget")
+   {
+      return LedgerAccountCommand::Mode::ON_BUDGET;
+   }
+   else if (command == "off-budget")
+   {
+      return LedgerAccountCommand::Mode::OFF_BUDGET;
+   }
+   else if (command == "close")
+   {
+      return LedgerAccountCommand::Mode::CLOSED;
+   }
+   else
+   {
+      qWarning("Unknown account command '%s', line %d",
+               qPrintable(command), line);
+      return LedgerAccountCommand::Mode::CLOSED;
+   }
 }

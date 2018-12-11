@@ -1,7 +1,9 @@
 #include "ledgercomment.h"
 
-LedgerComment::LedgerComment(int seqNum, int lineNum) :
-   LedgerCommand(seqNum, lineNum)
+#include "itemprocessor.h"
+
+LedgerComment::LedgerComment(QString const& filename, int lineNum) :
+   LedgerItem(filename, lineNum)
 {
 }
 
@@ -13,4 +15,9 @@ QString LedgerComment::note() const
 void LedgerComment::setNote(QString const& note)
 {
    m_note = note;
+}
+
+void LedgerComment::processItem(ItemProcessor* processor)
+{
+   processor->processItem(*this);
 }

@@ -28,7 +28,7 @@ private:
    QString m_category;
    bool m_hasCategory = false;
    QString m_note;
-   bool m_hasNote;
+   bool m_hasNote = false;
    QString m_payee;
    bool m_transfer = false;
 };

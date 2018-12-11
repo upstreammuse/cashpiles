@@ -1,7 +1,10 @@
 #include "ledgerbudgetallocation.h"
 
-LedgerBudgetAllocation::LedgerBudgetAllocation(int item, int line) :
-   LedgerCommand(item, line)
+#include "itemprocessor.h"
+
+LedgerBudgetAllocation::LedgerBudgetAllocation(QString const& filename,
+                                               int lineNum) :
+   LedgerItem(filename, lineNum)
 {
 }
 
@@ -10,7 +13,8 @@ QMap<QString, int> LedgerBudgetAllocation::allocations() const
    return m_allocations;
 }
 
-void LedgerBudgetAllocation::appendAllocation(QString const& category, int amount)
+void LedgerBudgetAllocation::appendAllocation(QString const& category,
+                                              int amount)
 {
    if (!m_allocations.contains(category))
    {
@@ -27,4 +31,9 @@ QDate LedgerBudgetAllocation::date() const
 void LedgerBudgetAllocation::setDate(QDate const& date)
 {
    m_date = date;
+}
+
+void LedgerBudgetAllocation::processItem(ItemProcessor* processor)
+{
+   processor->processItem(*this);
 }

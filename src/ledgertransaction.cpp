@@ -1,7 +1,9 @@
 #include "ledgertransaction.h"
 
-LedgerTransaction::LedgerTransaction(int seqNum, int lineNum) :
-   LedgerCommand(seqNum, lineNum)
+#include "itemprocessor.h"
+
+LedgerTransaction::LedgerTransaction(QString const& filename, int lineNum) :
+   LedgerItem(filename, lineNum)
 {
 }
 
@@ -50,4 +52,9 @@ QList<LedgerTransactionEntry> const& LedgerTransaction::entries() const
 void LedgerTransaction::appendEntry(LedgerTransactionEntry const& entry)
 {
    m_entries.append(entry);
+}
+
+void LedgerTransaction::processItem(ItemProcessor* processor)
+{
+   processor->processItem(*this);
 }

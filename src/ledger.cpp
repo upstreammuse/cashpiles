@@ -17,8 +17,33 @@ seqnum is strict ordering with no missing numbers
 dates must always be >= to previous date
 #endif
 
+Ledger::Ledger(QObject *parent) :
+   QObject(parent)
+{
+}
+
+void Ledger::processItem(LedgerItem* item)
+{
+   foreach (ItemProcessor* processor, m_processors)
+   {
+      item->processItem(processor);
+   }
+}
+
+void Ledger::start()
+{
+   emit started();
+}
+
+void Ledger::stop()
+{
+   emit finished();
+}
+
+#if 0
 void Ledger::allocateBudget(LedgerBudgetAllocation const& allocation)
 {
+   processLedgerCommand(&allocation);
    validateDate(allocation.date(), allocation.lineNum());
    QMap<QString, int> allocations(allocation.allocations());
    for (QMap<QString, int>::iterator it(allocations.begin());
@@ -42,6 +67,7 @@ void Ledger::allocateBudget(LedgerBudgetAllocation const& allocation)
 
 void Ledger::changeAccount(LedgerAccountCommand const& command)
 {
+   processLedgerCommand(&command);
    validateDate(command.date(), command.lineNum());
    switch (command.mode())
    {
@@ -90,11 +116,13 @@ void Ledger::changeAccount(LedgerAccountCommand const& command)
 
 void Ledger::comment(LedgerComment const& comment)
 {
+   processLedgerCommand(&comment);
    qDebug("Comment note '%s'", qPrintable(comment.note()));
 }
 
-void Ledger::transact(LedgerTransaction const& transaction)
+void Ledger::transact(Transaction const& transaction)
 {
+   processLedgerCommand(&transaction);
    validateDate(transaction.date(), transaction.lineNum());
    if (!m_accounts.contains(transaction.account()))
    {
@@ -121,6 +149,11 @@ void Ledger::transact(LedgerTransaction const& transaction)
    }
 }
 
+void Ledger::processLedgerCommand(LedgerCommand const* command)
+{
+   m_commands.append(command->clone());
+}
+
 void Ledger::validateDate(QDate const& date, int line)
 {
    if (m_latestDate.isValid() && date < m_latestDate)
@@ -134,3 +167,4 @@ void Ledger::validateDate(QDate const& date, int line)
       m_latestDate = date;
    }
 }
+#endif

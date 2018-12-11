@@ -1,23 +1,19 @@
 #include "csvreader.h"
 
-#include <QFile>
-#include <QHash>
-#include <QMessageBox>
+#include <QDebug>
 
-CsvReader::CsvReader(QObject* parent) :
-   QObject(parent)
+CsvReader::CsvReader(QString const& filename, QObject* parent) :
+   QObject(parent),
+   m_file(filename)
 {
 }
 
-void CsvReader::readAll(QString const& filename)
+void CsvReader::readAll()
 {
-   QFile f(filename);
-   if (!f.open(QIODevice::ReadOnly))
+   if (!m_file.open(QIODevice::ReadOnly))
    {
-      QMessageBox::critical(
-               0, "File not found",
-               QString("Could not open the specified CSV file\n(%1)").arg(
-                  filename));
+      qCritical() << QString("Could not open the specified CSV file (%1)").arg(
+                        m_file.fileName());
       return;
    }
 
@@ -30,9 +26,10 @@ void CsvReader::readAll(QString const& filename)
    QString fieldValue;
    QStringList header;
    QByteArray line;
+   int lineNum = 1;
    QHash<QString, QString> record_;
 
-   while (!(line = f.readLine()).isEmpty())
+   while (!(line = m_file.readLine()).isEmpty())
    {
       foreach (char const c, line)
       {
@@ -90,10 +87,9 @@ void CsvReader::readAll(QString const& filename)
                   fieldStatus = QUOTED;
                   break;
                case CLOSED:
-                  QMessageBox::critical(
-                           0, "Error in file",
-                           "There was an error in the CSV file.  An extra "
-                           "quote was found when a comma was expected.");
+                  qCritical() << "There was an error in the CSV file.  An "
+                                 "extra quote was found when a comma was "
+                                 "expected.";
                   return;
             }
          }
@@ -119,10 +115,9 @@ void CsvReader::readAll(QString const& filename)
                   fieldStatus = QUOTED;
                   break;
                case CLOSED:
-                  QMessageBox::critical(
-                           0, "Error in file",
-                           "There was an error in the CSV file.  An extra "
-                           "backslash was found when a comma was expected.");
+                  qCritical() << "There was an error in the CSV file.  An "
+                                 "extra backslash was found when a comma was "
+                                 "expected.";
                   return;
             }
          }
@@ -150,15 +145,14 @@ void CsvReader::readAll(QString const& filename)
                   }
                   else if (expectedFieldCount == fieldCount)
                   {
-                     emit record(record_);
+                     emit record(record_, m_file.fileName(), lineNum);
                      record_.clear();
                   }
                   else if (expectedFieldCount != fieldCount)
                   {
-                     QMessageBox::critical(
-                              0, "Error in file",
-                              "There was an error in the CSV file.  The end of "
-                              "a line was found when more text was expected.");
+                     qCritical() << "There was an error in the CSV file.  The "
+                                    "end of a line was found when more text "
+                                    "was expected.";
                      return;
                   }
                   fieldCount = 0;
@@ -175,6 +169,7 @@ void CsvReader::readAll(QString const& filename)
                   fieldStatus = QUOTED;
                   break;
             }
+            ++lineNum;
          }
          else if (c >= ' ')
          {
@@ -183,6 +178,6 @@ void CsvReader::readAll(QString const& filename)
       }
    }
 
-   f.close();
+   m_file.close();
    emit finished();
 }
