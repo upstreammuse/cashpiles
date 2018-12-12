@@ -27,6 +27,8 @@ private:
    };
 
 private:
+   void commitField();
+   bool commitRecord();
    void error(QString const& message, bool withLineNum = true);
    bool parseBackslash();
    bool parseChar(char c);

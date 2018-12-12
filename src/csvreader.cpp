@@ -44,6 +44,40 @@ void CsvReader::readAll()
    emit finished();
 }
 
+void CsvReader::commitField()
+{
+   if (m_waitingForHeader)
+   {
+      m_header.append(m_fieldValue);
+   }
+   else
+   {
+      m_record[m_header[m_fieldIndex]] = m_fieldValue;
+   }
+   m_fieldValue.clear();
+   ++m_fieldIndex;
+}
+
+bool CsvReader::commitRecord()
+{
+   if (m_waitingForHeader)
+   {
+      m_waitingForHeader = false;
+   }
+   else if (m_header.size() == m_fieldIndex)
+   {
+      emit record(m_record, m_fileName, m_lineNum);
+      m_record.clear();
+   }
+   else
+   {
+      error("The end of a line was found when more text was expected");
+      return false;
+   }
+   m_fieldIndex = 0;
+   return true;
+}
+
 void CsvReader::error(QString const& message, bool withLineNum)
 {
    std::cerr << "Error in CSV file '" << qPrintable(m_fileName) << "'";
@@ -116,16 +150,7 @@ void CsvReader::parseComma()
       case EMPTY:
       case NORMAL:
       case CLOSED:
-         if (m_waitingForHeader)
-         {
-            m_header.append(m_fieldValue);
-         }
-         else
-         {
-            m_record[m_header[m_fieldIndex]] = m_fieldValue;
-         }
-         m_fieldValue.clear();
-         ++m_fieldIndex;
+         commitField();
          m_fieldMode = EMPTY;
          break;
       case NORMAL_ESCAPED:
@@ -149,32 +174,12 @@ bool CsvReader::parseNewline()
       case EMPTY:
       case NORMAL:
       case CLOSED:
-         if (m_waitingForHeader)
+         commitField();
+         if (!commitRecord())
          {
-            m_header.append(m_fieldValue);
-         }
-         else
-         {
-            m_record[m_header[m_fieldIndex]] = m_fieldValue;
-         }
-         m_fieldValue.clear();
-         ++m_fieldIndex;
-         m_fieldMode = EMPTY;
-         if (m_waitingForHeader)
-         {
-            m_waitingForHeader = false;
-         }
-         else if (m_header.size() == m_fieldIndex)
-         {
-            emit record(m_record, m_fileName, m_lineNum);
-            m_record.clear();
-         }
-         else
-         {
-            error("The end of a line was found when more text was expected");
             return false;
          }
-         m_fieldIndex = 0;
+         m_fieldMode = EMPTY;
          break;
       case NORMAL_ESCAPED:
          m_fieldValue += '\n';
