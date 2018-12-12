@@ -1,183 +1,220 @@
+// Updated 12/11 for refactor
+
 #include "csvreader.h"
 
-#include <QDebug>
+#include <iostream>
 
-CsvReader::CsvReader(QString const& filename, QObject* parent) :
+CsvReader::CsvReader(QString const& fileName, QObject* parent) :
    QObject(parent),
-   m_file(filename)
+   m_file(new QFile(fileName, this)),
+   m_fileName(fileName)
 {
 }
 
 void CsvReader::readAll()
 {
-   if (!m_file.open(QIODevice::ReadOnly))
+   if (!m_file->open(QIODevice::ReadOnly))
    {
-      qCritical() << QString("Could not open the specified CSV file (%1)").arg(
-                        m_file.fileName());
+      error("Could not open the CSV file", false);
+      emit finished();
       return;
    }
 
-   int expectedFieldCount = 0;
-   int fieldCount = 0;
-   enum
-   {
-      EMPTY, NORMAL, NORMAL_ESCAPED, QUOTED, QUOTED_ESCAPED, CLOSED
-   } fieldStatus = EMPTY;
-   QString fieldValue;
-   QStringList header;
    QByteArray line;
-   int lineNum = 1;
-   QHash<QString, QString> record_;
-
-   while (!(line = m_file.readLine()).isEmpty())
+   while (!(line = m_file->readLine()).isEmpty())
    {
+      ++m_lineNum;
       foreach (char const c, line)
       {
-         if (c == ',')
+         bool ok = true;
+         if (c == ',') parseComma();
+         else if (c == '"') ok = parseQuote();
+         else if (c == '\\') ok = parseBackslash();
+         else if (c == '\n') ok = parseNewline();
+         else if (c >= ' ') ok = parseChar(c);
+         if (!ok)
          {
-            switch (fieldStatus)
-            {
-               case EMPTY:
-               case NORMAL:
-               case CLOSED:
-                  if (expectedFieldCount == 0)
-                  {
-                     header.append(fieldValue);
-                  }
-                  else
-                  {
-                     record_[header[fieldCount]] = fieldValue;
-                  }
-                  fieldValue.clear();
-                  ++fieldCount;
-                  fieldStatus = EMPTY;
-                  break;
-               case NORMAL_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = NORMAL;
-                  break;
-               case QUOTED:
-                  fieldValue += c;
-                  break;
-               case QUOTED_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = QUOTED;
-                  break;
-            }
-         }
-         else if (c == '"')
-         {
-            switch (fieldStatus)
-            {
-               case EMPTY:
-                  fieldStatus = QUOTED;
-                  break;
-               case NORMAL:
-                  fieldValue += c;
-                  break;
-               case NORMAL_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = NORMAL;
-                  break;
-               case QUOTED:
-                  fieldStatus = CLOSED;
-                  break;
-               case QUOTED_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = QUOTED;
-                  break;
-               case CLOSED:
-                  qCritical() << "There was an error in the CSV file.  An "
-                                 "extra quote was found when a comma was "
-                                 "expected.";
-                  return;
-            }
-         }
-         else if (c == '\\')
-         {
-            switch (fieldStatus)
-            {
-               case EMPTY:
-                  fieldStatus = NORMAL_ESCAPED;
-                  break;
-               case NORMAL:
-                  fieldStatus = NORMAL_ESCAPED;
-                  break;
-               case NORMAL_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = NORMAL;
-                  break;
-               case QUOTED:
-                  fieldStatus = QUOTED_ESCAPED;
-                  break;
-               case QUOTED_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = QUOTED;
-                  break;
-               case CLOSED:
-                  qCritical() << "There was an error in the CSV file.  An "
-                                 "extra backslash was found when a comma was "
-                                 "expected.";
-                  return;
-            }
-         }
-         else if (c == '\n')
-         {
-            switch (fieldStatus)
-            {
-               case EMPTY:
-               case NORMAL:
-               case CLOSED:
-                  if (expectedFieldCount == 0)
-                  {
-                     header.append(fieldValue);
-                  }
-                  else
-                  {
-                     record_[header[fieldCount]] = fieldValue;
-                  }
-                  fieldValue.clear();
-                  ++fieldCount;
-                  fieldStatus = EMPTY;
-                  if (expectedFieldCount == 0)
-                  {
-                     expectedFieldCount = fieldCount;
-                  }
-                  else if (expectedFieldCount == fieldCount)
-                  {
-                     emit record(record_, m_file.fileName(), lineNum);
-                     record_.clear();
-                  }
-                  else if (expectedFieldCount != fieldCount)
-                  {
-                     qCritical() << "There was an error in the CSV file.  The "
-                                    "end of a line was found when more text "
-                                    "was expected.";
-                     return;
-                  }
-                  fieldCount = 0;
-                  break;
-               case NORMAL_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = NORMAL;
-                  break;
-               case QUOTED:
-                  fieldValue += c;
-                  break;
-               case QUOTED_ESCAPED:
-                  fieldValue += c;
-                  fieldStatus = QUOTED;
-                  break;
-            }
-            ++lineNum;
-         }
-         else if (c >= ' ')
-         {
-            fieldValue += c;
+            emit finished();
+            return;
          }
       }
    }
 
-   m_file.close();
+   m_file->close();
    emit finished();
+}
+
+void CsvReader::error(QString const& message, bool withLineNum)
+{
+   std::cerr << "Error in CSV file '" << qPrintable(m_fileName) << "'";
+   if (withLineNum)
+   {
+      std::cerr << ", line " << m_lineNum;
+   }
+   std::cerr << ":  " << qPrintable(message) << std::endl;;
+}
+
+bool CsvReader::parseBackslash()
+{
+   switch (m_fieldMode)
+   {
+      case EMPTY:
+         m_fieldMode = NORMAL_ESCAPED;
+         break;
+      case NORMAL:
+         m_fieldMode = NORMAL_ESCAPED;
+         break;
+      case NORMAL_ESCAPED:
+         m_fieldValue += '\\';
+         m_fieldMode = NORMAL;
+         break;
+      case QUOTED:
+         m_fieldMode = QUOTED_ESCAPED;
+         break;
+      case QUOTED_ESCAPED:
+         m_fieldValue += '\\';
+         m_fieldMode = QUOTED;
+         break;
+      case CLOSED:
+         error("An extra backslash was found when a comma was expected");
+         return false;
+   }
+   return true;
+}
+
+bool CsvReader::parseChar(char c)
+{
+   switch (m_fieldMode)
+   {
+      case EMPTY:
+         m_fieldValue += c;
+         m_fieldMode = NORMAL;
+         break;
+      case NORMAL:
+      case QUOTED:
+         m_fieldValue += c;
+         break;
+      case NORMAL_ESCAPED:
+         m_fieldValue += c;
+         m_fieldMode = NORMAL;
+         break;
+      case QUOTED_ESCAPED:
+         m_fieldValue += c;
+         m_fieldMode = QUOTED;
+         break;
+      case CLOSED:
+         error("Extra text was found when a comma was expected");
+         return false;
+   }
+   return true;
+}
+
+void CsvReader::parseComma()
+{
+   switch (m_fieldMode)
+   {
+      case EMPTY:
+      case NORMAL:
+      case CLOSED:
+         if (m_waitingForHeader)
+         {
+            m_header.append(m_fieldValue);
+         }
+         else
+         {
+            m_record[m_header[m_fieldIndex]] = m_fieldValue;
+         }
+         m_fieldValue.clear();
+         ++m_fieldIndex;
+         m_fieldMode = EMPTY;
+         break;
+      case NORMAL_ESCAPED:
+         m_fieldValue += ',';
+         m_fieldMode = NORMAL;
+         break;
+      case QUOTED:
+         m_fieldValue += ',';
+         break;
+      case QUOTED_ESCAPED:
+         m_fieldValue += ',';
+         m_fieldMode = QUOTED;
+         break;
+   }
+}
+
+bool CsvReader::parseNewline()
+{
+   switch (m_fieldMode)
+   {
+      case EMPTY:
+      case NORMAL:
+      case CLOSED:
+         if (m_waitingForHeader)
+         {
+            m_header.append(m_fieldValue);
+         }
+         else
+         {
+            m_record[m_header[m_fieldIndex]] = m_fieldValue;
+         }
+         m_fieldValue.clear();
+         ++m_fieldIndex;
+         m_fieldMode = EMPTY;
+         if (m_waitingForHeader)
+         {
+            m_waitingForHeader = false;
+         }
+         else if (m_header.size() == m_fieldIndex)
+         {
+            emit record(m_record, m_fileName, m_lineNum);
+            m_record.clear();
+         }
+         else
+         {
+            error("The end of a line was found when more text was expected");
+            return false;
+         }
+         m_fieldIndex = 0;
+         break;
+      case NORMAL_ESCAPED:
+         m_fieldValue += '\n';
+         m_fieldMode = NORMAL;
+         break;
+      case QUOTED:
+         m_fieldValue += '\n';
+         break;
+      case QUOTED_ESCAPED:
+         m_fieldValue += '\n';
+         m_fieldMode = QUOTED;
+         break;
+   }
+   return true;
+}
+
+bool CsvReader::parseQuote()
+{
+   switch (m_fieldMode)
+   {
+      case EMPTY:
+         m_fieldMode = QUOTED;
+         break;
+      case NORMAL:
+         m_fieldValue += '"';
+         break;
+      case NORMAL_ESCAPED:
+         m_fieldValue += '"';
+         m_fieldMode = NORMAL;
+         break;
+      case QUOTED:
+         m_fieldMode = CLOSED;
+         break;
+      case QUOTED_ESCAPED:
+         m_fieldValue += '"';
+         m_fieldMode = QUOTED;
+         break;
+      case CLOSED:
+         error("An extra quote was found when a comma was expected");
+         return false;
+   }
+   return true;
 }
