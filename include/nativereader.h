@@ -11,7 +11,7 @@ class NativeReader : public QObject
    Q_OBJECT
 
 public:
-   explicit NativeReader(QString const& filename, QObject* parent = nullptr);
+   explicit NativeReader(QString const& fileName, QObject* parent = nullptr);
 
 public slots:
    void readAll();
@@ -21,7 +21,6 @@ signals:
    void finished();
 
 private:
-   int nextItemNum();
    void processAccount(QRegularExpressionMatch const& match);
    void processBudget(QRegularExpressionMatch& match);
    void processComment(QRegularExpressionMatch const& match);
@@ -40,8 +39,7 @@ private:
 private:
    int m_decimalDigits = -1;
    QIODevice* m_file = nullptr;
-   QString m_filename;
-   int m_itemNum = 0;
+   QString m_fileName;
    int m_lineNum = 0;
    QStringList m_lines;
 };

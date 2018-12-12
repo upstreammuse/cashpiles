@@ -61,18 +61,18 @@ namespace
          CURR_RX.arg("amount") + OPTIONAL_RX.arg(SPACE_RX + NOTE_RX) + END_RX);
 }
 
-NativeReader::NativeReader(QString const& filename, QObject *parent) :
+NativeReader::NativeReader(QString const& fileName, QObject *parent) :
    QObject(parent),
-   m_filename(filename)
+   m_file(new QFile(fileName, this)),
+   m_fileName(fileName)
 {
 }
 
 void NativeReader::readAll()
 {
-   m_file = new QFile(m_filename, this);
    if (!m_file->open(QIODevice::ReadOnly | QIODevice::Text))
    {
-      qWarning("Unable to open file %s", qPrintable(m_filename));
+      qWarning("Unable to open file %s", qPrintable(m_fileName));
    }
    while (m_file && !m_file->atEnd())
    {
@@ -81,11 +81,6 @@ void NativeReader::readAll()
    }
    m_file->close();
    emit finished();
-}
-
-int NativeReader::nextItemNum()
-{
-   return ++m_itemNum;
 }
 
 void NativeReader::processAccount(QRegularExpressionMatch const& match)

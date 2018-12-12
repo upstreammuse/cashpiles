@@ -1,5 +1,5 @@
+#include <iostream>
 #include <QCoreApplication>
-#include <QDebug>
 #include <QTimer>
 #include "csvreader.h"
 #include "ledger.h"
@@ -7,6 +7,13 @@
 #include "ynabbudgetreader.h"
 #include "ynabconsolidator.h"
 #include "ynabregisterreader.h"
+
+void usage(QString const& progName)
+{
+   std::cerr << "USAGE: " << qPrintable(progName)
+             << "(--file <nativefile> | --ynab <budgetfile> <registerfile>)";
+   exit(EXIT_FAILURE);
+}
 
 int main(int argc, char** argv)
 {
@@ -20,7 +27,7 @@ int main(int argc, char** argv)
       {
          if (i + 2 >= app.arguments().size())
          {
-            qFatal("Not enough arguments");
+            usage(argv[0]);
          }
          csvBudgetReader = new CsvReader(app.arguments()[i + 1], &app);
          csvRegisterReader = new CsvReader(app.arguments()[i + 2], &app);
@@ -30,20 +37,16 @@ int main(int argc, char** argv)
       {
          if (i + 1 >= app.arguments().size())
          {
-            qFatal("Not enough arguments");
+            usage(argv[0]);
          }
          nativeReader = new NativeReader(app.arguments()[i + 1], &app);
          i += 1;
       }
    }
 
-   // TODO for now implicitly allocate a basic processor
-//   EchoProcessor* echo = new EchoProcessor(&app);
    Ledger* ledger = new Ledger(&app);
    QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
-//   ledger->addProcessor(echo);
 
-   // input depends on options
    if (csvBudgetReader && csvRegisterReader)
    {
       YnabBudgetReader* ynabBudgetReader = new YnabBudgetReader(&app);
@@ -91,10 +94,9 @@ int main(int argc, char** argv)
    }
    else
    {
-      qFatal("file names not specifid correctly");
+      usage(argv[0]);
    }
 
-   // And go
    QTimer::singleShot(0, ledger, SLOT(start()));
    return app.exec();
 }
