@@ -1,19 +1,21 @@
 #ifndef ITEMPROCESSOR_H
 #define ITEMPROCESSOR_H
 
+#include <QObject>
+
 class LedgerAccountCommand;
 class LedgerBudgetAllocation;
 class LedgerComment;
 class LedgerTransaction;
 
-class ItemProcessor
+class ItemProcessor : public QObject
 {
 public:
-   ItemProcessor();
-   virtual void processItem(const LedgerAccountCommand& account) = 0;
-   virtual void processItem(const LedgerBudgetAllocation& allocation) = 0;
-   virtual void processItem(const LedgerComment& comment) = 0;
-   virtual void processItem(const LedgerTransaction& transaction) = 0;
+   ItemProcessor(QObject* parent);
+   virtual void processItem(LedgerAccountCommand const& account) = 0;
+   virtual void processItem(LedgerBudgetAllocation const& allocation) = 0;
+   virtual void processItem(LedgerComment const& comment) = 0;
+   virtual void processItem(LedgerTransaction const& transaction) = 0;
 };
 
 #endif

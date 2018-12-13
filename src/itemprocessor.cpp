@@ -1,5 +1,6 @@
 #include "itemprocessor.h"
 
-ItemProcessor::ItemProcessor()
+ItemProcessor::ItemProcessor(QObject* parent) :
+   QObject(parent)
 {
 }

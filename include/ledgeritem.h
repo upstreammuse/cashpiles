@@ -7,11 +7,14 @@ class ItemProcessor;
 class LedgerItem
 {
 public:
-   LedgerItem(QString const& filename, int lineNum);
+   LedgerItem(QString const& fileName, int lineNum);
+   virtual ~LedgerItem();
+   QString fileName() const;
+   int lineNum() const;
    virtual void processItem(ItemProcessor* processor) = 0;
 
 private:
-   QString m_filename;
+   QString m_fileName;
    int m_lineNum;
 };
 

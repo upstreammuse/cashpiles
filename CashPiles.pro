@@ -3,7 +3,9 @@ CONFIG += console
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
+   include/accountbalancer.h \
    include/csvreader.h \
+   include/datevalidator.h \
    include/itemprocessor.h \
    include/ledger.h \
    include/ledgeraccountcommand.h \
@@ -17,7 +19,9 @@ HEADERS += \
    include/ynabconsolidator.h \
    include/ynabregisterreader.h
 SOURCES += \
+   src/accountbalancer.cpp \
    src/csvreader.cpp \
+   src/datevalidator.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccountcommand.cpp \

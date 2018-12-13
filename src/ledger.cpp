@@ -1,8 +1,8 @@
 #include "ledger.h"
 
-#if 0
-notes for implementation
+#include "itemprocessor.h"
 
+#if 0
 do not allow uncleared before a balance assertion
 
 compact xacts only have space for one note
@@ -11,15 +11,17 @@ compact xacts only have space for one note
 - else > 1 note or > 1 payee requires full format
 
 categories, accounts must already exist
-
-seqnum is strict ordering with no missing numbers
-
-dates must always be >= to previous date
 #endif
 
 Ledger::Ledger(QObject *parent) :
    QObject(parent)
 {
+}
+
+void Ledger::addProcessor(ItemProcessor* processor)
+{
+   processor->setParent(this);
+   m_processors.append(processor);
 }
 
 void Ledger::processItem(LedgerItem* item)
@@ -28,6 +30,7 @@ void Ledger::processItem(LedgerItem* item)
    {
       item->processItem(processor);
    }
+   delete item;
 }
 
 void Ledger::start()
@@ -114,12 +117,6 @@ void Ledger::changeAccount(LedgerAccountCommand const& command)
    }
 }
 
-void Ledger::comment(LedgerComment const& comment)
-{
-   processLedgerCommand(&comment);
-   qDebug("Comment note '%s'", qPrintable(comment.note()));
-}
-
 void Ledger::transact(Transaction const& transaction)
 {
    processLedgerCommand(&transaction);
@@ -146,25 +143,6 @@ void Ledger::transact(Transaction const& transaction)
                                                    entry.amount());
       }
       m_accounts[transaction.account()].addBalance(entry.amount());
-   }
-}
-
-void Ledger::processLedgerCommand(LedgerCommand const* command)
-{
-   m_commands.append(command->clone());
-}
-
-void Ledger::validateDate(QDate const& date, int line)
-{
-   if (m_latestDate.isValid() && date < m_latestDate)
-   {
-      qWarning("Date %s is out of order, line %d", qPrintable(date.toString()),
-               line);
-      exit(EXIT_FAILURE);
-   }
-   else
-   {
-      m_latestDate = date;
    }
 }
 #endif

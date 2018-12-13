@@ -132,7 +132,7 @@ void YnabRegisterReader::stop()
 
       if (!inSplit)
       {
-         emit item(t);
+         emit item(t->date(), t);
          t = nullptr;
       }
    }

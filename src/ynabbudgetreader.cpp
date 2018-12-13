@@ -45,5 +45,5 @@ void YnabBudgetReader::processRecord(QHash<QString, QString> const& record,
    {
       allocation->appendAllocation(record["Category"], amount);
    }
-   emit item(allocation);
+   emit item(allocation->date(), allocation);
 }

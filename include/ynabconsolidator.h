@@ -1,6 +1,8 @@
 #ifndef YNABCONSOLIDATOR_H
 #define YNABCONSOLIDATOR_H
 
+#include <QDate>
+#include <QMap>
 #include <QObject>
 
 class LedgerItem;
@@ -13,7 +15,7 @@ public:
    explicit YnabConsolidator(QObject* parent = nullptr);
 
 public slots:
-   void processItem(LedgerItem* item);
+   void processItem(QDate const& date, LedgerItem* item);
    void stopBudget();
    void stopRegister();
 
@@ -22,6 +24,7 @@ signals:
    void item(LedgerItem*);
 
 private:
+   QMap<QDate, LedgerItem*> m_items;
    bool m_stopBudget;
    bool m_stopRegister;
 };

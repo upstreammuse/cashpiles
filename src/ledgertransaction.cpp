@@ -17,10 +17,36 @@ void LedgerTransaction::setAccount(QString const& account)
    m_account = account;
 }
 
+int LedgerTransaction::amount() const
+{
+   int amount = 0;
+   foreach (LedgerTransactionEntry const& entry, m_entries)
+   {
+      amount += entry.amount();
+   }
+   return amount;
+}
+
+int LedgerTransaction::balance() const
+{
+   Q_ASSERT(m_hasBalance);
+   return m_balance;
+}
+
+bool LedgerTransaction::hasBalance() const
+{
+   return m_hasBalance;
+}
+
 void LedgerTransaction::setBalance(int balance)
 {
    m_hasBalance = true;
    m_balance = balance;
+}
+
+bool LedgerTransaction::cleared() const
+{
+   return m_cleared;
 }
 
 void LedgerTransaction::setCleared(bool cleared)
@@ -36,6 +62,17 @@ QDate LedgerTransaction::date() const
 void LedgerTransaction::setDate(QDate const& date)
 {
    m_date = date;
+}
+
+QString LedgerTransaction::note() const
+{
+   Q_ASSERT(m_hasNote);
+   return m_note;
+}
+
+bool LedgerTransaction::hasNote() const
+{
+   return m_hasNote;
 }
 
 void LedgerTransaction::setNote(QString const& note)

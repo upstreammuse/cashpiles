@@ -1,7 +1,9 @@
 #include <iostream>
 #include <QCoreApplication>
 #include <QTimer>
+#include "accountbalancer.h"
 #include "csvreader.h"
+#include "datevalidator.h"
 #include "ledger.h"
 #include "nativereader.h"
 #include "ynabbudgetreader.h"
@@ -29,9 +31,16 @@ int main(int argc, char** argv)
          {
             usage(argv[0]);
          }
-         csvBudgetReader = new CsvReader(app.arguments()[i + 1], &app);
-         csvRegisterReader = new CsvReader(app.arguments()[i + 2], &app);
-         i += 2;
+         if (!csvBudgetReader && !csvRegisterReader)
+         {
+            csvBudgetReader = new CsvReader(app.arguments()[i + 1], &app);
+            csvRegisterReader = new CsvReader(app.arguments()[i + 2], &app);
+            i += 2;
+         }
+         else
+         {
+            usage(argv[0]);
+         }
       }
       else if (app.arguments()[i] == "--file")
       {
@@ -39,13 +48,22 @@ int main(int argc, char** argv)
          {
             usage(argv[0]);
          }
-         nativeReader = new NativeReader(app.arguments()[i + 1], &app);
-         i += 1;
+         if (!nativeReader)
+         {
+            nativeReader = new NativeReader(app.arguments()[i + 1], &app);
+            i += 1;
+         }
+         else
+         {
+            usage(argv[0]);
+         }
       }
    }
 
    Ledger* ledger = new Ledger(&app);
    QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
+   ledger->addProcessor(new DateValidator(ledger));
+   ledger->addProcessor(new AccountBalancer(ledger));
 
    if (csvBudgetReader && csvRegisterReader)
    {
@@ -58,8 +76,8 @@ int main(int argc, char** argv)
                        SLOT(processRecord(QHash<QString,QString>,QString,int)));
       QObject::connect(csvBudgetReader, SIGNAL(finished()),
                        ynabConsolidator, SLOT(stopBudget()));
-      QObject::connect(ynabBudgetReader, SIGNAL(item(LedgerItem*)),
-                       ynabConsolidator, SLOT(processItem(LedgerItem*)));
+      QObject::connect(ynabBudgetReader, SIGNAL(item(QDate,LedgerItem*)),
+                       ynabConsolidator, SLOT(processItem(QDate,LedgerItem*)));
 
       QObject::connect(csvRegisterReader,
                        SIGNAL(record(QHash<QString,QString>,QString,int)),
@@ -67,8 +85,8 @@ int main(int argc, char** argv)
                        SLOT(processRecord(QHash<QString,QString>,QString,int)));
       QObject::connect(csvRegisterReader, SIGNAL(finished()),
                        ynabRegisterReader, SLOT(stop()));
-      QObject::connect(ynabRegisterReader, SIGNAL(item(LedgerItem*)),
-                       ynabConsolidator, SLOT(processItem(LedgerItem*)));
+      QObject::connect(ynabRegisterReader, SIGNAL(item(QDate,LedgerItem*)),
+                       ynabConsolidator, SLOT(processItem(QDate,LedgerItem*)));
       QObject::connect(ynabRegisterReader, SIGNAL(finished()),
                        ynabConsolidator, SLOT(stopRegister()));;
 

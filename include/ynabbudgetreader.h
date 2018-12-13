@@ -17,7 +17,7 @@ public slots:
                       QString const& fileName, int lineNum);
 
 signals:
-   void item(LedgerItem*);
+   void item(QDate const&, LedgerItem*);
 };
 
 #endif
