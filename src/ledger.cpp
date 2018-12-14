@@ -10,7 +10,7 @@ compact xacts only have space for one note
 --- then can render as compact xact
 - else > 1 note or > 1 payee requires full format
 
-categories, accounts must already exist
+categories must already exist
 #endif
 
 Ledger::Ledger(QObject *parent) :
@@ -40,6 +40,10 @@ void Ledger::start()
 
 void Ledger::stop()
 {
+   foreach (ItemProcessor* processor, m_processors)
+   {
+      processor->stop();
+   }
    emit finished();
 }
 
@@ -65,55 +69,6 @@ void Ledger::allocateBudget(LedgerBudgetAllocation const& allocation)
                   "balance", allocation.lineNum(), qPrintable(it.key()));
          exit(EXIT_FAILURE);
       }
-   }
-}
-
-void Ledger::changeAccount(LedgerAccountCommand const& command)
-{
-   processLedgerCommand(&command);
-   validateDate(command.date(), command.lineNum());
-   switch (command.mode())
-   {
-      case LedgerAccountCommand::Mode::ON_BUDGET:
-         if (m_accounts.contains(command.account()))
-         {
-            qWarning("Account command on line %d, attempted to open account "
-                     "'%s' that was already open", command.lineNum(),
-                     qPrintable(command.account()));
-            exit(EXIT_FAILURE);
-         }
-         m_accounts[command.account()].setBudget(true);
-         m_accounts[command.account()].setName(command.account());
-         qDebug("Opened account '%s'", qPrintable(command.account()));
-         break;
-      case LedgerAccountCommand::Mode::OFF_BUDGET:
-         if (m_accounts.contains(command.account()))
-         {
-            qWarning("Account command on line %d, attempted to open account "
-                     "'%s' that was already open", command.lineNum(),
-                     qPrintable(command.account()));
-            exit(EXIT_FAILURE);
-         }
-         m_accounts[command.account()].setName(command.account());
-         qDebug("Opened account '%s'", qPrintable(command.account()));
-         break;
-      case LedgerAccountCommand::Mode::CLOSED:
-         if (!m_accounts.contains(command.account()))
-         {
-            qWarning("Account command on line %d, attempted to close account "
-                     "'%s' that was not open", command.lineNum(),
-                     qPrintable(command.account()));
-            exit(EXIT_FAILURE);
-         }
-         if (m_accounts[command.account()].balance() != 0)
-         {
-            qWarning("Account command on line %d, attempted to close account "
-                     "'%s' with non-zero balance", command.lineNum(),
-                     qPrintable(command.account()));
-            exit(EXIT_FAILURE);
-         }
-         m_accounts.remove(command.account());
-         qDebug("Closed account '%s'", qPrintable(command.account()));
    }
 }
 

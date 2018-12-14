@@ -16,6 +16,7 @@ public:
    virtual void processItem(LedgerBudgetAllocation const& allocation) = 0;
    virtual void processItem(LedgerComment const& comment) = 0;
    virtual void processItem(LedgerTransaction const& transaction) = 0;
+   virtual void stop() = 0;
 };
 
 #endif

@@ -77,4 +77,45 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
       std::cerr << "   Calculated balance:  "
                 << m_accounts[transaction.account()] << std::endl;
    }
+
+   foreach (LedgerTransactionEntry const& entry, transaction.entries())
+   {
+      if (entry.transfer())
+      {
+         if (!m_transfers[transaction.account()].contains(entry.payee()))
+         {
+            m_transfers[transaction.account()][entry.payee()] = 0;
+         }
+         m_transfers[transaction.account()][entry.payee()] += entry.amount();
+      }
+   }
+}
+
+void AccountBalancer::stop()
+{
+   for (QHash<QString, int>::const_iterator it(m_accounts.cbegin());
+        it != m_accounts.cend(); ++it)
+   {
+      std::cout << "Account '" << qPrintable(it.key()) << "' has balance "
+                << it.value() << std::endl;
+   }
+
+   for (auto it = m_transfers.cbegin(); it != m_transfers.cend(); ++it)
+   {
+      for (auto it2 = it->cbegin(); it2 != it->cend(); ++it2)
+      {
+         int side1 = *it2;
+         Q_ASSERT(m_transfers.contains(it2.key()));
+         Q_ASSERT(m_transfers[it2.key()].contains(it.key()));
+         // TODO dangerous if the other side does not exist, will modify structure and invalidate iterators
+         int side2 = m_transfers[it2.key()][it.key()];
+         if (side1 + side2 != 0)
+         {
+            std::cerr << "Transfers between '" << qPrintable(it.key())
+                      << "' and '" << qPrintable(it2.key())
+                      << "' do not balance.  Mismatch is " << abs(side1 + side2)
+                      << std::endl;
+         }
+      }
+   }
 }

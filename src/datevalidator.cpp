@@ -30,6 +30,10 @@ void DateValidator::processItem(LedgerTransaction const& transaction)
                transaction.lineNum());
 }
 
+void DateValidator::stop()
+{
+}
+
 void DateValidator::processDate(QDate const& date, QString const& fileName,
                                 int lineNum)
 {

@@ -12,9 +12,11 @@ public:
    void processItem(LedgerBudgetAllocation const& allocation);
    void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
+   void stop();
 
 private:
    QHash<QString, int> m_accounts;
+   QHash<QString, QHash<QString, int> > m_transfers;
 };
 
 #endif

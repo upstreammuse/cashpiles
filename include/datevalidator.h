@@ -12,6 +12,7 @@ public:
    void processItem(LedgerBudgetAllocation const& allocation);
    void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
+   void stop();
 
 private:
    void processDate(QDate const& date, QString const& fileName, int lineNum);
