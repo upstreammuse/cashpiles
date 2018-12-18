@@ -7,6 +7,7 @@
 #include "datevalidator.h"
 #include "ledger.h"
 #include "nativereader.h"
+#include "nativewriter.h"
 #include "ynabbudgetreader.h"
 #include "ynabconsolidator.h"
 #include "ynabregisterreader.h"
@@ -67,6 +68,7 @@ int main(int argc, char** argv)
    QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
    ledger->addProcessor(new DateValidator(ledger));
    ledger->addProcessor(new AccountBalancer(ledger));
+   ledger->addProcessor(new NativeWriter(ledger));
 
    if (csvBudgetReader && csvRegisterReader)
    {
@@ -78,9 +80,11 @@ int main(int argc, char** argv)
                        ynabBudgetReader,
                        SLOT(processRecord(QHash<QString,QString>,QString,int)));
       QObject::connect(csvBudgetReader, SIGNAL(finished()),
-                       ynabConsolidator, SLOT(stopBudget()));
+                       ynabBudgetReader, SLOT(stop()));
       QObject::connect(ynabBudgetReader, SIGNAL(item(QDate,LedgerItem*)),
                        ynabConsolidator, SLOT(processItem(QDate,LedgerItem*)));
+      QObject::connect(ynabBudgetReader, SIGNAL(finished()),
+                       ynabConsolidator, SLOT(stopBudget()));;
 
       QObject::connect(csvRegisterReader,
                        SIGNAL(record(QHash<QString,QString>,QString,int)),

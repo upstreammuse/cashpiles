@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+class LedgerBudgetAllocation;
 class LedgerItem;
 
 class YnabBudgetReader : public QObject
@@ -15,9 +16,14 @@ public:
 public slots:
    void processRecord(QHash<QString, QString> const& record,
                       QString const& fileName, int lineNum);
+   void stop();
 
 signals:
+   void finished();
    void item(QDate const&, LedgerItem*);
+
+private:
+   LedgerBudgetAllocation* m_allocation = nullptr;
 };
 
 #endif

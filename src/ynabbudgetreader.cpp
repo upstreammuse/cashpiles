@@ -30,19 +30,52 @@ void YnabBudgetReader::processRecord(QHash<QString, QString> const& record,
       return;
    }
 
-   LedgerBudgetAllocation* allocation =
-         new LedgerBudgetAllocation(fileName, lineNum);
-   allocation->setDate(QDate::fromString(record["Month"], "MMM yyyy"));
-   if (!record["Category Group"].isEmpty())
+   QDate date(QDate::fromString(record["Month"], "MMM yyyy"));
+   if (!m_allocation)
    {
-      allocation->appendAllocation(
-               record["Category Group"] + ":" + record["Category"],
-            Currency(record["Budgeted"], lineNum));
+      m_allocation = new LedgerBudgetAllocation(fileName, lineNum);
+      m_allocation->setDate(date);
    }
-   else
+   else if (m_allocation->date() != date)
    {
-      allocation->appendAllocation(record["Category"],
-            Currency(record["Budgeted"], lineNum));
+      if (!m_allocation->allocations().empty())
+      {
+         emit item(m_allocation->date(), m_allocation);
+         m_allocation = new LedgerBudgetAllocation(fileName, lineNum);
+      }
+      m_allocation->setDate(QDate::fromString(record["Month"], "MMM yyyy"));
    }
-   emit item(allocation->date(), allocation);
+
+   Currency amount(record["Budgeted"], lineNum);
+   if (!amount.isZero())
+   {
+      if (!record["Category Group"].isEmpty())
+      {
+         m_allocation->appendAllocation(
+                  record["Category Group"] + ":" + record["Category"],
+               amount);
+      }
+      else
+      {
+         m_allocation->appendAllocation(record["Category"],
+               amount);
+      }
+   }
+}
+
+void YnabBudgetReader::stop()
+{
+   if (m_allocation)
+   {
+      if (!m_allocation->allocations().isEmpty())
+      {
+         emit item(m_allocation->date(), m_allocation);
+      }
+      else
+      {
+         delete m_allocation;
+      }
+      m_allocation = nullptr;
+   }
+   emit finished();
 }

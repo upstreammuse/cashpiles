@@ -16,6 +16,7 @@ HEADERS += \
    include/ledgertransaction.h \
    include/ledgertransactionentry.h \
    include/nativereader.h \
+   include/nativewriter.h \
    include/ynabbudgetreader.h \
    include/ynabconsolidator.h \
    include/ynabregisterreader.h
@@ -34,6 +35,7 @@ SOURCES += \
    src/ledgertransactionentry.cpp \
    src/main.cpp \
    src/nativereader.cpp \
+   src/nativewriter.cpp \
    src/ynabbudgetreader.cpp \
    src/ynabconsolidator.cpp \
    src/ynabregisterreader.cpp
