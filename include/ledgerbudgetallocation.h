@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include <QMap>
+#include "currency.h"
 #include "ledgeritem.h"
 
 class LedgerBudgetAllocation : public LedgerItem
@@ -10,8 +11,8 @@ class LedgerBudgetAllocation : public LedgerItem
 public:
    LedgerBudgetAllocation(QString const& filename, int lineNum);
 
-   QMap<QString, int> allocations() const;
-   void appendAllocation(QString const& category, int amount);
+   QMap<QString, Currency> allocations() const;
+   void appendAllocation(QString const& category, Currency const& amount);
 
    QDate date() const;
    void setDate(QDate const& date);
@@ -19,7 +20,7 @@ public:
    void processItem(ItemProcessor* processor);
 
 private:
-   QMap<QString, int> m_allocations;
+   QMap<QString, Currency> m_allocations;
    QDate m_date;
 };
 

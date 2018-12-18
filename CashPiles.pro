@@ -4,6 +4,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
    include/accountbalancer.h \
+   include/currency.h \
    include/csvreader.h \
    include/datevalidator.h \
    include/itemprocessor.h \
@@ -20,6 +21,7 @@ HEADERS += \
    include/ynabregisterreader.h
 SOURCES += \
    src/accountbalancer.cpp \
+   src/currency.cpp \
    src/csvreader.cpp \
    src/datevalidator.cpp \
    src/itemprocessor.cpp \

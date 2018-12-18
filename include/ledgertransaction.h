@@ -14,11 +14,11 @@ public:
    QString account() const;
    void setAccount(QString const& account);
 
-   int amount() const;
+   Currency amount() const;
 
-   int balance() const;
+   Currency balance() const;
    bool hasBalance() const;
-   void setBalance(int balance);
+   void setBalance(Currency const& balance);
 
    bool cleared() const;
    void setCleared(bool cleared);
@@ -37,7 +37,7 @@ public:
 
 private:
    QString m_account;
-   int m_balance = 0;
+   Currency m_balance;
    bool m_hasBalance = false;
    bool m_cleared = false;
    QDate m_date;

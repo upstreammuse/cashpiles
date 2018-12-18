@@ -2,12 +2,13 @@
 #define LEDGERTRANSACTIONENTRY_H
 
 #include <QString>
+#include "currency.h"
 
 class LedgerTransactionEntry
 {
 public:
-   int amount() const;
-   void setAmount(int const& amount);
+   Currency amount() const;
+   void setAmount(Currency const& amount);
 
    QString category() const;
    bool hasCategory() const;
@@ -24,7 +25,7 @@ public:
    void setTransfer(bool transfer);
 
 private:
-   int m_amount = 0;
+   Currency m_amount;
    QString m_category;
    bool m_hasCategory = false;
    QString m_note;

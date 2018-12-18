@@ -33,17 +33,16 @@ void YnabBudgetReader::processRecord(QHash<QString, QString> const& record,
    LedgerBudgetAllocation* allocation =
          new LedgerBudgetAllocation(fileName, lineNum);
    allocation->setDate(QDate::fromString(record["Month"], "MMM yyyy"));
-   QString amountStr(record["Budgeted"]);
-   int amount = amountStr.replace('$', "").replace(',', "").replace('.', "")
-                .toInt();
    if (!record["Category Group"].isEmpty())
    {
       allocation->appendAllocation(
-               record["Category Group"] + ":" + record["Category"], amount);
+               record["Category Group"] + ":" + record["Category"],
+            Currency(record["Budgeted"], lineNum));
    }
    else
    {
-      allocation->appendAllocation(record["Category"], amount);
+      allocation->appendAllocation(record["Category"],
+            Currency(record["Budgeted"], lineNum));
    }
    emit item(allocation->date(), allocation);
 }

@@ -35,10 +35,10 @@ private:
    QList<ClearedStatus> m_clearedColumn;
    QList<QDate> m_dateColumn;
    QStringList m_filenameColumn;
-   QList<int> m_inflowColumn;
+   QList<Currency> m_inflowColumn;
    QList<int> m_lineNumColumn;
    QStringList m_memoColumn;
-   QList<int> m_outflowColumn;
+   QList<Currency> m_outflowColumn;
    QStringList m_payeeColumn;
 };
 

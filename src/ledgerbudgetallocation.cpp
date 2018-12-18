@@ -8,18 +8,14 @@ LedgerBudgetAllocation::LedgerBudgetAllocation(QString const& filename,
 {
 }
 
-QMap<QString, int> LedgerBudgetAllocation::allocations() const
+QMap<QString, Currency> LedgerBudgetAllocation::allocations() const
 {
    return m_allocations;
 }
 
 void LedgerBudgetAllocation::appendAllocation(QString const& category,
-                                              int amount)
+                                              Currency const& amount)
 {
-   if (!m_allocations.contains(category))
-   {
-      m_allocations[category] = 0;
-   }
    m_allocations[category] += amount;
 }
 

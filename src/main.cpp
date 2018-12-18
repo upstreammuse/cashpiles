@@ -3,6 +3,7 @@
 #include <QTimer>
 #include "accountbalancer.h"
 #include "csvreader.h"
+#include "currency.h"
 #include "datevalidator.h"
 #include "ledger.h"
 #include "nativereader.h"
@@ -20,6 +21,8 @@ void usage(QString const& progName)
 int main(int argc, char** argv)
 {
    QCoreApplication app(argc, argv);
+   Currency::initializeCurrencies();
+
    CsvReader* csvBudgetReader(nullptr);
    CsvReader* csvRegisterReader(nullptr);
    NativeReader* nativeReader(nullptr);

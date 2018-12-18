@@ -17,9 +17,9 @@ void LedgerTransaction::setAccount(QString const& account)
    m_account = account;
 }
 
-int LedgerTransaction::amount() const
+Currency LedgerTransaction::amount() const
 {
-   int amount = 0;
+   Currency amount;
    foreach (LedgerTransactionEntry const& entry, m_entries)
    {
       amount += entry.amount();
@@ -27,7 +27,7 @@ int LedgerTransaction::amount() const
    return amount;
 }
 
-int LedgerTransaction::balance() const
+Currency LedgerTransaction::balance() const
 {
    Q_ASSERT(m_hasBalance);
    return m_balance;
@@ -38,7 +38,7 @@ bool LedgerTransaction::hasBalance() const
    return m_hasBalance;
 }
 
-void LedgerTransaction::setBalance(int balance)
+void LedgerTransaction::setBalance(Currency const& balance)
 {
    m_hasBalance = true;
    m_balance = balance;

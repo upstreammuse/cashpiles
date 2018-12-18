@@ -2,6 +2,7 @@
 #define ACCOUNTBALANCER_H
 
 #include <QHash>
+#include <currency.h>
 #include "itemprocessor.h"
 
 class AccountBalancer : public ItemProcessor
@@ -15,8 +16,8 @@ public:
    void stop();
 
 private:
-   QHash<QString, int> m_accounts;
-   QHash<QString, QHash<QString, int> > m_transfers;
+   QHash<QString, Currency> m_accounts;
+   QHash<QString, QHash<QString, Currency> > m_transfers;
 };
 
 #endif

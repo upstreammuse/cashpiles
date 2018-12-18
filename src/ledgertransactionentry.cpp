@@ -1,11 +1,11 @@
 #include "ledgertransactionentry.h"
 
-int LedgerTransactionEntry::amount() const
+Currency LedgerTransactionEntry::amount() const
 {
    return m_amount;
 }
 
-void LedgerTransactionEntry::setAmount(int const& amount)
+void LedgerTransactionEntry::setAmount(Currency const& amount)
 {
    m_amount = amount;
 }

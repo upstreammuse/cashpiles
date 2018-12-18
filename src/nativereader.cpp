@@ -103,8 +103,9 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
       QString line(readLine());
       if ((match = budgetLineRx.match(line)).hasMatch())
       {
-         budgetCommand->appendAllocation(match.captured("category"),
-                                         parseCurrency(match.captured("amount"), m_lineNum));
+         budgetCommand->appendAllocation(
+                  match.captured("category"),
+                  Currency(match.captured("amount"), m_lineNum));
       }
       else
       {
@@ -130,7 +131,7 @@ void NativeReader::processCompactTransaction(
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
+      transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    transaction->setCleared(match.captured("cleared") == "*");
    transaction->setDate(parseDate(match.captured("date"), m_lineNum));
@@ -140,7 +141,7 @@ void NativeReader::processCompactTransaction(
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
+   entry.setAmount(Currency(match.captured("amount"), m_lineNum));
    entry.setCategory(match.captured("category"));
    if (match.captured("payee").startsWith("@"))
    {
@@ -164,7 +165,7 @@ void NativeReader::processCompactTransactionOff(
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
+      transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    transaction->setCleared(match.captured("cleared") == "*");
    transaction->setDate(parseDate(match.captured("date"), m_lineNum));
@@ -174,7 +175,7 @@ void NativeReader::processCompactTransactionOff(
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
+   entry.setAmount(Currency(match.captured("amount"), m_lineNum));
    if (match.captured("payee").startsWith("@"))
    {
       entry.setPayee(match.captured("payee").mid(1));
@@ -231,7 +232,7 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
    xact->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      xact->setBalance(parseCurrency(match.captured("balance"), m_lineNum));
+      xact->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    xact->setCleared(match.captured("cleared") == "*");
    xact->setDate(parseDate(match.captured("date"), m_lineNum));
@@ -246,7 +247,7 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       if ((match = txnLineRx.match(line)).hasMatch())
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
+         entry.setAmount(Currency(match.captured("amount"), m_lineNum));
          entry.setCategory(match.captured("category"));
          if (!match.captured("note").isEmpty())
          {
@@ -266,7 +267,7 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       else if ((match = txnLineOffRx.match(line)).hasMatch())
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.captured("amount"), m_lineNum));
+         entry.setAmount(Currency(match.captured("amount"), m_lineNum));
          if (!match.captured("note").isEmpty())
          {
             entry.setNote(match.captured("note"));
@@ -316,32 +317,6 @@ void NativeReader::unReadLine(QString const& line)
 {
    --m_lineNum;
    m_lines.push_back(line);
-}
-
-int NativeReader::parseCurrency(QString curr, int line)
-{
-   curr.remove(QLocale::system().currencySymbol());
-   curr.remove(QLocale::system().groupSeparator());
-   int decimalIndex = curr.indexOf(QLocale::system().decimalPoint());
-   int decimalDigits = curr.length() - decimalIndex - 1;
-   if (m_decimalDigits == -1)
-   {
-      m_decimalDigits = decimalDigits;
-   }
-   else if (m_decimalDigits != decimalDigits)
-   {
-      qWarning("Inconsistent number of decimal digits, line %d", line);
-      exit(EXIT_FAILURE);
-   }
-   curr.remove(QLocale::system().decimalPoint());
-   bool success;
-   int retval = curr.toInt(&success);
-   if (!success)
-   {
-      qWarning("Could not understand currency, line %d", line);
-      exit(EXIT_FAILURE);
-   }
-   return retval;
 }
 
 QDate NativeReader::parseDate(QString const& date, int line)

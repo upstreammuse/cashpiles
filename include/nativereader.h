@@ -32,12 +32,10 @@ private:
    void unReadLine(QString const& line);
 
 private:
-   int parseCurrency(QString curr, int line);
    QDate parseDate(QString const& date, int line);
    LedgerAccountCommand::Mode parseMode(QString const& command, int line);
 
 private:
-   int m_decimalDigits = -1;
    QIODevice* m_file = nullptr;
    QString m_fileName;
    int m_lineNum = 0;

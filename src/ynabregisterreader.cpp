@@ -42,10 +42,7 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Inflow")
       {
-         QString fieldCopy(it.value());
-         m_inflowColumn.append(
-                  fieldCopy.replace('$', "").replace(',', "").replace('.', "")
-                  .toInt());
+         m_inflowColumn.append(Currency(it.value(), lineNum));
       }
       else if (it.key() == "Memo")
       {
@@ -53,10 +50,7 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Outflow")
       {
-         QString fieldCopy(it.value());
-         m_outflowColumn.append(
-                  fieldCopy.replace('$', "").replace(',', "").replace('.', "")
-                  .toInt());
+         m_outflowColumn.append(Currency(it.value(), lineNum));
       }
       else if (it.key() == "Payee")
       {

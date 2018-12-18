@@ -16,7 +16,7 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
       case LedgerAccountCommand::Mode::CLOSED:
          if (m_accounts.contains(account.account()))
          {
-            if (m_accounts[account.account()] != 0)
+            if (!m_accounts[account.account()].isZero())
             {
                std::cerr << "Closing account with non-zero balance in file '"
                          << qPrintable(account.fileName()) << "', line "
@@ -35,7 +35,7 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
       case LedgerAccountCommand::Mode::OFF_BUDGET:
          if (!m_accounts.contains(account.account()))
          {
-            m_accounts[account.account()] = 0;
+            m_accounts[account.account()];
          }
          else
          {
@@ -63,7 +63,6 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
                 << qPrintable(transaction.account()) << "' in file '"
                 << qPrintable(transaction.fileName()) << "', line "
                 << transaction.lineNum() << std::endl;
-      m_accounts[transaction.account()] = 0;
    }
    m_accounts[transaction.account()] += transaction.amount();
    if (transaction.hasBalance() &&
@@ -72,20 +71,17 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
       std::cerr << "Transaction balance incorrect in file '"
                 << qPrintable(transaction.fileName()) << "', line "
                 << transaction.lineNum() << std::endl;
-      std::cerr << "   Transaction balance: " << transaction.balance()
-                << std::endl;
+      std::cerr << "   Transaction balance: "
+                << qPrintable(transaction.balance().toString()) << std::endl;
       std::cerr << "   Calculated balance:  "
-                << m_accounts[transaction.account()] << std::endl;
+                << qPrintable(m_accounts[transaction.account()].toString())
+            << std::endl;
    }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
       if (entry.transfer())
       {
-         if (!m_transfers[transaction.account()].contains(entry.payee()))
-         {
-            m_transfers[transaction.account()][entry.payee()] = 0;
-         }
          m_transfers[transaction.account()][entry.payee()] += entry.amount();
       }
    }
@@ -93,28 +89,27 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
 
 void AccountBalancer::stop()
 {
-   for (QHash<QString, int>::const_iterator it(m_accounts.cbegin());
-        it != m_accounts.cend(); ++it)
+   for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       std::cout << "Account '" << qPrintable(it.key()) << "' has balance "
-                << it.value() << std::endl;
+                << qPrintable(it.value().toString()) << std::endl;
    }
 
    for (auto it = m_transfers.cbegin(); it != m_transfers.cend(); ++it)
    {
       for (auto it2 = it->cbegin(); it2 != it->cend(); ++it2)
       {
-         int side1 = *it2;
          Q_ASSERT(m_transfers.contains(it2.key()));
          Q_ASSERT(m_transfers[it2.key()].contains(it.key()));
+         Currency side1 = *it2;
          // TODO dangerous if the other side does not exist, will modify structure and invalidate iterators
-         int side2 = m_transfers[it2.key()][it.key()];
-         if (side1 + side2 != 0)
+         Currency side2 = m_transfers[it2.key()][it.key()];
+         if (!(side1 + side2).isZero())
          {
             std::cerr << "Transfers between '" << qPrintable(it.key())
                       << "' and '" << qPrintable(it2.key())
-                      << "' do not balance.  Mismatch is " << abs(side1 + side2)
-                      << std::endl;
+                      << "' do not balance.  Mismatch is "
+                      << qPrintable((side1 + side2).toString()) << std::endl;
          }
       }
    }
