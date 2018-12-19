@@ -11,6 +11,7 @@
 namespace
 {
    QString const CLEAR_RX("(?<cleared>\\*|\\!)");
+   // TODO this needs to play well with the currency regexps somehow
    QString const CURR_RX(
          "(?<%1>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\,\\d{3})*\\.\\d{2,})");
    QString const DATE_RX("(?<date>\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)");

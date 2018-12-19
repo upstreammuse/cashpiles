@@ -21,6 +21,7 @@ public:
 public:
    Currency();
    Currency(QString const& asString, int lineNum);
+   bool isNegative() const;
    bool isZero() const;
    QString toString() const;
    Currency operator+(Currency const& other) const;

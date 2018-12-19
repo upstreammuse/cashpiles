@@ -68,6 +68,11 @@ Currency::Currency(QString const& asString, int lineNum)
    }
 }
 
+bool Currency::isNegative() const
+{
+   return m_value < 0;
+}
+
 bool Currency::isZero() const
 {
    return m_value == 0;
@@ -75,8 +80,16 @@ bool Currency::isZero() const
 
 QString Currency::toString() const
 {
-   return QLocale::system().toCurrencyString(
-            m_value / pow(10, m_decimalPlaces));
+   int value = m_value;
+   QString output;
+   if (value < 0)
+   {
+      value = -value;
+      output += "-";
+   }
+   output += QLocale::system().toCurrencyString(
+                value / pow(10, m_decimalPlaces));
+   return output;
 }
 
 Currency Currency::operator+(Currency const& other) const

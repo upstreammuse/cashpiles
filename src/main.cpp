@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include "accountbalancer.h"
+#include "budgetbalancer.h"
 #include "csvreader.h"
 #include "currency.h"
 #include "datevalidator.h"
@@ -68,6 +69,7 @@ int main(int argc, char** argv)
    QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
    ledger->addProcessor(new DateValidator(ledger));
    ledger->addProcessor(new AccountBalancer(ledger));
+   ledger->addProcessor(new BudgetBalancer(ledger));
    ledger->addProcessor(new NativeWriter(ledger));
 
    if (csvBudgetReader && csvRegisterReader)
