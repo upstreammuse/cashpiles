@@ -71,7 +71,7 @@ NativeReader::NativeReader(QString const& fileName, QObject *parent) :
 
 void NativeReader::readAll()
 {
-   if (!m_file->open(QIODevice::ReadOnly | QIODevice::Text))
+   if (!m_file || !m_file->open(QIODevice::ReadOnly | QIODevice::Text))
    {
       qWarning("Unable to open file %s", qPrintable(m_fileName));
    }
@@ -86,9 +86,8 @@ void NativeReader::readAll()
 
 void NativeReader::processAccount(QRegularExpressionMatch const& match)
 {
-   // TODO fix this crap
    LedgerAccountCommand* accountCommand =
-         new LedgerAccountCommand(((QFile*)m_file)->fileName(), m_lineNum);
+         new LedgerAccountCommand(m_fileName, m_lineNum);
    accountCommand->setAccount(match.captured("account"));
    accountCommand->setDate(parseDate(match.captured("date"), m_lineNum));
    accountCommand->setMode(parseMode(match.captured("command"), m_lineNum));
@@ -97,7 +96,8 @@ void NativeReader::processAccount(QRegularExpressionMatch const& match)
 
 void NativeReader::processBudget(QRegularExpressionMatch& match)
 {
-   LedgerBudgetAllocation* budgetCommand = new LedgerBudgetAllocation("TODO", m_lineNum);
+   LedgerBudgetAllocation* budgetCommand =
+         new LedgerBudgetAllocation(m_fileName, m_lineNum);
    budgetCommand->setDate(parseDate(match.captured("date"), m_lineNum));
    forever
    {
@@ -119,7 +119,7 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
 
 void NativeReader::processComment(QRegularExpressionMatch const& match)
 {
-   LedgerComment* comment = new LedgerComment("TODO", m_lineNum);
+   LedgerComment* comment = new LedgerComment(m_fileName, m_lineNum);
    comment->setNote(match.captured("note"));
    emit item(comment);
 }
@@ -127,8 +127,8 @@ void NativeReader::processComment(QRegularExpressionMatch const& match)
 void NativeReader::processCompactTransaction(
       QRegularExpressionMatch const& match)
 {
-   // TODO fix this
-   LedgerTransaction* transaction = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
+   LedgerTransaction* transaction =
+         new LedgerTransaction(m_fileName, m_lineNum);
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
@@ -161,8 +161,8 @@ void NativeReader::processCompactTransaction(
 void NativeReader::processCompactTransactionOff(
       QRegularExpressionMatch const& match)
 {
-   // TODO fix this
-   LedgerTransaction* transaction = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
+   LedgerTransaction* transaction =
+         new LedgerTransaction(m_fileName, m_lineNum);
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
@@ -227,9 +227,7 @@ void NativeReader::processLine(QString const& line)
 
 void NativeReader::processTransaction(QRegularExpressionMatch& match)
 {
-   // TODO fix this
-   LedgerTransaction* xact = new LedgerTransaction(((QFile*)m_file)->fileName(), m_lineNum);
-
+   LedgerTransaction* xact = new LedgerTransaction(m_fileName, m_lineNum);
    xact->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
