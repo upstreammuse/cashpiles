@@ -23,6 +23,7 @@ signals:
 private:
    void processAccount(QRegularExpressionMatch const& match);
    void processAllocation(QRegularExpressionMatch& match);
+   void processBudget(QRegularExpressionMatch& match);
    void processComment(QRegularExpressionMatch const& match);
    void processCompactTransaction(QRegularExpressionMatch const& match);
    void processCompactTransactionOff(QRegularExpressionMatch const& match);
@@ -32,8 +33,8 @@ private:
    void unReadLine(QString const& line);
 
 private:
-   QDate parseDate(QString const& date, int line);
-   LedgerAccountCommand::Mode parseMode(QString const& command, int line);
+   QDate parseDate(QString const& date);
+   LedgerAccountCommand::Mode parseMode(QString const& command);
 
 private:
    QIODevice* m_file = nullptr;

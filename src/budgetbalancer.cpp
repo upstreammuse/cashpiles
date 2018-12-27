@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ledgeraccountcommand.h"
 #include "ledgerallocation.h"
+#include "ledgerbudget.h"
 #include "ledgertransaction.h"
 
 BudgetBalancer::BudgetBalancer(QObject* parent) :
@@ -46,6 +47,14 @@ void BudgetBalancer::processItem(LedgerAllocation const& allocation)
                    << qPrintable(allocation.fileName()) << "', line "
                    << allocation.lineNum() << std::endl;
       }
+   }
+}
+
+void BudgetBalancer::processItem(LedgerBudget const& budget)
+{
+   foreach (QString const& category, budget.categories())
+   {
+      m_categories[category];
    }
 }
 

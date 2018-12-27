@@ -5,6 +5,7 @@
 #include <QTextStream>
 #include "ledgeraccountcommand.h"
 #include "ledgerallocation.h"
+#include "ledgerbudget.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
 
@@ -17,6 +18,7 @@ namespace
    QString const DATE_RX("(?<date>\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)");
    QString const END_RX("\\s*$");
    QString const IDENT_RX("(?<%1>\\S(\\S| (?! ))*)");
+   QString const INTERVAL_RX("(?<interval>\\+\\d+[dwmy])");
    QString const NOTE_RX(";(?<note>.*)");
    QString const OPTIONAL_RX("(%1)?");
    QString const SEP_RX("(\\s{2,}|\\t)\\s*");
@@ -32,6 +34,21 @@ namespace
    QRegularExpression const allocationLineRx(
          START_RX + SEP_RX + IDENT_RX.arg("category") + SEP_RX +
          CURR_RX.arg("amount") + END_RX);
+   QRegularExpression const budgetRx(
+         START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
+         END_RX);
+   QRegularExpression const budgetLineGoalRx(
+         START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX.arg("category") +
+         END_RX);
+   QRegularExpression const budgetLineReserveAmountRx(
+         START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
+         SEP_RX + CURR_RX.arg("amount") + SPACE_RX + INTERVAL_RX + END_RX);
+   QRegularExpression const budgetLineReservePercentRx(
+         START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
+         SEP_RX + "\\d+%" + END_RX);
+   QRegularExpression const budgetLineRoutineRx(
+         START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX.arg("category") +
+         END_RX);
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
    QRegularExpression const txnCompactRx(
          START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
@@ -89,8 +106,8 @@ void NativeReader::processAccount(QRegularExpressionMatch const& match)
    LedgerAccountCommand* accountCommand =
          new LedgerAccountCommand(m_fileName, m_lineNum);
    accountCommand->setAccount(match.captured("account"));
-   accountCommand->setDate(parseDate(match.captured("date"), m_lineNum));
-   accountCommand->setMode(parseMode(match.captured("command"), m_lineNum));
+   accountCommand->setDate(parseDate(match.captured("date")));
+   accountCommand->setMode(parseMode(match.captured("command")));
    emit item(accountCommand);
 }
 
@@ -98,7 +115,7 @@ void NativeReader::processAllocation(QRegularExpressionMatch& match)
 {
    LedgerAllocation* budgetCommand =
          new LedgerAllocation(m_fileName, m_lineNum);
-   budgetCommand->setDate(parseDate(match.captured("date"), m_lineNum));
+   budgetCommand->setDate(parseDate(match.captured("date")));
    forever
    {
       QString line(readLine());
@@ -114,6 +131,13 @@ void NativeReader::processAllocation(QRegularExpressionMatch& match)
          break;
       }
    }
+   emit item(budgetCommand);
+}
+
+void NativeReader::processBudget(QRegularExpressionMatch& match)
+{
+   LedgerBudget* budgetCommand = new LedgerBudget(m_fileName, m_lineNum);
+   budgetCommand->setDate(parseDate(match.captured("date")));
    emit item(budgetCommand);
 }
 
@@ -135,7 +159,7 @@ void NativeReader::processCompactTransaction(
       transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    transaction->setCleared(match.captured("cleared") == "*");
-   transaction->setDate(parseDate(match.captured("date"), m_lineNum));
+   transaction->setDate(parseDate(match.captured("date")));
    if (!match.captured("note").isEmpty())
    {
       transaction->setNote(match.captured("note"));
@@ -169,7 +193,7 @@ void NativeReader::processCompactTransactionOff(
       transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    transaction->setCleared(match.captured("cleared") == "*");
-   transaction->setDate(parseDate(match.captured("date"), m_lineNum));
+   transaction->setDate(parseDate(match.captured("date")));
    if (!match.captured("note").isEmpty())
    {
       transaction->setNote(match.captured("note"));
@@ -201,6 +225,10 @@ void NativeReader::processLine(QString const& line)
    else if ((match = allocationRx.match(line)).hasMatch())
    {
       processAllocation(match);
+   }
+   else if ((match = budgetRx.match(line)).hasMatch())
+   {
+      processBudget(match);
    }
    else if ((match = commentRx.match(line)).hasMatch())
    {
@@ -234,7 +262,7 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       xact->setBalance(Currency(match.captured("balance"), m_lineNum));
    }
    xact->setCleared(match.captured("cleared") == "*");
-   xact->setDate(parseDate(match.captured("date"), m_lineNum));
+   xact->setDate(parseDate(match.captured("date")));
    if (!match.captured("note").isEmpty())
    {
       xact->setNote(match.captured("note"));
@@ -318,7 +346,7 @@ void NativeReader::unReadLine(QString const& line)
    m_lines.push_back(line);
 }
 
-QDate NativeReader::parseDate(QString const& date, int line)
+QDate NativeReader::parseDate(QString const& date)
 {
    // TODO let this be dynamic to accept dates in any unambiguous format
    QDate d(QDate::fromString(date, Qt::SystemLocaleShortDate));
@@ -327,14 +355,13 @@ QDate NativeReader::parseDate(QString const& date, int line)
       qWarning("Unable to read date '%s', expected something like '%s', line "
                "%d", qPrintable(date),
                qPrintable(QLocale::system().dateFormat(QLocale::ShortFormat)),
-               line);
+               m_lineNum);
       exit(EXIT_FAILURE);
    }
    return d;
 }
 
-LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command,
-                                                   int line)
+LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command)
 {
    if (command == "on-budget")
    {
@@ -351,7 +378,7 @@ LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command,
    else
    {
       qWarning("Unknown account command '%s', line %d",
-               qPrintable(command), line);
+               qPrintable(command), m_lineNum);
       return LedgerAccountCommand::Mode::CLOSED;
    }
 }

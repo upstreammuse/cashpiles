@@ -12,6 +12,7 @@ HEADERS += \
    include/ledger.h \
    include/ledgeraccountcommand.h \
    include/ledgerallocation.h \
+   include/ledgerbudget.h \
    include/ledgercomment.h \
    include/ledgeritem.h \
    include/ledgertransaction.h \
@@ -31,6 +32,7 @@ SOURCES += \
    src/ledger.cpp \
    src/ledgeraccountcommand.cpp \
    src/ledgerallocation.cpp \
+   src/ledgerbudget.cpp \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
