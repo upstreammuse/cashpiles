@@ -1,7 +1,7 @@
 #include "ynabbudgetreader.h"
 
 #include <QHash>
-#include "ledgerbudgetallocation.h"
+#include "ledgerallocation.h"
 
 YnabBudgetReader::YnabBudgetReader(QObject* parent) :
    QObject(parent)
@@ -33,7 +33,7 @@ void YnabBudgetReader::processRecord(QHash<QString, QString> const& record,
    QDate date(QDate::fromString(record["Month"], "MMM yyyy"));
    if (!m_allocation)
    {
-      m_allocation = new LedgerBudgetAllocation(fileName, lineNum);
+      m_allocation = new LedgerAllocation(fileName, lineNum);
       m_allocation->setDate(date);
    }
    else if (m_allocation->date() != date)
@@ -41,7 +41,7 @@ void YnabBudgetReader::processRecord(QHash<QString, QString> const& record,
       if (!m_allocation->allocations().empty())
       {
          emit item(m_allocation->date(), m_allocation);
-         m_allocation = new LedgerBudgetAllocation(fileName, lineNum);
+         m_allocation = new LedgerAllocation(fileName, lineNum);
       }
       m_allocation->setDate(QDate::fromString(record["Month"], "MMM yyyy"));
    }

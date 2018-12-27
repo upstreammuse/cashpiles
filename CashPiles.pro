@@ -11,7 +11,7 @@ HEADERS += \
    include/itemprocessor.h \
    include/ledger.h \
    include/ledgeraccountcommand.h \
-   include/ledgerbudgetallocation.h \
+   include/ledgerallocation.h \
    include/ledgercomment.h \
    include/ledgeritem.h \
    include/ledgertransaction.h \
@@ -30,7 +30,7 @@ SOURCES += \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccountcommand.cpp \
-   src/ledgerbudgetallocation.cpp \
+   src/ledgerallocation.cpp \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \

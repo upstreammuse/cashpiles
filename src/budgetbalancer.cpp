@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "ledgeraccountcommand.h"
-#include "ledgerbudgetallocation.h"
+#include "ledgerallocation.h"
 #include "ledgertransaction.h"
 
 BudgetBalancer::BudgetBalancer(QObject* parent) :
@@ -26,7 +26,7 @@ void BudgetBalancer::processItem(LedgerAccountCommand const& account)
    }
 }
 
-void BudgetBalancer::processItem(LedgerBudgetAllocation const& allocation)
+void BudgetBalancer::processItem(LedgerAllocation const& allocation)
 {
    QMap<QString, Currency> allocations = allocation.allocations();
    for (auto it = allocations.cbegin(); it != allocations.cend(); ++it)

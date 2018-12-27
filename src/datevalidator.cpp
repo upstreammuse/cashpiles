@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "ledgeraccountcommand.h"
-#include "ledgerbudgetallocation.h"
+#include "ledgerallocation.h"
 #include "ledgertransaction.h"
 
 DateValidator::DateValidator(QObject* parent) :
@@ -15,7 +15,7 @@ void DateValidator::processItem(LedgerAccountCommand const& account)
    processDate(account.date(), account.fileName(), account.lineNum());
 }
 
-void DateValidator::processItem(LedgerBudgetAllocation const& allocation)
+void DateValidator::processItem(LedgerAllocation const& allocation)
 {
    processDate(allocation.date(), allocation.fileName(), allocation.lineNum());
 }

@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "ledgeraccountcommand.h"
-#include "ledgerbudgetallocation.h"
+#include "ledgerallocation.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
 
@@ -31,7 +31,7 @@ void NativeWriter::processItem(LedgerAccountCommand const& account)
    std::cout << " " << qPrintable(account.account()) << std::endl;
 }
 
-void NativeWriter::processItem(LedgerBudgetAllocation const& allocation)
+void NativeWriter::processItem(LedgerAllocation const& allocation)
 {
    breakBetween();
    std::cout << qPrintable(allocation.date().toString(Qt::SystemLocaleShortDate))

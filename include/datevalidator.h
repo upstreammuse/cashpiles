@@ -9,7 +9,7 @@ class DateValidator : public ItemProcessor
 public:
    DateValidator(QObject* parent);
    void processItem(LedgerAccountCommand const& account);
-   void processItem(LedgerBudgetAllocation const& allocation);
+   void processItem(LedgerAllocation const& allocation);
    void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
    void stop();

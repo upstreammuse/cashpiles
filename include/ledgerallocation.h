@@ -1,15 +1,15 @@
-#ifndef LEDGERBUDGETALLOCATION_H
-#define LEDGERBUDGETALLOCATION_H
+#ifndef LEDGERALLOCATION_H
+#define LEDGERALLOCATION_H
 
 #include <QDate>
 #include <QMap>
 #include "currency.h"
 #include "ledgeritem.h"
 
-class LedgerBudgetAllocation : public LedgerItem
+class LedgerAllocation : public LedgerItem
 {
 public:
-   LedgerBudgetAllocation(QString const& filename, int lineNum);
+   LedgerAllocation(QString const& filename, int lineNum);
 
    QMap<QString, Currency> allocations() const;
    void appendAllocation(QString const& category, Currency const& amount);

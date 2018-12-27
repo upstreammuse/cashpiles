@@ -47,7 +47,7 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
    }
 }
 
-void AccountBalancer::processItem(LedgerBudgetAllocation const&)
+void AccountBalancer::processItem(LedgerAllocation const&)
 {
 }
 

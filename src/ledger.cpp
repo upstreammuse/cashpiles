@@ -5,11 +5,6 @@
 #if 0
 do not allow uncleared before a balance assertion
 
-compact xacts only have space for one note
-- if LT has 1 payee, and either master or payee note (not both)
---- then can render as compact xact
-- else > 1 note or > 1 payee requires full format
-
 categories must already exist
 #endif
 

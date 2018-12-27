@@ -4,7 +4,7 @@
 #include <QRegularExpression>
 #include <QTextStream>
 #include "ledgeraccountcommand.h"
-#include "ledgerbudgetallocation.h"
+#include "ledgerallocation.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
 
@@ -96,8 +96,8 @@ void NativeReader::processAccount(QRegularExpressionMatch const& match)
 
 void NativeReader::processBudget(QRegularExpressionMatch& match)
 {
-   LedgerBudgetAllocation* budgetCommand =
-         new LedgerBudgetAllocation(m_fileName, m_lineNum);
+   LedgerAllocation* budgetCommand =
+         new LedgerAllocation(m_fileName, m_lineNum);
    budgetCommand->setDate(parseDate(match.captured("date"), m_lineNum));
    forever
    {

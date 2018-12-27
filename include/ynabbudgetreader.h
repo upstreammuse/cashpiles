@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class LedgerBudgetAllocation;
+class LedgerAllocation;
 class LedgerItem;
 
 class YnabBudgetReader : public QObject
@@ -23,7 +23,7 @@ signals:
    void item(QDate const&, LedgerItem*);
 
 private:
-   LedgerBudgetAllocation* m_allocation = nullptr;
+   LedgerAllocation* m_allocation = nullptr;
 };
 
 #endif
