@@ -31,12 +31,20 @@ void BudgetBalancer::processItem(LedgerAllocation const& allocation)
    QMap<QString, Currency> allocations = allocation.allocations();
    for (auto it = allocations.cbegin(); it != allocations.cend(); ++it)
    {
+      if (!m_categories.contains(it.key()))
+      {
+         std::cerr << "Budget category '" << qPrintable(it.key())
+                   << "' does not exist, file '"
+                   << qPrintable(allocation.fileName()) << "', line "
+                   << allocation.lineNum() << std::endl;
+      }
       m_categories[it.key()] += it.value();
       if (m_categories[it.key()].isNegative())
       {
          std::cerr << "Budget category '" << qPrintable(it.key())
-                   << "' is negative, line " << allocation.lineNum()
-                   << std::endl;
+                   << "' is negative, file '"
+                   << qPrintable(allocation.fileName()) << "', line "
+                   << allocation.lineNum() << std::endl;
       }
    }
 }
@@ -51,6 +59,10 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
    {
       m_accounts[transaction.account()] = true;
    }
+
+   // TODO clean up the logic below.  I have this suspicion there are holes in
+   // the if-else branches that are not obvious
+
    if (m_accounts[transaction.account()])
    {
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -72,6 +84,14 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
             }
             else
             {
+               if (!m_categories.contains(entry.category()))
+               {
+                  std::cerr << "Budget category '"
+                            << qPrintable(entry.category())
+                            << "' does not exist, file '"
+                            << qPrintable(transaction.fileName()) << "', line "
+                            << transaction.lineNum() << std::endl;
+               }
                m_categories[entry.category()] += entry.amount();
                if (m_categories[entry.category()].isNegative())
                {
