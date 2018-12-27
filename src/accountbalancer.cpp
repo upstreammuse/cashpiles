@@ -95,21 +95,18 @@ void AccountBalancer::stop()
                 << qPrintable(it.value().toString()) << std::endl;
    }
 
-   for (auto it = m_transfers.cbegin(); it != m_transfers.cend(); ++it)
+   for (auto it = m_accounts.cbegin(); it != m_accounts.cend(); ++it)
    {
-      for (auto it2 = it->cbegin(); it2 != it->cend(); ++it2)
+      for (auto it2 = m_accounts.cbegin(); it2 != m_accounts.cend(); ++it2)
       {
-         Q_ASSERT(m_transfers.contains(it2.key()));
-         Q_ASSERT(m_transfers[it2.key()].contains(it.key()));
-         Currency side1 = *it2;
-         // TODO dangerous if the other side does not exist, will modify structure and invalidate iterators
-         Currency side2 = m_transfers[it2.key()][it.key()];
-         if (!(side1 + side2).isZero())
+         Currency balance = m_transfers[it.key()][it2.key()] +
+                            m_transfers[it2.key()][it.key()];
+         if (!balance.isZero())
          {
             std::cerr << "Transfers between '" << qPrintable(it.key())
                       << "' and '" << qPrintable(it2.key())
                       << "' do not balance.  Mismatch is "
-                      << qPrintable((side1 + side2).toString()) << std::endl;
+                      << qPrintable(balance.toString()) << std::endl;
          }
       }
    }
