@@ -27,9 +27,9 @@ namespace
          START_RX + DATE_RX + SPACE_RX +
          "(?<command>on-budget|off-budget|close)" + SPACE_RX +
          IDENT_RX.arg("account") + END_RX);
-   QRegularExpression const budgetRx(
-         START_RX + DATE_RX + SPACE_RX + "budget" + END_RX);
-   QRegularExpression const budgetLineRx(
+   QRegularExpression const allocationRx(
+         START_RX + DATE_RX + SPACE_RX + "allocation" + END_RX);
+   QRegularExpression const allocationLineRx(
          START_RX + SEP_RX + IDENT_RX.arg("category") + SEP_RX +
          CURR_RX.arg("amount") + END_RX);
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
@@ -94,7 +94,7 @@ void NativeReader::processAccount(QRegularExpressionMatch const& match)
    emit item(accountCommand);
 }
 
-void NativeReader::processBudget(QRegularExpressionMatch& match)
+void NativeReader::processAllocation(QRegularExpressionMatch& match)
 {
    LedgerAllocation* budgetCommand =
          new LedgerAllocation(m_fileName, m_lineNum);
@@ -102,7 +102,7 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
    forever
    {
       QString line(readLine());
-      if ((match = budgetLineRx.match(line)).hasMatch())
+      if ((match = allocationLineRx.match(line)).hasMatch())
       {
          budgetCommand->appendAllocation(
                   match.captured("category"),
@@ -198,9 +198,9 @@ void NativeReader::processLine(QString const& line)
    {
       processAccount(match);
    }
-   else if ((match = budgetRx.match(line)).hasMatch())
+   else if ((match = allocationRx.match(line)).hasMatch())
    {
-      processBudget(match);
+      processAllocation(match);
    }
    else if ((match = commentRx.match(line)).hasMatch())
    {

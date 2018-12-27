@@ -35,7 +35,7 @@ void NativeWriter::processItem(LedgerAllocation const& allocation)
 {
    breakBetween();
    std::cout << qPrintable(allocation.date().toString(Qt::SystemLocaleShortDate))
-             << " budget" << std::endl;
+             << " allocation" << std::endl;
    for (auto it(allocation.allocations().cbegin());
         it != allocation.allocations().cend(); ++it)
    {
