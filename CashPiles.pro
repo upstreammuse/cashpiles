@@ -4,6 +4,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
    include/accountbalancer.h \
+   include/allocationminder.h \
    include/budgetbalancer.h \
    include/currency.h \
    include/csvreader.h \
@@ -22,10 +23,10 @@ HEADERS += \
    include/nativewriter.h \
    include/ynabbudgetreader.h \
    include/ynabconsolidator.h \
-   include/ynabregisterreader.h \
-    allocationminder.h
+   include/ynabregisterreader.h
 SOURCES += \
    src/accountbalancer.cpp \
+   src/allocationminder.cpp \
    src/budgetbalancer.cpp \
    src/currency.cpp \
    src/csvreader.cpp \
@@ -45,8 +46,7 @@ SOURCES += \
    src/nativewriter.cpp \
    src/ynabbudgetreader.cpp \
    src/ynabconsolidator.cpp \
-   src/ynabregisterreader.cpp \
-    allocationminder.cpp
+   src/ynabregisterreader.cpp
 OTHER_FILES += \
    CashPiles_File_Format.txt \
    cp-sample.txt \

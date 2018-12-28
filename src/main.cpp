@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include "accountbalancer.h"
+#include "allocationminder.h"
 #include "budgetbalancer.h"
 #include "csvreader.h"
 #include "currency.h"
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
    ledger->addProcessor(new DateValidator(ledger));
    ledger->addProcessor(new AccountBalancer(ledger));
    ledger->addProcessor(new BudgetBalancer(ledger));
+   ledger->addProcessor(new AllocationMinder(ledger));
    ledger->addProcessor(new NativeWriter(ledger));
 
    if (csvBudgetReader && csvRegisterReader)
