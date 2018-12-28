@@ -92,24 +92,24 @@ bool CsvReader::parseBackslash()
 {
    switch (m_fieldMode)
    {
-      case EMPTY:
-         m_fieldMode = NORMAL_ESCAPED;
+      case FieldMode::EMPTY:
+         m_fieldMode = FieldMode::NORMAL_ESCAPED;
          break;
-      case NORMAL:
-         m_fieldMode = NORMAL_ESCAPED;
+      case FieldMode::NORMAL:
+         m_fieldMode = FieldMode::NORMAL_ESCAPED;
          break;
-      case NORMAL_ESCAPED:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += '\\';
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case QUOTED:
-         m_fieldMode = QUOTED_ESCAPED;
+      case FieldMode::QUOTED:
+         m_fieldMode = FieldMode::QUOTED_ESCAPED;
          break;
-      case QUOTED_ESCAPED:
+      case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += '\\';
-         m_fieldMode = QUOTED;
+         m_fieldMode = FieldMode::QUOTED;
          break;
-      case CLOSED:
+      case FieldMode::CLOSED:
          error("An extra backslash was found when a comma was expected");
          return false;
    }
@@ -120,23 +120,23 @@ bool CsvReader::parseChar(char c)
 {
    switch (m_fieldMode)
    {
-      case EMPTY:
+      case FieldMode::EMPTY:
          m_fieldValue += c;
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case NORMAL:
-      case QUOTED:
+      case FieldMode::NORMAL:
+      case FieldMode::QUOTED:
          m_fieldValue += c;
          break;
-      case NORMAL_ESCAPED:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += c;
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case QUOTED_ESCAPED:
+      case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += c;
-         m_fieldMode = QUOTED;
+         m_fieldMode = FieldMode::QUOTED;
          break;
-      case CLOSED:
+      case FieldMode::CLOSED:
          error("Extra text was found when a comma was expected");
          return false;
    }
@@ -147,22 +147,22 @@ void CsvReader::parseComma()
 {
    switch (m_fieldMode)
    {
-      case EMPTY:
-      case NORMAL:
-      case CLOSED:
+      case FieldMode::EMPTY:
+      case FieldMode::NORMAL:
+      case FieldMode::CLOSED:
          commitField();
-         m_fieldMode = EMPTY;
+         m_fieldMode = FieldMode::EMPTY;
          break;
-      case NORMAL_ESCAPED:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += ',';
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case QUOTED:
+      case FieldMode::QUOTED:
          m_fieldValue += ',';
          break;
-      case QUOTED_ESCAPED:
+      case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += ',';
-         m_fieldMode = QUOTED;
+         m_fieldMode = FieldMode::QUOTED;
          break;
    }
 }
@@ -171,26 +171,26 @@ bool CsvReader::parseNewline()
 {
    switch (m_fieldMode)
    {
-      case EMPTY:
-      case NORMAL:
-      case CLOSED:
+      case FieldMode::EMPTY:
+      case FieldMode::NORMAL:
+      case FieldMode::CLOSED:
          commitField();
          if (!commitRecord())
          {
             return false;
          }
-         m_fieldMode = EMPTY;
+         m_fieldMode = FieldMode::EMPTY;
          break;
-      case NORMAL_ESCAPED:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += '\n';
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case QUOTED:
+      case FieldMode::QUOTED:
          m_fieldValue += '\n';
          break;
-      case QUOTED_ESCAPED:
+      case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += '\n';
-         m_fieldMode = QUOTED;
+         m_fieldMode = FieldMode::QUOTED;
          break;
    }
    return true;
@@ -200,24 +200,24 @@ bool CsvReader::parseQuote()
 {
    switch (m_fieldMode)
    {
-      case EMPTY:
-         m_fieldMode = QUOTED;
+      case FieldMode::EMPTY:
+         m_fieldMode = FieldMode::QUOTED;
          break;
-      case NORMAL:
+      case FieldMode::NORMAL:
          m_fieldValue += '"';
          break;
-      case NORMAL_ESCAPED:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += '"';
-         m_fieldMode = NORMAL;
+         m_fieldMode = FieldMode::NORMAL;
          break;
-      case QUOTED:
-         m_fieldMode = CLOSED;
+      case FieldMode::QUOTED:
+         m_fieldMode = FieldMode::CLOSED;
          break;
-      case QUOTED_ESCAPED:
+      case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += '"';
-         m_fieldMode = QUOTED;
+         m_fieldMode = FieldMode::QUOTED;
          break;
-      case CLOSED:
+      case FieldMode::CLOSED:
          error("An extra quote was found when a comma was expected");
          return false;
    }

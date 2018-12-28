@@ -8,6 +8,7 @@ HEADERS += \
    include/currency.h \
    include/csvreader.h \
    include/datevalidator.h \
+   include/interval.h \
    include/itemprocessor.h \
    include/ledger.h \
    include/ledgeraccountcommand.h \
@@ -28,6 +29,7 @@ SOURCES += \
    src/currency.cpp \
    src/csvreader.cpp \
    src/datevalidator.cpp \
+   src/interval.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccountcommand.cpp \

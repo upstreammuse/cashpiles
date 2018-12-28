@@ -27,6 +27,16 @@ void LedgerBudget::setDate(QDate const& date)
    m_date = date;
 }
 
+Interval LedgerBudget::interval() const
+{
+   return m_interval;
+}
+
+void LedgerBudget::setInterval(Interval interval)
+{
+   m_interval = interval;
+}
+
 void LedgerBudget::processItem(ItemProcessor* processor)
 {
    processor->processItem(*this);

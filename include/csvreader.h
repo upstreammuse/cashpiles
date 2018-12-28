@@ -21,7 +21,7 @@ signals:
    void record(QHash<QString, QString> const&, QString const&, int);
 
 private:
-   enum FieldMode
+   enum class FieldMode
    {
       EMPTY, NORMAL, NORMAL_ESCAPED, QUOTED, QUOTED_ESCAPED, CLOSED
    };
@@ -38,7 +38,7 @@ private:
 
 private:
    int m_fieldIndex = 0;
-   FieldMode m_fieldMode = EMPTY;
+   FieldMode m_fieldMode = FieldMode::EMPTY;
    QString m_fieldValue;
    QIODevice* m_file = nullptr;
    QString m_fileName;

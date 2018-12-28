@@ -25,15 +25,15 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       {
          if (it.value() == "Uncleared")
          {
-            m_clearedColumn.append(UNCLEARED);
+            m_clearedColumn.append(ClearedStatus::UNCLEARED);
          }
          else if (it.value() == "Cleared")
          {
-            m_clearedColumn.append(CLEARED);
+            m_clearedColumn.append(ClearedStatus::CLEARED);
          }
          else if (it.value() == "Reconciled")
          {
-            m_clearedColumn.append(RECONCILED);
+            m_clearedColumn.append(ClearedStatus::RECONCILED);
          }
       }
       else if (it.key() == "Date")
@@ -79,8 +79,8 @@ void YnabRegisterReader::stop()
       }
       t->setDate(m_dateColumn[i]);
       t->setAccount(m_accountColumn[i]);
-      t->setCleared(m_clearedColumn[i] == CLEARED ||
-                    m_clearedColumn[i] == RECONCILED);
+      t->setCleared(m_clearedColumn[i] == ClearedStatus::CLEARED ||
+                    m_clearedColumn[i] == ClearedStatus::RECONCILED);
 
       QRegExp rx("Split \\(([0-9]*)/([0-9]*)\\) (.*)");
       bool inSplit = false;

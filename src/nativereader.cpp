@@ -11,7 +11,7 @@
 
 namespace
 {
-   QString const CLEAR_RX("(?<cleared>\\*|\\!)");
+   QString const CLEAR_RX("(?<cleared>\\*|\\!|\\?)");
    // TODO this needs to play well with the currency regexps somehow
    QString const CURR_RX(
          "(?<%1>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\,\\d{3})*\\.\\d{2,})");
@@ -39,6 +39,9 @@ namespace
          END_RX);
    QRegularExpression const budgetLineGoalRx(
          START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX.arg("category") +
+         END_RX);
+   QRegularExpression const budgetLineIncomeRx(
+         START_RX + SEP_RX + "income" + SPACE_RX + IDENT_RX.arg("category") +
          END_RX);
    QRegularExpression const budgetLineReserveAmountRx(
          START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
@@ -138,6 +141,36 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
 {
    LedgerBudget* budgetCommand = new LedgerBudget(m_fileName, m_lineNum);
    budgetCommand->setDate(parseDate(match.captured("date")));
+   budgetCommand->setInterval(parseInterval(match.captured("interval")));
+   forever
+   {
+      QString line(readLine());
+      if ((match = budgetLineGoalRx.match(line)).hasMatch())
+      {
+         // TODO we have a goal category
+      }
+      else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
+      {
+         // TODO we have income
+      }
+      else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
+      {
+         // TODO we have reserve amount
+      }
+      else if ((match = budgetLineReservePercentRx.match(line)).hasMatch())
+      {
+         // TODO we have reserve percentage
+      }
+      else if ((match = budgetLineRoutineRx.match(line)).hasMatch())
+      {
+         // TODO we have routine
+      }
+      else
+      {
+         unReadLine(line);
+         break;
+      }
+   }
    emit item(budgetCommand);
 }
 
@@ -359,6 +392,41 @@ QDate NativeReader::parseDate(QString const& date)
       exit(EXIT_FAILURE);
    }
    return d;
+}
+
+Interval NativeReader::parseInterval(QString interval)
+{
+   QString periodStr = interval.right(1);
+   interval.remove(0, 1).chop(1);
+   bool ok = false;
+   int number = interval.toInt(&ok);
+   if (!ok)
+   {
+      qWarning("Failed to parse interval number '%s', line %d",
+               qPrintable(interval), m_lineNum);
+   }
+   Interval::Period period;
+   switch (periodStr[0].toLatin1())
+   {
+      case 'd':
+         period = Interval::Period::DAYS;
+         break;
+      case 'w':
+         period = Interval::Period::DAYS;
+         number *= 7;
+         break;
+      case 'm':
+         period = Interval::Period::MONTHS;
+         break;
+      case 'y':
+         period = Interval::Period::YEARS;
+         break;
+      default:
+         qWarning("Failed to get correct interval period from '%s', line %d",
+                  qPrintable(periodStr), m_lineNum);
+         break;
+   }
+   return Interval(number, period);
 }
 
 LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command)

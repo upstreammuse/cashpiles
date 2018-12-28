@@ -10,7 +10,7 @@ class YnabRegisterReader : public QObject
    Q_OBJECT
 
 public:
-   enum ClearedStatus
+   enum class ClearedStatus
    {
       UNCLEARED,
       CLEARED,

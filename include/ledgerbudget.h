@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include <QSet>
+#include "interval.h"
 #include "ledgeritem.h"
 
 class LedgerBudget : public LedgerItem
@@ -16,11 +17,15 @@ public:
    QDate date() const;
    void setDate(QDate const& date);
 
+   Interval interval() const;
+   void setInterval(Interval interval);
+
    void processItem(ItemProcessor* processor);
 
 private:
    QSet<QString> m_categories;
    QDate m_date;
+   Interval m_interval;
 };
 
 #endif

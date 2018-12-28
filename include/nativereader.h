@@ -2,6 +2,7 @@
 #define NATIVEREADER_H
 
 #include <QObject>
+#include "interval.h"
 #include "ledgeraccountcommand.h"
 
 class QIODevice;
@@ -34,6 +35,7 @@ private:
 
 private:
    QDate parseDate(QString const& date);
+   Interval parseInterval(QString interval);
    LedgerAccountCommand::Mode parseMode(QString const& command);
 
 private:
