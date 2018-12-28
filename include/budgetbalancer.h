@@ -22,6 +22,7 @@ private:
    QDate m_budgetDate;
    Interval m_budgetInterval;
    QHash<QString, Currency> m_categories;
+   QSet<QString> m_incomes;
    QHash<QString, Currency> m_totals;
 };
 

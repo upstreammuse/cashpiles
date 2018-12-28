@@ -1,6 +1,6 @@
 #include "allocationminder.h"
 
-AllocationMinder::AllocationMinder()
+AllocationMinder::AllocationMinder(QObject* parent) :
+   ItemProcessor(parent)
 {
-
 }

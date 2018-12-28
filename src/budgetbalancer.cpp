@@ -81,9 +81,14 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
    m_categories["  Available  "] += available;
 
    // populate the category list with everything in the current budget
+   m_incomes.clear();
    for (auto it = categories.begin(); it != categories.end(); ++it)
    {
       m_categories[it.key()];
+      if (it.value().type == BudgetCategory::Type::INCOME)
+      {
+         m_incomes.insert(it.key());
+      }
    }
 }
 
@@ -119,24 +124,39 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
             }
             else
             {
-               if (!m_categories.contains(entry.category()))
+               if (m_incomes.contains(entry.category()))
                {
-                  std::cerr << "Budget category '"
-                            << qPrintable(entry.category())
-                            << "' does not exist, file '"
-                            << qPrintable(transaction.fileName()) << "', line "
-                            << transaction.lineNum() << std::endl;
+                  m_categories["  Available  "] += entry.amount();
+                  if (m_categories["  Available  "].isNegative())
+                  {
+                     std::cerr << "Available funds are negative, file '"
+                               << qPrintable(transaction.fileName())
+                               << "', line " << transaction.lineNum()
+                               << std::endl;
+                  }
                }
-               m_categories[entry.category()] += entry.amount();
-               if (m_categories[entry.category()].isNegative())
+               else
                {
-                  std::cerr << "Budget category '"
-                            << qPrintable(entry.category())
-                            << "' is underfunded.  Balance is "
-                            << qPrintable(m_categories[entry.category()].toString())
-                        << ".  Line " << transaction.lineNum() << std::endl;
+                  if (!m_categories.contains(entry.category()))
+                  {
+                     std::cerr << "Budget category '"
+                               << qPrintable(entry.category())
+                               << "' does not exist, file '"
+                               << qPrintable(transaction.fileName())
+                               << "', line " << transaction.lineNum()
+                               << std::endl;
+                  }
+                  m_categories[entry.category()] += entry.amount();
+                  if (m_categories[entry.category()].isNegative())
+                  {
+                     std::cerr << "Budget category '"
+                               << qPrintable(entry.category())
+                               << "' is underfunded.  Balance is "
+                               << qPrintable(m_categories[entry.category()].toString())
+                           << ".  Line " << transaction.lineNum() << std::endl;
+                  }
+                  m_totals[entry.category()] += entry.amount();
                }
-               m_totals[entry.category()] += entry.amount();
             }
          }
          else
