@@ -106,6 +106,38 @@ Currency Currency::operator-(Currency const& other) const
    return result;
 }
 
+CurrencySplit Currency::operator/(uint splits) const
+{
+   CurrencySplit result;
+   result.amountA.m_decimalPlaces = m_decimalPlaces;
+   result.amountB.m_decimalPlaces = m_decimalPlaces;
+
+   result.amountB.m_value = m_value / splits;
+   result.numSplitsB = splits;
+
+   int difference = m_value - result.amountB.m_value * splits;
+   if (difference == 0)
+   {
+      result.amountA.m_value = result.amountB.m_value;
+      result.numSplitsA = splits;
+      result.numSplitsB = 0;
+   }
+   else
+   {
+      result.amountA.m_value = result.amountB.m_value + 1;
+      result.numSplitsA = difference;
+      result.numSplitsB = splits - difference;
+   }
+
+   Q_ASSERT(result.amountA.m_value * result.numSplitsA +
+            result.amountB.m_value * result.numSplitsB ==
+            m_value);
+   Q_ASSERT(result.amountA.m_decimalPlaces == m_decimalPlaces);
+   Q_ASSERT(result.amountB.m_decimalPlaces == m_decimalPlaces);
+
+   return result;
+}
+
 bool Currency::operator==(Currency const& other) const
 {
    Currency a(*this);

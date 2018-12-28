@@ -39,6 +39,13 @@ void BudgetBalancer::processItem(LedgerAllocation const& allocation)
                    << qPrintable(allocation.fileName()) << "', line "
                    << allocation.lineNum() << std::endl;
       }
+      m_categories["  Available  "] -= it.value();
+      if (m_categories["  Available  "].isNegative())
+      {
+         std::cerr << "Available funds are negative, file '"
+                   << qPrintable(allocation.fileName()) << "', line "
+                   << allocation.lineNum() << std::endl;
+      }
       m_categories[it.key()] += it.value();
       if (m_categories[it.key()].isNegative())
       {
@@ -91,9 +98,6 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
       m_accounts[transaction.account()] = true;
    }
 
-   // TODO clean up the logic below.  I have this suspicion there are holes in
-   // the if-else branches that are not obvious
-
    if (m_accounts[transaction.account()])
    {
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -132,6 +136,7 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
                             << qPrintable(m_categories[entry.category()].toString())
                         << ".  Line " << transaction.lineNum() << std::endl;
                }
+               m_totals[entry.category()] += entry.amount();
             }
          }
          else
@@ -183,4 +188,18 @@ void BudgetBalancer::stop()
    std::cout << "current budget period begins "
              << qPrintable(startDate.toString()) << " and ends "
              << qPrintable(endDate.toString()) << std::endl;
+
+   // find the number of days during the budget periods before this one
+   qint64 priorDays = m_budgetDate.daysTo(startDate);
+   std::cout << "averaging over " << priorDays << " days" << std::endl;
+   for (auto it = m_totals.cbegin(); it != m_totals.cend(); ++it)
+   {
+      if (m_categories.contains(it.key()))
+      {
+         // TODO this seems to be giving bogus answers
+         std::cout << "  " << qPrintable(it.key()) << " averages "
+                   << qPrintable((it.value() / priorDays).amountA.toString())
+                   << " per day" << std::endl;
+      }
+   }
 }

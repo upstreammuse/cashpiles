@@ -5,6 +5,8 @@
 #include <QRegularExpression>
 #include <QString>
 
+struct CurrencySplit;
+
 class Currency
 {
 public:
@@ -26,6 +28,7 @@ public:
    QString toString() const;
    Currency operator+(Currency const& other) const;
    Currency operator-(Currency const& other) const;
+   CurrencySplit operator/(uint splits) const;
    bool operator==(Currency const& other) const;
    bool operator!=(Currency const& other) const;
    Currency& operator+=(Currency const& other);
@@ -47,6 +50,14 @@ private:
 private:
    int m_decimalPlaces = 0;
    int m_value = 0;
+};
+
+struct CurrencySplit
+{
+   Currency amountA;
+   int numSplitsA;
+   Currency amountB;
+   int numSplitsB;
 };
 
 #endif
