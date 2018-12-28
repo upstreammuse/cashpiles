@@ -196,7 +196,6 @@ void BudgetBalancer::stop()
    {
       if (m_categories.contains(it.key()))
       {
-         // TODO this seems to be giving bogus answers
          std::cout << "  " << qPrintable(it.key()) << " averages "
                    << qPrintable((it.value() / priorDays).amountA.toString())
                    << " per day" << std::endl;

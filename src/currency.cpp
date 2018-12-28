@@ -108,14 +108,16 @@ Currency Currency::operator-(Currency const& other) const
 
 CurrencySplit Currency::operator/(uint splits) const
 {
+   int value = isNegative() ? -m_value : m_value;
+
    CurrencySplit result;
    result.amountA.m_decimalPlaces = m_decimalPlaces;
    result.amountB.m_decimalPlaces = m_decimalPlaces;
 
-   result.amountB.m_value = m_value / splits;
+   result.amountB.m_value = value / splits;
    result.numSplitsB = splits;
 
-   int difference = m_value - result.amountB.m_value * splits;
+   int difference = value - result.amountB.m_value * splits;
    if (difference == 0)
    {
       result.amountA.m_value = result.amountB.m_value;
@@ -127,6 +129,12 @@ CurrencySplit Currency::operator/(uint splits) const
       result.amountA.m_value = result.amountB.m_value + 1;
       result.numSplitsA = difference;
       result.numSplitsB = splits - difference;
+   }
+
+   if (isNegative())
+   {
+      result.amountA.m_value = -result.amountA.m_value;
+      result.amountB.m_value = -result.amountB.m_value;
    }
 
    Q_ASSERT(result.amountA.m_value * result.numSplitsA +
