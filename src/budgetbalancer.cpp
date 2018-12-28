@@ -52,7 +52,29 @@ void BudgetBalancer::processItem(LedgerAllocation const& allocation)
 
 void BudgetBalancer::processItem(LedgerBudget const& budget)
 {
-   foreach (QString const& category, budget.categories())
+   m_budgetDate = budget.date();
+   m_budgetInterval = budget.interval();
+
+   // remove categories that are not in this budget command, and allocate their
+   // funds to the available category
+   Currency available;
+   QSet<QString> categories = budget.categories();
+   for (auto it = m_categories.begin(); it != m_categories.end(); /*inside*/)
+   {
+      if (!categories.contains(it.key()))
+      {
+         available += it.value();
+         it = m_categories.erase(it);
+      }
+      else
+      {
+         ++it;
+      }
+   }
+   m_categories["  Available  "] += available;
+
+   // populate the category list with everything in the current budget
+   foreach (QString const& category, categories)
    {
       m_categories[category];
    }
@@ -150,4 +172,15 @@ void BudgetBalancer::stop()
       std::cout << "   " << qPrintable(it.key()) << "   "
                 << qPrintable(it.value().toString()) << std::endl;
    }
+
+   // find the dates of the current budget period
+   QDate startDate;
+   QDate endDate = m_budgetDate.addDays(-1);
+   do {
+      startDate = endDate.addDays(1);
+      endDate = (startDate + m_budgetInterval).addDays(-1);
+   } while (endDate < QDate::currentDate());
+   std::cout << "current budget period begins "
+             << qPrintable(startDate.toString()) << " and ends "
+             << qPrintable(endDate.toString()) << std::endl;
 }

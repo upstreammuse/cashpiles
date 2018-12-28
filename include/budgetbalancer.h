@@ -1,7 +1,9 @@
 #ifndef BUDGETBALANCER_H
 #define BUDGETBALANCER_H
 
+#include <QDate>
 #include "currency.h"
+#include "interval.h"
 #include "itemprocessor.h"
 
 class BudgetBalancer : public ItemProcessor
@@ -17,6 +19,8 @@ public:
 
 private:
    QHash<QString, bool> m_accounts;
+   QDate m_budgetDate;
+   Interval m_budgetInterval;
    QHash<QString, Currency> m_categories;
 };
 
