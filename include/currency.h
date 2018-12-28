@@ -23,11 +23,14 @@ public:
 public:
    Currency();
    Currency(QString const& asString, int lineNum);
+   void clear();
    bool isNegative() const;
    bool isZero() const;
+   Currency percentage(int percent) const;
    QString toString() const;
    Currency operator+(Currency const& other) const;
    Currency operator-(Currency const& other) const;
+   Currency operator*(int factor) const;
    CurrencySplit operator/(uint splits) const;
    bool operator==(Currency const& other) const;
    bool operator!=(Currency const& other) const;

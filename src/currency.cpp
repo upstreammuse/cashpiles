@@ -68,6 +68,11 @@ Currency::Currency(QString const& asString, int lineNum)
    }
 }
 
+void Currency::clear()
+{
+   *this = Currency();
+}
+
 bool Currency::isNegative() const
 {
    return m_value < 0;
@@ -76,6 +81,13 @@ bool Currency::isNegative() const
 bool Currency::isZero() const
 {
    return m_value == 0;
+}
+
+Currency Currency::percentage(int percent) const
+{
+   Currency result(*this);
+   result.m_value = qRound(result.m_value * percent / 100.0);
+   return result;
 }
 
 QString Currency::toString() const
@@ -103,6 +115,13 @@ Currency Currency::operator-(Currency const& other) const
 {
    Currency result(*this);
    result -= other;
+   return result;
+}
+
+Currency Currency::operator*(int factor) const
+{
+   Currency result(*this);
+   result.m_value *= factor;
    return result;
 }
 

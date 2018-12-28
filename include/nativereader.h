@@ -23,7 +23,6 @@ signals:
 
 private:
    void processAccount(QRegularExpressionMatch const& match);
-   void processAllocation(QRegularExpressionMatch& match);
    void processBudget(QRegularExpressionMatch& match);
    void processComment(QRegularExpressionMatch const& match);
    void processCompactTransaction(QRegularExpressionMatch const& match);

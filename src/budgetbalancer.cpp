@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include "ledgeraccountcommand.h"
-#include "ledgerallocation.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
 
@@ -13,6 +12,8 @@ BudgetBalancer::BudgetBalancer(QObject* parent) :
 
 void BudgetBalancer::processItem(LedgerAccountCommand const& account)
 {
+   advancePeriodToDate(account.date());
+
    switch (account.mode())
    {
       case LedgerAccountCommand::Mode::CLOSED:
@@ -27,69 +28,61 @@ void BudgetBalancer::processItem(LedgerAccountCommand const& account)
    }
 }
 
-void BudgetBalancer::processItem(LedgerAllocation const& allocation)
+void BudgetBalancer::processItem(LedgerBudget const& budget)
 {
-   QMap<QString, Currency> allocations = allocation.allocations();
-   for (auto it = allocations.cbegin(); it != allocations.cend(); ++it)
+   // TODO decide when or if to reset this
+   if (m_firstDate.isNull())
+   {
+      m_firstDate = budget.date();
+   }
+
+   // if we already have a period defined, then run it out to the day before the
+   // period we just got is going to start
+   if (!m_periodEnd.isNull())
+   {
+      // if the given date is outside the next period, switch to the next period
+      // and allocate funds for it.  keep going until the date is within the
+      // next period
+      while (m_periodEnd + m_periodLength < budget.date())
+      {
+         m_periodStart = m_periodEnd.addDays(1);
+         m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
+         allocateCategories();
+      }
+
+      // make a period that covers the dates in between the last full period and
+      // the new one we are about to start, but only if we didn't coincide with
+      // the start date of the old period cycle
+      if (m_periodEnd.addDays(1) != budget.date())
+      {
+         m_periodStart = m_periodEnd.addDays(1);
+         m_periodEnd = budget.date().addDays(-1);
+         Q_ASSERT(m_periodStart <= m_periodEnd);
+         allocateCategories();
+      }
+   }
+
+   // remove reserves that are not in this budget command, and allocate their
+   // funds to the available category
+   m_categories = budget.categories();
+   for (auto it = m_reserves.begin(); it != m_reserves.end(); /*inside*/)
    {
       if (!m_categories.contains(it.key()))
       {
-         std::cerr << "Budget category '" << qPrintable(it.key())
-                   << "' does not exist, file '"
-                   << qPrintable(allocation.fileName()) << "', line "
-                   << allocation.lineNum() << std::endl;
-      }
-      m_categories["  Available  "] -= it.value();
-      if (m_categories["  Available  "].isNegative())
-      {
-         std::cerr << "Available funds are negative, file '"
-                   << qPrintable(allocation.fileName()) << "', line "
-                   << allocation.lineNum() << std::endl;
-      }
-      m_categories[it.key()] += it.value();
-      if (m_categories[it.key()].isNegative())
-      {
-         std::cerr << "Budget category '" << qPrintable(it.key())
-                   << "' is negative, file '"
-                   << qPrintable(allocation.fileName()) << "', line "
-                   << allocation.lineNum() << std::endl;
-      }
-   }
-}
-
-void BudgetBalancer::processItem(LedgerBudget const& budget)
-{
-   m_budgetDate = budget.date();
-   m_budgetInterval = budget.interval();
-
-   // remove categories that are not in this budget command, and allocate their
-   // funds to the available category
-   Currency available;
-   auto categories = budget.categories();
-   for (auto it = m_categories.begin(); it != m_categories.end(); /*inside*/)
-   {
-      if (!categories.contains(it.key()))
-      {
-         available += it.value();
-         it = m_categories.erase(it);
+         m_available += it.value();
+         it = m_reserves.erase(it);
       }
       else
       {
          ++it;
       }
    }
-   m_categories["  Available  "] += available;
 
-   // populate the category list with everything in the current budget
-   m_incomes.clear();
-   for (auto it = categories.begin(); it != categories.end(); ++it)
-   {
-      m_categories[it.key()];
-      if (it.value().type == BudgetCategory::Type::INCOME)
-      {
-         m_incomes.insert(it.key());
-      }
-   }
+   // reset the dates for the new period
+   m_periodStart = budget.date();
+   m_periodLength = budget.interval();
+   m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
+   allocateCategories();
 }
 
 void BudgetBalancer::processItem(LedgerComment const&)
@@ -98,83 +91,17 @@ void BudgetBalancer::processItem(LedgerComment const&)
 
 void BudgetBalancer::processItem(LedgerTransaction const& transaction)
 {
+   advancePeriodToDate(transaction.date());
+
+   // make the account on-budget if we haven't seen it yet
    if (!m_accounts.contains(transaction.account()))
    {
       m_accounts[transaction.account()] = true;
    }
 
-   if (m_accounts[transaction.account()])
-   {
-      foreach (LedgerTransactionEntry const& entry, transaction.entries())
-      {
-         if (entry.transfer() && !m_accounts.contains(entry.payee()))
-         {
-            m_accounts[entry.payee()] = true;
-         }
-
-         if (entry.hasCategory())
-         {
-            if (entry.transfer() && m_accounts[entry.payee()])
-            {
-               std::cerr << "Transfers between on-budget accounts '"
-                         << qPrintable(transaction.account()) << "' and '"
-                         << qPrintable(entry.payee())
-                         << "' cannot have a category, line "
-                         << transaction.lineNum() << std::endl;
-            }
-            else
-            {
-               if (m_incomes.contains(entry.category()))
-               {
-                  m_categories["  Available  "] += entry.amount();
-                  if (m_categories["  Available  "].isNegative())
-                  {
-                     std::cerr << "Available funds are negative, file '"
-                               << qPrintable(transaction.fileName())
-                               << "', line " << transaction.lineNum()
-                               << std::endl;
-                  }
-               }
-               else
-               {
-                  if (!m_categories.contains(entry.category()))
-                  {
-                     std::cerr << "Budget category '"
-                               << qPrintable(entry.category())
-                               << "' does not exist, file '"
-                               << qPrintable(transaction.fileName())
-                               << "', line " << transaction.lineNum()
-                               << std::endl;
-                  }
-                  m_categories[entry.category()] += entry.amount();
-                  if (m_categories[entry.category()].isNegative())
-                  {
-                     std::cerr << "Budget category '"
-                               << qPrintable(entry.category())
-                               << "' is underfunded.  Balance is "
-                               << qPrintable(m_categories[entry.category()].toString())
-                           << ".  Line " << transaction.lineNum() << std::endl;
-                  }
-                  m_totals[entry.category()] += entry.amount();
-               }
-            }
-         }
-         else
-         {
-            if (entry.transfer() && m_accounts[entry.payee()])
-            {
-               // nothing to do here for on-budget transfers
-            }
-            else
-            {
-               std::cerr << "Transaction missing a category for payee '"
-                         << qPrintable(entry.payee()) << "', line "
-                         << transaction.lineNum() << std::endl;
-            }
-         }
-      }
-   }
-   else
+   // off-budget account transactions are just checked to make sure they don't
+   // have any categories
+   if (!m_accounts[transaction.account()])
    {
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
       {
@@ -185,6 +112,143 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
                       << "' cannot have categories, line "
                       << transaction.lineNum() << std::endl;
          }
+      }
+      return;
+   }
+
+   foreach (LedgerTransactionEntry const& entry, transaction.entries())
+   {
+      // make the transfer account on-budget if we haven't seen it yet
+      if (entry.transfer() && !m_accounts.contains(entry.payee()))
+      {
+         m_accounts[entry.payee()] = true;
+      }
+
+      // if it doesn't have a category, it has to be a transfer to another
+      // on-budget account
+      if (!entry.hasCategory())
+      {
+         if (!entry.transfer() || !m_accounts[entry.payee()])
+         {
+            std::cerr << "Transaction missing a category for payee '"
+                      << qPrintable(entry.payee()) << "', line "
+                      << transaction.lineNum() << std::endl;
+         }
+         continue;
+      }
+
+      // if it is a transfer to another on-budget account, it shouldn't have a
+      // category
+      if (entry.transfer() && m_accounts[entry.payee()])
+      {
+         std::cerr << "Transfers between on-budget accounts '"
+                   << qPrintable(transaction.account()) << "' and '"
+                   << qPrintable(entry.payee())
+                   << "' cannot have a category, line "
+                   << transaction.lineNum() << std::endl;
+         continue;
+      }
+
+      if (!m_categories.contains(entry.category()))
+      {
+         std::cerr << "Unknown category '" << qPrintable(entry.category ())
+                   << "', file '" << qPrintable(transaction.fileName())
+                   << "', line " << transaction.lineNum() << std::endl;
+         m_categories[entry.category()].type = BudgetCategory::Type::ROUTINE;
+      }
+      switch (m_categories[entry.category()].type)
+      {
+         case BudgetCategory::Type::GOAL:
+            std::cerr << "I haven't figure this one out yet, TODO" << std::endl;
+            break;
+         case BudgetCategory::Type::INCOME:
+            for (auto it = m_categories.cbegin(); it != m_categories.cend();
+                 ++it)
+            {
+               if (it->type == BudgetCategory::Type::RESERVE_PERCENT)
+               {
+                  Currency amount = entry.amount().percentage(it->percentage);
+                  m_reserves[entry.category()] += amount;
+                  m_available -= amount;
+                  if (m_reserves[entry.category()].isNegative())
+                  {
+                     std::cerr << "Reserve '" << qPrintable(entry.category())
+                               << "' is underfunded, compensating."
+                               << std::endl;
+                     std::cerr << "  Amount: "
+                               << qPrintable(m_reserves[entry.category()].toString())
+                           << std::endl;
+                     std::cerr << "  File: " << qPrintable(transaction.fileName())
+                               << std::endl;
+                     std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+                     m_available += m_reserves[entry.category()];
+                     m_reserves[entry.category()].clear();
+                  }
+                  if (m_available.isNegative())
+                  {
+                     std::cerr << "Available funds are negative.  Trouble!"
+                               << std::endl;
+                  }
+               }
+            }
+            break;
+         case BudgetCategory::Type::ROUTINE:
+            m_routineEscrow += entry.amount();
+            m_routineTotal += entry.amount();
+            if (m_routineEscrow.isNegative())
+            {
+               std::cerr << "Routine expenses are underfunded, compensating."
+                         << std::endl;
+               std::cerr << "  Amount: "
+                         << qPrintable(m_routineEscrow.toString()) << std::endl;
+               std::cerr << "  File: " << qPrintable(transaction.fileName())
+                         << std::endl;
+               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               m_available += m_routineEscrow;
+               m_routineEscrow.clear();
+            }
+            if (m_available.isNegative())
+            {
+               std::cerr << "Available funds are negative.  Trouble!"
+                         << std::endl;
+            }
+            break;
+
+#if 0
+            if (m_categories[entry.category()].type == BudgetCategory::Type::INCOME)
+            {
+               m_available += entry.amount();
+               if (m_available.isNegative())
+               {
+                  std::cerr << "Available funds are negative, file '"
+                            << qPrintable(transaction.fileName())
+                            << "', line " << transaction.lineNum()
+                            << std::endl;
+               }
+            }
+            else
+            {
+               if (!m_categories.contains(entry.category()))
+               {
+                  std::cerr << "Budget category '"
+                            << qPrintable(entry.category())
+                            << "' does not exist, file '"
+                            << qPrintable(transaction.fileName())
+                            << "', line " << transaction.lineNum()
+                            << std::endl;
+               }
+               m_categories[entry.category()] += entry.amount();
+               if (m_categories[entry.category()].isNegative())
+               {
+                  std::cerr << "Budget category '"
+                            << qPrintable(entry.category())
+                            << "' is underfunded.  Balance is "
+                            << qPrintable(m_categories[entry.category()].toString())
+                        << ".  Line " << transaction.lineNum() << std::endl;
+               }
+               m_totals[entry.category()] += entry.amount();
+            }
+#endif
       }
    }
 }
@@ -197,6 +261,7 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
 
 void BudgetBalancer::stop()
 {
+#if 0
    std::cout << "Current Budget" << std::endl;
    for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
    {
@@ -229,4 +294,71 @@ void BudgetBalancer::stop()
                    << " per day" << std::endl;
       }
    }
+#endif
+}
+
+void BudgetBalancer::advancePeriodToDate(QDate const& date)
+{
+   // TODO decide when (or if) to reset this
+   if (m_firstDate.isNull())
+   {
+      m_firstDate = date;
+   }
+
+   // by default we just tick each day
+   if (m_periodEnd.isNull())
+   {
+      m_periodEnd = date.addDays(-1);
+      m_periodStart = m_periodEnd;
+      m_periodLength = Interval(1, Interval::Period::DAYS);
+   }
+
+   // if the given date is outside the current period, switch to the next period
+   // and allocate funds for it.  keep going until the date is within the
+   // current period
+   while (m_periodEnd < date)
+   {
+      m_periodStart = m_periodEnd.addDays(1);
+      m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
+      allocateCategories();
+   }
+}
+
+void BudgetBalancer::allocateCategories()
+{
+   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
+   {
+      Currency amount;
+      switch (it->type)
+      {
+         case BudgetCategory::Type::GOAL:
+            std::cerr << "TODO, I don't know the future to handle this yet" << std::endl;
+            break;
+         case BudgetCategory::Type::INCOME:
+            break;
+         case BudgetCategory::Type::RESERVE_AMOUNT:
+            amount = (it->amount / it->interval.toApproximateDays()).amountA * (m_periodStart.daysTo(m_periodEnd) + 1);
+            m_reserves[it.key()] += amount;
+            m_available -= amount;
+            break;
+         case BudgetCategory::Type::RESERVE_PERCENT:
+            break;
+         case BudgetCategory::Type::ROUTINE:
+            (m_routineTotal / priorDays()).amountA * (m_periodStart.daysTo(m_periodEnd) + 1);
+            break;
+      }
+   }
+}
+
+int BudgetBalancer::priorDays()
+{
+   Q_ASSERT(!m_firstDate.isNull());
+   Q_ASSERT(!m_periodStart.isNull());
+   int result = m_firstDate.daysTo(m_periodStart);
+   if (result < 1)
+   {
+      std::cerr << "No prior days to calculate with.  Expect a crash!" << std::endl;
+      // TODO make this work properly
+   }
+   return result;
 }

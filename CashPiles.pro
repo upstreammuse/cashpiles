@@ -4,7 +4,6 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
    include/accountbalancer.h \
-   include/allocationminder.h \
    include/budgetbalancer.h \
    include/currency.h \
    include/csvreader.h \
@@ -13,7 +12,6 @@ HEADERS += \
    include/itemprocessor.h \
    include/ledger.h \
    include/ledgeraccountcommand.h \
-   include/ledgerallocation.h \
    include/ledgerbudget.h \
    include/ledgercomment.h \
    include/ledgeritem.h \
@@ -21,12 +19,9 @@ HEADERS += \
    include/ledgertransactionentry.h \
    include/nativereader.h \
    include/nativewriter.h \
-   include/ynabbudgetreader.h \
-   include/ynabconsolidator.h \
    include/ynabregisterreader.h
 SOURCES += \
    src/accountbalancer.cpp \
-   src/allocationminder.cpp \
    src/budgetbalancer.cpp \
    src/currency.cpp \
    src/csvreader.cpp \
@@ -35,7 +30,6 @@ SOURCES += \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccountcommand.cpp \
-   src/ledgerallocation.cpp \
    src/ledgerbudget.cpp \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
@@ -44,8 +38,6 @@ SOURCES += \
    src/main.cpp \
    src/nativereader.cpp \
    src/nativewriter.cpp \
-   src/ynabbudgetreader.cpp \
-   src/ynabconsolidator.cpp \
    src/ynabregisterreader.cpp
 OTHER_FILES += \
    CashPiles_File_Format.txt \

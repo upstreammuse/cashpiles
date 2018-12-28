@@ -5,7 +5,6 @@
 #include <QRegularExpression>
 #include <QTextStream>
 #include "ledgeraccountcommand.h"
-#include "ledgerallocation.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
@@ -30,11 +29,6 @@ namespace
          START_RX + DATE_RX + SPACE_RX +
          "(?<command>on-budget|off-budget|close)" + SPACE_RX +
          IDENT_RX.arg("account") + END_RX);
-   QRegularExpression const allocationRx(
-         START_RX + DATE_RX + SPACE_RX + "allocation" + END_RX);
-   QRegularExpression const allocationLineRx(
-         START_RX + SEP_RX + IDENT_RX.arg("category") + SEP_RX +
-         CURR_RX.arg("amount") + END_RX);
    QRegularExpression const budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX);
@@ -113,29 +107,6 @@ void NativeReader::processAccount(QRegularExpressionMatch const& match)
    accountCommand->setDate(parseDate(match.captured("date")));
    accountCommand->setMode(parseMode(match.captured("command")));
    emit item(accountCommand);
-}
-
-void NativeReader::processAllocation(QRegularExpressionMatch& match)
-{
-   LedgerAllocation* budgetCommand =
-         new LedgerAllocation(m_fileName, m_lineNum);
-   budgetCommand->setDate(parseDate(match.captured("date")));
-   forever
-   {
-      QString line(readLine());
-      if ((match = allocationLineRx.match(line)).hasMatch())
-      {
-         budgetCommand->appendAllocation(
-                  match.captured("category"),
-                  Currency(match.captured("amount"), m_lineNum));
-      }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-   emit item(budgetCommand);
 }
 
 void NativeReader::processBudget(QRegularExpressionMatch& match)
@@ -266,10 +237,6 @@ void NativeReader::processLine(QString const& line)
    if ((match = accountRx.match(line)).hasMatch())
    {
       processAccount(match);
-   }
-   else if ((match = allocationRx.match(line)).hasMatch())
-   {
-      processAllocation(match);
    }
    else if ((match = budgetRx.match(line)).hasMatch())
    {

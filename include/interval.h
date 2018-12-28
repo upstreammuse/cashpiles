@@ -19,6 +19,7 @@ public:
    Interval(int number, Period period);
    int number() const;
    Period period() const;
+   int toApproximateDays() const;
    QString toString() const;
 
 private:
