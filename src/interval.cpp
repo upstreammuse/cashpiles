@@ -22,6 +22,25 @@ Interval::Period Interval::period() const
    return m_period;
 }
 
+QString Interval::toString() const
+{
+   QString result = "+";
+   result += QString::number(m_number);
+   switch (m_period)
+   {
+      case Interval::Period::DAYS:
+         result += "d";
+         break;
+      case Interval::Period::MONTHS:
+         result += "m";
+         break;
+      case Interval::Period::YEARS:
+         result += "y";
+         break;
+   }
+   return result;
+}
+
 QDate operator+(QDate const& left, Interval const& right)
 {
    QDate result;

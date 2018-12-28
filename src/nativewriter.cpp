@@ -49,10 +49,44 @@ void NativeWriter::processItem(LedgerBudget const& budget)
 {
    breakBetween();
    std::cout << qPrintable(budget.date().toString(Qt::SystemLocaleShortDate))
-             << " budget" << std::endl;
-   foreach (QString const& category, budget.categories())
+             << " budget " << qPrintable(budget.interval().toString())
+             << std::endl;
+   for (auto it = budget.categories().cbegin();
+        it != budget.categories().cend(); ++it)
    {
-      std::cout << "   " << qPrintable(category) << std::endl;
+      std::cout << "  ";
+      switch (it.value().type)
+      {
+         case BudgetCategory::Type::GOAL:
+            std::cout << "goal   ";
+            break;
+         case BudgetCategory::Type::INCOME:
+            std::cout << "income ";
+            break;
+         case BudgetCategory::Type::RESERVE_AMOUNT:
+         case BudgetCategory::Type::RESERVE_PERCENT:
+            std::cout << "reserve";
+            break;
+         case BudgetCategory::Type::ROUTINE:
+            std::cout << "routine";
+            break;
+      }
+      std::cout << " " << qPrintable(it.key());
+      switch (it.value().type)
+      {
+         case BudgetCategory::Type::GOAL:
+         case BudgetCategory::Type::INCOME:
+         case BudgetCategory::Type::ROUTINE:
+            break;
+         case BudgetCategory::Type::RESERVE_AMOUNT:
+            std::cout << " " << qPrintable(it.value().amount.toString()) << " "
+                      << qPrintable(it.value().interval.toString());
+            break;
+         case BudgetCategory::Type::RESERVE_PERCENT:
+            std::cout << " " << it.value().percentage << "%";
+            break;
+      }
+      std::cout << std::endl;
    }
 }
 

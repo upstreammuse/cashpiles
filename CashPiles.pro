@@ -22,7 +22,8 @@ HEADERS += \
    include/nativewriter.h \
    include/ynabbudgetreader.h \
    include/ynabconsolidator.h \
-   include/ynabregisterreader.h
+   include/ynabregisterreader.h \
+    allocationminder.h
 SOURCES += \
    src/accountbalancer.cpp \
    src/budgetbalancer.cpp \
@@ -44,7 +45,8 @@ SOURCES += \
    src/nativewriter.cpp \
    src/ynabbudgetreader.cpp \
    src/ynabconsolidator.cpp \
-   src/ynabregisterreader.cpp
+   src/ynabregisterreader.cpp \
+    allocationminder.cpp
 OTHER_FILES += \
    CashPiles_File_Format.txt \
    cp-sample.txt \

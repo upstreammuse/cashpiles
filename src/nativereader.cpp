@@ -1,5 +1,6 @@
 #include "nativereader.h"
 
+#include <iostream>
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
@@ -144,32 +145,43 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
    budgetCommand->setInterval(parseInterval(match.captured("interval")));
    forever
    {
+      BudgetCategory category;
       QString line(readLine());
       if ((match = budgetLineGoalRx.match(line)).hasMatch())
       {
-         // TODO we have a goal category
+         category.type = BudgetCategory::Type::GOAL;
       }
       else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
       {
-         // TODO we have income
+         category.type = BudgetCategory::Type::INCOME;
       }
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
       {
-         // TODO we have reserve amount
+         category.type = BudgetCategory::Type::RESERVE_AMOUNT;
+         category.amount = Currency(match.captured("amount"), m_lineNum);
+         category.interval = parseInterval(match.captured("interval"));
       }
       else if ((match = budgetLineReservePercentRx.match(line)).hasMatch())
       {
-         // TODO we have reserve percentage
+         category.type = BudgetCategory::Type::RESERVE_PERCENT;
+         category.percentage = match.captured("percentage").toInt();
+         if (category.percentage < 1 || category.percentage > 100)
+         {
+            std::cerr << "percentage allocation is out of range, file '"
+                      << qPrintable(m_fileName) << "', line " << m_lineNum
+                      << std::endl;
+         }
       }
       else if ((match = budgetLineRoutineRx.match(line)).hasMatch())
       {
-         // TODO we have routine
+         category.type = BudgetCategory::Type::ROUTINE;
       }
       else
       {
          unReadLine(line);
          break;
       }
+      budgetCommand->insertCategory(match.captured("category"), category);
    }
    emit item(budgetCommand);
 }

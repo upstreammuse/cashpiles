@@ -2,6 +2,7 @@
 #define INTERVAL_H
 
 class QDate;
+class QString;
 
 class Interval
 {
@@ -18,6 +19,7 @@ public:
    Interval(int number, Period period);
    int number() const;
    Period period() const;
+   QString toString() const;
 
 private:
    int m_number = 0;

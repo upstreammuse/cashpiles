@@ -3,16 +3,34 @@
 
 #include <QDate>
 #include <QSet>
+#include "currency.h"
 #include "interval.h"
 #include "ledgeritem.h"
+
+// TODO this is awful, but will do the trick for right now
+struct BudgetCategory
+{
+   enum class Type
+   {
+      GOAL,
+      INCOME,
+      RESERVE_AMOUNT,
+      RESERVE_PERCENT,
+      ROUTINE
+   };
+   Type type;
+   Currency amount;
+   Interval interval;
+   int percentage;
+};
 
 class LedgerBudget : public LedgerItem
 {
 public:
    LedgerBudget(QString const& fileName, int lineNum);
 
-   QSet<QString> categories() const;
-   void addCategory(QString const& category);
+   QHash<QString, BudgetCategory> categories() const;
+   void insertCategory(QString const& category, BudgetCategory const& data);
 
    QDate date() const;
    void setDate(QDate const& date);
@@ -23,16 +41,9 @@ public:
    void processItem(ItemProcessor* processor);
 
 private:
-   QSet<QString> m_categories;
+   QHash<QString, BudgetCategory> m_categories;
    QDate m_date;
    Interval m_interval;
 };
 
 #endif
-
-/* TODO
- * names of routine categories
- * names of goal categories
- * names of reserve% categories with percentage
- * names of fixed reserve categories with amount and interval
- */

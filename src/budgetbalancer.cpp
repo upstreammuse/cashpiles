@@ -65,7 +65,7 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
    // remove categories that are not in this budget command, and allocate their
    // funds to the available category
    Currency available;
-   QSet<QString> categories = budget.categories();
+   auto categories = budget.categories();
    for (auto it = m_categories.begin(); it != m_categories.end(); /*inside*/)
    {
       if (!categories.contains(it.key()))
@@ -81,9 +81,9 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
    m_categories["  Available  "] += available;
 
    // populate the category list with everything in the current budget
-   foreach (QString const& category, categories)
+   for (auto it = categories.begin(); it != categories.end(); ++it)
    {
-      m_categories[category];
+      m_categories[it.key()];
    }
 }
 
@@ -169,6 +169,12 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
    }
 }
 
+// todo for calculating expenses based on past averages, require that there be more days of history than the longest repeat interval, to ensure that there is at least one instance over time for all repeats.
+//   and if there is not enough history, then just look at the projected expenses instead
+// projected expenses are:
+//   all scheduled transactions for the current budget period
+//   for any transaction that does not have an instance this period, find the next instance and divide it between the remaining periods
+
 void BudgetBalancer::stop()
 {
    std::cout << "Current Budget" << std::endl;
@@ -181,10 +187,12 @@ void BudgetBalancer::stop()
    // find the dates of the current budget period
    QDate startDate;
    QDate endDate = m_budgetDate.addDays(-1);
-   do {
+   do
+   {
       startDate = endDate.addDays(1);
       endDate = (startDate + m_budgetInterval).addDays(-1);
-   } while (endDate < QDate::currentDate());
+   }
+   while (endDate < QDate::currentDate());
    std::cout << "current budget period begins "
              << qPrintable(startDate.toString()) << " and ends "
              << qPrintable(endDate.toString()) << std::endl;
