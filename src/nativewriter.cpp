@@ -43,32 +43,32 @@ void NativeWriter::processItem(LedgerBudget const& budget)
       std::cout << "  ";
       switch (it.value().type)
       {
-         case BudgetCategory::Type::GOAL:
+         case LedgerBudget::Category::Type::GOAL:
             std::cout << "goal   ";
             break;
-         case BudgetCategory::Type::INCOME:
+         case LedgerBudget::Category::Type::INCOME:
             std::cout << "income ";
             break;
-         case BudgetCategory::Type::RESERVE_AMOUNT:
-         case BudgetCategory::Type::RESERVE_PERCENT:
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
             std::cout << "reserve";
             break;
-         case BudgetCategory::Type::ROUTINE:
+         case LedgerBudget::Category::Type::ROUTINE:
             std::cout << "routine";
             break;
       }
       std::cout << " " << qPrintable(it.key());
       switch (it.value().type)
       {
-         case BudgetCategory::Type::GOAL:
-         case BudgetCategory::Type::INCOME:
-         case BudgetCategory::Type::ROUTINE:
+         case LedgerBudget::Category::Type::GOAL:
+         case LedgerBudget::Category::Type::INCOME:
+         case LedgerBudget::Category::Type::ROUTINE:
             break;
-         case BudgetCategory::Type::RESERVE_AMOUNT:
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
             std::cout << " " << qPrintable(it.value().amount.toString()) << " "
                       << qPrintable(it.value().interval.toString());
             break;
-         case BudgetCategory::Type::RESERVE_PERCENT:
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
             std::cout << " " << it.value().percentage << "%";
             break;
       }

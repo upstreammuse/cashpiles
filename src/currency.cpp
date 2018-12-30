@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <QLocale>
+#include "daterange.h"
 
 namespace
 {
@@ -68,6 +69,68 @@ Currency::Currency(QString const& asString, int lineNum)
    }
 }
 
+Currency Currency::amortize(DateRange const& total,
+                            DateRange const& partial) const
+{
+   DateRange overlap = total.intersect(partial);
+   if (overlap.isNull())
+   {
+      return Currency();
+   }
+
+   int value = isNegative() ? -m_value : m_value;
+
+   Currency amountA;
+   Currency amountB;
+   amountA.m_decimalPlaces = m_decimalPlaces;
+   amountB.m_decimalPlaces = m_decimalPlaces;
+
+   int numberA = 0;
+   int numberB = total.days();
+   amountB.m_value = value / numberB;
+
+   int difference = value - amountB.m_value * numberB;
+   if (difference == 0)
+   {
+      amountA.m_value = amountB.m_value;
+      numberA = numberB;
+      numberB = 0;
+   }
+   else
+   {
+      amountA.m_value = amountB.m_value + 1;
+      numberA = difference;
+      numberB = numberB - difference;
+   }
+
+   if (isNegative())
+   {
+      amountA.m_value = -amountA.m_value;
+      amountB.m_value = -amountB.m_value;
+   }
+
+   Q_ASSERT(amountA.m_value * numberA + amountB.m_value * numberB == m_value);
+   Q_ASSERT(amountA.m_decimalPlaces == m_decimalPlaces);
+   Q_ASSERT(amountB.m_decimalPlaces == m_decimalPlaces);
+
+   int dayOffset = total.startDate().daysTo(overlap.startDate());
+   int dayCount = overlap.days();
+   Currency result;
+   while (dayOffset < numberA && dayCount > 0)
+   {
+      result += amountA;
+      dayOffset++;
+      dayCount--;
+   }
+   while (dayCount > 0)
+   {
+      result += amountB;
+      dayOffset++;
+      dayCount--;
+   }
+   return result;
+}
+
 void Currency::clear()
 {
    *this = Currency();
@@ -125,6 +188,7 @@ Currency Currency::operator*(int factor) const
    return result;
 }
 
+#if 0
 CurrencySplit Currency::operator/(uint splits) const
 {
    int value = isNegative() ? -m_value : m_value;
@@ -164,6 +228,7 @@ CurrencySplit Currency::operator/(uint splits) const
 
    return result;
 }
+#endif
 
 bool Currency::operator==(Currency const& other) const
 {

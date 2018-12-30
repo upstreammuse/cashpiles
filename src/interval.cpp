@@ -12,6 +12,12 @@ Interval::Interval(int number, Period period) :
 {
 }
 
+Interval::Interval(QDate const& start, QDate const& end) :
+   m_number(start.daysTo(end) + 1),
+   m_period(Period::DAYS)
+{
+}
+
 int Interval::number() const
 {
    return m_number;
@@ -20,19 +26,6 @@ int Interval::number() const
 Interval::Period Interval::period() const
 {
    return m_period;
-}
-
-int Interval::toApproximateDays() const
-{
-   switch (m_period)
-   {
-      case Interval::Period::DAYS:
-         return m_number;
-      case Interval::Period::MONTHS:
-         return qRound(m_number * 365.25 / 12.0);
-      case Interval::Period::YEARS:
-         return qRound(m_number * 365.25);
-   }
 }
 
 QString Interval::toString() const
@@ -52,6 +45,11 @@ QString Interval::toString() const
          break;
    }
    return result;
+}
+
+bool Interval::operator==(Interval const& other) const
+{
+   return m_number == other.m_number && m_period == other.m_period;
 }
 
 QDate operator+(QDate const& left, Interval const& right)

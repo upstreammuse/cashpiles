@@ -116,25 +116,25 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
    budgetCommand->setInterval(parseInterval(match.captured("interval")));
    forever
    {
-      BudgetCategory category;
+      LedgerBudget::Category category;
       QString line(readLine());
       if ((match = budgetLineGoalRx.match(line)).hasMatch())
       {
-         category.type = BudgetCategory::Type::GOAL;
+         category.type = LedgerBudget::Category::Type::GOAL;
       }
       else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
       {
-         category.type = BudgetCategory::Type::INCOME;
+         category.type = LedgerBudget::Category::Type::INCOME;
       }
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
       {
-         category.type = BudgetCategory::Type::RESERVE_AMOUNT;
+         category.type = LedgerBudget::Category::Type::RESERVE_AMOUNT;
          category.amount = Currency(match.captured("amount"), m_lineNum);
          category.interval = parseInterval(match.captured("interval"));
       }
       else if ((match = budgetLineReservePercentRx.match(line)).hasMatch())
       {
-         category.type = BudgetCategory::Type::RESERVE_PERCENT;
+         category.type = LedgerBudget::Category::Type::RESERVE_PERCENT;
          category.percentage = match.captured("percentage").toInt();
          if (category.percentage < 1 || category.percentage > 100)
          {
@@ -145,7 +145,7 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
       }
       else if ((match = budgetLineRoutineRx.match(line)).hasMatch())
       {
-         category.type = BudgetCategory::Type::ROUTINE;
+         category.type = LedgerBudget::Category::Type::ROUTINE;
       }
       else
       {

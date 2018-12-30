@@ -7,15 +7,14 @@ LedgerBudget::LedgerBudget(QString const& fileName, int lineNum) :
 {
 }
 
-QHash<QString, BudgetCategory> LedgerBudget::categories() const
+QHash<QString, LedgerBudget::Category> LedgerBudget::categories() const
 {
    return m_categories;
 }
 
-void LedgerBudget::insertCategory(QString const& category,
-                                  BudgetCategory const& data)
+void LedgerBudget::insertCategory(QString const& name, Category const& category)
 {
-   m_categories[category] = data;
+   m_categories[name] = category;
 }
 
 QDate LedgerBudget::date() const

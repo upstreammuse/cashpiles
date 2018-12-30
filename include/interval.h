@@ -17,10 +17,12 @@ public:
 public:
    Interval();
    Interval(int number, Period period);
+   Interval(QDate const& start, QDate const& end);
    int number() const;
    Period period() const;
-   int toApproximateDays() const;
    QString toString() const;
+
+   bool operator==(Interval const& other) const;
 
 private:
    int m_number = 0;

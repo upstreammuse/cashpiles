@@ -12,8 +12,210 @@ BudgetBalancer::BudgetBalancer(QObject* parent) :
 
 void BudgetBalancer::processItem(LedgerAccountCommand const& account)
 {
+   // make sure we are in the current recording period
    advancePeriodToDate(account.date());
 
+   // record the command
+   m_recordedAccounts.insert(m_numRecords, account);
+   ++m_numRecords;
+}
+
+void BudgetBalancer::processItem(LedgerBudget const& budget)
+{
+   // if there is a budget period, process recorded items until we are within
+   // range of this budget command
+   advancePeriodToDate(budget.date());
+
+   // if the current period started before today, or if it already has recorded
+   // commands, then end the period today and process what we have
+   if (m_period.startDate() != budget.date() || m_numRecords != 0)
+   {
+      m_period = DateRange(m_period.startDate(), budget.date());
+      allocateCategories();
+      processRecords();
+   }
+
+   // remove reserves that are not in this budget command, and allocate their
+   // funds to the available category
+   m_categories = budget.categories();
+   for (auto it = m_percentReserves.begin(); it != m_percentReserves.end();
+        /*inside*/)
+   {
+      if (!m_categories.contains(it.key()))
+      {
+         m_available += it.value();
+         it = m_percentReserves.erase(it);
+      }
+      else
+      {
+         ++it;
+      }
+   }
+   for (auto it = m_periodReserves.begin(); it != m_periodReserves.end();
+        /*inside*/)
+   {
+      if (!m_categories.contains(it.key()))
+      {
+         m_available += it->amount;
+         it = m_periodReserves.erase(it);
+      }
+      else
+      {
+         ++it;
+      }
+   }
+
+   // reset the dates for the new period
+   m_period = DateRange(budget.date(), budget.interval());
+}
+
+void BudgetBalancer::processItem(LedgerComment const&)
+{
+}
+
+void BudgetBalancer::processItem(LedgerTransaction const& transaction)
+{
+   // make sure we are in the current recording period
+   advancePeriodToDate(transaction.date());
+
+   // record the transaction
+   m_recordedTransactions.insert(m_numRecords, transaction);
+   ++m_numRecords;
+}
+
+// todo for calculating expenses based on past averages, require that there be more days of history than the longest repeat interval, to ensure that there is at least one instance over time for all repeats.
+//   and if there is not enough history, then just look at the projected expenses instead
+// projected expenses are:
+//   all scheduled transactions for the current budget period
+//   for any transaction that does not have an instance this period, find the next instance and divide it between the remaining periods
+
+void BudgetBalancer::stop()
+{
+#if 0
+   std::cout << "Current Budget" << std::endl;
+   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
+   {
+      std::cout << "   " << qPrintable(it.key()) << "   "
+                << qPrintable(it.value().toString()) << std::endl;
+   }
+
+   // find the dates of the current budget period
+   QDate startDate;
+   QDate endDate = m_budgetDate.addDays(-1);
+   do
+   {
+      startDate = endDate.addDays(1);
+      endDate = (startDate + m_budgetInterval).addDays(-1);
+   }
+   while (endDate < QDate::currentDate());
+   std::cout << "current budget period begins "
+             << qPrintable(startDate.toString()) << " and ends "
+             << qPrintable(endDate.toString()) << std::endl;
+
+   // find the number of days during the budget periods before this one
+   qint64 priorDays = m_budgetDate.daysTo(startDate);
+   std::cout << "averaging over " << priorDays << " days" << std::endl;
+   for (auto it = m_totals.cbegin(); it != m_totals.cend(); ++it)
+   {
+      if (m_categories.contains(it.key()))
+      {
+         std::cout << "  " << qPrintable(it.key()) << " averages "
+                   << qPrintable((it.value() / priorDays).amountA.toString())
+                   << " per day" << std::endl;
+      }
+   }
+#endif
+}
+
+void BudgetBalancer::advancePeriodToDate(QDate const& date)
+{
+   // if no budget is defined, instantiate a default 1-month budget cycle to
+   // attempt to give useful info out of the box
+   if (m_period.isNull())
+   {
+      m_period = DateRange(date, Interval(1, Interval::Period::MONTHS));
+      m_priorDays = DateRange(date, date);
+   }
+
+   while (m_period.endDate() < date)
+   {
+      allocateCategories();
+      processRecords();
+      m_priorDays = DateRange(m_priorDays.startDate(), m_period.endDate());
+      ++m_period;
+   }
+}
+
+void BudgetBalancer::allocateCategories()
+{
+   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
+   {
+      switch (it->type)
+      {
+         case LedgerBudget::Category::Type::GOAL:
+            std::cerr << "TODO, I don't know the future to handle this yet" << std::endl;
+            break;
+         case LedgerBudget::Category::Type::INCOME:
+            break;
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+         {
+            Currency amount;
+            DateRange& range = m_periodReserves[it.key()].range;
+            DateRange overlap = range.intersect(m_period);
+
+            // in the case where the last period perfectly coincided with the
+            // end of the last range of this reserve
+            if (overlap.isNull())
+            {
+               ++range;
+               overlap = range.intersect(m_period);
+               Q_ASSERT(!overlap.isNull());
+            }
+
+            // in the case where the overlap is the entire period
+            if (overlap == m_period)
+            {
+               amount += m_categories[it.key()].amount.amortize(range, overlap);
+            }
+            // in the case where the overlap is at the beginning of the period
+            // but does not cover the whole period
+            else if (overlap.startDate() == m_period.startDate())
+            {
+               amount += m_categories[it.key()].amount.amortize(range, overlap);
+               do
+               {
+                  ++range;
+                  overlap = range.intersect(m_period);
+                  amount += m_categories[it.key()].amount.amortize(range,
+                                                                  overlap);
+               }
+               while (overlap.endDate() != m_period.endDate());
+            }
+            // otherwise we screwed up and advanced the reserve range too far
+            // somewhere else
+            else
+            {
+               std::cerr << "Internal error: reserve period advanced too far"
+                         << std::endl;
+            }
+
+            m_periodReserves[it.key()].amount += amount;
+            m_available -= amount;
+            break;
+         }
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
+            break;
+         case LedgerBudget::Category::Type::ROUTINE:
+            // TODO I don't like the way this is calculated
+            DateRange oneDay(m_priorDays.startDate(), m_priorDays.startDate());
+            m_routineEscrow += m_routineTotal.amortize(m_priorDays, oneDay) * m_period.days();
+            break;
+      }
+   }
+}
+
+void BudgetBalancer::processAccount(LedgerAccountCommand const& account)
+{
    switch (account.mode())
    {
       case LedgerAccountCommand::Mode::CLOSED:
@@ -28,71 +230,30 @@ void BudgetBalancer::processItem(LedgerAccountCommand const& account)
    }
 }
 
-void BudgetBalancer::processItem(LedgerBudget const& budget)
+void BudgetBalancer::processRecords()
 {
-   // TODO decide when or if to reset this
-   if (m_firstDate.isNull())
+   for (int i = 0; i < m_numRecords; ++i)
    {
-      m_firstDate = budget.date();
-   }
-
-   // if we already have a period defined, then run it out to the day before the
-   // period we just got is going to start
-   if (!m_periodEnd.isNull())
-   {
-      // if the given date is outside the next period, switch to the next period
-      // and allocate funds for it.  keep going until the date is within the
-      // next period
-      while (m_periodEnd + m_periodLength < budget.date())
+      if (m_recordedAccounts.contains(i))
       {
-         m_periodStart = m_periodEnd.addDays(1);
-         m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
-         allocateCategories();
+         processAccount(*m_recordedAccounts.find(i));
       }
-
-      // make a period that covers the dates in between the last full period and
-      // the new one we are about to start, but only if we didn't coincide with
-      // the start date of the old period cycle
-      if (m_periodEnd.addDays(1) != budget.date())
+      else if (m_recordedTransactions.contains(i))
       {
-         m_periodStart = m_periodEnd.addDays(1);
-         m_periodEnd = budget.date().addDays(-1);
-         Q_ASSERT(m_periodStart <= m_periodEnd);
-         allocateCategories();
-      }
-   }
-
-   // remove reserves that are not in this budget command, and allocate their
-   // funds to the available category
-   m_categories = budget.categories();
-   for (auto it = m_reserves.begin(); it != m_reserves.end(); /*inside*/)
-   {
-      if (!m_categories.contains(it.key()))
-      {
-         m_available += it.value();
-         it = m_reserves.erase(it);
+         processTransaction(*m_recordedTransactions.find(i));
       }
       else
       {
-         ++it;
+         std::cerr << "Internal logic error, missing record" << std::endl;
       }
    }
-
-   // reset the dates for the new period
-   m_periodStart = budget.date();
-   m_periodLength = budget.interval();
-   m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
-   allocateCategories();
+   m_recordedAccounts.clear();
+   m_recordedTransactions.clear();
+   m_numRecords = 0;
 }
 
-void BudgetBalancer::processItem(LedgerComment const&)
+void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
 {
-}
-
-void BudgetBalancer::processItem(LedgerTransaction const& transaction)
-{
-   advancePeriodToDate(transaction.date());
-
    // make the account on-budget if we haven't seen it yet
    if (!m_accounts.contains(transaction.account()))
    {
@@ -154,35 +315,35 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
          std::cerr << "Unknown category '" << qPrintable(entry.category ())
                    << "', file '" << qPrintable(transaction.fileName())
                    << "', line " << transaction.lineNum() << std::endl;
-         m_categories[entry.category()].type = BudgetCategory::Type::ROUTINE;
+         m_categories[entry.category()].type = LedgerBudget::Category::Type::ROUTINE;
       }
       switch (m_categories[entry.category()].type)
       {
-         case BudgetCategory::Type::GOAL:
+         case LedgerBudget::Category::Type::GOAL:
             std::cerr << "I haven't figure this one out yet, TODO" << std::endl;
             break;
-         case BudgetCategory::Type::INCOME:
+         case LedgerBudget::Category::Type::INCOME:
             for (auto it = m_categories.cbegin(); it != m_categories.cend();
                  ++it)
             {
-               if (it->type == BudgetCategory::Type::RESERVE_PERCENT)
+               if (it->type == LedgerBudget::Category::Type::RESERVE_PERCENT)
                {
                   Currency amount = entry.amount().percentage(it->percentage);
-                  m_reserves[entry.category()] += amount;
+                  m_percentReserves[entry.category()] += amount;
                   m_available -= amount;
-                  if (m_reserves[entry.category()].isNegative())
+                  if (m_percentReserves[entry.category()].isNegative())
                   {
                      std::cerr << "Reserve '" << qPrintable(entry.category())
                                << "' is underfunded, compensating."
                                << std::endl;
                      std::cerr << "  Amount: "
-                               << qPrintable(m_reserves[entry.category()].toString())
+                               << qPrintable(m_percentReserves[entry.category()].toString())
                            << std::endl;
                      std::cerr << "  File: " << qPrintable(transaction.fileName())
                                << std::endl;
                      std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-                     m_available += m_reserves[entry.category()];
-                     m_reserves[entry.category()].clear();
+                     m_available += m_percentReserves[entry.category()];
+                     m_percentReserves[entry.category()].clear();
                   }
                   if (m_available.isNegative())
                   {
@@ -192,7 +353,7 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
                }
             }
             break;
-         case BudgetCategory::Type::ROUTINE:
+         case LedgerBudget::Category::Type::ROUTINE:
             m_routineEscrow += entry.amount();
             m_routineTotal += entry.amount();
             if (m_routineEscrow.isNegative())
@@ -251,114 +412,4 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
 #endif
       }
    }
-}
-
-// todo for calculating expenses based on past averages, require that there be more days of history than the longest repeat interval, to ensure that there is at least one instance over time for all repeats.
-//   and if there is not enough history, then just look at the projected expenses instead
-// projected expenses are:
-//   all scheduled transactions for the current budget period
-//   for any transaction that does not have an instance this period, find the next instance and divide it between the remaining periods
-
-void BudgetBalancer::stop()
-{
-#if 0
-   std::cout << "Current Budget" << std::endl;
-   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
-   {
-      std::cout << "   " << qPrintable(it.key()) << "   "
-                << qPrintable(it.value().toString()) << std::endl;
-   }
-
-   // find the dates of the current budget period
-   QDate startDate;
-   QDate endDate = m_budgetDate.addDays(-1);
-   do
-   {
-      startDate = endDate.addDays(1);
-      endDate = (startDate + m_budgetInterval).addDays(-1);
-   }
-   while (endDate < QDate::currentDate());
-   std::cout << "current budget period begins "
-             << qPrintable(startDate.toString()) << " and ends "
-             << qPrintable(endDate.toString()) << std::endl;
-
-   // find the number of days during the budget periods before this one
-   qint64 priorDays = m_budgetDate.daysTo(startDate);
-   std::cout << "averaging over " << priorDays << " days" << std::endl;
-   for (auto it = m_totals.cbegin(); it != m_totals.cend(); ++it)
-   {
-      if (m_categories.contains(it.key()))
-      {
-         std::cout << "  " << qPrintable(it.key()) << " averages "
-                   << qPrintable((it.value() / priorDays).amountA.toString())
-                   << " per day" << std::endl;
-      }
-   }
-#endif
-}
-
-void BudgetBalancer::advancePeriodToDate(QDate const& date)
-{
-   // TODO decide when (or if) to reset this
-   if (m_firstDate.isNull())
-   {
-      m_firstDate = date;
-   }
-
-   // by default we just tick each day
-   if (m_periodEnd.isNull())
-   {
-      m_periodEnd = date.addDays(-1);
-      m_periodStart = m_periodEnd;
-      m_periodLength = Interval(1, Interval::Period::DAYS);
-   }
-
-   // if the given date is outside the current period, switch to the next period
-   // and allocate funds for it.  keep going until the date is within the
-   // current period
-   while (m_periodEnd < date)
-   {
-      m_periodStart = m_periodEnd.addDays(1);
-      m_periodEnd = (m_periodStart + m_periodLength).addDays(-1);
-      allocateCategories();
-   }
-}
-
-void BudgetBalancer::allocateCategories()
-{
-   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
-   {
-      Currency amount;
-      switch (it->type)
-      {
-         case BudgetCategory::Type::GOAL:
-            std::cerr << "TODO, I don't know the future to handle this yet" << std::endl;
-            break;
-         case BudgetCategory::Type::INCOME:
-            break;
-         case BudgetCategory::Type::RESERVE_AMOUNT:
-            amount = (it->amount / it->interval.toApproximateDays()).amountA * (m_periodStart.daysTo(m_periodEnd) + 1);
-            m_reserves[it.key()] += amount;
-            m_available -= amount;
-            break;
-         case BudgetCategory::Type::RESERVE_PERCENT:
-            break;
-         case BudgetCategory::Type::ROUTINE:
-            (m_routineTotal / priorDays()).amountA * (m_periodStart.daysTo(m_periodEnd) + 1);
-            break;
-      }
-   }
-}
-
-int BudgetBalancer::priorDays()
-{
-   Q_ASSERT(!m_firstDate.isNull());
-   Q_ASSERT(!m_periodStart.isNull());
-   int result = m_firstDate.daysTo(m_periodStart);
-   if (result < 1)
-   {
-      std::cerr << "No prior days to calculate with.  Expect a crash!" << std::endl;
-      // TODO make this work properly
-   }
-   return result;
 }

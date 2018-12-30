@@ -5,7 +5,7 @@
 #include <QRegularExpression>
 #include <QString>
 
-struct CurrencySplit;
+class DateRange;
 
 class Currency
 {
@@ -23,6 +23,7 @@ public:
 public:
    Currency();
    Currency(QString const& asString, int lineNum);
+   Currency amortize(DateRange const& total, DateRange const& partial) const;
    void clear();
    bool isNegative() const;
    bool isZero() const;
@@ -31,7 +32,6 @@ public:
    Currency operator+(Currency const& other) const;
    Currency operator-(Currency const& other) const;
    Currency operator*(int factor) const;
-   CurrencySplit operator/(uint splits) const;
    bool operator==(Currency const& other) const;
    bool operator!=(Currency const& other) const;
    Currency& operator+=(Currency const& other);
@@ -53,14 +53,6 @@ private:
 private:
    int m_decimalPlaces = 0;
    int m_value = 0;
-};
-
-struct CurrencySplit
-{
-   Currency amountA;
-   int numSplitsA;
-   Currency amountB;
-   int numSplitsB;
 };
 
 #endif

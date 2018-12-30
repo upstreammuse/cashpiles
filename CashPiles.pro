@@ -7,6 +7,7 @@ HEADERS += \
    include/budgetbalancer.h \
    include/currency.h \
    include/csvreader.h \
+   include/daterange.h \
    include/datevalidator.h \
    include/interval.h \
    include/itemprocessor.h \
@@ -25,6 +26,7 @@ SOURCES += \
    src/budgetbalancer.cpp \
    src/currency.cpp \
    src/csvreader.cpp \
+   src/daterange.cpp \
    src/datevalidator.cpp \
    src/interval.cpp \
    src/itemprocessor.cpp \
