@@ -1,5 +1,5 @@
 #include <iostream>
-#include <QCoreApplication>
+#include <QApplication>
 #include <QTimer>
 #include "accountbalancer.h"
 #include "budgetbalancer.h"
@@ -20,7 +20,7 @@ void usage(QString const& progName)
 
 int main(int argc, char** argv)
 {
-   QCoreApplication app(argc, argv);
+   QApplication app(argc, argv);
    Currency::initializeCurrencies();
 
    CsvReader* csvRegisterReader(nullptr);
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
    }
 
    Ledger* ledger = new Ledger(&app);
-   QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
+//   QObject::connect(ledger, SIGNAL(finished()), &app, SLOT(quit()));
    ledger->addProcessor(new DateValidator(ledger));
    ledger->addProcessor(new AccountBalancer(ledger));
    ledger->addProcessor(new BudgetBalancer(ledger));

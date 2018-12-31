@@ -1,9 +1,10 @@
 TEMPLATE = app
-CONFIG += console
+QT += widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += include
 HEADERS += \
    include/accountbalancer.h \
+   include/accountbalancerui.h \
    include/budgetbalancer.h \
    include/currency.h \
    include/csvreader.h \
@@ -26,6 +27,7 @@ HEADERS += \
    include/ynabregisterreader.h
 SOURCES += \
    src/accountbalancer.cpp \
+   src/accountbalancerui.cpp \
    src/budgetbalancer.cpp \
    src/currency.cpp \
    src/csvreader.cpp \
@@ -47,6 +49,8 @@ SOURCES += \
    src/reservepercentallocator.cpp \
    src/routineallocator.cpp \
    src/ynabregisterreader.cpp
+FORMS += \
+   ui/accountbalancerui.ui
 OTHER_FILES += \
    README.md
 TARGET = CashPiles

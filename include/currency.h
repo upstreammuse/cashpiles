@@ -29,6 +29,7 @@ public:
    bool isZero() const;
    Currency percentage(int percent) const;
    QString toString() const;
+   Currency operator-() const;
    Currency operator+(Currency const& other) const;
    Currency operator-(Currency const& other) const;
    Currency operator*(int factor) const;

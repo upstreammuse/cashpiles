@@ -1,16 +1,19 @@
 #include "accountbalancer.h"
 
-#include <iostream>
 #include "ledgeraccountcommand.h"
+#include "ledgerbudget.h"
 #include "ledgertransaction.h"
 
 AccountBalancer::AccountBalancer(QObject* parent) :
    ItemProcessor(parent)
 {
+   m_ui.show();
 }
 
 void AccountBalancer::processItem(LedgerAccountCommand const& account)
 {
+   checkTransfers(account.date());
+
    switch (account.mode())
    {
       case LedgerAccountCommand::Mode::CLOSED:
@@ -18,17 +21,13 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
          {
             if (!m_accounts[account.account()].isZero())
             {
-               std::cerr << "Closing account with non-zero balance in file '"
-                         << qPrintable(account.fileName()) << "', line "
-                         << account.lineNum() << std::endl;
+               m_ui.message(account, "Closing account with non-zero balance");
             }
             m_accounts.remove(account.account());
          }
          else
          {
-            std::cerr << "Closing account that was not open in file '"
-                      << qPrintable(account.fileName()) << "', line "
-                      << account.lineNum() << std::endl;
+            m_ui.message(account, "Closing account that was not open");
          }
          break;
       case LedgerAccountCommand::Mode::ON_BUDGET:
@@ -39,16 +38,15 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
          }
          else
          {
-            std::cerr << "Opening account that was already open in file '"
-                      << qPrintable(account.fileName()) << "', line "
-                      << account.lineNum() << std::endl;
+            m_ui.message(account, "Opening account that was already open");
          }
          break;
    }
 }
 
-void AccountBalancer::processItem(LedgerBudget const&)
+void AccountBalancer::processItem(LedgerBudget const& budget)
 {
+   checkTransfers(budget.date());
 }
 
 void AccountBalancer::processItem(LedgerComment const&)
@@ -57,25 +55,22 @@ void AccountBalancer::processItem(LedgerComment const&)
 
 void AccountBalancer::processItem(LedgerTransaction const& transaction)
 {
+   checkTransfers(transaction.date());
+
    if (!m_accounts.contains(transaction.account()))
    {
-      std::cerr << "Transaction against unknown or closed account '"
-                << qPrintable(transaction.account()) << "' in file '"
-                << qPrintable(transaction.fileName()) << "', line "
-                << transaction.lineNum() << std::endl;
+      m_ui.message(transaction,
+                   QString("Transaction against unknown or closed account '%1'")
+                   .arg(transaction.account()));
    }
    m_accounts[transaction.account()] += transaction.amount();
    if (transaction.hasBalance() &&
        transaction.balance() != m_accounts[transaction.account()])
    {
-      std::cerr << "Transaction balance incorrect in file '"
-                << qPrintable(transaction.fileName()) << "', line "
-                << transaction.lineNum() << std::endl;
-      std::cerr << "   Transaction balance: "
-                << qPrintable(transaction.balance().toString()) << std::endl;
-      std::cerr << "   Calculated balance:  "
-                << qPrintable(m_accounts[transaction.account()].toString())
-            << std::endl;
+      m_ui.message(transaction,
+                   QString("Transaction balance %1 incorrect, should be %2")
+                   .arg(transaction.balance().toString())
+                   .arg(m_accounts[transaction.account()].toString()));
    }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -89,25 +84,39 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
 
 void AccountBalancer::stop()
 {
+   checkTransfers(QDate());
+
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      std::cout << "Account '" << qPrintable(it.key()) << "' has balance "
-                << qPrintable(it.value().toString()) << std::endl;
+      m_ui.setBalance(it.key(), *it);
    }
+}
 
-   for (auto it = m_accounts.cbegin(); it != m_accounts.cend(); ++it)
+void AccountBalancer::checkTransfers(QDate const& date)
+{
+   if (date != m_lastDate)
    {
-      for (auto it2 = m_accounts.cbegin(); it2 != m_accounts.cend(); ++it2)
+      for (auto it = m_accounts.cbegin(); it != m_accounts.cend(); ++it)
       {
-         Currency balance = m_transfers[it.key()][it2.key()] +
-                            m_transfers[it2.key()][it.key()];
-         if (!balance.isZero())
+         for (auto it2 = m_accounts.cbegin(); it2 != m_accounts.cend(); ++it2)
          {
-            std::cerr << "Transfers between '" << qPrintable(it.key())
-                      << "' and '" << qPrintable(it2.key())
-                      << "' do not balance.  Mismatch is "
-                      << qPrintable(balance.toString()) << std::endl;
+            Currency balance = m_transfers[it.key()][it2.key()] +
+                               m_transfers[it2.key()][it.key()];
+            if (!balance.isZero())
+            {
+               if (balance.isNegative())
+               {
+                  balance = -balance;
+               }
+               m_ui.message(QString("Transfers between '%1' and '%2' do not "
+                                    "match as of %3.  Mismatch of %4")
+                            .arg(it.key())
+                            .arg(it2.key())
+                            .arg(date.toString())
+                            .arg(balance.toString()));
+            }
          }
       }
+      m_lastDate = date;
    }
 }

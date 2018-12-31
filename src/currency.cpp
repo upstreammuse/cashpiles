@@ -167,6 +167,13 @@ QString Currency::toString() const
    return output;
 }
 
+Currency Currency::operator-() const
+{
+   Currency result(*this);
+   result.m_value = -result.m_value;
+   return result;
+}
+
 Currency Currency::operator+(Currency const& other) const
 {
    Currency result(*this);
