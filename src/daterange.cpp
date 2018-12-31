@@ -28,6 +28,11 @@ QDate DateRange::endDate() const
 
 DateRange DateRange::intersect(DateRange const& other) const
 {
+   if (isNull() || other.isNull())
+   {
+      return DateRange();
+   }
+
    QDate startDate = std::max(m_startDate, other.startDate());
    QDate endDate = std::min(this->endDate(), other.endDate());
    if (startDate <= endDate)

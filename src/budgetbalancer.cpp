@@ -35,35 +35,50 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
       processRecords();
    }
 
-   // remove reserves that are not in this budget command, and allocate their
+   // remove categories that are not in this budget command, or that have changed, and allocate their
    // funds to the available category
-   m_categories = budget.categories();
-   for (auto it = m_percentReserves.begin(); it != m_percentReserves.end();
-        /*inside*/)
+   // TODO warn if a reserve category is eliminated that has funds in it, so that
+   // the user can opt to transfer the funds to a different category before the category
+   // goes away
+   //  - how do we do that right now?
+   //     - split transaction, zero total, outflow from old category, inflow to new category
+   auto categories = budget.categories();
+   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
    {
-      if (!m_categories.contains(it.key()))
+      if (!categories.contains(it.key()) ||
+          categories[it.key()].type != it->type)
       {
-         m_available += it.value();
-         it = m_percentReserves.erase(it);
-      }
-      else
-      {
-         ++it;
+         switch (it->type)
+         {
+//            case LedgerBudget::Category::Type::GOAL:
+//            case LedgerBudget::Category::Type::INCOME:
+            case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+               m_available += m_reserveAmountAllocator.deallocate(it.key());
+               break;
+            case LedgerBudget::Category::Type::RESERVE_PERCENT:
+               m_available += m_percentAllocations[it.key()];
+               m_percentAllocations.remove(it.key());
+               break;
+            case LedgerBudget::Category::Type::ROUTINE:
+               m_available += m_routineAllocator.deallocate(it.key());
+               break;
+         }
+
       }
    }
-   for (auto it = m_periodReserves.begin(); it != m_periodReserves.end();
-        /*inside*/)
+
+   // configure new and changed budget categories
+   for (auto it = categories.cbegin(); it != categories.cend(); ++it)
    {
-      if (!m_categories.contains(it.key()))
+      switch (it->type)
       {
-         m_available += it->amount;
-         it = m_periodReserves.erase(it);
-      }
-      else
-      {
-         ++it;
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+            m_reserveAmountAllocator.budget(budget.date(), it.key(), it->amount,
+                                            it->interval);
+            break;
       }
    }
+   m_categories = categories;
 
    // reset the dates for the new period
    m_period = DateRange(budget.date(), budget.interval());
@@ -134,14 +149,12 @@ void BudgetBalancer::advancePeriodToDate(QDate const& date)
    if (m_period.isNull())
    {
       m_period = DateRange(date, Interval(1, Interval::Period::MONTHS));
-      m_priorDays = DateRange(date, date);
    }
 
    while (m_period.endDate() < date)
    {
       allocateCategories();
       processRecords();
-      m_priorDays = DateRange(m_priorDays.startDate(), m_period.endDate());
       ++m_period;
    }
 }
@@ -152,64 +165,28 @@ void BudgetBalancer::allocateCategories()
    {
       switch (it->type)
       {
-         case LedgerBudget::Category::Type::GOAL:
-            std::cerr << "TODO, I don't know the future to handle this yet" << std::endl;
-            break;
-         case LedgerBudget::Category::Type::INCOME:
-            break;
+//         case LedgerBudget::Category::Type::GOAL:
+//            break;
+//         case LedgerBudget::Category::Type::INCOME:
+//            break;
          case LedgerBudget::Category::Type::RESERVE_AMOUNT:
-         {
-            Currency amount;
-            DateRange& range = m_periodReserves[it.key()].range;
-            DateRange overlap = range.intersect(m_period);
-
-            // in the case where the last period perfectly coincided with the
-            // end of the last range of this reserve
-            if (overlap.isNull())
-            {
-               ++range;
-               overlap = range.intersect(m_period);
-               Q_ASSERT(!overlap.isNull());
-            }
-
-            // in the case where the overlap is the entire period
-            if (overlap == m_period)
-            {
-               amount += m_categories[it.key()].amount.amortize(range, overlap);
-            }
-            // in the case where the overlap is at the beginning of the period
-            // but does not cover the whole period
-            else if (overlap.startDate() == m_period.startDate())
-            {
-               amount += m_categories[it.key()].amount.amortize(range, overlap);
-               do
-               {
-                  ++range;
-                  overlap = range.intersect(m_period);
-                  amount += m_categories[it.key()].amount.amortize(range,
-                                                                  overlap);
-               }
-               while (overlap.endDate() != m_period.endDate());
-            }
-            // otherwise we screwed up and advanced the reserve range too far
-            // somewhere else
-            else
-            {
-               std::cerr << "Internal error: reserve period advanced too far"
-                         << std::endl;
-            }
-
-            m_periodReserves[it.key()].amount += amount;
-            m_available -= amount;
+            m_available = m_reserveAmountAllocator.allocate(m_period, it.key(),
+                                                            m_available);
             break;
-         }
-         case LedgerBudget::Category::Type::RESERVE_PERCENT:
-            break;
+//         case LedgerBudget::Category::Type::RESERVE_PERCENT:
+//            break;
          case LedgerBudget::Category::Type::ROUTINE:
-            // TODO I don't like the way this is calculated
-            DateRange oneDay(m_priorDays.startDate(), m_priorDays.startDate());
-            m_routineEscrow += m_routineTotal.amortize(m_priorDays, oneDay) * m_period.days();
+            m_available = m_routineAllocator.allocate(m_period, it.key(),
+                                                      m_available);
             break;
+      }
+      if (m_available.isNegative())
+      {
+         std::cerr << "Available funds are negative, trouble!" << std::endl;
+         std::cerr << "  Category: " << qPrintable(it.key()) << std::endl;
+         std::cerr << "  Budget Period: "
+                   << qPrintable(m_period.startDate().toString()) << " to "
+                   << qPrintable(m_period.endDate().toString()) << std::endl;
       }
    }
 }
@@ -315,13 +292,13 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
          std::cerr << "Unknown category '" << qPrintable(entry.category ())
                    << "', file '" << qPrintable(transaction.fileName())
                    << "', line " << transaction.lineNum() << std::endl;
-         m_categories[entry.category()].type = LedgerBudget::Category::Type::ROUTINE;
+         m_categories[entry.category()].type =
+               LedgerBudget::Category::Type::ROUTINE;
       }
       switch (m_categories[entry.category()].type)
       {
-         case LedgerBudget::Category::Type::GOAL:
-            std::cerr << "I haven't figure this one out yet, TODO" << std::endl;
-            break;
+//         case LedgerBudget::Category::Type::GOAL:
+//            break;
          case LedgerBudget::Category::Type::INCOME:
             for (auto it = m_categories.cbegin(); it != m_categories.cend();
                  ++it)
@@ -329,49 +306,56 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
                if (it->type == LedgerBudget::Category::Type::RESERVE_PERCENT)
                {
                   Currency amount = entry.amount().percentage(it->percentage);
-                  m_percentReserves[entry.category()] += amount;
+                  m_percentAllocations[entry.category()] += amount;
                   m_available -= amount;
-                  if (m_percentReserves[entry.category()].isNegative())
+                  if (m_percentAllocations[entry.category()].isNegative())
                   {
                      std::cerr << "Reserve '" << qPrintable(entry.category())
                                << "' is underfunded, compensating."
                                << std::endl;
                      std::cerr << "  Amount: "
-                               << qPrintable(m_percentReserves[entry.category()].toString())
+                               << qPrintable(m_percentAllocations[entry.category()].toString())
                            << std::endl;
                      std::cerr << "  File: " << qPrintable(transaction.fileName())
                                << std::endl;
                      std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-                     m_available += m_percentReserves[entry.category()];
-                     m_percentReserves[entry.category()].clear();
-                  }
-                  if (m_available.isNegative())
-                  {
-                     std::cerr << "Available funds are negative.  Trouble!"
-                               << std::endl;
+                     m_available += m_percentAllocations[entry.category()];
+                     m_percentAllocations[entry.category()].clear();
                   }
                }
             }
             break;
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+            m_reserveAmountAllocator.spend(entry.category(), entry.amount());
+            if (m_routineAllocator.amountAllocated().isNegative())
+            {
+               std::cerr << "Rserved category is underfunded, compensating."
+                         << std::endl;
+               std::cerr << "  Amount: "
+                         << qPrintable(m_reserveAmountAllocator.amountAllocated().toString())
+                         << std::endl;
+               std::cerr << "  File: " << qPrintable(transaction.fileName())
+                         << std::endl;
+               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               m_available = m_reserveAmountAllocator.allocate(entry.category(),
+                                                               m_available);
+            }
+            break;
          case LedgerBudget::Category::Type::ROUTINE:
-            m_routineEscrow += entry.amount();
-            m_routineTotal += entry.amount();
-            if (m_routineEscrow.isNegative())
+            m_routineAllocator.spend(transaction.date(), entry.category(),
+                                     entry.amount());
+            if (m_routineAllocator.amountAllocated().isNegative())
             {
                std::cerr << "Routine expenses are underfunded, compensating."
                          << std::endl;
                std::cerr << "  Amount: "
-                         << qPrintable(m_routineEscrow.toString()) << std::endl;
+                         << qPrintable(m_routineAllocator.amountAllocated().toString())
+                         << std::endl;
                std::cerr << "  File: " << qPrintable(transaction.fileName())
                          << std::endl;
                std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-               m_available += m_routineEscrow;
-               m_routineEscrow.clear();
-            }
-            if (m_available.isNegative())
-            {
-               std::cerr << "Available funds are negative.  Trouble!"
-                         << std::endl;
+               m_available = m_routineAllocator.allocate(entry.category(),
+                                                         m_available);
             }
             break;
 
@@ -410,6 +394,11 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
                m_totals[entry.category()] += entry.amount();
             }
 #endif
+      }
+      if (m_available.isNegative())
+      {
+         std::cerr << "Available funds are negative.  Trouble!"
+                   << std::endl;
       }
    }
 }

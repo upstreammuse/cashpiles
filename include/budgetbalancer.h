@@ -7,6 +7,8 @@
 #include "daterange.h"
 #include "interval.h"
 #include "itemprocessor.h"
+#include "reserveamountallocator.h"
+#include "routineallocator.h"
 
 class BudgetBalancer : public ItemProcessor
 {
@@ -26,28 +28,16 @@ private:
    void processTransaction(LedgerTransaction const& transaction);
 
 private:
-   struct PeriodReserve
-   {
-      Currency amount;
-      DateRange range;
-   };
-
-private:
    QHash<QString, bool> m_accounts;
    Currency m_available;
    QHash<QString, LedgerBudget::Category> m_categories;
+   int m_numRecords = 0;
+   QHash<QString, Currency> m_percentAllocations;
    DateRange m_period;
-   QHash<QString, Currency> m_periodAllocations;
-   QHash<QString, Currency> m_percentReserves;
-   QHash<QString, PeriodReserve> m_periodReserves;
-   DateRange m_priorDays;
-   Currency m_routineEscrow;
-   Currency m_routineTotal;
-
-private:
    QHash<int, LedgerAccountCommand> m_recordedAccounts;
    QHash<int, LedgerTransaction> m_recordedTransactions;
-   int m_numRecords = 0;
+   ReserveAmountAllocator m_reserveAmountAllocator;
+   RoutineAllocator m_routineAllocator;
 };
 
 #endif
