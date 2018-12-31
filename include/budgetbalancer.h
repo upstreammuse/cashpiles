@@ -8,6 +8,7 @@
 #include "interval.h"
 #include "itemprocessor.h"
 #include "reserveamountallocator.h"
+#include "reservepercentallocator.h"
 #include "routineallocator.h"
 
 class BudgetBalancer : public ItemProcessor
@@ -32,11 +33,11 @@ private:
    Currency m_available;
    QHash<QString, LedgerBudget::Category> m_categories;
    int m_numRecords = 0;
-   QHash<QString, Currency> m_percentAllocations;
    DateRange m_period;
    QHash<int, LedgerAccountCommand> m_recordedAccounts;
    QHash<int, LedgerTransaction> m_recordedTransactions;
    ReserveAmountAllocator m_reserveAmountAllocator;
+   ReservePercentAllocator m_reservePercentAllocator;
    RoutineAllocator m_routineAllocator;
 };
 

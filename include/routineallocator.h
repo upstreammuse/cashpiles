@@ -6,11 +6,11 @@
 class RoutineAllocator
 {
 public:
-   Currency allocate(QString const& category, Currency available);
+   Currency allocate(Currency available);
    Currency allocate(DateRange const& period, QString const& category,
                      Currency available);
-   Currency amountAllocated() const;
    Currency deallocate(QString const& category);
+   bool isUnderfunded() const;
    void spend(QDate const& date, QString const& category,
               Currency const& amount);
 

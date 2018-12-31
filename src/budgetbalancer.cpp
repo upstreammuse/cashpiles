@@ -51,13 +51,14 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
          switch (it->type)
          {
 //            case LedgerBudget::Category::Type::GOAL:
-//            case LedgerBudget::Category::Type::INCOME:
+            case LedgerBudget::Category::Type::INCOME:
+               // nothing to do for income type
+               break;
             case LedgerBudget::Category::Type::RESERVE_AMOUNT:
                m_available += m_reserveAmountAllocator.deallocate(it.key());
                break;
             case LedgerBudget::Category::Type::RESERVE_PERCENT:
-               m_available += m_percentAllocations[it.key()];
-               m_percentAllocations.remove(it.key());
+               m_available += m_reservePercentAllocator.deallocate(it.key());
                break;
             case LedgerBudget::Category::Type::ROUTINE:
                m_available += m_routineAllocator.deallocate(it.key());
@@ -72,9 +73,18 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
    {
       switch (it->type)
       {
+         case LedgerBudget::Category::Type::INCOME:
+            // nothing to do for income
+            break;
          case LedgerBudget::Category::Type::RESERVE_AMOUNT:
             m_reserveAmountAllocator.budget(budget.date(), it.key(), it->amount,
                                             it->interval);
+            break;
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
+            m_reservePercentAllocator.budget(it.key(), it->percentage);
+            break;
+         case LedgerBudget::Category::Type::ROUTINE:
+            // nothing to do for routine expenses
             break;
       }
    }
@@ -167,14 +177,16 @@ void BudgetBalancer::allocateCategories()
       {
 //         case LedgerBudget::Category::Type::GOAL:
 //            break;
-//         case LedgerBudget::Category::Type::INCOME:
-//            break;
+         case LedgerBudget::Category::Type::INCOME:
+            // these are allocated when income arrives
+            break;
          case LedgerBudget::Category::Type::RESERVE_AMOUNT:
             m_available = m_reserveAmountAllocator.allocate(m_period, it.key(),
                                                             m_available);
             break;
-//         case LedgerBudget::Category::Type::RESERVE_PERCENT:
-//            break;
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
+            // nothing to do for percentage categories
+            break;
          case LedgerBudget::Category::Type::ROUTINE:
             m_available = m_routineAllocator.allocate(m_period, it.key(),
                                                       m_available);
@@ -300,100 +312,56 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
 //         case LedgerBudget::Category::Type::GOAL:
 //            break;
          case LedgerBudget::Category::Type::INCOME:
-            for (auto it = m_categories.cbegin(); it != m_categories.cend();
-                 ++it)
+            m_available += entry.amount();
+            m_available = m_reservePercentAllocator.allocate(entry.amount(),
+                                                             m_available);
+            if (m_reservePercentAllocator.isUnderfunded())
             {
-               if (it->type == LedgerBudget::Category::Type::RESERVE_PERCENT)
-               {
-                  Currency amount = entry.amount().percentage(it->percentage);
-                  m_percentAllocations[entry.category()] += amount;
-                  m_available -= amount;
-                  if (m_percentAllocations[entry.category()].isNegative())
-                  {
-                     std::cerr << "Reserve '" << qPrintable(entry.category())
-                               << "' is underfunded, compensating."
-                               << std::endl;
-                     std::cerr << "  Amount: "
-                               << qPrintable(m_percentAllocations[entry.category()].toString())
-                           << std::endl;
-                     std::cerr << "  File: " << qPrintable(transaction.fileName())
-                               << std::endl;
-                     std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-                     m_available += m_percentAllocations[entry.category()];
-                     m_percentAllocations[entry.category()].clear();
-                  }
-               }
-            }
-            break;
-         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
-            m_reserveAmountAllocator.spend(entry.category(), entry.amount());
-            if (m_routineAllocator.amountAllocated().isNegative())
-            {
-               std::cerr << "Rserved category is underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  Amount: "
-                         << qPrintable(m_reserveAmountAllocator.amountAllocated().toString())
+               std::cerr << "Reserved category is underfunded, compensating."
                          << std::endl;
                std::cerr << "  File: " << qPrintable(transaction.fileName())
                          << std::endl;
                std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-               m_available = m_reserveAmountAllocator.allocate(entry.category(),
-                                                               m_available);
+               m_available = m_reservePercentAllocator.allocate(m_available);
+            }
+            break;
+         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
+            m_reserveAmountAllocator.spend(entry.category(), entry.amount());
+            if (m_reserveAmountAllocator.isUnderfunded())
+            {
+               std::cerr << "Rserved category is underfunded, compensating."
+                         << std::endl;
+               std::cerr << "  File: " << qPrintable(transaction.fileName())
+                         << std::endl;
+               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               m_available = m_reserveAmountAllocator.allocate(m_available);
+            }
+            break;
+         case LedgerBudget::Category::Type::RESERVE_PERCENT:
+            m_reservePercentAllocator.spend(entry.category(), entry.amount());
+            if (m_reservePercentAllocator.isUnderfunded())
+            {
+               std::cerr << "Rserved category is underfunded, compensating."
+                         << std::endl;
+               std::cerr << "  File: " << qPrintable(transaction.fileName())
+                         << std::endl;
+               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               m_available = m_reservePercentAllocator.allocate(m_available);
             }
             break;
          case LedgerBudget::Category::Type::ROUTINE:
             m_routineAllocator.spend(transaction.date(), entry.category(),
                                      entry.amount());
-            if (m_routineAllocator.amountAllocated().isNegative())
+            if (m_routineAllocator.isUnderfunded())
             {
                std::cerr << "Routine expenses are underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  Amount: "
-                         << qPrintable(m_routineAllocator.amountAllocated().toString())
                          << std::endl;
                std::cerr << "  File: " << qPrintable(transaction.fileName())
                          << std::endl;
                std::cerr << "  Line: " << transaction.lineNum() << std::endl;
-               m_available = m_routineAllocator.allocate(entry.category(),
-                                                         m_available);
+               m_available = m_routineAllocator.allocate(m_available);
             }
             break;
-
-#if 0
-            if (m_categories[entry.category()].type == BudgetCategory::Type::INCOME)
-            {
-               m_available += entry.amount();
-               if (m_available.isNegative())
-               {
-                  std::cerr << "Available funds are negative, file '"
-                            << qPrintable(transaction.fileName())
-                            << "', line " << transaction.lineNum()
-                            << std::endl;
-               }
-            }
-            else
-            {
-               if (!m_categories.contains(entry.category()))
-               {
-                  std::cerr << "Budget category '"
-                            << qPrintable(entry.category())
-                            << "' does not exist, file '"
-                            << qPrintable(transaction.fileName())
-                            << "', line " << transaction.lineNum()
-                            << std::endl;
-               }
-               m_categories[entry.category()] += entry.amount();
-               if (m_categories[entry.category()].isNegative())
-               {
-                  std::cerr << "Budget category '"
-                            << qPrintable(entry.category())
-                            << "' is underfunded.  Balance is "
-                            << qPrintable(m_categories[entry.category()].toString())
-                        << ".  Line " << transaction.lineNum() << std::endl;
-               }
-               m_totals[entry.category()] += entry.amount();
-            }
-#endif
       }
       if (m_available.isNegative())
       {

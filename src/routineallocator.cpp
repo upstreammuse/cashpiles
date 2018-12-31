@@ -2,12 +2,15 @@
 
 #include "daterange.h"
 
-Currency RoutineAllocator::allocate(QString const& category, Currency available)
+Currency RoutineAllocator::allocate(Currency available)
 {
-   if (m_allocations[category].isNegative())
+   for (auto it = m_allocations.begin(); it != m_allocations.end(); ++it)
    {
-      available += m_allocations[category];
-      m_allocations[category] = Currency();
+      if (it->isNegative())
+      {
+         available += *it;
+         it->clear();
+      }
    }
    return available;
 }
@@ -22,16 +25,6 @@ Currency RoutineAllocator::allocate(DateRange const& period,
    m_allocations[category] -= amount;
    available += amount;
    return available;
-}
-
-Currency RoutineAllocator::amountAllocated() const
-{
-   Currency sum;
-   foreach (Currency const& c, m_allocations)
-   {
-      sum += c;
-   }
-   return sum;
 }
 
 Currency RoutineAllocator::deallocate(QString const& category)
@@ -51,6 +44,18 @@ Currency RoutineAllocator::deallocate(QString const& category)
    }
    m_historyTotals.remove(category);
    return result;
+}
+
+bool RoutineAllocator::isUnderfunded() const
+{
+   foreach (Currency const& c, m_allocations)
+   {
+      if (c.isNegative())
+      {
+         return true;
+      }
+   }
+   return false;
 }
 
 void RoutineAllocator::spend(QDate const& date, QString const& category,

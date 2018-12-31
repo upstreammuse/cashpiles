@@ -20,9 +20,10 @@ HEADERS += \
    include/ledgertransactionentry.h \
    include/nativereader.h \
    include/nativewriter.h \
-   include/ynabregisterreader.h \
-    routineallocator.h \
-    reserveamountallocator.h
+   include/reserveamountallocator.h \
+   include/reservepercentallocator.h \
+   include/routineallocator.h \
+   include/ynabregisterreader.h
 SOURCES += \
    src/accountbalancer.cpp \
    src/budgetbalancer.cpp \
@@ -42,11 +43,10 @@ SOURCES += \
    src/main.cpp \
    src/nativereader.cpp \
    src/nativewriter.cpp \
-   src/ynabregisterreader.cpp \
-    routineallocator.cpp \
-    reserveamountallocator.cpp
+   src/reserveamountallocator.cpp \
+   src/reservepercentallocator.cpp \
+   src/routineallocator.cpp \
+   src/ynabregisterreader.cpp
 OTHER_FILES += \
-   CashPiles_File_Format.txt \
-   cp-sample.txt \
    README.md
 TARGET = CashPiles

@@ -3,13 +3,15 @@
 #include <iostream>
 #include "daterange.h"
 
-Currency ReserveAmountAllocator::allocate(QString const& category,
-                                          Currency available)
+Currency ReserveAmountAllocator::allocate(Currency available)
 {
-   if (m_allocations[category].isNegative())
+   for (auto it = m_allocations.begin(); it != m_allocations.end(); ++it)
    {
-      available += m_allocations[category];
-      m_allocations[category] = Currency();
+      if (it->isNegative())
+      {
+         available += *it;
+         it->clear();
+      }
    }
    return available;
 }
@@ -63,17 +65,6 @@ Currency ReserveAmountAllocator::allocate(DateRange const &period,
    return available;
 }
 
-// TODO this is broken because it doesn't let the budget balancer see if a perticular category is underfunded,  and all the allocators will suffer this same problem
-Currency ReserveAmountAllocator::amountAllocated() const
-{
-   Currency sum;
-   foreach (Currency const& c, m_allocations)
-   {
-      sum += c;
-   }
-   return sum;
-}
-
 void ReserveAmountAllocator::budget(QDate const& date, QString const& category,
                                     Currency const &amount,
                                     Interval const& interval)
@@ -87,6 +78,18 @@ Currency ReserveAmountAllocator::deallocate(QString const& category)
    Currency amount = m_allocations[category];
    m_allocations.remove(category);
    return amount;
+}
+
+bool ReserveAmountAllocator::isUnderfunded() const
+{
+   foreach (Currency const& c, m_allocations)
+   {
+      if (c.isNegative())
+      {
+         return true;
+      }
+   }
+   return false;
 }
 
 void ReserveAmountAllocator::spend(QString const& category,

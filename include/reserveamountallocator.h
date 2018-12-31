@@ -7,13 +7,13 @@
 class ReserveAmountAllocator
 {
 public:
-   Currency allocate(QString const& category, Currency available);
+   Currency allocate(Currency available);
    Currency allocate(DateRange const& period, QString const& category,
                      Currency available);
-   Currency amountAllocated() const;
    void budget(QDate const& date, QString const& category,
                Currency const& amount, Interval const& interval);
    Currency deallocate(QString const& category);
+   bool isUnderfunded() const;
    void spend(QString const& category, Currency const& amount);
 
 private:

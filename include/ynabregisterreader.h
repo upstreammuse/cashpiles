@@ -27,7 +27,7 @@ public slots:
 
 signals:
    void finished();
-   void item(QDate const&, LedgerItem*);
+   void item(LedgerItem*);
 
 private:
    QStringList m_accountColumn;
@@ -36,6 +36,7 @@ private:
    QList<QDate> m_dateColumn;
    QStringList m_filenameColumn;
    QList<Currency> m_inflowColumn;
+   QMap<QDate, LedgerItem*> m_items;
    QList<int> m_lineNumColumn;
    QStringList m_memoColumn;
    QList<Currency> m_outflowColumn;

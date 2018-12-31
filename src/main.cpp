@@ -66,7 +66,7 @@ int main(int argc, char** argv)
    ledger->addProcessor(new DateValidator(ledger));
    ledger->addProcessor(new AccountBalancer(ledger));
    ledger->addProcessor(new BudgetBalancer(ledger));
-   ledger->addProcessor(new NativeWriter(ledger));
+//   ledger->addProcessor(new NativeWriter(ledger));
 
    if (csvRegisterReader)
    {

@@ -126,9 +126,13 @@ void YnabRegisterReader::stop()
 
       if (!inSplit)
       {
-         emit item(t->date(), t);
+         m_items.insertMulti(t->date(), t);
          t = nullptr;
       }
+   }
+   foreach (LedgerItem* item_, m_items)
+   {
+      emit item(item_);
    }
    emit finished();
 }
