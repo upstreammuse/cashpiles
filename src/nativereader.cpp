@@ -29,6 +29,7 @@ namespace
          START_RX + DATE_RX + SPACE_RX +
          "(?<command>on-budget|off-budget|close)" + SPACE_RX +
          IDENT_RX.arg("account") + END_RX);
+   QRegularExpression const blockCommentRx(START_RX + ";;;" + END_RX);
    QRegularExpression const budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX);
@@ -234,7 +235,18 @@ void NativeReader::processCompactTransactionOff(
 void NativeReader::processLine(QString const& line)
 {
    QRegularExpressionMatch match;
-   if ((match = accountRx.match(line)).hasMatch())
+   if ((match = blockCommentRx.match(line)).hasMatch())
+   {
+      forever
+      {
+         QString line = readLine();
+         if ((match = blockCommentRx.match(line)).hasMatch())
+         {
+            break;
+         }
+      }
+   }
+   else if ((match = accountRx.match(line)).hasMatch())
    {
       processAccount(match);
    }
