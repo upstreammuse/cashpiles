@@ -17,7 +17,7 @@ public:
 
 private:
    QHash<QString, Currency> m_accounts;
-   QHash<QString, QHash<QString, Currency> > m_transfers;
+   QHash<QString, QHash<QString, Currency>> m_transfers;
 };
 
 #endif

@@ -4,33 +4,45 @@
 
 Currency RoutineAllocator::allocate(Currency available)
 {
-   for (auto it = m_allocations.begin(); it != m_allocations.end(); ++it)
+   if (m_allocation.isNegative())
    {
-      if (it->isNegative())
-      {
-         available += *it;
-         it->clear();
-      }
+      available += m_allocation;
+      m_allocation.clear();
    }
    return available;
 }
 
-Currency RoutineAllocator::allocate(DateRange const& period,
-                                    QString const& category, Currency available)
+Currency RoutineAllocator::allocate(DateRange const& period, Currency available)
 {
-   DateRange range(m_history.cbegin().key(), m_history.cend().key());
+   DateRange range;
+   if (m_history.isEmpty())
+   {
+      range = DateRange();
+   }
+   else
+   {
+      Q_ASSERT(m_history.lastKey() < period.startDate());
+      range = DateRange(m_history.firstKey(), period.startDate().addDays(-1));
+   }
    DateRange firstDay(range.startDate(), range.startDate());
-   Currency amount = m_historyTotals[category].amortize(range, firstDay) *
-                     period.days();
-   m_allocations[category] -= amount;
-   available += amount;
+
+   foreach (Currency const& total, m_historyTotals)
+   {
+      Currency amount = total.amortize(range, firstDay) * period.days();
+      m_allocation -= amount;
+      available += amount;
+   }
+
+   if (available.isNegative())
+   {
+      m_allocation += available;
+      available.clear();
+   }
    return available;
 }
 
-Currency RoutineAllocator::deallocate(QString const& category)
+void RoutineAllocator::deallocate(QString const& category)
 {
-   Currency result = m_allocations[category];
-   m_allocations.remove(category);
    for (auto it = m_history.begin(); it != m_history.end(); /*inside*/)
    {
       if (it->first == category)
@@ -43,24 +55,16 @@ Currency RoutineAllocator::deallocate(QString const& category)
       }
    }
    m_historyTotals.remove(category);
-   return result;
 }
 
 bool RoutineAllocator::isUnderfunded() const
 {
-   foreach (Currency const& c, m_allocations)
-   {
-      if (c.isNegative())
-      {
-         return true;
-      }
-   }
-   return false;
+   return m_allocation.isNegative();
 }
 
 void RoutineAllocator::spend(QDate const& date, QString const& category,
                              Currency const &amount)
 {
-   m_history.insertMulti(date, QPair<QString, Currency>(category, amount));
+   m_history.insertMulti(date, qMakePair(category, amount));
    m_historyTotals[category] += amount;
 }

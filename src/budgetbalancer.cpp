@@ -61,10 +61,9 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
                m_available += m_reservePercentAllocator.deallocate(it.key());
                break;
             case LedgerBudget::Category::Type::ROUTINE:
-               m_available += m_routineAllocator.deallocate(it.key());
+               m_routineAllocator.deallocate(it.key());
                break;
          }
-
       }
    }
 
@@ -171,35 +170,16 @@ void BudgetBalancer::advancePeriodToDate(QDate const& date)
 
 void BudgetBalancer::allocateCategories()
 {
-   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
+   // TODO allocate goals
+   m_available = m_reserveAmountAllocator.allocate(m_period, m_available);
+   m_available = m_routineAllocator.allocate(m_period, m_available);
+
+   if (m_available.isNegative())
    {
-      switch (it->type)
-      {
-//         case LedgerBudget::Category::Type::GOAL:
-//            break;
-         case LedgerBudget::Category::Type::INCOME:
-            // these are allocated when income arrives
-            break;
-         case LedgerBudget::Category::Type::RESERVE_AMOUNT:
-            m_available = m_reserveAmountAllocator.allocate(m_period, it.key(),
-                                                            m_available);
-            break;
-         case LedgerBudget::Category::Type::RESERVE_PERCENT:
-            // nothing to do for percentage categories
-            break;
-         case LedgerBudget::Category::Type::ROUTINE:
-            m_available = m_routineAllocator.allocate(m_period, it.key(),
-                                                      m_available);
-            break;
-      }
-      if (m_available.isNegative())
-      {
-         std::cerr << "Available funds are negative, trouble!" << std::endl;
-         std::cerr << "  Category: " << qPrintable(it.key()) << std::endl;
-         std::cerr << "  Budget Period: "
-                   << qPrintable(m_period.startDate().toString()) << " to "
-                   << qPrintable(m_period.endDate().toString()) << std::endl;
-      }
+      std::cerr << "Available funds are negative, trouble!" << std::endl;
+      std::cerr << "  Budget Period: "
+                << qPrintable(m_period.startDate().toString()) << " to "
+                << qPrintable(m_period.endDate().toString()) << std::endl;
    }
 }
 
@@ -223,6 +203,8 @@ void BudgetBalancer::processRecords()
 {
    for (int i = 0; i < m_numRecords; ++i)
    {
+      Q_ASSERT(m_recordedAccounts.contains(i) ||
+               m_recordedTransactions.contains(i));
       if (m_recordedAccounts.contains(i))
       {
          processAccount(*m_recordedAccounts.find(i));
@@ -230,10 +212,6 @@ void BudgetBalancer::processRecords()
       else if (m_recordedTransactions.contains(i))
       {
          processTransaction(*m_recordedTransactions.find(i));
-      }
-      else
-      {
-         std::cerr << "Internal logic error, missing record" << std::endl;
       }
    }
    m_recordedAccounts.clear();

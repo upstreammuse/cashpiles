@@ -55,7 +55,7 @@ QDate DateRange::startDate() const
    return m_startDate;
 }
 
-DateRange DateRange::operator++()
+DateRange& DateRange::operator++()
 {
    m_startDate = m_startDate + m_interval;
    return *this;

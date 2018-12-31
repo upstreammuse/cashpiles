@@ -16,7 +16,7 @@ public:
    bool isNull() const;
    QDate startDate() const;
 
-   DateRange operator++();
+   DateRange& operator++();
    bool operator==(DateRange const& other) const;
 
 private:
