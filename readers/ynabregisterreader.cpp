@@ -42,7 +42,12 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Inflow")
       {
-         m_inflowColumn.append(Currency(it.value(), lineNum));
+         bool ok;
+         m_inflowColumn.append(Currency::fromString(it.value(), &ok));
+         if (!ok)
+         {
+            // TODO
+         }
       }
       else if (it.key() == "Memo")
       {
@@ -50,7 +55,12 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Outflow")
       {
-         m_outflowColumn.append(Currency(it.value(), lineNum));
+         bool ok;
+         m_outflowColumn.append(Currency::fromString(it.value(), &ok));
+         if (!ok)
+         {
+            // TODO
+         }
       }
       else if (it.key() == "Payee")
       {

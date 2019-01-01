@@ -2,7 +2,7 @@
 #define DATEVALIDATOR_H
 
 #include <QDate>
-#include "itemprocessor.h"
+#include "model/itemprocessor.h"
 
 class DateValidator : public ItemProcessor
 {

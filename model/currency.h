@@ -18,11 +18,11 @@ public:
 
 public:
    static void addCurrency(CurrencyGroup const& currencyGroup);
+   static Currency fromString(QString const& string, bool* ok = nullptr);
    static void initializeCurrencies();
 
 public:
    Currency();
-   Currency(QString const& asString, int lineNum);
    Currency amortize(DateRange const& total, DateRange const& partial) const;
    void clear();
    bool isNegative() const;

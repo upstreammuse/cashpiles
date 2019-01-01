@@ -4,10 +4,10 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
-#include "ledgeraccountcommand.h"
-#include "ledgerbudget.h"
-#include "ledgercomment.h"
-#include "ledgertransaction.h"
+#include "model/ledgeraccountcommand.h"
+#include "model/ledgerbudget.h"
+#include "model/ledgercomment.h"
+#include "model/ledgertransaction.h"
 
 namespace
 {
@@ -130,7 +130,12 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
       {
          category.type = LedgerBudget::Category::Type::RESERVE_AMOUNT;
-         category.amount = Currency(match.captured("amount"), m_lineNum);
+         bool ok = false;
+         category.amount = Currency::fromString(match.captured("amount"), &ok);
+         if (!ok)
+         {
+            std::cerr << "Unable to parse '" << qPrintable(match.captured("amount")) << "' as currency, line " << m_lineNum << std::endl;
+         }
          category.interval = parseInterval(match.captured("interval"));
       }
       else if ((match = budgetLineReservePercentRx.match(line)).hasMatch())
@@ -173,7 +178,12 @@ void NativeReader::processCompactTransaction(
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
+      bool ok = false;
+      transaction->setBalance(Currency::fromString(match.captured("balance"), &ok));
+      if (!ok)
+      {
+         std::cerr << "placeholder";
+      }
    }
    transaction->setCleared(match.captured("cleared") == "*");
    transaction->setDate(parseDate(match.captured("date")));
@@ -183,7 +193,12 @@ void NativeReader::processCompactTransaction(
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(Currency(match.captured("amount"), m_lineNum));
+   bool ok;
+   entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
+   if (!ok)
+   {
+      std::cerr << "placeholder";
+   }
    entry.setCategory(match.captured("category"));
    if (match.captured("payee").startsWith("@"))
    {
@@ -207,7 +222,12 @@ void NativeReader::processCompactTransactionOff(
    transaction->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      transaction->setBalance(Currency(match.captured("balance"), m_lineNum));
+      bool ok;
+      transaction->setBalance(Currency::fromString(match.captured("balance"), &ok));
+      if (!ok)
+      {
+         std::cerr << "placeholder";
+      }
    }
    transaction->setCleared(match.captured("cleared") == "*");
    transaction->setDate(parseDate(match.captured("date")));
@@ -217,7 +237,12 @@ void NativeReader::processCompactTransactionOff(
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(Currency(match.captured("amount"), m_lineNum));
+   bool ok;
+   entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
+   if (!ok)
+   {
+      std::cerr << "placeholder";
+   }
    if (match.captured("payee").startsWith("@"))
    {
       entry.setPayee(match.captured("payee").mid(1));
@@ -283,7 +308,12 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
    xact->setAccount(match.captured("account"));
    if (!match.captured("balance").isEmpty())
    {
-      xact->setBalance(Currency(match.captured("balance"), m_lineNum));
+      bool ok;
+      xact->setBalance(Currency::fromString(match.captured("balance"), &ok));
+      if (!ok)
+      {
+         std::cerr << "placeholder";
+      }
    }
    xact->setCleared(match.captured("cleared") == "*");
    xact->setDate(parseDate(match.captured("date")));
@@ -298,7 +328,12 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       if ((match = txnLineRx.match(line)).hasMatch())
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(Currency(match.captured("amount"), m_lineNum));
+         bool ok;
+         entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
+         if (!ok)
+         {
+            std::cerr << "placeholder";
+         }
          entry.setCategory(match.captured("category"));
          if (!match.captured("note").isEmpty())
          {
@@ -318,7 +353,12 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       else if ((match = txnLineOffRx.match(line)).hasMatch())
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(Currency(match.captured("amount"), m_lineNum));
+         bool ok;
+         entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
+         if (!ok)
+         {
+            std::cerr << "placeholder";
+         }
          if (!match.captured("note").isEmpty())
          {
             entry.setNote(match.captured("note"));

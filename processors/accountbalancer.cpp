@@ -1,13 +1,13 @@
 #include "accountbalancer.h"
 
-#include "ledgeraccountcommand.h"
-#include "ledgerbudget.h"
-#include "ledgertransaction.h"
+#include "model/ledgeraccountcommand.h"
+#include "model/ledgerbudget.h"
+#include "model/ledgertransaction.h"
+#include "ui/accountbalancerui.h"
 
-AccountBalancer::AccountBalancer(QObject* parent) :
+AccountBalancer::AccountBalancer(AccountBalancerUI* ui, QObject* parent) :
    ItemProcessor(parent)
 {
-   m_ui.show();
 }
 
 void AccountBalancer::processItem(LedgerAccountCommand const& account)
@@ -19,26 +19,39 @@ void AccountBalancer::processItem(LedgerAccountCommand const& account)
       case LedgerAccountCommand::Mode::CLOSED:
          if (m_accounts.contains(account.account()))
          {
-            if (!m_accounts[account.account()].isZero())
+            if (!m_accounts[account.account()].balance.isZero())
             {
-               m_ui.message(account, "Closing account with non-zero balance");
+               emit message(account,
+                            "Cannot close account with non-zero balance");
             }
-            m_accounts.remove(account.account());
+            else
+            {
+               m_accounts.remove(account.account());
+            }
          }
          else
          {
-            m_ui.message(account, "Closing account that was not open");
+            emit message(account, "Cannot close account that was not open");
          }
          break;
-      case LedgerAccountCommand::Mode::ON_BUDGET:
       case LedgerAccountCommand::Mode::OFF_BUDGET:
          if (!m_accounts.contains(account.account()))
          {
-            m_accounts[account.account()];
+            m_accounts[account.account()].onbudget = false;
          }
          else
          {
-            m_ui.message(account, "Opening account that was already open");
+            emit message(account, "Cannot open account that was already open");
+         }
+         break;
+      case LedgerAccountCommand::Mode::ON_BUDGET:
+         if (!m_accounts.contains(account.account()))
+         {
+            m_accounts[account.account()].onbudget = true;
+         }
+         else
+         {
+            emit message(account, "Cannot open account that was already open");
          }
          break;
    }
@@ -59,18 +72,18 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
 
    if (!m_accounts.contains(transaction.account()))
    {
-      m_ui.message(transaction,
+      emit message(transaction,
                    QString("Transaction against unknown or closed account '%1'")
                    .arg(transaction.account()));
    }
-   m_accounts[transaction.account()] += transaction.amount();
+   m_accounts[transaction.account()].balance += transaction.amount();
    if (transaction.hasBalance() &&
-       transaction.balance() != m_accounts[transaction.account()])
+       transaction.balance() != m_accounts[transaction.account()].balance)
    {
-      m_ui.message(transaction,
+      emit message(transaction,
                    QString("Transaction balance %1 incorrect, should be %2")
                    .arg(transaction.balance().toString())
-                   .arg(m_accounts[transaction.account()].toString()));
+                   .arg(m_accounts[transaction.account()].balance.toString()));
    }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -88,7 +101,7 @@ void AccountBalancer::stop()
 
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      m_ui.setBalance(it.key(), *it);
+      emit balance(it.key(), it->onbudget, it->balance);
    }
 }
 
@@ -108,7 +121,7 @@ void AccountBalancer::checkTransfers(QDate const& date)
                {
                   balance = -balance;
                }
-               m_ui.message(QString("Transfers between '%1' and '%2' do not "
+               emit message(QString("Transfers between '%1' and '%2' do not "
                                     "match as of %3.  Mismatch of %4")
                             .arg(it.key())
                             .arg(it2.key())

@@ -15,7 +15,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTreeWidget" name="treeWidget">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
      <column>
       <property name="text">
        <string>Account</string>
@@ -26,10 +32,23 @@
        <string>Balance</string>
       </property>
      </column>
+     <item>
+      <property name="text">
+       <string>On-Budget</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Off-Budget</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </item>
     </widget>
-   </item>
-   <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit"/>
    </item>
   </layout>
  </widget>

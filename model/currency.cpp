@@ -1,6 +1,5 @@
 #include "currency.h"
 
-#include <iostream>
 #include <QLocale>
 #include "daterange.h"
 
@@ -36,37 +35,34 @@ void Currency::addCurrency(CurrencyGroup const& currencyGroup)
                                              currencyGroup.decimalPlaces});
 }
 
-Currency::Currency()
+Currency Currency::fromString(QString const& string, bool* ok)
 {
-}
-
-Currency::Currency(QString const& asString, int lineNum)
-{
+   Currency result;
    bool success = false;
+
    foreach (CompiledCurrencyGroup const& ccg, m_currencies)
    {
-      QRegularExpressionMatch match(ccg.rx.match(asString));
+      QRegularExpressionMatch match(ccg.rx.match(string));
       if (match.hasMatch())
       {
-         m_value = match.captured("value")
-                   .remove(QLocale::system().currencySymbol())
-                   .remove(QLocale::system().groupSeparator())
-                   .remove(QLocale::system().decimalPoint())
-                   .toInt(&success);
-         if (!success)
+         result.m_decimalPlaces = ccg.decimalPlaces;
+         result.m_value = match.captured("value")
+                          .remove(QLocale::system().currencySymbol())
+                          .remove(QLocale::system().groupSeparator())
+                          .remove(QLocale::system().decimalPoint())
+                          .toInt(&success);
+         if (ok)
          {
-            std::cerr << "Currency passed RX but failed integer conversion"
-                      << std::endl;
+            *ok = success;
          }
-         m_decimalPlaces = ccg.decimalPlaces;
-         break;
+         return result;
       }
    }
-   if (!success)
-   {
-      std::cerr << "Unable to process '" << qPrintable(asString)
-                << "' as currency, line " << lineNum << std::endl;
-   }
+   return result;
+}
+
+Currency::Currency()
+{
 }
 
 Currency Currency::amortize(DateRange const& total,
@@ -194,48 +190,6 @@ Currency Currency::operator*(int factor) const
    result.m_value *= factor;
    return result;
 }
-
-#if 0
-CurrencySplit Currency::operator/(uint splits) const
-{
-   int value = isNegative() ? -m_value : m_value;
-
-   CurrencySplit result;
-   result.amountA.m_decimalPlaces = m_decimalPlaces;
-   result.amountB.m_decimalPlaces = m_decimalPlaces;
-
-   result.amountB.m_value = value / splits;
-   result.numSplitsB = splits;
-
-   int difference = value - result.amountB.m_value * splits;
-   if (difference == 0)
-   {
-      result.amountA.m_value = result.amountB.m_value;
-      result.numSplitsA = splits;
-      result.numSplitsB = 0;
-   }
-   else
-   {
-      result.amountA.m_value = result.amountB.m_value + 1;
-      result.numSplitsA = difference;
-      result.numSplitsB = splits - difference;
-   }
-
-   if (isNegative())
-   {
-      result.amountA.m_value = -result.amountA.m_value;
-      result.amountB.m_value = -result.amountB.m_value;
-   }
-
-   Q_ASSERT(result.amountA.m_value * result.numSplitsA +
-            result.amountB.m_value * result.numSplitsB ==
-            m_value);
-   Q_ASSERT(result.amountA.m_decimalPlaces == m_decimalPlaces);
-   Q_ASSERT(result.amountB.m_decimalPlaces == m_decimalPlaces);
-
-   return result;
-}
-#endif
 
 bool Currency::operator==(Currency const& other) const
 {

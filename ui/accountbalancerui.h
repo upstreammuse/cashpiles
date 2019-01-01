@@ -16,9 +16,8 @@ public:
    ~AccountBalancerUI();
 
 public slots:
-   void message(QString const& msg);
-   void message(LedgerItem const& item, QString const& msg);
-   void setBalance(QString const& account, Currency const& balance);
+   void setBalance(QString const& account, bool onbudget,
+                   Currency const& balance);
 
 private:
    Ui::AccountBalancerUI* ui;

@@ -2,17 +2,22 @@
 #define BUDGETBALANCER_H
 
 #include <QDate>
-#include "ledgerbudget.h"
-#include "currency.h"
-#include "daterange.h"
-#include "interval.h"
-#include "itemprocessor.h"
-#include "reserveamountallocator.h"
-#include "reservepercentallocator.h"
-#include "routineallocator.h"
+#include <QHash>
+#include "model/ledgeraccountcommand.h"
+#include "model/ledgerbudget.h"
+#include "model/ledgertransaction.h"
+#include "model/currency.h"
+#include "model/daterange.h"
+#include "model/interval.h"
+#include "model/itemprocessor.h"
+#include "processors/reserveamountallocator.h"
+#include "processors/reservepercentallocator.h"
+#include "processors/routineallocator.h"
 
 class BudgetBalancer : public ItemProcessor
 {
+   Q_OBJECT
+
 public:
    BudgetBalancer(QObject* parent);
    void processItem(LedgerAccountCommand const& account);
@@ -20,6 +25,10 @@ public:
    void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
    void stop();
+
+signals:
+   void message(QString const&) const;
+   void message(LedgerItem const&, QString const&) const;
 
 private:
    void advancePeriodToDate(QDate const& date);

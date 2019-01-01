@@ -2,8 +2,8 @@
 #define NATIVEREADER_H
 
 #include <QObject>
-#include "interval.h"
-#include "ledgeraccountcommand.h"
+#include "model/interval.h"
+#include "model/ledgeraccountcommand.h"
 
 class QIODevice;
 

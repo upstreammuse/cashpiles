@@ -1,7 +1,7 @@
 #ifndef NATIVEWRITER_H
 #define NATIVEWRITER_H
 
-#include "itemprocessor.h"
+#include "model/itemprocessor.h"
 
 class NativeWriter : public ItemProcessor
 {

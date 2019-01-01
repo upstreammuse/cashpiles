@@ -1,9 +1,8 @@
 #include "budgetbalancer.h"
 
-#include <iostream>
-#include "ledgeraccountcommand.h"
-#include "ledgerbudget.h"
-#include "ledgertransaction.h"
+#include "model/ledgeraccountcommand.h"
+#include "model/ledgerbudget.h"
+#include "model/ledgertransaction.h"
 
 BudgetBalancer::BudgetBalancer(QObject* parent) :
    ItemProcessor(parent)
@@ -115,40 +114,6 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
 
 void BudgetBalancer::stop()
 {
-#if 0
-   std::cout << "Current Budget" << std::endl;
-   for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
-   {
-      std::cout << "   " << qPrintable(it.key()) << "   "
-                << qPrintable(it.value().toString()) << std::endl;
-   }
-
-   // find the dates of the current budget period
-   QDate startDate;
-   QDate endDate = m_budgetDate.addDays(-1);
-   do
-   {
-      startDate = endDate.addDays(1);
-      endDate = (startDate + m_budgetInterval).addDays(-1);
-   }
-   while (endDate < QDate::currentDate());
-   std::cout << "current budget period begins "
-             << qPrintable(startDate.toString()) << " and ends "
-             << qPrintable(endDate.toString()) << std::endl;
-
-   // find the number of days during the budget periods before this one
-   qint64 priorDays = m_budgetDate.daysTo(startDate);
-   std::cout << "averaging over " << priorDays << " days" << std::endl;
-   for (auto it = m_totals.cbegin(); it != m_totals.cend(); ++it)
-   {
-      if (m_categories.contains(it.key()))
-      {
-         std::cout << "  " << qPrintable(it.key()) << " averages "
-                   << qPrintable((it.value() / priorDays).amountA.toString())
-                   << " per day" << std::endl;
-      }
-   }
-#endif
 }
 
 void BudgetBalancer::advancePeriodToDate(QDate const& date)
@@ -176,10 +141,10 @@ void BudgetBalancer::allocateCategories()
 
    if (m_available.isNegative())
    {
-      std::cerr << "Available funds are negative, trouble!" << std::endl;
-      std::cerr << "  Budget Period: "
-                << qPrintable(m_period.startDate().toString()) << " to "
-                << qPrintable(m_period.endDate().toString()) << std::endl;
+      emit message(QString("Available funds negative for budget period %1 to "
+                           "%2")
+                   .arg(m_period.startDate().toString())
+                   .arg(m_period.endDate().toString()));
    }
 }
 
@@ -235,10 +200,10 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
       {
          if (entry.hasCategory())
          {
-            std::cerr << "Transactions for off-budget account '"
-                      << qPrintable(transaction.account())
-                      << "' cannot have categories, line "
-                      << transaction.lineNum() << std::endl;
+            emit message(transaction,
+                         QString("Transactions for off-budget account '%1' "
+                                 "cannot have categories")
+                         .arg(transaction.account()));
          }
       }
       return;
@@ -258,9 +223,10 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
       {
          if (!entry.transfer() || !m_accounts[entry.payee()])
          {
-            std::cerr << "Transaction missing a category for payee '"
-                      << qPrintable(entry.payee()) << "', line "
-                      << transaction.lineNum() << std::endl;
+            emit message(transaction,
+                         QString("Transaction missing a category for payee "
+                                 "'%1'")
+                         .arg(entry.payee()));
          }
          continue;
       }
@@ -269,19 +235,19 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
       // category
       if (entry.transfer() && m_accounts[entry.payee()])
       {
-         std::cerr << "Transfers between on-budget accounts '"
-                   << qPrintable(transaction.account()) << "' and '"
-                   << qPrintable(entry.payee())
-                   << "' cannot have a category, line "
-                   << transaction.lineNum() << std::endl;
+         emit message(transaction,
+                      QString("Transfers between on-budget accounts '%1' and "
+                              "'%2' cannot have a category")
+                      .arg(transaction.account())
+                      .arg(entry.payee()));
          continue;
       }
 
       if (!m_categories.contains(entry.category()))
       {
-         std::cerr << "Unknown category '" << qPrintable(entry.category ())
-                   << "', file '" << qPrintable(transaction.fileName())
-                   << "', line " << transaction.lineNum() << std::endl;
+         emit message(transaction,
+                      QString("Unknown category '%1'")
+                      .arg(entry.category()));
          m_categories[entry.category()].type =
                LedgerBudget::Category::Type::ROUTINE;
       }
@@ -295,11 +261,10 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
                                                              m_available);
             if (m_reservePercentAllocator.isUnderfunded())
             {
-               std::cerr << "Reserved category is underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  File: " << qPrintable(transaction.fileName())
-                         << std::endl;
-               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               emit message(transaction,
+                            QString("Reserved category '%1' is underfunded, "
+                                    "compensating")
+                            .arg(entry.category()));
                m_available = m_reservePercentAllocator.allocate(m_available);
             }
             break;
@@ -307,11 +272,10 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
             m_reserveAmountAllocator.spend(entry.category(), entry.amount());
             if (m_reserveAmountAllocator.isUnderfunded())
             {
-               std::cerr << "Rserved category is underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  File: " << qPrintable(transaction.fileName())
-                         << std::endl;
-               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               emit message(transaction,
+                            QString("Reserved category '%1' is underfunded, "
+                                    "compensating")
+                            .arg(entry.category()));
                m_available = m_reserveAmountAllocator.allocate(m_available);
             }
             break;
@@ -319,11 +283,10 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
             m_reservePercentAllocator.spend(entry.category(), entry.amount());
             if (m_reservePercentAllocator.isUnderfunded())
             {
-               std::cerr << "Rserved category is underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  File: " << qPrintable(transaction.fileName())
-                         << std::endl;
-               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               emit message(transaction,
+                            QString("Reserved category '%1' is underfunded, "
+                                    "compensating")
+                            .arg(entry.category()));
                m_available = m_reservePercentAllocator.allocate(m_available);
             }
             break;
@@ -332,19 +295,17 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
                                      entry.amount());
             if (m_routineAllocator.isUnderfunded())
             {
-               std::cerr << "Routine expenses are underfunded, compensating."
-                         << std::endl;
-               std::cerr << "  File: " << qPrintable(transaction.fileName())
-                         << std::endl;
-               std::cerr << "  Line: " << transaction.lineNum() << std::endl;
+               emit message(transaction,
+                            QString("Routine category '%1' is underfunded, "
+                                    "compensating")
+                            .arg(entry.category()));
                m_available = m_routineAllocator.allocate(m_available);
             }
             break;
       }
       if (m_available.isNegative())
       {
-         std::cerr << "Available funds are negative.  Trouble!"
-                   << std::endl;
+         emit message(transaction, "Available funds are negative.  Trouble!");
       }
    }
 }
