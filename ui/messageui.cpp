@@ -17,13 +17,23 @@ MessageUI::~MessageUI()
 
 void MessageUI::appendMessage(QString const& msg)
 {
-   ui->messages->appendPlainText(msg);
+   ui->messages->setRowCount(ui->messages->rowCount() + 1);
+   auto item = new QTableWidgetItem(msg);
+   ui->messages->setItem(ui->messages->rowCount() - 1, 2, item);
 }
 
 void MessageUI::appendMessage(LedgerItem const& item, QString const& msg)
 {
-   ui->messages->appendPlainText(QString("%1, file '%2', line %3")
-                                 .arg(msg)
-                                 .arg(item.fileName())
-                                 .arg(item.lineNum()));
+   ui->messages->setSortingEnabled(false);
+   ui->messages->setRowCount(ui->messages->rowCount() + 1);
+   auto item_ = new QTableWidgetItem(item.fileName());
+   ui->messages->setItem(ui->messages->rowCount() - 1, 0, item_);
+   item_ = new QTableWidgetItem(QTableWidgetItem::UserType);
+   item_->setData(Qt::DisplayRole, item.lineNum());
+   ui->messages->setItem(ui->messages->rowCount() - 1, 1, item_);
+   item_ = new QTableWidgetItem(msg);
+   ui->messages->setItem(ui->messages->rowCount() - 1, 2, item_);
+   ui->messages->setSortingEnabled(true);
+   ui->messages->sortByColumn(1, Qt::AscendingOrder);
+   ui->messages->resizeColumnsToContents();
 }

@@ -28,11 +28,9 @@ int main(int argc, char** argv)
                       QFileInfo(fileName).absoluteDir().canonicalPath());
    NativeReader* nativeReader = new NativeReader(fileName, &app);
 
+   Ledger* ledger = new Ledger(&app);
    MainWindow mw;
    mw.show();
-
-   Ledger* ledger = new Ledger(&app);
-   ledger->addProcessor(new DateValidator(ledger));
 
    auto accountBalancer = new AccountBalancer(mw.accountBalancerUI(), ledger);
    ledger->addProcessor(accountBalancer);
@@ -50,6 +48,11 @@ int main(int argc, char** argv)
    QObject::connect(budgetBalancer, SIGNAL(message(QString)),
                     mw.messageUI(), SLOT(appendMessage(QString)));
    QObject::connect(budgetBalancer, SIGNAL(message(LedgerItem,QString)),
+                    mw.messageUI(), SLOT(appendMessage(LedgerItem,QString)));
+
+   auto dateValidator = new DateValidator(ledger);
+   ledger->addProcessor(dateValidator);
+   QObject::connect(dateValidator, SIGNAL(message(LedgerItem,QString)),
                     mw.messageUI(), SLOT(appendMessage(LedgerItem,QString)));
 
    QObject::connect(ledger, SIGNAL(started()),

@@ -1,8 +1,8 @@
 #include "datevalidator.h"
 
-#include <iostream>
 #include "model/ledgeraccountcommand.h"
 #include "model/ledgerbudget.h"
+#include "model/ledgercomment.h"
 #include "model/ledgertransaction.h"
 
 DateValidator::DateValidator(QObject* parent) :
@@ -39,10 +39,9 @@ void DateValidator::processDate(QDate const& date, QString const& fileName,
 {
    if (m_latestDate.isValid() && date < m_latestDate)
    {
-      std::cerr << "Date " << qPrintable(date.toString())
-                << " out of order in file '" << qPrintable(fileName)
-                << "', line " << lineNum << std::endl;
-      exit(EXIT_FAILURE);
+      emit message(LedgerComment(fileName, lineNum),
+                   QString("Date %1 out of order")
+                   .arg(date.toString()));
    }
    else
    {

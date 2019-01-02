@@ -3,9 +3,12 @@
 
 #include <QDate>
 #include "model/itemprocessor.h"
+#include "model/ledgeritem.h"
 
 class DateValidator : public ItemProcessor
 {
+   Q_OBJECT
+
 public:
    DateValidator(QObject* parent);
    void processItem(LedgerAccountCommand const& account);
@@ -13,6 +16,9 @@ public:
    void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
    void stop();
+
+signals:
+   void message(LedgerItem const&, QString const&) const;
 
 private:
    void processDate(QDate const& date, QString const& fileName, int lineNum);
