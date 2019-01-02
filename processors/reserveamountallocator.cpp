@@ -1,6 +1,5 @@
 #include "reserveamountallocator.h"
 
-#include <iostream>
 #include "model/daterange.h"
 
 Currency ReserveAmountAllocator::allocate(Currency available)
@@ -31,6 +30,7 @@ Currency ReserveAmountAllocator::allocate(DateRange const &period,
          overlap = it->range.intersect(period);
          Q_ASSERT(!overlap.isNull());
       }
+      Q_ASSERT(overlap.startDate() == period.startDate());
 
       Currency amount;
 
@@ -39,9 +39,8 @@ Currency ReserveAmountAllocator::allocate(DateRange const &period,
       {
          amount += it->amount.amortize(it->range, overlap);
       }
-      // in the case where the overlap is at the beginning of the period
-      // but does not cover the whole period
-      else if (overlap.startDate() == period.startDate())
+      // in the case where the overlap does not cover the whole period
+      else
       {
          amount += it->amount.amortize(it->range, overlap);
          do
@@ -51,13 +50,6 @@ Currency ReserveAmountAllocator::allocate(DateRange const &period,
             amount += it->amount.amortize(it->range, overlap);
          }
          while (overlap.endDate() != period.endDate());
-      }
-      // otherwise we screwed up and advanced the reserve range too far
-      // somewhere else
-      else
-      {
-         std::cerr << "Internal error: reserve period advanced too far"
-                   << std::endl;
       }
 
       it->total += amount;
