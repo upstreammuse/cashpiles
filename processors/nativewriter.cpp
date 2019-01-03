@@ -1,10 +1,10 @@
 #include "nativewriter.h"
 
 #include <iostream>
-#include "model/ledgeraccountcommand.h"
-#include "model/ledgerbudget.h"
-#include "model/ledgercomment.h"
-#include "model/ledgertransaction.h"
+#include "kernel/ledgeraccountcommand.h"
+#include "kernel/ledgerbudget.h"
+#include "kernel/ledgercomment.h"
+#include "kernel/ledgertransaction.h"
 
 NativeWriter::NativeWriter(QObject* parent) :
    ItemProcessor(parent)

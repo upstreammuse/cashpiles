@@ -3,7 +3,7 @@
 
 #include <QDate>
 #include <QObject>
-#include "model/ledgertransaction.h"
+#include "kernel/ledgertransaction.h"
 
 class YnabRegisterReader : public QObject
 {

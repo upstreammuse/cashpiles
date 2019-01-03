@@ -3,13 +3,13 @@
 
 #include <QDate>
 #include <QHash>
-#include "model/ledgeraccountcommand.h"
-#include "model/ledgerbudget.h"
-#include "model/ledgertransaction.h"
-#include "model/currency.h"
-#include "model/daterange.h"
-#include "model/interval.h"
-#include "model/itemprocessor.h"
+#include "kernel/ledgeraccountcommand.h"
+#include "kernel/ledgerbudget.h"
+#include "kernel/ledgertransaction.h"
+#include "kernel/currency.h"
+#include "kernel/daterange.h"
+#include "kernel/interval.h"
+#include "kernel/itemprocessor.h"
 #include "processors/reserveamountallocator.h"
 #include "processors/reservepercentallocator.h"
 #include "processors/routineallocator.h"

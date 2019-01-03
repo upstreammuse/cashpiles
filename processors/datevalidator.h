@@ -2,8 +2,8 @@
 #define DATEVALIDATOR_H
 
 #include <QDate>
-#include "model/itemprocessor.h"
-#include "model/ledgeritem.h"
+#include "kernel/itemprocessor.h"
+#include "kernel/ledgeritem.h"
 
 class DateValidator : public ItemProcessor
 {

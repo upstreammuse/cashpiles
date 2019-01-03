@@ -1,9 +1,9 @@
 #include "datevalidator.h"
 
-#include "model/ledgeraccountcommand.h"
-#include "model/ledgerbudget.h"
-#include "model/ledgercomment.h"
-#include "model/ledgertransaction.h"
+#include "kernel/ledgeraccountcommand.h"
+#include "kernel/ledgerbudget.h"
+#include "kernel/ledgercomment.h"
+#include "kernel/ledgertransaction.h"
 
 DateValidator::DateValidator(QObject* parent) :
    ItemProcessor(parent)

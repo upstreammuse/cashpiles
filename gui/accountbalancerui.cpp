@@ -1,8 +1,8 @@
 #include "accountbalancerui.h"
 #include "ui_accountbalancerui.h"
 
-#include "model/currency.h"
-#include "model/ledgeritem.h"
+#include "kernel/currency.h"
+#include "kernel/ledgeritem.h"
 
 AccountBalancerUI::AccountBalancerUI(QWidget* parent) :
    QWidget(parent),

@@ -3,9 +3,9 @@
 
 #include <QDate>
 #include <QHash>
-#include "model/currency.h"
-#include "model/itemprocessor.h"
-#include "model/ledgeritem.h"
+#include "kernel/currency.h"
+#include "kernel/itemprocessor.h"
+#include "kernel/ledgeritem.h"
 
 class AccountBalancerUI;
 
@@ -14,7 +14,7 @@ class AccountBalancer : public ItemProcessor
    Q_OBJECT
 
 public:
-   AccountBalancer(AccountBalancerUI* ui, QObject* parent);
+   AccountBalancer(QObject* parent);
    void processItem(LedgerAccountCommand const& account);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerComment const& comment);

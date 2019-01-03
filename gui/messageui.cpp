@@ -1,7 +1,7 @@
 #include "messageui.h"
 #include "ui_messageui.h"
 
-#include "model/ledgeritem.h"
+#include "kernel/ledgeritem.h"
 
 MessageUI::MessageUI(QWidget* parent) :
    QWidget(parent),

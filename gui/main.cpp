@@ -3,17 +3,17 @@
 #include <QSettings>
 #include <QTimer>
 #include "processors/accountbalancer.h"
-#include "ui/accountbalancerui.h"
+#include "accountbalancerui.h"
 #include "processors/budgetbalancer.h"
 #include "readers/csvreader.h"
-#include "model/currency.h"
+#include "kernel/currency.h"
 #include "processors/datevalidator.h"
-#include "model/ledger.h"
+#include "kernel/ledger.h"
 #include "readers/nativereader.h"
 #include "processors/nativewriter.h"
 #include "readers/ynabregisterreader.h"
-#include "ui/mainwindow.h"
-#include "ui/messageui.h"
+#include "mainwindow.h"
+#include "messageui.h"
 
 int main(int argc, char** argv)
 {
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
    MainWindow mw;
    mw.show();
 
-   auto accountBalancer = new AccountBalancer(mw.accountBalancerUI(), ledger);
+   auto accountBalancer = new AccountBalancer(ledger);
    ledger->addProcessor(accountBalancer);
    QObject::connect(accountBalancer,
                     SIGNAL(balance(QString,bool,Currency)),

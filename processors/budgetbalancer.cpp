@@ -1,8 +1,8 @@
 #include "budgetbalancer.h"
 
-#include "model/ledgeraccountcommand.h"
-#include "model/ledgerbudget.h"
-#include "model/ledgertransaction.h"
+#include "kernel/ledgeraccountcommand.h"
+#include "kernel/ledgerbudget.h"
+#include "kernel/ledgertransaction.h"
 
 BudgetBalancer::BudgetBalancer(QObject* parent) :
    ItemProcessor(parent)

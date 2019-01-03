@@ -1,6 +1,6 @@
 #include "routineallocator.h"
 
-#include "model/daterange.h"
+#include "kernel/daterange.h"
 
 Currency RoutineAllocator::allocate(Currency available)
 {

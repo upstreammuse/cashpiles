@@ -1,6 +1,6 @@
 #include "reserveamountallocator.h"
 
-#include "model/daterange.h"
+#include "kernel/daterange.h"
 
 Currency ReserveAmountAllocator::allocate(Currency available)
 {

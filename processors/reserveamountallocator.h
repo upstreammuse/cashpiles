@@ -1,9 +1,9 @@
 #ifndef RESERVEAMOUNTALLOCATOR_H
 #define RESERVEAMOUNTALLOCATOR_H
 
-#include "model/currency.h"
-#include "model/daterange.h"
-#include "model/interval.h"
+#include "kernel/currency.h"
+#include "kernel/daterange.h"
+#include "kernel/interval.h"
 
 class ReserveAmountAllocator
 {

@@ -1,7 +1,7 @@
 #ifndef RESERVEPERCENTALLOCATOR_H
 #define RESERVEPERCENTALLOCATOR_H
 
-#include "model/currency.h"
+#include "kernel/currency.h"
 
 class ReservePercentAllocator
 {

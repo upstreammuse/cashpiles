@@ -1,7 +1,7 @@
 #ifndef ROUTINEALLOCATOR_H
 #define ROUTINEALLOCATOR_H
 
-#include "model/currency.h"
+#include "kernel/currency.h"
 
 class RoutineAllocator
 {

@@ -1,11 +1,10 @@
 #include "accountbalancer.h"
 
-#include "model/ledgeraccountcommand.h"
-#include "model/ledgerbudget.h"
-#include "model/ledgertransaction.h"
-#include "ui/accountbalancerui.h"
+#include "kernel/ledgeraccountcommand.h"
+#include "kernel/ledgerbudget.h"
+#include "kernel/ledgertransaction.h"
 
-AccountBalancer::AccountBalancer(AccountBalancerUI* ui, QObject* parent) :
+AccountBalancer::AccountBalancer(QObject* parent) :
    ItemProcessor(parent)
 {
 }
