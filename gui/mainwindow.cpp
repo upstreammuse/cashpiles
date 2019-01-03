@@ -25,7 +25,6 @@ void MainWindow::appendMessage(QString const& msg)
 
 void MainWindow::appendMessage(LedgerItem const& item, QString const& msg)
 {
-   ui->messages->setSortingEnabled(false);
    ui->messages->setRowCount(ui->messages->rowCount() + 1);
    auto item_ = new QTableWidgetItem(item.fileName());
    ui->messages->setItem(ui->messages->rowCount() - 1, 0, item_);
@@ -34,6 +33,14 @@ void MainWindow::appendMessage(LedgerItem const& item, QString const& msg)
    ui->messages->setItem(ui->messages->rowCount() - 1, 1, item_);
    item_ = new QTableWidgetItem(msg);
    ui->messages->setItem(ui->messages->rowCount() - 1, 2, item_);
+}
+
+void MainWindow::beautify()
+{
+   ui->accounts->expandAll();
+   ui->accounts->resizeColumnToContents(0);
+   ui->accounts->resizeColumnToContents(1);
+
    ui->messages->setSortingEnabled(true);
    ui->messages->sortByColumn(1, Qt::AscendingOrder);
    ui->messages->resizeColumnsToContents();
@@ -59,7 +66,4 @@ void MainWindow::setAccountBalance(QString const& account, bool onbudget,
       Q_ASSERT(items[0]);
       items[0]->setText(2, balance.toString());
    }
-   ui->accounts->expandAll();
-   ui->accounts->resizeColumnToContents(0);
-   ui->accounts->resizeColumnToContents(1);
 }

@@ -19,8 +19,8 @@ public slots:
    void stop();
 
 signals:
-   void finished();
-   void started();
+   void finished() const;
+   void started() const;
 
 private:
    QList<ItemProcessor*> m_processors;

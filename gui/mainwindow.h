@@ -20,6 +20,7 @@ public:
 public slots:
    void appendMessage(QString const& msg);
    void appendMessage(LedgerItem const& item, QString const& msg);
+   void beautify();
    void setAccountBalance(QString const& account, bool onbudget,
                           Currency const& balance);
 

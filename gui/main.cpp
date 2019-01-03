@@ -4,13 +4,11 @@
 #include <QTimer>
 #include "processors/accountbalancer.h"
 #include "processors/budgetbalancer.h"
-#include "readers/csvreader.h"
 #include "kernel/currency.h"
 #include "processors/datevalidator.h"
 #include "kernel/ledger.h"
 #include "readers/nativereader.h"
 #include "processors/nativewriter.h"
-#include "readers/ynabregisterreader.h"
 #include "mainwindow.h"
 
 int main(int argc, char** argv)
@@ -26,9 +24,9 @@ int main(int argc, char** argv)
                       QFileInfo(fileName).absoluteDir().canonicalPath());
    NativeReader* nativeReader = new NativeReader(fileName, &app);
 
-   Ledger* ledger = new Ledger(&app);
    MainWindow mw;
    mw.show();
+   Ledger* ledger = new Ledger(&app);
 
    auto accountBalancer = new AccountBalancer(ledger);
    ledger->addProcessor(accountBalancer);
@@ -57,7 +55,9 @@ int main(int argc, char** argv)
                     ledger, SLOT(processItem(LedgerItem*)));
    QObject::connect(nativeReader, SIGNAL(finished()),
                     ledger, SLOT(stop()));
-   QTimer::singleShot(0, ledger, SLOT(start()));
 
+   QObject::connect(ledger, SIGNAL(finished()), &mw, SLOT(beautify()));
+
+   QTimer::singleShot(0, ledger, SLOT(start()));
    return app.exec();
 }
