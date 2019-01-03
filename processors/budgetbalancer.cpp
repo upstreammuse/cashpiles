@@ -34,13 +34,8 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
       processRecords();
    }
 
-   // remove categories that are not in this budget command, or that have changed, and allocate their
-   // funds to the available category
-   // TODO warn if a reserve category is eliminated that has funds in it, so that
-   // the user can opt to transfer the funds to a different category before the category
-   // goes away
-   //  - how do we do that right now?
-   //     - split transaction, zero total, outflow from old category, inflow to new category
+   // remove categories that are not in this budget command, or that have
+   // changed, and allocate their funds to the available category
    auto categories = budget.categories();
    for (auto it = m_categories.cbegin(); it != m_categories.cend(); ++it)
    {
@@ -54,11 +49,35 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
                // nothing to do for income type
                break;
             case LedgerBudget::Category::Type::RESERVE_AMOUNT:
-               m_available += m_reserveAmountAllocator.deallocate(it.key());
+            {
+               Currency amount = m_reserveAmountAllocator.deallocate(it.key());
+               if (!amount.isZero())
+               {
+                  emit message(budget,
+                               QString("Reserve category '%1' was closed with "
+                                       "a balance of %2.  Those funds are "
+                                       "available again.")
+                               .arg(it.key())
+                               .arg(amount.toString()));
+               }
+               m_available += amount;
                break;
+            }
             case LedgerBudget::Category::Type::RESERVE_PERCENT:
-               m_available += m_reservePercentAllocator.deallocate(it.key());
+            {
+               Currency amount = m_reservePercentAllocator.deallocate(it.key());
+               if (!amount.isZero())
+               {
+                  emit message(budget,
+                               QString("Reserve category '%1' was closed with "
+                                       "a balance of %2.  Those funds are "
+                                       "available again.")
+                               .arg(it.key())
+                               .arg(amount.toString()));
+               }
+               m_available += amount;
                break;
+            }
             case LedgerBudget::Category::Type::ROUTINE:
                m_routineAllocator.deallocate(it.key());
                break;
