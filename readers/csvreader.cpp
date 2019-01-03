@@ -2,8 +2,6 @@
 
 #include "csvreader.h"
 
-#include <iostream>
-
 CsvReader::CsvReader(QString const& fileName, QObject* parent) :
    QObject(parent),
    m_file(new QFile(fileName, this)),
@@ -78,14 +76,22 @@ bool CsvReader::commitRecord()
    return true;
 }
 
-void CsvReader::error(QString const& message, bool withLineNum)
+void CsvReader::error(QString const& message_, bool withLineNum)
 {
-   std::cerr << "Error in CSV file '" << qPrintable(m_fileName) << "'";
+   QString msg;
    if (withLineNum)
    {
-      std::cerr << ", line " << m_lineNum;
+      emit message(QString("Error in CSV file '%1', line %2: %3")
+                   .arg(m_fileName)
+                   .arg(m_lineNum)
+                   .arg(message_));
    }
-   std::cerr << ":  " << qPrintable(message) << std::endl;;
+   else
+   {
+      emit message(QString("Error in CSV file '%1': %2")
+                   .arg(m_fileName)
+                   .arg(message_));
+   }
 }
 
 bool CsvReader::parseBackslash()

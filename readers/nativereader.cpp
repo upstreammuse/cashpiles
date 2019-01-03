@@ -1,6 +1,5 @@
 #include "nativereader.h"
 
-#include <iostream>
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
@@ -89,7 +88,7 @@ void NativeReader::readAll()
 {
    if (!m_file || !m_file->open(QIODevice::ReadOnly | QIODevice::Text))
    {
-      qWarning("Unable to open file %s", qPrintable(m_fileName));
+      emit message(QString("Unable to open file '%1'").arg(m_fileName));
    }
    while (m_file && !m_file->atEnd())
    {
@@ -134,7 +133,10 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
          category.amount = Currency::fromString(match.captured("amount"), &ok);
          if (!ok)
          {
-            std::cerr << "Unable to parse '" << qPrintable(match.captured("amount")) << "' as currency, line " << m_lineNum << std::endl;
+            LedgerComment item(m_fileName, m_lineNum);
+            emit message(item,
+                         QString("Unable to parse '%1' as currency")
+                         .arg(match.captured("amount")));
          }
          category.interval = parseInterval(match.captured("interval"));
       }
@@ -144,9 +146,8 @@ void NativeReader::processBudget(QRegularExpressionMatch& match)
          category.percentage = match.captured("percentage").toInt();
          if (category.percentage < 1 || category.percentage > 100)
          {
-            std::cerr << "percentage allocation is out of range, file '"
-                      << qPrintable(m_fileName) << "', line " << m_lineNum
-                      << std::endl;
+            LedgerComment item(m_fileName, m_lineNum);
+            emit message(item, "Percentage allocation is out of range");
          }
       }
       else if ((match = budgetLineRoutineRx.match(line)).hasMatch())
@@ -182,7 +183,10 @@ void NativeReader::processCompactTransaction(
       transaction->setBalance(Currency::fromString(match.captured("balance"), &ok));
       if (!ok)
       {
-         std::cerr << "placeholder";
+         LedgerComment item(m_fileName, m_lineNum);
+         emit message(item,
+                      QString("Unable to parse '%1' as currency")
+                      .arg(match.captured("balance")));
       }
    }
    transaction->setCleared(match.captured("cleared") == "*");
@@ -197,7 +201,10 @@ void NativeReader::processCompactTransaction(
    entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
    if (!ok)
    {
-      std::cerr << "placeholder";
+      LedgerComment item(m_fileName, m_lineNum);
+      emit message(item,
+                   QString("Unable to parse '%1' as currency")
+                   .arg(match.captured("amount")));
    }
    entry.setCategory(match.captured("category"));
    if (match.captured("payee").startsWith("@"))
@@ -226,7 +233,10 @@ void NativeReader::processCompactTransactionOff(
       transaction->setBalance(Currency::fromString(match.captured("balance"), &ok));
       if (!ok)
       {
-         std::cerr << "placeholder";
+         LedgerComment item(m_fileName, m_lineNum);
+         emit message(item,
+                      QString("Unable to parse '%1' as currency")
+                      .arg(match.captured("balance")));
       }
    }
    transaction->setCleared(match.captured("cleared") == "*");
@@ -241,7 +251,10 @@ void NativeReader::processCompactTransactionOff(
    entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
    if (!ok)
    {
-      std::cerr << "placeholder";
+      LedgerComment item(m_fileName, m_lineNum);
+      emit message(item,
+                   QString("Unable to parse '%1' as currency")
+                   .arg(match.captured("amount")));
    }
    if (match.captured("payee").startsWith("@"))
    {
@@ -297,8 +310,8 @@ void NativeReader::processLine(QString const& line)
    }
    else if (!line.trimmed().isEmpty())
    {
-      qWarning("invalid contents in file at line %d", m_lineNum);
-      qWarning(qPrintable(line));
+      LedgerComment item(m_fileName, m_lineNum);
+      emit message(item, "Invalid contents in file");
    }
 }
 
@@ -312,7 +325,10 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
       xact->setBalance(Currency::fromString(match.captured("balance"), &ok));
       if (!ok)
       {
-         std::cerr << "placeholder";
+         LedgerComment item(m_fileName, m_lineNum);
+         emit message(item,
+                      QString("Unable to parse '%1' as currency")
+                      .arg(match.captured("balance")));
       }
    }
    xact->setCleared(match.captured("cleared") == "*");
@@ -332,7 +348,10 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
          entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
          if (!ok)
          {
-            std::cerr << "placeholder";
+            LedgerComment item(m_fileName, m_lineNum);
+            emit message(item,
+                         QString("Unable to parse '%1' as currency")
+                         .arg(match.captured("amount")));
          }
          entry.setCategory(match.captured("category"));
          if (!match.captured("note").isEmpty())
@@ -357,7 +376,10 @@ void NativeReader::processTransaction(QRegularExpressionMatch& match)
          entry.setAmount(Currency::fromString(match.captured("amount"), &ok));
          if (!ok)
          {
-            std::cerr << "placeholder";
+            LedgerComment item(m_fileName, m_lineNum);
+            emit message(item,
+                         QString("Unable to parse '%1' as currency")
+                         .arg(match.captured("amount")));
          }
          if (!match.captured("note").isEmpty())
          {
@@ -416,11 +438,12 @@ QDate NativeReader::parseDate(QString const& date)
    QDate d(QDate::fromString(date, Qt::SystemLocaleShortDate));
    if (!d.isValid())
    {
-      qWarning("Unable to read date '%s', expected something like '%s', line "
-               "%d", qPrintable(date),
-               qPrintable(QLocale::system().dateFormat(QLocale::ShortFormat)),
-               m_lineNum);
-      exit(EXIT_FAILURE);
+      LedgerComment item(m_fileName, m_lineNum);
+      emit message(item,
+                   QString("Unable to read date '%1', expected something like "
+                           "'%2'")
+                   .arg(date)
+                   .arg(QLocale::system().dateFormat(QLocale::ShortFormat)));
    }
    return d;
 }
@@ -433,8 +456,10 @@ Interval NativeReader::parseInterval(QString interval)
    int number = interval.toInt(&ok);
    if (!ok)
    {
-      qWarning("Failed to parse interval number '%s', line %d",
-               qPrintable(interval), m_lineNum);
+      LedgerComment item(m_fileName, m_lineNum);
+      emit message(item,
+                   QString("Failed to parse interval number '%1'")
+                   .arg(interval));
    }
    Interval::Period period;
    switch (periodStr[0].toLatin1())
@@ -453,8 +478,9 @@ Interval NativeReader::parseInterval(QString interval)
          period = Interval::Period::YEARS;
          break;
       default:
-         qWarning("Failed to get correct interval period from '%s', line %d",
-                  qPrintable(periodStr), m_lineNum);
+         emit message(LedgerComment(m_fileName, m_lineNum),
+                      QString("Failed to get correct interval period from '%1'")
+                      .arg(periodStr));
          break;
    }
    return Interval(number, period);
@@ -476,8 +502,9 @@ LedgerAccountCommand::Mode NativeReader::parseMode(QString const& command)
    }
    else
    {
-      qWarning("Unknown account command '%s', line %d",
-               qPrintable(command), m_lineNum);
+      emit message(LedgerComment(m_fileName, m_lineNum),
+                   QString("Unknown account command '%1'")
+                   .arg(command));
       return LedgerAccountCommand::Mode::CLOSED;
    }
 }

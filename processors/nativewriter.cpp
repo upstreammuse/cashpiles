@@ -1,6 +1,6 @@
 #include "nativewriter.h"
 
-#include <iostream>
+#include <QTextStream>
 #include "kernel/ledgeraccountcommand.h"
 #include "kernel/ledgerbudget.h"
 #include "kernel/ledgercomment.h"
@@ -14,87 +14,89 @@ NativeWriter::NativeWriter(QObject* parent) :
 void NativeWriter::processItem(LedgerAccountCommand const& account)
 {
    breakBetween();
-   std::cout << qPrintable(account.date().toString(Qt::SystemLocaleShortDate))
-             << " ";
+   QTextStream out(stdout);
+   out << account.date().toString(Qt::SystemLocaleShortDate) << " ";
    switch (account.mode())
    {
       case LedgerAccountCommand::Mode::CLOSED:
-         std::cout << "closed";
+         out << "closed";
          break;
       case LedgerAccountCommand::Mode::OFF_BUDGET:
-         std::cout << "off-budget";
+         out << "off-budget";
          break;
       case LedgerAccountCommand::Mode::ON_BUDGET:
-         std::cout << "on-budget";
+         out << "on-budget";
          break;
    }
-   std::cout << " " << qPrintable(account.account()) << std::endl;
+   out << " " << account.account() << endl;
 }
 
 void NativeWriter::processItem(LedgerBudget const& budget)
 {
    breakBetween();
-   std::cout << qPrintable(budget.date().toString(Qt::SystemLocaleShortDate))
-             << " budget " << qPrintable(budget.interval().toString())
-             << std::endl;
+   QTextStream out(stdout);
+   out << budget.date().toString(Qt::SystemLocaleShortDate) << " budget "
+       << budget.interval().toString() << endl;
    for (auto it = budget.categories().cbegin();
         it != budget.categories().cend(); ++it)
    {
-      std::cout << "  ";
-      switch (it.value().type)
+      out << "  ";
+      switch (it->type)
       {
          case LedgerBudget::Category::Type::GOAL:
-            std::cout << "goal   ";
+            out << "goal   ";
             break;
          case LedgerBudget::Category::Type::INCOME:
-            std::cout << "income ";
+            out << "income ";
             break;
          case LedgerBudget::Category::Type::RESERVE_AMOUNT:
          case LedgerBudget::Category::Type::RESERVE_PERCENT:
-            std::cout << "reserve";
+            out << "reserve";
             break;
          case LedgerBudget::Category::Type::ROUTINE:
-            std::cout << "routine";
+            out << "routine";
             break;
       }
-      std::cout << " " << qPrintable(it.key());
-      switch (it.value().type)
+      out << " " << it.key();
+      switch (it->type)
       {
          case LedgerBudget::Category::Type::GOAL:
          case LedgerBudget::Category::Type::INCOME:
          case LedgerBudget::Category::Type::ROUTINE:
             break;
          case LedgerBudget::Category::Type::RESERVE_AMOUNT:
-            std::cout << " " << qPrintable(it.value().amount.toString()) << " "
-                      << qPrintable(it.value().interval.toString());
+            out << " " << it->amount.toString() << " "
+                << it->interval.toString();
             break;
          case LedgerBudget::Category::Type::RESERVE_PERCENT:
-            std::cout << " " << it.value().percentage << "%";
+            out << " " << it->percentage << "%";
             break;
       }
-      std::cout << std::endl;
+      out << endl;
    }
 }
 
 void NativeWriter::processItem(LedgerComment const& comment)
 {
    breakBetween();
-   std::cout << ";" << qPrintable(comment.note()) << std::endl;
+   QTextStream out(stdout);
+   out << ";" << comment.note() << endl;
 }
 
 void NativeWriter::processItem(LedgerTransaction const& transaction)
 {
    breakBetween();
-   std::cout << qPrintable(transaction.date().toString(Qt::SystemLocaleShortDate));
+   QTextStream out(stdout);
+   out << transaction.date().toString(Qt::SystemLocaleShortDate);
    if (transaction.cleared())
    {
-      std::cout << " * ";
+      out << " * ";
    }
    else
    {
-      std::cout << " ! ";
+      out << " ! ";
    }
-   std::cout << qPrintable(transaction.account()) << "  ";
+   out << transaction.account() << "  ";
    int numNotes = transaction.hasNote() ? 1 : 0;
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
@@ -105,34 +107,34 @@ void NativeWriter::processItem(LedgerTransaction const& transaction)
    }
    if (transaction.entries().size() > 1 || numNotes > 1)
    {
-      std::cout << qPrintable(transaction.amount().toString());
+      out << transaction.amount().toString();
       if (transaction.hasBalance())
       {
-         std::cout << " = " << qPrintable(transaction.balance().toString());
+         out << " = " << transaction.balance().toString();
       }
       if (transaction.hasNote())
       {
-         std::cout << " ;" << qPrintable(transaction.note());
+         out << " ;" << transaction.note();
       }
-      std::cout << std::endl;
+      out << endl;
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
       {
-         std::cout << "   ";
+         out << "   ";
          if (entry.transfer())
          {
-            std::cout << "@";
+            out << "@";
          }
-         std::cout << qPrintable(entry.payee()) << "  ";
+         out << entry.payee() << "  ";
          if (entry.hasCategory())
          {
-            std::cout << qPrintable(entry.category()) << "  ";
+            out << entry.category() << "  ";
          }
-         std::cout << qPrintable(entry.amount().toString());
+         out << entry.amount().toString();
          if (entry.hasNote())
          {
-            std::cout << " ;" << qPrintable(entry.note());
+            out << " ;" << entry.note();
          }
-         std::cout << std::endl;
+         out << endl;
       }
    }
    else
@@ -140,27 +142,27 @@ void NativeWriter::processItem(LedgerTransaction const& transaction)
       LedgerTransactionEntry entry(transaction.entries()[0]);
       if (entry.transfer())
       {
-         std::cout << "@";
+         out << "@";
       }
-      std::cout << qPrintable(entry.payee());
+      out << entry.payee();
       if (entry.hasCategory())
       {
-         std::cout << "  " << qPrintable(entry.category());
+         out << "  " << entry.category();
       }
-      std::cout << "  " << qPrintable(transaction.amount().toString());
+      out << "  " << transaction.amount().toString();
       if (transaction.hasBalance())
       {
-         std::cout << " = " << qPrintable(transaction.balance().toString());
+         out << " = " << transaction.balance().toString();
       }
       if (transaction.hasNote())
       {
-         std::cout << " ;" << qPrintable(transaction.note());
+         out << " ;" << transaction.note();
       }
       else if (entry.hasNote())
       {
-         std::cout << " ;" << qPrintable(entry.note());
+         out << " ;" << entry.note();
       }
-      std::cout << std::endl;
+      out << endl;
    }
 }
 
@@ -172,12 +174,13 @@ void NativeWriter::stop()
 
 void NativeWriter::breakBetween()
 {
+   QTextStream out(stdout);
    if (m_firstItem)
    {
       m_firstItem = false;
    }
    else
    {
-      std::cout << std::endl;
+      out << endl;
    }
 }

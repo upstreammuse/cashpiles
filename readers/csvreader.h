@@ -17,8 +17,9 @@ public slots:
    void readAll();
 
 signals:
-   void finished();
-   void record(QHash<QString, QString> const&, QString const&, int);
+   void finished() const;
+   void message(QString const&) const;
+   void record(QHash<QString, QString> const&, QString const&, int) const;
 
 private:
    enum class FieldMode

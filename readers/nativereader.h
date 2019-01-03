@@ -20,6 +20,8 @@ public slots:
 signals:
    void item(LedgerItem*);
    void finished();
+   void message(QString const&) const;
+   void message(LedgerItem const&, QString const&) const;
 
 private:
    void processAccount(QRegularExpressionMatch const& match);

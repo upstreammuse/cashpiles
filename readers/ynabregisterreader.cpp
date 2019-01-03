@@ -15,35 +15,35 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
    {
       if (it.key() == "Account")
       {
-         m_accountColumn.append(it.value());
+         m_accountColumn.append(*it);
       }
       else if (it.key() == "Category")
       {
-         m_categoryColumn.append(it.value());
+         m_categoryColumn.append(*it);
       }
       else if (it.key() == "Cleared")
       {
-         if (it.value() == "Uncleared")
+         if (*it == "Uncleared")
          {
             m_clearedColumn.append(ClearedStatus::UNCLEARED);
          }
-         else if (it.value() == "Cleared")
+         else if (*it == "Cleared")
          {
             m_clearedColumn.append(ClearedStatus::CLEARED);
          }
-         else if (it.value() == "Reconciled")
+         else if (*it == "Reconciled")
          {
             m_clearedColumn.append(ClearedStatus::RECONCILED);
          }
       }
       else if (it.key() == "Date")
       {
-         m_dateColumn.append(QDate::fromString(it.value(), "MM/dd/yyyy"));
+         m_dateColumn.append(QDate::fromString(*it, "MM/dd/yyyy"));
       }
       else if (it.key() == "Inflow")
       {
          bool ok;
-         m_inflowColumn.append(Currency::fromString(it.value(), &ok));
+         m_inflowColumn.append(Currency::fromString(*it, &ok));
          if (!ok)
          {
             // TODO
@@ -51,12 +51,12 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Memo")
       {
-         m_memoColumn.append(it.value());
+         m_memoColumn.append(*it);
       }
       else if (it.key() == "Outflow")
       {
          bool ok;
-         m_outflowColumn.append(Currency::fromString(it.value(), &ok));
+         m_outflowColumn.append(Currency::fromString(*it, &ok));
          if (!ok)
          {
             // TODO
@@ -64,7 +64,7 @@ void YnabRegisterReader::processRecord(QHash<QString, QString> const& record,
       }
       else if (it.key() == "Payee")
       {
-         m_payeeColumn.append(it.value());
+         m_payeeColumn.append(*it);
       }
    }
    Q_ASSERT(m_accountColumn.size() == m_categoryColumn.size());
