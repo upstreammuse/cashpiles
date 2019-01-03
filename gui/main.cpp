@@ -3,7 +3,6 @@
 #include <QSettings>
 #include <QTimer>
 #include "processors/accountbalancer.h"
-#include "accountbalancerui.h"
 #include "processors/budgetbalancer.h"
 #include "readers/csvreader.h"
 #include "kernel/currency.h"
@@ -13,7 +12,6 @@
 #include "processors/nativewriter.h"
 #include "readers/ynabregisterreader.h"
 #include "mainwindow.h"
-#include "messageui.h"
 
 int main(int argc, char** argv)
 {
@@ -34,26 +32,24 @@ int main(int argc, char** argv)
 
    auto accountBalancer = new AccountBalancer(ledger);
    ledger->addProcessor(accountBalancer);
-   QObject::connect(accountBalancer,
-                    SIGNAL(balance(QString,bool,Currency)),
-                    mw.accountBalancerUI(),
-                    SLOT(setBalance(QString,bool,Currency)));
+   QObject::connect(accountBalancer, SIGNAL(balance(QString,bool,Currency)),
+                    &mw, SLOT(setAccountBalance(QString,bool,Currency)));
    QObject::connect(accountBalancer, SIGNAL(message(QString)),
-                    mw.messageUI(), SLOT(appendMessage(QString)));
+                    &mw, SLOT(appendMessage(QString)));
    QObject::connect(accountBalancer, SIGNAL(message(LedgerItem,QString)),
-                    mw.messageUI(), SLOT(appendMessage(LedgerItem,QString)));
+                    &mw, SLOT(appendMessage(LedgerItem,QString)));
 
    auto budgetBalancer = new BudgetBalancer(ledger);
    ledger->addProcessor(budgetBalancer);
    QObject::connect(budgetBalancer, SIGNAL(message(QString)),
-                    mw.messageUI(), SLOT(appendMessage(QString)));
+                    &mw, SLOT(appendMessage(QString)));
    QObject::connect(budgetBalancer, SIGNAL(message(LedgerItem,QString)),
-                    mw.messageUI(), SLOT(appendMessage(LedgerItem,QString)));
+                    &mw, SLOT(appendMessage(LedgerItem,QString)));
 
    auto dateValidator = new DateValidator(ledger);
    ledger->addProcessor(dateValidator);
    QObject::connect(dateValidator, SIGNAL(message(LedgerItem,QString)),
-                    mw.messageUI(), SLOT(appendMessage(LedgerItem,QString)));
+                    &mw, SLOT(appendMessage(LedgerItem,QString)));
 
    QObject::connect(ledger, SIGNAL(started()),
                     nativeReader, SLOT(readAll()));

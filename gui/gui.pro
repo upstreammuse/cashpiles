@@ -4,18 +4,12 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += $$PWD/..
 DEPENDPATH += $$PWD/..
 HEADERS += \
-   accountbalancerui.h \
-   mainwindow.h \
-   messageui.h
+   mainwindow.h
 SOURCES += \
-   accountbalancerui.cpp \
    mainwindow.cpp \
-   messageui.cpp \
    main.cpp
 FORMS += \
-   accountbalancerui.ui \
-   mainwindow.ui \
-   messageui.ui
+   mainwindow.ui
 win32:CONFIG(release, debug|release) {
    LIBS += -L$$OUT_PWD/../kernel/release -lcp-kernel
    LIBS += -L$$OUT_PWD/../processors/release -lcp-processors

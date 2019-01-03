@@ -4,6 +4,8 @@
 #include <QMainWindow>
 
 class AccountBalancerUI;
+class Currency;
+class LedgerItem;
 class MessageUI;
 namespace Ui { class MainWindow; }
 
@@ -14,8 +16,12 @@ class MainWindow : public QMainWindow
 public:
    explicit MainWindow(QWidget* parent = 0);
    ~MainWindow();
-   AccountBalancerUI* accountBalancerUI();
-   MessageUI* messageUI();
+
+public slots:
+   void appendMessage(QString const& msg);
+   void appendMessage(LedgerItem const& item, QString const& msg);
+   void setAccountBalance(QString const& account, bool onbudget,
+                          Currency const& balance);
 
 private:
    Ui::MainWindow* ui;
