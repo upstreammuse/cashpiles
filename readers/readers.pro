@@ -4,13 +4,9 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += $$PWD/..
 DEPENDPATH += $$PWD/..
 HEADERS += \
-   csvreader.h \
-   nativereader.h \
-   ynabregisterreader.h
+   nativereader.h
 SOURCES += \
-   csvreader.cpp \
-   nativereader.cpp \
-   ynabregisterreader.cpp
+   nativereader.cpp
 win32:CONFIG(release, debug|release) {
    LIBS += -L$$OUT_PWD/../kernel/release -lcp-kernel
 }
