@@ -37,7 +37,7 @@ void DateValidator::stop()
 void DateValidator::processDate(QDate const& date, QString const& fileName,
                                 int lineNum)
 {
-   if (m_latestDate.isValid() && date < m_latestDate)
+   if (!m_latestDate.isNull() && date < m_latestDate)
    {
       emit message(LedgerComment(fileName, lineNum),
                    QString("Date %1 out of order")
