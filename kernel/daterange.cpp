@@ -63,5 +63,5 @@ DateRange& DateRange::operator++()
 
 bool DateRange::operator==(DateRange const& other) const
 {
-   return m_interval == other.m_interval && m_startDate == other.m_startDate;
+   return m_startDate == other.m_startDate && endDate() == other.endDate();
 }
