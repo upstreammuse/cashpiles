@@ -74,6 +74,7 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
       emit message(transaction,
                    QString("Transaction against unknown or closed account '%1'")
                    .arg(transaction.account()));
+      return;
    }
    m_accounts[transaction.account()].balance += transaction.amount();
    if (transaction.hasBalance() &&
