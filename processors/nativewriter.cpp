@@ -169,7 +169,8 @@ void NativeWriter::processItem(LedgerTransaction const& transaction)
 void NativeWriter::stop()
 {
    // TODO nothing for now, but...
-   // fancy version should cache the input, measure the lengths of the resulting strings, and then write to make everything line up nicely
+   // fancy version should cache the input, measure the lengths of the resulting
+   //  strings, and then write to make everything line up nicely
 }
 
 void NativeWriter::breakBetween()

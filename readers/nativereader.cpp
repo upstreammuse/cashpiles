@@ -20,6 +20,7 @@ namespace
    QString const INTERVAL_RX("(?<interval>\\+\\d+[dwmy])");
    QString const NOTE_RX(";(?<note>.*)");
    QString const OPTIONAL_RX("(%1)?");
+   QString const PERCENT_RX("(?<%1>\\d+)%");
    QString const SEP_RX("(\\s{2,}|\\t)\\s*");
    QString const SPACE_RX("\\s+");
    QString const START_RX("^");
@@ -43,7 +44,7 @@ namespace
          SEP_RX + CURR_RX.arg("amount") + SPACE_RX + INTERVAL_RX + END_RX);
    QRegularExpression const budgetLineReservePercentRx(
          START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
-         SEP_RX + "\\d+%" + END_RX);
+         SEP_RX + PERCENT_RX.arg("percentage") + END_RX);
    QRegularExpression const budgetLineRoutineRx(
          START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX.arg("category") +
          END_RX);

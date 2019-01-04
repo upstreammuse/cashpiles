@@ -13,6 +13,7 @@
 #include "processors/reserveamountallocator.h"
 #include "processors/reservepercentallocator.h"
 #include "processors/routineallocator.h"
+#include "goalallocator.h"
 
 class BudgetBalancer : public ItemProcessor
 {
@@ -41,6 +42,7 @@ private:
    QHash<QString, bool> m_accounts;
    Currency m_available;
    QHash<QString, LedgerBudget::Category> m_categories;
+   GoalAllocator m_goalAllocator;
    int m_numRecords = 0;
    DateRange m_period;
    QHash<int, LedgerAccountCommand> m_recordedAccounts;

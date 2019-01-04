@@ -44,7 +44,9 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
       {
          switch (it->type)
          {
-//            case LedgerBudget::Category::Type::GOAL:
+            case LedgerBudget::Category::Type::GOAL:
+               // nothing to do for goals
+               break;
             case LedgerBudget::Category::Type::INCOME:
                // nothing to do for income type
                break;
@@ -90,6 +92,9 @@ void BudgetBalancer::processItem(LedgerBudget const& budget)
    {
       switch (it->type)
       {
+         case LedgerBudget::Category::Type::GOAL:
+            m_goalAllocator.budget(budget.date());
+            break;
          case LedgerBudget::Category::Type::INCOME:
             // nothing to do for income
             break;
@@ -125,11 +130,15 @@ void BudgetBalancer::processItem(LedgerTransaction const& transaction)
    ++m_numRecords;
 }
 
-// todo for calculating expenses based on past averages, require that there be more days of history than the longest repeat interval, to ensure that there is at least one instance over time for all repeats.
-//   and if there is not enough history, then just look at the projected expenses instead
+// todo for calculating expenses based on past averages, require that there be
+// more days of history than the longest repeat interval, to ensure that there
+// is at least one instance over time for all repeats.
+//   and if there is not enough history, then just look at the projected
+//   expenses instead
 // projected expenses are:
 //   all scheduled transactions for the current budget period
-//   for any transaction that does not have an instance this period, find the next instance and divide it between the remaining periods
+//   for any transaction that does not have an instance this period, find the
+//     next instance and divide it between the remaining periods
 
 void BudgetBalancer::stop()
 {
@@ -154,9 +163,9 @@ void BudgetBalancer::advancePeriodToDate(QDate const& date)
 
 void BudgetBalancer::allocateCategories()
 {
-   // TODO allocate goals
    m_available = m_reserveAmountAllocator.allocate(m_period, m_available);
    m_available = m_routineAllocator.allocate(m_period, m_available);
+   m_available = m_goalAllocator.allocate(m_period, m_available);
 
    if (m_available.isNegative())
    {
@@ -272,8 +281,21 @@ void BudgetBalancer::processTransaction(LedgerTransaction const& transaction)
       }
       switch (m_categories[entry.category()].type)
       {
-//         case LedgerBudget::Category::Type::GOAL:
-//            break;
+         case LedgerBudget::Category::Type::GOAL:
+            m_goalAllocator.spend(entry.amount());
+            if (m_goalAllocator.isUnderfunded())
+            {
+               // TODO this is always going to be the case, since the goal allocator
+               // doesn't actually allocate until we are in the future
+#if 0
+               emit message(transaction,
+                            QString("Goal category '%1' is underfunded, "
+                                    "compensating")
+                            .arg(entry.category()));
+#endif
+               m_available = m_goalAllocator.allocate(m_available);
+            }
+            break;
          case LedgerBudget::Category::Type::INCOME:
             m_available += entry.amount();
             m_available = m_reservePercentAllocator.allocate(entry.amount(),

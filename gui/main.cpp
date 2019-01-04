@@ -22,11 +22,16 @@ int main(int argc, char** argv)
                                                    filePath);
    settings->setValue("filePath",
                       QFileInfo(fileName).absoluteDir().canonicalPath());
-   NativeReader* nativeReader = new NativeReader(fileName, &app);
 
    MainWindow mw;
    mw.show();
    Ledger* ledger = new Ledger(&app);
+
+   NativeReader* nativeReader = new NativeReader(fileName, &app);
+   QObject::connect(nativeReader, SIGNAL(message(QString)),
+                    &mw, SLOT(appendMessage(QString)));
+   QObject::connect(nativeReader, SIGNAL(message(LedgerItem,QString)),
+                    &mw, SLOT(appendMessage(LedgerItem,QString)));
 
    auto accountBalancer = new AccountBalancer(ledger);
    ledger->addProcessor(accountBalancer);

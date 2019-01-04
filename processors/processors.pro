@@ -10,7 +10,8 @@ HEADERS += \
    nativewriter.h \
    reserveamountallocator.h \
    reservepercentallocator.h \
-   routineallocator.h
+   routineallocator.h \
+    goalallocator.h
 SOURCES += \
    accountbalancer.cpp \
    budgetbalancer.cpp \
@@ -18,7 +19,8 @@ SOURCES += \
    nativewriter.cpp \
    reserveamountallocator.cpp \
    reservepercentallocator.cpp \
-   routineallocator.cpp
+   routineallocator.cpp \
+    goalallocator.cpp
 win32:CONFIG(release, debug|release) {
    LIBS += -L$$OUT_PWD/../kernel/release -lcp-kernel
 }

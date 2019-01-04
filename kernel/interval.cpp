@@ -54,6 +54,10 @@ bool Interval::operator==(Interval const& other) const
 
 QDate operator+(QDate const& left, Interval const& right)
 {
+   if (left.isNull())
+   {
+      return QDate();
+   }
    QDate result;
    switch (right.period())
    {
