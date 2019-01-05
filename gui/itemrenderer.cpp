@@ -5,8 +5,9 @@ ItemRenderer::ItemRenderer(QObject* parent) :
 {
 }
 
-void ItemRenderer::processItem(LedgerAccountBalance const& balance)
+void ItemRenderer::processItem(LedgerAccountBalance const& balance_)
 {
+   emit balance(balance_);
 }
 
 void ItemRenderer::processItem(LedgerAccountCommand const& account)

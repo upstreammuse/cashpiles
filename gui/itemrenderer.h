@@ -17,6 +17,7 @@ public:
    void stop();
 
 signals:
+   void balance(LedgerAccountBalance const&) const;
    void transaction(LedgerTransaction const&) const;
 };
 

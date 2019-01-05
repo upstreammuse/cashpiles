@@ -5,6 +5,7 @@
 
 class AccountBalancerUI;
 class Currency;
+class LedgerAccountBalance;
 class LedgerItem;
 class LedgerTransaction;
 class MessageUI;
@@ -20,6 +21,7 @@ public:
    ~MainWindow();
 
 public slots:
+   void appendBalance(LedgerAccountBalance const& balance);
    void appendMessage(QString const& msg);
    void appendMessage(LedgerItem const& item, QString const& msg);
    void appendTransaction(LedgerTransaction const& transaction);

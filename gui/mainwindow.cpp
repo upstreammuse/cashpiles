@@ -3,6 +3,7 @@
 
 #include <QCheckBox>
 #include "kernel/currency.h"
+#include "kernel/ledgeraccountbalance.h"
 #include "kernel/ledgeritem.h"
 #include "kernel/ledgertransaction.h"
 
@@ -16,6 +17,15 @@ MainWindow::MainWindow(QWidget* parent) :
 MainWindow::~MainWindow()
 {
    delete ui;
+}
+
+void MainWindow::appendBalance(LedgerAccountBalance const& balance)
+{
+   new QListWidgetItem(QString("%1 balance as of %2: %3")
+                       .arg(balance.account())
+                       .arg(balance.date().toString())
+                       .arg(balance.amount().toString()),
+                       ui->balances);
 }
 
 void MainWindow::appendMessage(QString const& msg)
@@ -122,7 +132,7 @@ void MainWindow::on_accounts_itemSelectionChanged()
 
    if (items[0] == ui->accounts->topLevelItem(0))
    {
-      ui->statements->setHidden(true);
+      ui->balances->setHidden(true);
       for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
       {
          QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
@@ -132,7 +142,7 @@ void MainWindow::on_accounts_itemSelectionChanged()
    else if (items[0] == ui->accounts->topLevelItem(1)||
             items[0] == ui->accounts->topLevelItem(2))
    {
-      ui->statements->setHidden(true);
+      ui->balances->setHidden(true);
       QSet<QString> accounts;
       for (int i = 0; i < items[0]->childCount(); ++i)
       {
@@ -146,7 +156,7 @@ void MainWindow::on_accounts_itemSelectionChanged()
    }
    else
    {
-      ui->statements->setHidden(false);
+      ui->balances->setHidden(false);
       for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
       {
          QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);

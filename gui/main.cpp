@@ -11,6 +11,7 @@
 #include "processors/nativewriter.h"
 #include "itemrenderer.h"
 #include "mainwindow.h"
+#include "kernel/ledgeraccountbalance.h"
 
 int main(int argc, char** argv)
 {
@@ -64,6 +65,8 @@ int main(int argc, char** argv)
 
    ItemRenderer* itemRenderer = new ItemRenderer(ledger);
    ledger->addProcessor(itemRenderer);
+   QObject::connect(itemRenderer, SIGNAL(balance(LedgerAccountBalance)),
+                    &mw, SLOT(appendBalance(LedgerAccountBalance)));
    QObject::connect(itemRenderer, SIGNAL(transaction(LedgerTransaction)),
                     &mw, SLOT(appendTransaction(LedgerTransaction)));
 
