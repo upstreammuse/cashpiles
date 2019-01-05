@@ -46,6 +46,11 @@
            </column>
            <item>
             <property name="text">
+             <string>All Accounts</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>On-Budget</string>
             </property>
             <property name="text">
@@ -61,7 +66,7 @@
             </property>
            </item>
           </widget>
-          <widget class="QListWidget" name="listWidget"/>
+          <widget class="QListWidget" name="statements"/>
           <widget class="QSplitter" name="splitter">
            <property name="orientation">
             <enum>Qt::Vertical</enum>

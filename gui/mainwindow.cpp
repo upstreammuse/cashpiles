@@ -99,7 +99,7 @@ void MainWindow::setAccountBalance(QString const& account, bool onbudget,
    auto items = ui->accounts->findItems(account, Qt::MatchExactly, 0);
    if (items.empty())
    {
-      auto category = ui->accounts->topLevelItem(onbudget ? 0 : 1);
+      auto category = ui->accounts->topLevelItem(onbudget ? 1 : 2);
       Q_ASSERT(category);
       QStringList texts = {account, balance.toString()};
       QTreeWidgetItem* item = new QTreeWidgetItem(category, texts);
@@ -119,16 +119,34 @@ void MainWindow::on_accounts_itemSelectionChanged()
 {
    auto items = ui->accounts->selectedItems();
    Q_ASSERT(items.size() == 1);
-   if (!items[0]->parent())
+
+   if (items[0] == ui->accounts->topLevelItem(0))
    {
+      ui->statements->setHidden(true);
       for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
       {
          QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
          transItem->setHidden(false);
       }
    }
+   else if (items[0] == ui->accounts->topLevelItem(1)||
+            items[0] == ui->accounts->topLevelItem(2))
+   {
+      ui->statements->setHidden(true);
+      QSet<QString> accounts;
+      for (int i = 0; i < items[0]->childCount(); ++i)
+      {
+         accounts.insert(items[0]->child(i)->text(0));
+      }
+      for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
+      {
+         QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
+         transItem->setHidden(!accounts.contains(transItem->text(2)));
+      }
+   }
    else
    {
+      ui->statements->setHidden(false);
       for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
       {
          QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
