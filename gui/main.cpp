@@ -9,6 +9,7 @@
 #include "kernel/ledger.h"
 #include "readers/nativereader.h"
 #include "processors/nativewriter.h"
+#include "itemrenderer.h"
 #include "mainwindow.h"
 
 int main(int argc, char** argv)
@@ -60,6 +61,11 @@ int main(int argc, char** argv)
                     ledger, SLOT(processItem(LedgerItem*)));
    QObject::connect(nativeReader, SIGNAL(finished()),
                     ledger, SLOT(stop()));
+
+   ItemRenderer* itemRenderer = new ItemRenderer(ledger);
+   ledger->addProcessor(itemRenderer);
+   QObject::connect(itemRenderer, SIGNAL(transaction(LedgerTransaction)),
+                    &mw, SLOT(appendTransaction(LedgerTransaction)));
 
    QObject::connect(ledger, SIGNAL(finished()), &mw, SLOT(beautify()));
 

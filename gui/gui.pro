@@ -4,10 +4,12 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 INCLUDEPATH += $$PWD/..
 DEPENDPATH += $$PWD/..
 HEADERS += \
-   mainwindow.h
+   mainwindow.h \
+    itemrenderer.h
 SOURCES += \
    mainwindow.cpp \
-   main.cpp
+   main.cpp \
+    itemrenderer.cpp
 FORMS += \
    mainwindow.ui
 win32:CONFIG(release, debug|release) {

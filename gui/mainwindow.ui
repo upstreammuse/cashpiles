@@ -16,78 +16,138 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QSplitter" name="splitter_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <widget class="QTreeWidget" name="accounts">
-       <property name="alternatingRowColors">
-        <bool>true</bool>
-       </property>
-       <attribute name="headerVisible">
-        <bool>false</bool>
+     <widget class="QTabWidget" name="tabWidget">
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
        </attribute>
-       <column>
-        <property name="text">
-         <string>Account</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Balance</string>
-        </property>
-       </column>
-       <item>
-        <property name="text">
-         <string>On-Budget</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Off-Budget</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QSplitter" name="splitter_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QTreeWidget" name="accounts">
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string>Account</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Balance</string>
+            </property>
+           </column>
+           <item>
+            <property name="text">
+             <string>On-Budget</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Off-Budget</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </item>
+          </widget>
+          <widget class="QListWidget" name="listWidget"/>
+          <widget class="QSplitter" name="splitter">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <widget class="QTableWidget" name="transactions">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Date</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Cleared</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Account</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Payee</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Category</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Amount</string>
+             </property>
+            </column>
+           </widget>
+           <widget class="QTableWidget" name="messages">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="showGrid">
+             <bool>false</bool>
+            </property>
+            <attribute name="horizontalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>File</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Line</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Message</string>
+             </property>
+            </column>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+       </layout>
       </widget>
-      <widget class="QSplitter" name="splitter">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <widget class="QListWidget" name="transactions"/>
-       <widget class="QTableWidget" name="messages">
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-        <property name="showGrid">
-         <bool>false</bool>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>File</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Line</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Message</string>
-         </property>
-        </column>
-       </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
       </widget>
      </widget>
     </item>
