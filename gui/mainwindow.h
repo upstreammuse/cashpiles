@@ -8,6 +8,7 @@ class Currency;
 class LedgerItem;
 class LedgerTransaction;
 class MessageUI;
+class QTreeWidgetItem;
 namespace Ui { class MainWindow; }
 
 class MainWindow : public QMainWindow
@@ -25,6 +26,9 @@ public slots:
    void beautify();
    void setAccountBalance(QString const& account, bool onbudget,
                           Currency const& balance);
+
+private slots:
+   void on_accounts_itemSelectionChanged();
 
 private:
    Ui::MainWindow* ui;

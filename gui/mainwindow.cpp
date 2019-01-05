@@ -39,70 +39,38 @@ void MainWindow::appendMessage(LedgerItem const& item, QString const& msg)
 
 void MainWindow::appendTransaction(LedgerTransaction const& transaction)
 {
-   int rowIndex = ui->transactions->rowCount();
-   ui->transactions->setRowCount(rowIndex + 1);
-
-   auto item = new QTableWidgetItem(QTableWidgetItem::UserType);
-   item->setData(Qt::DisplayRole, transaction.date());
-   item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-   ui->transactions->setItem(rowIndex, 0, item);
-
-   item = new QTableWidgetItem(QTableWidgetItem::UserType);
-   item->setData(Qt::DisplayRole, transaction.cleared() ? "C" : "");
-   item->setForeground(QBrush(QColor(0, 100, 0)));
-   item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-   ui->transactions->setItem(rowIndex, 1, item);
-
-   item = new QTableWidgetItem(transaction.account());
-   item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-   ui->transactions->setItem(rowIndex, 2, item);
+   auto item = new QTreeWidgetItem(ui->transactions);
+   item->setData(0, Qt::DisplayRole, transaction.date());
+   item->setText(1, transaction.cleared() ? "C" : "");
+   item->setForeground(1, QBrush(QColor(0, 100, 0)));
+   item->setTextAlignment(1, Qt::AlignCenter | Qt::AlignVCenter);
+   item->setText(2, transaction.account());
 
    if (transaction.entries().size() == 1)
    {
       LedgerTransactionEntry entry = transaction.entries()[0];
-
-      item = new QTableWidgetItem(entry.payee());
-      item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 3, item);
-
-      item = new QTableWidgetItem(entry.hasCategory() ? entry.category() : "");
-      item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 4, item);
-
-      item = new QTableWidgetItem(entry.amount().toString());
-      item->setFont(QFont("Courier"));
-      item->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 5, item);
+      item->setText(3, entry.payee());
+      item->setText(4, entry.hasCategory() ? entry.category() : "");
+      item->setText(5, entry.amount().toString());
+      item->setFont(5, QFont("Courier"));
+      item->setTextAlignment(5, Qt::AlignRight | Qt::AlignVCenter);
    }
    else
    {
-      item = new QTableWidgetItem("--- Split ---");
-      item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 3, item);
-
-      item = new QTableWidgetItem("");
-      item->setTextAlignment(Qt::AlignLeft | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 4, item);
-
-      item = new QTableWidgetItem(transaction.amount().toString());
-      item->setFont(QFont("Courier"));
-      item->setTextAlignment(Qt::AlignRight | Qt::AlignTop);
-      ui->transactions->setItem(rowIndex, 5, item);
+      item->setText(3, "--- Split ---");
+      item->setText(4, "");
+      item->setText(5, transaction.amount().toString());
+      item->setFont(5, QFont("Courier"));
+      item->setTextAlignment(5, Qt::AlignRight | Qt::AlignVCenter);
 
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
       {
-         item = ui->transactions->item(rowIndex, 3);
-         item->setText(item->text() + "\n" + entry.payee());
-
-         item = ui->transactions->item(rowIndex, 4);
-         item->setText(item->text() + "\n");
-         if (entry.hasCategory())
-         {
-            item->setText(item->text() + entry.category());
-         }
-
-         item = ui->transactions->item(rowIndex, 5);
-         item->setText(item->text() + "\n" + entry.amount().toString());
+         auto child = new QTreeWidgetItem(item);
+         child->setText(3, entry.payee());
+         child->setText(4, entry.hasCategory() ? entry.category() : "");
+         child->setText(5, entry.amount().toString());
+         child->setFont(5, QFont("Courier"));
+         child->setTextAlignment(5, Qt::AlignRight | Qt::AlignVCenter);
       }
    }
 }
@@ -117,9 +85,12 @@ void MainWindow::beautify()
    ui->messages->sortByColumn(1, Qt::AscendingOrder);
    ui->messages->resizeColumnsToContents();
 
+   ui->transactions->expandAll();
    ui->transactions->sortByColumn(0, Qt::AscendingOrder);
-   ui->transactions->resizeRowsToContents();
-   ui->transactions->resizeColumnsToContents();
+   for (int i = 0; i < ui->transactions->columnCount(); ++i)
+   {
+      ui->transactions->resizeColumnToContents(i);
+   }
 }
 
 void MainWindow::setAccountBalance(QString const& account, bool onbudget,
@@ -141,5 +112,27 @@ void MainWindow::setAccountBalance(QString const& account, bool onbudget,
       Q_ASSERT(items.size() == 1);
       Q_ASSERT(items[0]);
       items[0]->setText(2, balance.toString());
+   }
+}
+
+void MainWindow::on_accounts_itemSelectionChanged()
+{
+   auto items = ui->accounts->selectedItems();
+   Q_ASSERT(items.size() == 1);
+   if (!items[0]->parent())
+   {
+      for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
+      {
+         QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
+         transItem->setHidden(false);
+      }
+   }
+   else
+   {
+      for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
+      {
+         QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
+         transItem->setHidden(transItem->text(2) != items[0]->text(0));
+      }
    }
 }
