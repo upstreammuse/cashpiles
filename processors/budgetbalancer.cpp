@@ -9,6 +9,10 @@ BudgetBalancer::BudgetBalancer(QObject* parent) :
 {
 }
 
+void BudgetBalancer::processItem(LedgerAccountBalance const&)
+{
+}
+
 void BudgetBalancer::processItem(LedgerAccountCommand const& account)
 {
    // make sure we are in the current recording period

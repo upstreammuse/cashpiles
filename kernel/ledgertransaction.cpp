@@ -27,23 +27,6 @@ Currency LedgerTransaction::amount() const
    return amount;
 }
 
-Currency LedgerTransaction::balance() const
-{
-   Q_ASSERT(m_hasBalance);
-   return m_balance;
-}
-
-bool LedgerTransaction::hasBalance() const
-{
-   return m_hasBalance;
-}
-
-void LedgerTransaction::setBalance(Currency const& balance)
-{
-   m_hasBalance = true;
-   m_balance = balance;
-}
-
 bool LedgerTransaction::cleared() const
 {
    return m_cleared;

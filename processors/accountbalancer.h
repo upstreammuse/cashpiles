@@ -15,6 +15,7 @@ class AccountBalancer : public ItemProcessor
 
 public:
    AccountBalancer(QObject* parent);
+   void processItem(LedgerAccountBalance const& balance);
    void processItem(LedgerAccountCommand const& account);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerComment const& comment);

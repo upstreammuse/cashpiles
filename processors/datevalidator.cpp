@@ -1,5 +1,6 @@
 #include "datevalidator.h"
 
+#include "kernel/ledgeraccountbalance.h"
 #include "kernel/ledgeraccountcommand.h"
 #include "kernel/ledgerbudget.h"
 #include "kernel/ledgercomment.h"
@@ -8,6 +9,11 @@
 DateValidator::DateValidator(QObject* parent) :
    ItemProcessor(parent)
 {
+}
+
+void DateValidator::processItem(LedgerAccountBalance const& balance)
+{
+   processDate(balance.date(), balance.fileName(), balance.lineNum());
 }
 
 void DateValidator::processItem(LedgerAccountCommand const& account)

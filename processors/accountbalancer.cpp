@@ -1,5 +1,6 @@
 #include "accountbalancer.h"
 
+#include "kernel/ledgeraccountbalance.h"
 #include "kernel/ledgeraccountcommand.h"
 #include "kernel/ledgerbudget.h"
 #include "kernel/ledgertransaction.h"
@@ -7,6 +8,24 @@
 AccountBalancer::AccountBalancer(QObject* parent) :
    ItemProcessor(parent)
 {
+}
+
+void AccountBalancer::processItem(LedgerAccountBalance const& balance)
+{
+   if (!m_accounts.contains(balance.account()))
+   {
+      emit message(balance,
+                   QString("Balance against unknown or closed account '%1'")
+                   .arg(balance.account()));
+      return;
+   }
+   if (balance.amount() != m_accounts[balance.account()].balance)
+   {
+      emit message(balance,
+                   QString("Account balance %1 incorrect, should be %2")
+                   .arg(balance.amount().toString())
+                   .arg(m_accounts[balance.account()].balance.toString()));
+   }
 }
 
 void AccountBalancer::processItem(LedgerAccountCommand const& account)
@@ -77,14 +96,6 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
       return;
    }
    m_accounts[transaction.account()].balance += transaction.amount();
-   if (transaction.hasBalance() &&
-       transaction.balance() != m_accounts[transaction.account()].balance)
-   {
-      emit message(transaction,
-                   QString("Transaction balance %1 incorrect, should be %2")
-                   .arg(transaction.balance().toString())
-                   .arg(m_accounts[transaction.account()].balance.toString()));
-   }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {

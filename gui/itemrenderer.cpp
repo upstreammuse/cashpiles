@@ -5,6 +5,10 @@ ItemRenderer::ItemRenderer(QObject* parent) :
 {
 }
 
+void ItemRenderer::processItem(LedgerAccountBalance const& balance)
+{
+}
+
 void ItemRenderer::processItem(LedgerAccountCommand const& account)
 {
 }

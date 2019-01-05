@@ -12,7 +12,8 @@ HEADERS += \
    ledgercomment.h \
    ledgeritem.h \
    ledgertransaction.h \
-   ledgertransactionentry.h
+   ledgertransactionentry.h \
+    ledgeraccountbalance.h
 SOURCES += \
    currency.cpp \
    daterange.cpp \
@@ -24,5 +25,6 @@ SOURCES += \
    ledgercomment.cpp \
    ledgeritem.cpp \
    ledgertransaction.cpp \
-   ledgertransactionentry.cpp
+   ledgertransactionentry.cpp \
+    ledgeraccountbalance.cpp
 TARGET = cp-kernel

@@ -1,6 +1,7 @@
 #include "nativewriter.h"
 
 #include <QTextStream>
+#include "kernel/ledgeraccountbalance.h"
 #include "kernel/ledgeraccountcommand.h"
 #include "kernel/ledgerbudget.h"
 #include "kernel/ledgercomment.h"
@@ -9,6 +10,14 @@
 NativeWriter::NativeWriter(QObject* parent) :
    ItemProcessor(parent)
 {
+}
+
+void NativeWriter::processItem(LedgerAccountBalance const& balance)
+{
+   breakBetween();
+   QTextStream out(stdout);
+   out << balance.date().toString(Qt::SystemLocaleShortDate) << " balance "
+       << balance.account() << "  " << balance.amount().toString() << endl;
 }
 
 void NativeWriter::processItem(LedgerAccountCommand const& account)
@@ -108,10 +117,6 @@ void NativeWriter::processItem(LedgerTransaction const& transaction)
    if (transaction.entries().size() > 1 || numNotes > 1)
    {
       out << transaction.amount().toString();
-      if (transaction.hasBalance())
-      {
-         out << " = " << transaction.balance().toString();
-      }
       if (transaction.hasNote())
       {
          out << " ;" << transaction.note();
@@ -150,10 +155,6 @@ void NativeWriter::processItem(LedgerTransaction const& transaction)
          out << "  " << entry.category();
       }
       out << "  " << transaction.amount().toString();
-      if (transaction.hasBalance())
-      {
-         out << " = " << transaction.balance().toString();
-      }
       if (transaction.hasNote())
       {
          out << " ;" << transaction.note();

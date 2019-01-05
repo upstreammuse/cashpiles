@@ -16,10 +16,6 @@ public:
 
    Currency amount() const;
 
-   Currency balance() const;
-   bool hasBalance() const;
-   void setBalance(Currency const& balance);
-
    bool cleared() const;
    void setCleared(bool cleared);
 
