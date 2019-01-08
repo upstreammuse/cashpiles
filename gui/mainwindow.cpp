@@ -21,11 +21,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::appendBalance(LedgerAccountBalance const& balance)
 {
-   new QListWidgetItem(QString("%1 balance as of %2: %3")
-                       .arg(balance.account())
-                       .arg(balance.date().toString())
-                       .arg(balance.amount().toString()),
-                       ui->balances);
+   auto item = new QTreeWidgetItem(ui->balances);
+   item->setText(0, balance.account());
+   item->setData(1, Qt::DisplayRole, balance.date());
+   item->setText(2, balance.amount().toString());
+   item->setFont(2, QFont("Courier"));
+   item->setTextAlignment(2, Qt::AlignRight | Qt::AlignVCenter);
 }
 
 void MainWindow::appendMessage(QString const& msg)
@@ -90,6 +91,11 @@ void MainWindow::beautify()
    ui->accounts->expandAll();
    ui->accounts->resizeColumnToContents(0);
    ui->accounts->resizeColumnToContents(1);
+
+   ui->balances->hideColumn(0);
+   ui->balances->sortByColumn(1, Qt::AscendingOrder);
+   ui->balances->resizeColumnToContents(1);
+   ui->balances->resizeColumnToContents(2);
 
    ui->messages->setSortingEnabled(true);
    ui->messages->sortByColumn(1, Qt::AscendingOrder);
@@ -157,6 +163,11 @@ void MainWindow::on_accounts_itemSelectionChanged()
    else
    {
       ui->balances->setHidden(false);
+      for (int i = 0; i < ui->balances->topLevelItemCount(); ++i)
+      {
+         QTreeWidgetItem* item = ui->balances->topLevelItem(i);
+         item->setHidden(item->text(0) != items[0]->text(0));
+      }
       for (int i = 0; i < ui->transactions->topLevelItemCount(); ++i)
       {
          QTreeWidgetItem* transItem = ui->transactions->topLevelItem(i);
