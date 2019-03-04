@@ -1,5 +1,5 @@
-#ifndef TRANSACTION_H
-#define TRANSACTION_H
+#ifndef MODEL_TRANSACTION_H
+#define MODEL_TRANSACTION_H
 
 #include <QString>
 

@@ -1,5 +1,5 @@
-#ifndef TRANSACTIONENTRY_H
-#define TRANSACTIONENTRY_H
+#ifndef MODEL_TRANSACTIONENTRY_H
+#define MODEL_TRANSACTIONENTRY_H
 
 #include <QString>
 #include "currency.h"

@@ -1,5 +1,5 @@
-#ifndef CURRENCY_H
-#define CURRENCY_H
+#ifndef MODEL_CURRENCY_H
+#define MODEL_CURRENCY_H
 
 #include <QString>
 

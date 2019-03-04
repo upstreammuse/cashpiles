@@ -1,5 +1,5 @@
-#ifndef INTERVAL_H
-#define INTERVAL_H
+#ifndef MODEL_INTERVAL_H
+#define MODEL_INTERVAL_H
 
 namespace model { struct Interval; }
 

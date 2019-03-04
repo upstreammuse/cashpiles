@@ -1,5 +1,5 @@
-#ifndef CATEGORY_H
-#define CATEGORY_H
+#ifndef MODEL_CATEGORY_H
+#define MODEL_CATEGORY_H
 
 #include <QDate>
 #include <QString>

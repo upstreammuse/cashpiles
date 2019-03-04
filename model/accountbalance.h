@@ -1,5 +1,5 @@
-#ifndef ACCOUNTBALANCE_H
-#define ACCOUNTBALANCE_H
+#ifndef MODEL_ACCOUNTBALANCE_H
+#define MODEL_ACCOUNTBALANCE_H
 
 #include <QString>
 #include "currency.h"

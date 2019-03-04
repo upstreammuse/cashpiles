@@ -1,5 +1,5 @@
-#ifndef BUDGETPERIOD_H
-#define BUDGETPERIOD_H
+#ifndef MODEL_BUDGETPERIOD_H
+#define MODEL_BUDGETPERIOD_H
 
 #include <QDate>
 #include "interval.h"
