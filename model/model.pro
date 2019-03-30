@@ -9,6 +9,7 @@ HEADERS += \
    category.h \
    currency.h \
    interval.h \
+   model.h \
    transaction.h \
    transactionentry.h
 SOURCES += \
@@ -19,6 +20,7 @@ SOURCES += \
    category.cpp \
    currency.cpp \
    interval.cpp \
+   model.cpp \
    transaction.cpp \
    transactionentry.cpp
 TARGET = model
