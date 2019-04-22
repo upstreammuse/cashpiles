@@ -1,4 +1,4 @@
-#include "currency.h"
+#include "model/currency.h"
 
 namespace
 {

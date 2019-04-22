@@ -1,4 +1,4 @@
-#include "account.h"
+#include "model/account.h"
 
 QTextStream& operator<<(QTextStream& out, model::Account const& data)
 {

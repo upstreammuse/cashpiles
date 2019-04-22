@@ -1,4 +1,4 @@
-#include "accountclosure.h"
+#include "model/accountclosure.h"
 
 QTextStream& operator<<(QTextStream& out, model::AccountClosure const& data)
 {
