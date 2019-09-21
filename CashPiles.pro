@@ -12,6 +12,7 @@ HEADERS += \
    src/filereader.h \
    src/filewriter.h \
 #   src/goalallocator.h \
+   src/incomeallocator.h \
    src/interval.h \
    src/itemprocessor.h \
    src/ledger.h \
@@ -36,6 +37,7 @@ SOURCES += \
    src/filereader.cpp \
    src/filewriter.cpp \
 #   src/goalallocator.cpp \
+   src/incomeallocator.cpp \
    src/interval.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \

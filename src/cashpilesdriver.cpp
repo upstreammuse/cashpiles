@@ -4,6 +4,7 @@
 #include "datevalidator.h"
 #include "filereader.h"
 #include "filewriter.h"
+#include "incomeallocator.h"
 #include "itemprocessor.h"
 #include "ledger.h"
 #include "ledgeraccount.h"
@@ -35,6 +36,8 @@ int main(int, char**)
 //   BudgetBalancer bb;
 //   ledger.processItems(bb);
 
+   IncomeAllocator incAlloc;
+   ledger.processItems(incAlloc);
    RoutineAllocator routAlloc;
    ledger.processItems(routAlloc);
 

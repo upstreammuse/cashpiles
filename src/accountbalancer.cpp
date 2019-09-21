@@ -84,30 +84,6 @@ void AccountBalancer::processItem(LedgerBudget const& budget)
    checkTransfers(budget.date(), budget.fileName(), budget.lineNum());
 }
 
-void AccountBalancer::processItem(LedgerBudgetGoalEntry const&)
-{
-}
-
-void AccountBalancer::processItem(LedgerBudgetIncomeEntry const&)
-{
-}
-
-void AccountBalancer::processItem(LedgerBudgetReserveAmountEntry const&)
-{
-}
-
-void AccountBalancer::processItem(LedgerBudgetReservePercentEntry const&)
-{
-}
-
-void AccountBalancer::processItem(LedgerBudgetRoutineEntry const&)
-{
-}
-
-void AccountBalancer::processItem(LedgerComment const&)
-{
-}
-
 void AccountBalancer::processItem(LedgerTransaction const& transaction)
 {
    checkTransfers(transaction.date(), transaction.fileName(),
@@ -142,10 +118,6 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
                   .arg(transaction.balance().toString())
                   .arg(m_accounts[transaction.account()].balance.toString());
    }
-}
-
-void AccountBalancer::start()
-{
 }
 
 void AccountBalancer::checkTransfers(QDate const& date, QString const& filename,

@@ -15,17 +15,17 @@ class ItemProcessor
 {
 public:
    virtual ~ItemProcessor();
-   virtual void finish() = 0;
-   virtual void processItem(LedgerAccount const& account) = 0;
-   virtual void processItem(LedgerBudget const& budget) = 0;
-   virtual void processItem(LedgerBudgetGoalEntry const& budget) = 0;
-   virtual void processItem(LedgerBudgetIncomeEntry const& budget) = 0;
-   virtual void processItem(LedgerBudgetReserveAmountEntry const& budget) = 0;
-   virtual void processItem(LedgerBudgetReservePercentEntry const& budget) = 0;
-   virtual void processItem(LedgerBudgetRoutineEntry const& budget) = 0;
-   virtual void processItem(LedgerComment const& comment) = 0;
-   virtual void processItem(LedgerTransaction const& transaction) = 0;
-   virtual void start() = 0;
+   virtual void finish();
+   virtual void processItem(LedgerAccount const& account);
+   virtual void processItem(LedgerBudget const& budget);
+   virtual void processItem(LedgerBudgetGoalEntry const& budget);
+   virtual void processItem(LedgerBudgetIncomeEntry const& budget);
+   virtual void processItem(LedgerBudgetReserveAmountEntry const& budget);
+   virtual void processItem(LedgerBudgetReservePercentEntry const& budget);
+   virtual void processItem(LedgerBudgetRoutineEntry const& budget);
+   virtual void processItem(LedgerComment const& comment);
+   virtual void processItem(LedgerTransaction const& transaction);
+   virtual void start();
 };
 
 #endif

@@ -13,14 +13,7 @@ public:
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
-   void processItem(LedgerBudgetGoalEntry const& budget);
-   void processItem(LedgerBudgetIncomeEntry const& budget);
-   void processItem(LedgerBudgetReserveAmountEntry const& budget);
-   void processItem(LedgerBudgetReservePercentEntry const& budget);
-   void processItem(LedgerBudgetRoutineEntry const& budget);
-   void processItem(LedgerComment const& comment);
    void processItem(LedgerTransaction const& transaction);
-   void start();
 
 private:
    void checkTransfers(QDate const& date, QString const& filename,

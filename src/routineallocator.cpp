@@ -11,18 +11,22 @@ void RoutineAllocator::finish()
    DateRange history(m_startDate, m_endDate);
    qDebug() << "tracking routine expenses between" << m_startDate << "and" << m_endDate;
    qDebug() << "total expenses are" << m_totalSpent.toString();
-   qDebug() << "reserving for next 60 days";
+   qDebug() << "reserving for next 180 days";
    Currency dailyAmount = m_totalSpent.amortize(history, DateRange(m_startDate, m_startDate));
    qDebug() << "daily amount" << dailyAmount.toString();
-   qDebug() << (dailyAmount * qint64(60)).toString();
-}
-
-void RoutineAllocator::processItem(const LedgerAccount &)
-{
+   qDebug() << (dailyAmount * qint64(180)).toString();
 }
 
 void RoutineAllocator::processItem(const LedgerBudget& budget)
 {
+   // TODO figure out how to only reset the start date if the categories change
+   //    if a routine category stays the same between budget configs, then we can calculate during the whole interval?
+   //    there should be a maximum history date, but that should be based on the max repeat interval as well
+
+   // how about setting in the budget config?
+   // 2019/01/04 budget
+   //   routine  Fuel/Gas  since 8/1/18  +180d      ; start with car
+
    qDebug() << "starting budget on " << budget.date();
    m_startDate = budget.date();
 //   if (m_historyPeriod.isNull())
@@ -52,33 +56,11 @@ void RoutineAllocator::processItem(const LedgerBudget& budget)
 #endif
 }
 
-void RoutineAllocator::processItem(const LedgerBudgetGoalEntry &)
-{
-}
-
-void RoutineAllocator::processItem(const LedgerBudgetIncomeEntry &)
-{
-
-}
-
-void RoutineAllocator::processItem(const LedgerBudgetReserveAmountEntry &)
-{
-}
-
-void RoutineAllocator::processItem(const LedgerBudgetReservePercentEntry &)
-{
-
-}
 
 void RoutineAllocator::processItem(const LedgerBudgetRoutineEntry &budget)
 {
    qDebug() << "category" << budget.name() << "is routine";
    m_categories.insert(budget.name());
-
-}
-
-void RoutineAllocator::processItem(const LedgerComment &)
-{
 
 }
 
@@ -90,20 +72,13 @@ void RoutineAllocator::processItem(const LedgerTransaction &transaction)
    {
       if (entry.hasCategory() && m_categories.contains(entry.category()))
       {
-         qDebug() << "allocating for category" << entry.category();
+//         qDebug() << "allocating for category" << entry.category();
          m_totalSpent += entry.amount();
-         qDebug() << "total spent" << m_totalSpent.toString();
+//         qDebug() << "total spent" << m_totalSpent.toString();
       }
 
    }
 
-}
-
-void RoutineAllocator::start()
-{
-
-   // DAH FUQ?
-   m_totalSpent = Currency();
 }
 
 
