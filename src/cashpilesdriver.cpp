@@ -1,15 +1,14 @@
 #include <QDebug>
 #include "accountbalancer.h"
+#include "budgetallocator.h"
 #include "currency.h"
 #include "datevalidator.h"
 #include "filereader.h"
 #include "filewriter.h"
-#include "incomeallocator.h"
 #include "itemprocessor.h"
 #include "ledger.h"
 #include "ledgeraccount.h"
 #include "ledgercomment.h"
-#include "routineallocator.h"
 
 int main(int, char**)
 {
@@ -36,10 +35,8 @@ int main(int, char**)
 //   BudgetBalancer bb;
 //   ledger.processItems(bb);
 
-   IncomeAllocator incAlloc;
-   ledger.processItems(incAlloc);
-   RoutineAllocator routAlloc;
-   ledger.processItems(routAlloc);
+   BudgetAllocator budAlloc;
+   ledger.processItems(budAlloc);
 
    FileWriter writer("~/cp-output-test.txt");
    writer.setDateFormat("M/d/yyyy");
