@@ -36,6 +36,12 @@ void BudgetAllocator::finish()
 
 void BudgetAllocator::processItem(LedgerBudget const& budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      // TODO trickle dates into budget items so they can be ignored as a group
+      qDebug() << "future budget configuration is going to result it weirdness";
+   }
+
    refreshCurrentPeriod(budget.date(), true);
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
@@ -108,8 +114,6 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
-   refreshCurrentPeriod(transaction.date());
-
    foreach (LedgerTransactionEntry entry, transaction.entries())
    {
       // TODO make sure that account balancer is checking to make sure that on-budget accounts have categories and vice versa
@@ -124,13 +128,18 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
+      if (m_incomes.contains(entry.category()) && transaction.date() > QDate::currentDate())
+      {
+         qDebug() << "ignoreing future income for budgeting";
+         continue;
+      }
+
+      // TODO ignore reserve/routine expenses outside the current date's budget period
+
+      refreshCurrentPeriod(transaction.date());
+
       if (m_incomes.contains(entry.category()))
       {
-         if (transaction.date() > QDate::currentDate())
-         {
-            qDebug() << "ignoring future income for budget";
-            continue;
-         }
          m_available += entry.amount();
          if (m_available.isNegative())
          {
