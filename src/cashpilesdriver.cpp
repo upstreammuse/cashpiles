@@ -32,9 +32,6 @@ int main(int, char**)
    AccountBalancer ab;
    ledger.processItems(ab);
 
-//   BudgetBalancer bb;
-//   ledger.processItems(bb);
-
    BudgetAllocator budAlloc;
    ledger.processItems(budAlloc);
 

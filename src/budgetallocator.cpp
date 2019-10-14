@@ -9,6 +9,13 @@
 
 void BudgetAllocator::finish()
 {
+   Currency goal;
+   for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
+   {
+      goal += *it;
+   }
+   qDebug() << "reserved for goals" << goal.toString();
+
    Currency reserved;
    for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
    {
@@ -46,6 +53,22 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_currentRoutine.clear();
+   for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
+   {
+      if (!it->isZero() && !it->isNegative())
+      {
+         qDebug() << "Returning" << it->toString() << "from category" << it.key() << "to available";
+      }
+      m_available += *it;
+   }
+   if (m_currentPeriod.startDate() <= QDate::currentDate() && m_currentPeriod.endDate() >= QDate::currentDate())
+   {
+      m_goalPeriod = m_currentPeriod;
+   }
+   else {
+      m_goalPeriod = DateRange();
+   }
+   m_goals.clear();
    m_incomes.clear();
    m_priorPeriod = DateRange();
    m_priorRoutine.clear();
@@ -62,6 +85,11 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    }
    m_reserves.clear();
    m_routines.clear();
+}
+
+void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
+{
+   m_goals[budget.name()];
 }
 
 void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
@@ -134,11 +162,62 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
-      // TODO ignore reserve/routine expenses outside the current date's budget period
+      if (m_goals.contains(entry.category()) && !m_goalPeriod.isNull())
+      {
+         // in the case where we are looking at a goal, and the current budget period already covers the current date, don't try to advance any more
+      }
+      else {
+         refreshCurrentPeriod(transaction.date());
 
-      refreshCurrentPeriod(transaction.date());
+      }
 
-      if (m_incomes.contains(entry.category()))
+      if (m_goals.contains(entry.category()))
+      {
+         if (m_goalPeriod.isNull())  // this is a goal that happened in the past
+         {
+            m_goals[entry.category()] += entry.amount();
+            if (m_goals[entry.category()].isNegative())
+            {
+               qDebug() << "goal category " << entry.category() << "underfunded, compensating";
+               if ((m_available + m_goals[entry.category()]).isNegative())
+               {
+                  qDebug() << "failing to allocate for category" << entry.category();
+                  m_goals[entry.category()] += m_available;
+                  m_available.clear();
+               }
+               else {
+                  // TODO I think this sign is wrong in the code elsewhere
+                  m_available += m_goals[entry.category()];
+                  m_goals[entry.category()].clear();
+               }
+
+            }
+         }
+         else {
+            if ((m_goals[entry.category()] + entry.amount()).isNegative()) /// need to save more for this goal
+            {
+               // nasty way of getting the positive amount to save
+               Currency toSave = Currency() - entry.amount() - m_goals[entry.category()];
+
+               Currency toAllocate =
+               toSave.amortize(
+               // savings range for goal
+               DateRange(m_goalPeriod.startDate(), m_currentPeriod.endDate()),
+                        // savings range of budget period that includes today
+                        DateRange(m_goalPeriod.startDate(),m_goalPeriod.endDate()));
+
+               qDebug() << "need to reserve " << toAllocate.toString() << "in today's budget period to stay on track";
+               m_goals[entry.category()].clear();
+
+            }
+            else {
+               m_goals[entry.category()] += entry.amount();
+            }
+
+
+         }
+      }
+      else if (m_incomes.contains(entry.category()))
       {
          m_available += entry.amount();
          if (m_available.isNegative())
@@ -228,6 +307,11 @@ void BudgetAllocator::refreshCurrentPeriod(QDate const& date, bool ignoreIfFirst
       ++m_currentPeriod;
       m_priorRoutine += m_currentRoutine;
       m_currentRoutine.clear();
+
+      if (m_currentPeriod.startDate() <= QDate::currentDate() && m_currentPeriod.endDate() >= QDate::currentDate())
+      {
+         m_goalPeriod = m_currentPeriod;
+      }
 
       if (!ignoreIfFirstDay || date != m_currentPeriod.startDate())
       {

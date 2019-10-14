@@ -12,6 +12,7 @@ class BudgetAllocator : public ItemProcessor
 public:
    void finish();
    void processItem(LedgerBudget const& budget);
+   void processItem(LedgerBudgetGoalEntry const& budget);
    void processItem(LedgerBudgetIncomeEntry const& budget);
    void processItem(LedgerBudgetReserveAmountEntry const& budget);
    void processItem(LedgerBudgetReservePercentEntry const& budget);
@@ -26,6 +27,8 @@ private:
    DateRange m_currentPeriod;
    Currency m_currentRoutine;
    Currency m_escrow;
+   DateRange m_goalPeriod;
+   QHash<QString, Currency> m_goals;
    QSet<QString> m_incomes;
    DateRange m_priorPeriod;
    Currency m_priorRoutine;
