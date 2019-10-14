@@ -5,7 +5,6 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
 HEADERS += \
    src/accountbalancer.h \
-#   src/budgetbalancer.h \
    src/budgetallocator.h \
    src/currency.h \
    src/daterange.h \
@@ -27,7 +26,6 @@ HEADERS += \
 
 SOURCES += \
    src/accountbalancer.cpp \
-#   src/budgetbalancer.cpp \
    src/budgetallocator.cpp \
    src/cashpilesdriver.cpp \
    src/currency.cpp \
