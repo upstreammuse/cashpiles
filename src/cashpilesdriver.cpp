@@ -10,6 +10,8 @@
 #include "ledgeraccount.h"
 #include "ledgercomment.h"
 
+// TODO need to add support for withholding category so income taxes don't break routine expense calculations
+
 int main(int, char**)
 {
    Currency::initializeCurrencies();
