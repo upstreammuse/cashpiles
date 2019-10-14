@@ -13,6 +13,7 @@ public:
    void finish();
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetIncomeEntry const& budget);
+   void processItem(LedgerBudgetReserveAmountEntry const& budget);
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
    void processItem(LedgerTransaction const& transaction);
@@ -28,7 +29,9 @@ private:
    QSet<QString> m_incomes;
    DateRange m_priorPeriod;
    Currency m_priorRoutine;
+   QHash<QString, Currency> m_reserveAmounts;
    QHash<QString, double> m_reservePercentages;
+   QHash<QString, DateRange> m_reservePeriods;
    QHash<QString, Currency> m_reserves;
    QSet<QString> m_routines;
 };

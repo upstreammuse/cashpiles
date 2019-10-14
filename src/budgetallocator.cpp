@@ -43,7 +43,9 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    m_incomes.clear();
    m_priorPeriod = DateRange();
    m_priorRoutine.clear();
+   m_reserveAmounts.clear();
    m_reservePercentages.clear();
+   m_reservePeriods.clear();
    for (auto it = m_reserves.cbegin(); it != m_reserves.cend(); ++it)
    {
       if (!it->isZero() && !it->isNegative())
@@ -59,6 +61,38 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
    m_incomes.insert(budget.name());
+}
+
+void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
+{
+   m_reserveAmounts[budget.name()] = budget.amount();
+   m_reservePeriods[budget.name()] = DateRange(m_currentPeriod.startDate(), budget.interval());
+   m_reserves[budget.name()];
+
+   // fund all reserve periods that end within this budget period
+   while (m_reservePeriods[budget.name()].endDate() <= m_currentPeriod.endDate())
+   {
+      Currency amount = m_reserveAmounts[budget.name()];
+      if ((m_available - amount).isNegative())
+      {
+         qDebug() << "unable to fully fund reserve amount";
+         amount = m_available;
+      }
+      m_reserves[budget.name()] += amount;
+      m_available -= amount;
+      ++m_reservePeriods[budget.name()];
+   }
+   // fund this budget period's share of the next savings period that either starts in this period and ends in a future one, or starts after this period ends
+   // TODO make sure amortize works correctly when faced with null date ranges from empty intersections
+   Currency amount = m_reserveAmounts[budget.name()].amortize(m_reservePeriods[budget.name()],
+         m_reservePeriods[budget.name()].intersect(m_currentPeriod));
+   if ((m_available - amount).isNegative())
+   {
+      qDebug() << "unable to fully fund reserve amount";
+      amount = m_available;
+   }
+   m_reserves[budget.name()] += amount;
+   m_available -= amount;
 }
 
 void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
@@ -189,7 +223,37 @@ void BudgetAllocator::refreshCurrentPeriod(QDate const& date, bool ignoreIfFirst
       if (!ignoreIfFirstDay || date != m_currentPeriod.startDate())
       {
 
-         // TODO need to fund reserve amounts at this time as well
+         for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end(); ++it) {
+
+
+         // fund all reserve periods that end within this budget period
+            // taking into account that the current reserve period might have started before  this budget period, so only do the overlap
+         while (m_reservePeriods[it.key()].endDate() <= m_currentPeriod.endDate())
+         {
+            Currency amount = m_reserveAmounts[it.key()].amortize(m_reservePeriods[it.key()],
+                  m_reservePeriods[it.key()].intersect(m_currentPeriod));
+            if ((m_available - amount).isNegative())
+            {
+               qDebug() << "unable to fully fund reserve amount";
+               amount = m_available;
+            }
+            m_reserves[it.key()] += amount;
+            m_available -= amount;
+            ++m_reservePeriods[it.key()];
+         }
+         // fund this budget period's share of the next savings period that either starts in this period and ends in a future one, or starts after this period ends
+         // TODO make sure amortize works correctly when faced with null date ranges from empty intersections
+         Currency amount = m_reserveAmounts[it.key()].amortize(m_reservePeriods[it.key()],
+               m_reservePeriods[it.key()].intersect(m_currentPeriod));
+         if ((m_available - amount).isNegative())
+         {
+            qDebug() << "unable to fully fund reserve amount";
+            amount = m_available;
+         }
+         m_reserves[it.key()] += amount;
+         m_available -= amount;
+         }
+
 
 
          Currency daily =
