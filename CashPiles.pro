@@ -11,7 +11,6 @@ HEADERS += \
    src/datevalidator.h \
    src/filereader.h \
    src/filewriter.h \
-#   src/goalallocator.h \
    src/interval.h \
    src/itemprocessor.h \
    src/ledger.h \
@@ -22,7 +21,6 @@ HEADERS += \
    src/ledgeritem.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
-#   src/reserveamountallocator.h \
 
 SOURCES += \
    src/accountbalancer.cpp \
@@ -33,7 +31,6 @@ SOURCES += \
    src/datevalidator.cpp \
    src/filereader.cpp \
    src/filewriter.cpp \
-#   src/goalallocator.cpp \
    src/interval.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
@@ -44,6 +41,5 @@ SOURCES += \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
-#   src/reserveamountallocator.cpp \
 
 TARGET = cashpiles
