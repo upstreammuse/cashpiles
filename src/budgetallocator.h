@@ -20,7 +20,7 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void refreshCurrentPeriod(QDate const& date, bool ignoreIfFirstDay = false);
+   void advanceBudgetPeriod(QDate const& date, bool rebudgeting = false);
 
 private:
    Currency m_available;

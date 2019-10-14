@@ -49,7 +49,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
       qDebug() << "future budget configuration is going to result it weirdness";
    }
 
-   refreshCurrentPeriod(budget.date(), true);
+   advanceBudgetPeriod(budget.date(), true);
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_currentRoutine.clear();
@@ -167,7 +167,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          // in the case where we are looking at a goal, and the current budget period already covers the current date, don't try to advance any more
       }
       else {
-         refreshCurrentPeriod(transaction.date());
+         advanceBudgetPeriod(transaction.date());
 
       }
 
@@ -281,7 +281,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void BudgetAllocator::refreshCurrentPeriod(QDate const& date, bool ignoreIfFirstDay)
+void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 {
    // give a default monthly period
    if (m_currentPeriod.isNull())
@@ -313,14 +313,19 @@ void BudgetAllocator::refreshCurrentPeriod(QDate const& date, bool ignoreIfFirst
          m_goalPeriod = m_currentPeriod;
       }
 
-      if (!ignoreIfFirstDay || date != m_currentPeriod.startDate())
+      // if we are rebudgeting and the new period starts on the same day as the
+      // old one would have, skip that old period
+      if (rebudgeting && date == m_currentPeriod.startDate())
       {
+         continue;
+      }
 
-         for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end(); ++it) {
+
+      for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end(); ++it) {
 
 
          // fund all reserve periods that end within this budget period
-            // taking into account that the current reserve period might have started before  this budget period, so only do the overlap
+         // taking into account that the current reserve period might have started before  this budget period, so only do the overlap
          while (m_reservePeriods[it.key()].endDate() <= m_currentPeriod.endDate())
          {
             Currency amount = m_reserveAmounts[it.key()].amortize(m_reservePeriods[it.key()],
@@ -345,25 +350,24 @@ void BudgetAllocator::refreshCurrentPeriod(QDate const& date, bool ignoreIfFirst
          }
          m_reserves[it.key()] += amount;
          m_available -= amount;
-         }
+      }
 
 
 
-         Currency daily =
-         m_priorRoutine.amortize(m_priorPeriod, DateRange(m_priorPeriod.startDate(), m_priorPeriod.startDate()));
+      Currency daily =
+            m_priorRoutine.amortize(m_priorPeriod, DateRange(m_priorPeriod.startDate(), m_priorPeriod.startDate()));
 
-         daily = daily * m_currentPeriod.days();
+      daily = daily * m_currentPeriod.days();
 
-         if ((m_available + daily).isNegative())
-         {
-            qDebug() << "cannot fully fund routine escrow for current budget period";
-            m_escrow += m_available;
-            m_available.clear();
-         }
-         else {
-            m_available += daily;
-            m_escrow -= daily;
-         }
+      if ((m_available + daily).isNegative())
+      {
+         qDebug() << "cannot fully fund routine escrow for current budget period";
+         m_escrow += m_available;
+         m_available.clear();
+      }
+      else {
+         m_available += daily;
+         m_escrow -= daily;
       }
    }
 }
