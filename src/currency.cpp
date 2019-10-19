@@ -73,27 +73,36 @@ Currency::Currency()
 {
 }
 
-// TODO I think this code works, but I don't like it
 Currency Currency::amortize(DateRange const& total,
                             DateRange const& partial) const
 {
+   // calculate the overlap between the total range and the partial range, and
+   // bail out if there is no overlap
    DateRange overlap = total.intersect(partial);
    if (overlap.isNull())
    {
       return Currency();
    }
 
+   // it's easier to work with positive values, reverse the sign later if needed
    qint64 value = isNegative() ? -m_value : m_value;
 
+   // amountA is the first (higher) daily amortization value, and amountB the
+   // second (lower) value
    Currency amountA;
    Currency amountB;
    amountA.m_decimalPlaces = m_decimalPlaces;
    amountB.m_decimalPlaces = m_decimalPlaces;
 
+   // numberA is the number of days at amountA, and numberB is the number of
+   // days at amountB
    qint64 numberA = 0;
    qint64 numberB = total.days();
-   amountB.m_value = value / numberB;
 
+   // try to evenly split the total value across the days, and if it doesn't
+   // come out even, then determine how many days have to have a value 1 higher
+   // to make up the remainder and give an exact answer
+   amountB.m_value = value / numberB;
    qint64 difference = value - amountB.m_value * numberB;
    if (difference == 0)
    {
@@ -105,35 +114,43 @@ Currency Currency::amortize(DateRange const& total,
    {
       amountA.m_value = amountB.m_value + 1;
       numberA = difference;
-      numberB = numberB - difference;
+      numberB -= difference;
    }
 
+   // put the negative signs back
    if (isNegative())
    {
       amountA.m_value = -amountA.m_value;
       amountB.m_value = -amountB.m_value;
    }
 
+   // make sure the splits add up to the original value
    Q_ASSERT(amountA.m_value * numberA + amountB.m_value * numberB == m_value);
    Q_ASSERT(amountA.m_decimalPlaces == m_decimalPlaces);
    Q_ASSERT(amountB.m_decimalPlaces == m_decimalPlaces);
 
+   // number of days between the start of the total period and the start of the
+   // overlap period, which will be days we skip amountA
    qint64 dayOffset = total.startDate().daysTo(overlap.startDate());
-   qint64 dayCount = overlap.days();
-   Currency result;
-   while (dayOffset < numberA && dayCount > 0)
-   {
-      result += amountA;
-      dayOffset++;
-      dayCount--;
-   }
-   while (dayCount > 0)
-   {
-      result += amountB;
-      dayOffset++;
-      dayCount--;
-   }
-   return result;
+
+   // number of days we will use amountA
+   qint64 daysOfA = std::min(std::max(qint64(0), numberA - dayOffset),
+                             overlap.days());
+
+   // the rest of the days we will use amountB
+   qint64 daysOfB = overlap.days() - daysOfA;
+
+   // the total for the days we are using
+   Currency amortized = amountA * daysOfA + amountB * daysOfB;
+
+   // the total for the days we are not using
+   Currency unused = amountA * (numberA - daysOfA) +
+                     amountB * (numberB - daysOfB);
+
+   // make sure the splits add up to the original value
+   Q_ASSERT(amortized.m_value + unused.m_value == m_value);
+
+   return amortized;
 }
 
 void Currency::clear()
@@ -151,7 +168,9 @@ bool Currency::isZero() const
    return m_value == 0;
 }
 
-// TODO this code is a bit of a cheat, since it doesn't necessarily match the input regexp, and relies on some creative mangling, would be better to define currency format in a symmetric way, but Qt won't help with that
+// TODO this code is a bit of a cheat, since it doesn't necessarily match the
+//   input regexp, and relies on some creative mangling, would be better to
+//   define currency format in a symmetric way, but Qt won't help with that
 QString Currency::toString() const
 {
    qint64 value = m_value;
