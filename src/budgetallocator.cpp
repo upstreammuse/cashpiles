@@ -2,6 +2,23 @@
 
 // TODO need the ability to configure deposits into the available category, so we can do account setup without needing fake budgets to handle the 'income'
 
+// TODO goals need to be saved per transaction?
+   // yes, otherwise allocation never looks like enough
+    // well, the total allocation for the current budget period needs to be kept sqeparate so that it knows that the saving has alreayd been completed
+
+// as of today, I have $500
+//  next week I need $600
+//  next month I need $300
+// so I must save $100 in the coming week
+//  and I must save $75 in the coming week
+
+// 600 + 300 - 500 = 400 to save, but can't do this evenly or will miss soon large amounts
+
+// so for each goal expense (ignore income?), take away the amount already saved, then amortize over the coming periods
+//   most expenses will hoave nothing to take away, so will require saving full amount
+//   as goals become past expenses, actual values will update required saving amounts
+
+
 #include <QDebug>
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
@@ -61,13 +78,6 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
       }
       m_available += *it;
    }
-   if (m_currentPeriod.startDate() <= QDate::currentDate() && m_currentPeriod.endDate() >= QDate::currentDate())
-   {
-      m_goalPeriod = m_currentPeriod;
-   }
-   else {
-      m_goalPeriod = DateRange();
-   }
    m_goals.clear();
    m_incomes.clear();
    m_priorPeriod = DateRange();
@@ -117,7 +127,6 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
       ++m_reservePeriods[budget.name()];
    }
    // fund this budget period's share of the next savings period that either starts in this period and ends in a future one, or starts after this period ends
-   // TODO make sure amortize works correctly when faced with null date ranges from empty intersections
    Currency amount = m_reserveAmounts[budget.name()].amortize(m_reservePeriods[budget.name()],
          m_reservePeriods[budget.name()].intersect(m_currentPeriod));
    if ((m_available - amount).isNegative())
@@ -140,45 +149,55 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    m_routines.insert(budget.name());
 }
 
+// TODO need an option to override the apps concept of "today" so that we can check future scenarios if desired
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
+   // update the current budget period to include the transaction date, but
+   // don't go past the budget period that includes the current date
+   advanceBudgetPeriod(transaction.date());
+
    foreach (LedgerTransactionEntry entry, transaction.entries())
    {
       // TODO make sure that account balancer is checking to make sure that on-budget accounts have categories and vice versa
+      //   just checked, it isn't doing this yet
       if (!entry.hasCategory())
       {
          continue;
       }
 
+      // TODO is it better to ignore the entry, throwing off our answers, or is it better to create a new category as a routine expense and move on?
+      //   this is similar to the problem we face when coming across unknown accounts
       if (!m_incomes.contains(entry.category()) && !m_reserves.contains(entry.category()) && !m_routines.contains(entry.category()))
       {
          qDebug() << "Category" << entry.category() << "is unknown and not properly budgeted";
          continue;
       }
 
+      // ignore future incomes
       if (m_incomes.contains(entry.category()) && transaction.date() > QDate::currentDate())
       {
-         qDebug() << "ignoreing future income for budgeting";
+         qDebug() << "ignoring future income for budgeting";
          continue;
       }
 
-      if (m_goals.contains(entry.category()) && !m_goalPeriod.isNull())
+      // ignore non-goal transactions after the current budget period, since the budget period stops with teh current date
+      if (!m_goals.contains(entry.category()) && transaction.date() > m_currentPeriod.endDate())
       {
-         // in the case where we are looking at a goal, and the current budget period already covers the current date, don't try to advance any more
-      }
-      else {
-         advanceBudgetPeriod(transaction.date());
-
+         qDebug() << "ignoring future transaction beyond current budget period";
+         continue;
       }
 
       if (m_goals.contains(entry.category()))
       {
-         if (m_goalPeriod.isNull())  // this is a goal that happened in the past
+         // TODO it might be possible to replace "goal period" variable with a dynamic check for "current period includes today", since we don't go past current day's period
+         if (transaction.date() <= QDate::currentDate())  // this is a goal that happened in the past
          {
             m_goals[entry.category()] += entry.amount();
             if (m_goals[entry.category()].isNegative())
             {
+               // TODO change this message, this is a case where a goal wan't saved for properly
                qDebug() << "goal category " << entry.category() << "underfunded, compensating";
+               // TODO make generic function to allocate from available to a category, it gets used everywhere
                if ((m_available + m_goals[entry.category()]).isNegative())
                {
                   qDebug() << "failing to allocate for category" << entry.category();
@@ -194,17 +213,22 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
             }
          }
          else {
+            // in this section, the transaction date is after today, so the current budget period has to include the current date (since we stop at the current date period)
             if ((m_goals[entry.category()] + entry.amount()).isNegative()) /// need to save more for this goal
             {
                // nasty way of getting the positive amount to save
                Currency toSave = Currency() - entry.amount() - m_goals[entry.category()];
 
-               Currency toAllocate =
-               toSave.amortize(
-               // savings range for goal
-               DateRange(m_goalPeriod.startDate(), m_currentPeriod.endDate()),
-                        // savings range of budget period that includes today
-                        DateRange(m_goalPeriod.startDate(),m_goalPeriod.endDate()));
+               // find out the total date range left to save in, including the current period dates
+               DateRange goalPeriod = m_currentPeriod;
+               while (goalPeriod.endDate() < transaction.date())
+               {
+                  ++goalPeriod;
+               }
+               goalPeriod = DateRange(m_currentPeriod.startDate(), goalPeriod.endDate());
+
+               // savings range for goal split to cover current period days
+               Currency toAllocate = toSave.amortize(goalPeriod, m_currentPeriod);
 
                qDebug() << "need to reserve " << toAllocate.toString() << "in today's budget period to stay on track";
                m_goals[entry.category()].clear();
@@ -317,14 +341,6 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 
       // advance the budget period to the new dates
       ++m_currentPeriod;
-
-      // if the current budget period includes the current date, save it as the
-      // start of the goal saving period
-      if (m_currentPeriod.startDate() <= QDate::currentDate() &&
-          m_currentPeriod.endDate() >= QDate::currentDate())
-      {
-         m_goalPeriod = m_currentPeriod;
-      }
 
       // if we are rebudgeting and the new period starts on the same day as the
       // old one would have, skip allocating funds for that old period

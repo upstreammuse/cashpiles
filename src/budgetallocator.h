@@ -27,7 +27,6 @@ private:
    DateRange m_currentPeriod;
    Currency m_currentRoutine;
    Currency m_escrow;
-   DateRange m_goalPeriod;
    QHash<QString, Currency> m_goals;
    QSet<QString> m_incomes;
    DateRange m_priorPeriod;
