@@ -309,11 +309,16 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
          m_priorPeriod = DateRange(m_priorPeriod.startDate(),
                                    m_currentPeriod.endDate());
       }
-      ++m_currentPeriod;
       m_priorRoutine += m_currentRoutine;
       m_currentRoutine.clear();
 
-      if (m_currentPeriod.startDate() <= QDate::currentDate() && m_currentPeriod.endDate() >= QDate::currentDate())
+      // advance the budget period to the new dates
+      ++m_currentPeriod;
+
+      // if the current budget period includes the current date, save it as the
+      // start of the goal saving period
+      if (m_currentPeriod.startDate() <= QDate::currentDate() &&
+          m_currentPeriod.endDate() >= QDate::currentDate())
       {
          m_goalPeriod = m_currentPeriod;
       }
