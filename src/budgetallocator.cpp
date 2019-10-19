@@ -297,7 +297,10 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       return;
    }
 
-   while (m_currentPeriod.endDate() < date)
+   // stop advancing once the budget period covers either the requested date or
+   // the current date, whichever comes first
+   while (m_currentPeriod.endDate() < date &&
+          m_currentPeriod.endDate() < QDate::currentDate())
    {
       // merge escrow info and reset for the new budget period
       if (m_priorPeriod.isNull())
