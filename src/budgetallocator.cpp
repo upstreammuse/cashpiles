@@ -283,26 +283,31 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 
 void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 {
-   // give a default monthly period
+   // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
    {
-      m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1), Interval(1, Interval::Period::MONTHS));
+      qDebug() << "using default monthly budget period";
+      m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1),
+                                  Interval(1, Interval::Period::MONTHS));
    }
 
    if (date < m_currentPeriod.startDate())
    {
-      qDebug() << "cannot reset budget period date for out of order item";
+      qDebug() << "cannot rewind budget period for earlier dated item";
       return;
    }
 
    while (m_currentPeriod.endDate() < date)
    {
+      // merge escrow info and reset for the new budget period
       if (m_priorPeriod.isNull())
       {
          m_priorPeriod = m_currentPeriod;
       }
-      else {
-         m_priorPeriod = DateRange(m_priorPeriod.startDate(), m_currentPeriod.endDate());
+      else
+      {
+         m_priorPeriod = DateRange(m_priorPeriod.startDate(),
+                                   m_currentPeriod.endDate());
       }
       ++m_currentPeriod;
       m_priorRoutine += m_currentRoutine;
@@ -314,58 +319,83 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       }
 
       // if we are rebudgeting and the new period starts on the same day as the
-      // old one would have, skip that old period
+      // old one would have, skip allocating funds for that old period
       if (rebudgeting && date == m_currentPeriod.startDate())
       {
          continue;
       }
 
-
-      for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end(); ++it) {
-
-
-         // fund all reserve periods that end within this budget period
-         // taking into account that the current reserve period might have started before  this budget period, so only do the overlap
-         while (m_reservePeriods[it.key()].endDate() <= m_currentPeriod.endDate())
+      // fund each category that allocates amounts per budget period
+      for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end();
+           ++it)
+      {
+         // fund all reserve periods that end within this budget period, taking
+         // into account that the current reserve period might have started
+         // before this budget period, so only do the overlap
+         while (m_reservePeriods[it.key()].endDate() <=
+                m_currentPeriod.endDate())
          {
-            Currency amount = m_reserveAmounts[it.key()].amortize(m_reservePeriods[it.key()],
-                  m_reservePeriods[it.key()].intersect(m_currentPeriod));
+            // since the savings period and the budget period can be different,
+            // we only want to allocate the amount that represents the overlap
+            // between the savings period and the budget period
+            Currency amount = m_reserveAmounts[it.key()].amortize(
+                                 m_reservePeriods[it.key()],
+                                 m_reservePeriods[it.key()].intersect(
+                                       m_currentPeriod));
+
+            // if we can't fund it all, take what we can get
             if ((m_available - amount).isNegative())
             {
                qDebug() << "unable to fully fund reserve amount";
                amount = m_available;
             }
+
+            // move funds from available to savings goal
             m_reserves[it.key()] += amount;
             m_available -= amount;
+
+            // move to the next savings period
             ++m_reservePeriods[it.key()];
          }
-         // fund this budget period's share of the next savings period that either starts in this period and ends in a future one, or starts after this period ends
-         // TODO make sure amortize works correctly when faced with null date ranges from empty intersections
-         Currency amount = m_reserveAmounts[it.key()].amortize(m_reservePeriods[it.key()],
-               m_reservePeriods[it.key()].intersect(m_currentPeriod));
+
+         // fund this budget period's share of the next savings period that
+         // either starts in this period and ends in a future one, or starts
+         // after this period ends
+         Currency amount = m_reserveAmounts[it.key()].amortize(
+                              m_reservePeriods[it.key()],
+                              m_reservePeriods[it.key()].intersect(
+                                    m_currentPeriod));
+
+         // if we can't fund it all, take what we can get
          if ((m_available - amount).isNegative())
          {
             qDebug() << "unable to fully fund reserve amount";
             amount = m_available;
          }
+
+         // move funds
          m_reserves[it.key()] += amount;
          m_available -= amount;
       }
 
-
-
-      Currency daily =
-            m_priorRoutine.amortize(m_priorPeriod, DateRange(m_priorPeriod.startDate(), m_priorPeriod.startDate()));
-
-      daily = daily * m_currentPeriod.days();
-
+      // fund the routine escrow account based on prior daily routine expenses
+      // and the duration of the current budget period
+      // note that the daily value is a negative number, since it is based on
+      // routine expenses
+      Currency daily = m_priorRoutine.amortize(
+                          m_priorPeriod,
+                          DateRange(m_priorPeriod.startDate(),
+                                    m_priorPeriod.startDate())) *
+                       m_currentPeriod.days();
+      // if it is too much, take what we can
       if ((m_available + daily).isNegative())
       {
-         qDebug() << "cannot fully fund routine escrow for current budget period";
+         qDebug() << "cannot fully fund routine escrow";
          m_escrow += m_available;
          m_available.clear();
       }
-      else {
+      else
+      {
          m_available += daily;
          m_escrow -= daily;
       }
