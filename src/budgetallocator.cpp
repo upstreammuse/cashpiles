@@ -150,6 +150,7 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerReserve const& reserve)
 {
+   advanceBudgetPeriod(reserve.date());
    if ((m_available - reserve.amount()).isNegative())
    {
       qDebug() << "unable to fully fund reserve amount";
