@@ -1,6 +1,7 @@
 #ifndef LEDGERBUDGETENTRY_H
 #define LEDGERBUDGETENTRY_H
 
+#include <QDate>
 #include <QString>
 #include "currency.h"
 #include "interval.h"
@@ -13,11 +14,14 @@ class LedgerBudgetEntry
 {
 public:
    virtual ~LedgerBudgetEntry();
+   QDate date() const;
    QString name() const;
    virtual void processItem(ItemProcessor& processor) = 0;
+   void setDate(QDate const& date);
    void setName(QString const& name);
 
 private:
+   QDate m_date;
    QString m_name;
 };
 

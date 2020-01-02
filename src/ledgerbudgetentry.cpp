@@ -7,9 +7,19 @@ LedgerBudgetEntry::~LedgerBudgetEntry()
 {
 }
 
+QDate LedgerBudgetEntry::date() const
+{
+   return m_date;
+}
+
 QString LedgerBudgetEntry::name() const
 {
    return m_name;
+}
+
+void LedgerBudgetEntry::setDate(QDate const& date)
+{
+   m_date = date;
 }
 
 void LedgerBudgetEntry::setName(QString const& name)

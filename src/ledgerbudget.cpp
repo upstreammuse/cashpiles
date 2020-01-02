@@ -10,6 +10,7 @@ LedgerBudget::LedgerBudget(QString const& fileName, uint lineNum) :
 
 void LedgerBudget::appendEntry(QSharedPointer<LedgerBudgetEntry> entry)
 {
+   entry->setDate(m_date);
    m_entries.append(entry);
 }
 
@@ -35,6 +36,10 @@ void LedgerBudget::processItem(ItemProcessor& processor) const
 void LedgerBudget::setDate(QDate const& date)
 {
    m_date = date;
+   foreach (QSharedPointer<LedgerBudgetEntry> entry, m_entries)
+   {
+      entry->setDate(m_date);
+   }
 }
 
 void LedgerBudget::setInterval(Interval interval)

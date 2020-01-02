@@ -59,10 +59,9 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > QDate::currentDate())
    {
-      // TODO trickle dates into budget items so they can be ignored as a group
-      qDebug() << "future budget configuration is going to result it weirdness";
+      qDebug() << "ignoring future budget configuration";
+      return;
    }
-
    advanceBudgetPeriod(budget.date(), true);
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
@@ -98,16 +97,32 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.date());
    m_goals[budget.name()];
 }
 
 void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.date());
    m_incomes.insert(budget.name());
 }
 
 void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.date());
+
    m_reserveAmounts[budget.name()] = budget.amount();
    m_reservePeriods[budget.name()] = DateRange(m_currentPeriod.startDate(), budget.interval());
    m_reserves[budget.name()];
@@ -139,12 +154,22 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.date());
    m_reservePercentages[budget.name()] = budget.percentage() / 100.0;
    m_reserves[budget.name()];
 }
 
 void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 {
+   if (budget.date() > QDate::currentDate())
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.date());
    m_routines.insert(budget.name());
 }
 
