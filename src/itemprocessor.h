@@ -9,6 +9,7 @@ class LedgerBudgetReserveAmountEntry;
 class LedgerBudgetReservePercentEntry;
 class LedgerBudgetRoutineEntry;
 class LedgerComment;
+class LedgerReserve;
 class LedgerTransaction;
 
 class ItemProcessor
@@ -24,6 +25,7 @@ public:
    virtual void processItem(LedgerBudgetReservePercentEntry const& budget);
    virtual void processItem(LedgerBudgetRoutineEntry const& budget);
    virtual void processItem(LedgerComment const& comment);
+   virtual void processItem(LedgerReserve const& reserve);
    virtual void processItem(LedgerTransaction const& transaction);
    virtual void start();
 };

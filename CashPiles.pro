@@ -19,6 +19,7 @@ HEADERS += \
    src/ledgerbudgetentry.h \
    src/ledgercomment.h \
    src/ledgeritem.h \
+   src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
 
@@ -39,6 +40,7 @@ SOURCES += \
    src/ledgerbudgetentry.cpp \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
+   src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
 

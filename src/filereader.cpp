@@ -6,6 +6,7 @@
 #include "ledgerbudget.h"
 #include "ledgerbudgetentry.h"
 #include "ledgercomment.h"
+#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 namespace
@@ -50,6 +51,9 @@ namespace
          START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX.arg("category") +
          END_RX);
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
+   QRegularExpression const reserveRx(
+         START_RX + DATE_RX + SPACE_RX + "reserve" + SPACE_RX +
+         IDENT_RX.arg("category") + SEP_RX + CURR_RX.arg("amount"));
    QRegularExpression const txnCompactRx(
          START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
          IDENT_RX.arg("account") + SEP_RX + IDENT_RX.arg("payee") + SEP_RX +
@@ -321,6 +325,10 @@ void FileReader::processLine(QString const& line)
    {
       processComment(match);
    }
+   else if ((match = reserveRx.match(line)).hasMatch())
+   {
+      processReserve(match);
+   }
    else if ((match = txnCompactRx.match(line)).hasMatch())
    {
       processCompactTransaction(match);
@@ -337,6 +345,23 @@ void FileReader::processLine(QString const& line)
    {
       failed(QString("Invalid contents '%1'").arg(line));
    }
+}
+
+void FileReader::processReserve(const QRegularExpressionMatch &match)
+{
+   QSharedPointer<LedgerReserve> reserve(
+            new LedgerReserve(m_fileName, m_lineNum));
+   reserve->setDate(parseDate(match.captured("date")));
+   reserve->setCategory(match.captured("category"));
+
+   bool ok;
+   reserve->setAmount(Currency::fromString(match.captured("amount"), &ok));
+   if (!ok)
+   {
+      failedCurrency(match.captured("amount"));
+   }
+
+   m_ledger.appendItem(reserve);
 }
 
 void FileReader::processTransaction(QRegularExpressionMatch& match)

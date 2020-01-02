@@ -24,6 +24,7 @@ private:
    void processCompactTransaction(QRegularExpressionMatch const& match);
    void processCompactTransactionOff(QRegularExpressionMatch const& match);
    void processLine(QString const& line);
+   void processReserve(QRegularExpressionMatch const& match);
    void processTransaction(QRegularExpressionMatch& match);
 
    bool hasLines();
