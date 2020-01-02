@@ -21,6 +21,7 @@
 
 #include <QDebug>
 #include "ledgerbudget.h"
+#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
 
@@ -30,6 +31,11 @@ void BudgetAllocator::finish()
    for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
    {
       goal += *it;
+
+      if ((m_goalThisPeriod[it.key()] - m_needToReserve[it.key()]).isNegative())
+      {
+         qDebug() << "Need to reserve additional " << (m_needToReserve[it.key()] - m_goalThisPeriod[it.key()]).toString() << " this period for goal category " << it.key();
+      }
    }
    qDebug() << "reserved for goals" << goal.toString();
 
@@ -151,6 +157,22 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    m_routines.insert(budget.name());
 }
 
+void BudgetAllocator::processItem(LedgerReserve const& reserve)
+{
+   if ((m_available - reserve.amount()).isNegative())
+   {
+      qDebug() << "unable to fully fund reserve amount";
+      m_goals[reserve.category()] += m_available;
+      m_goalThisPeriod[reserve.category()] += m_available;
+      m_available.clear();
+   }
+   else {
+      m_goals[reserve.category()] += reserve.amount();
+      m_goalThisPeriod[reserve.category()] += reserve.amount();
+      m_available -= reserve.amount();
+   }
+}
+
 // TODO need an option to override the apps concept of "today" so that we can check future scenarios if desired
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
@@ -232,9 +254,16 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                // savings range for goal split to cover current period days
                Currency toAllocate = toSave.amortize(goalPeriod, m_currentPeriod);
 
-               qDebug() << "need to reserve " << toAllocate.toString() << "in today's budget period to stay on track";
-               m_goals[entry.category()].clear();
+               // TODO currency needs a < operator
+//               if ((m_goalReserves[entry.category()] - toAllocate).isNegative())
+//               {
+//                  qDebug() << "need to reserve " << (toAllocate - m_goalReserves[entry.category()]).toString() << " in today's budget period to stay on track";
+//               }
+m_needToReserve[entry.category()] += toAllocate;
 
+               // TODO this smells wrong... I know we  need to clear the currently saved amount since we don't have enough to cover the full expense of the upcoming transaction, but how do we save for multiple things at once if we keep erasing our current holdings?
+               //    ignore above
+               m_goals[entry.category()].clear();
             }
             else {
                m_goals[entry.category()] += entry.amount();
@@ -340,6 +369,9 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       }
       m_priorRoutine += m_currentRoutine;
       m_currentRoutine.clear();
+
+      // when we start a new period, we start over with tracking how much we reserved in the current period for goals
+      m_goalThisPeriod.clear();
 
       // advance the budget period to the new dates
       ++m_currentPeriod;
