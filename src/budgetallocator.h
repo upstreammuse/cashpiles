@@ -11,6 +11,7 @@ class BudgetAllocator : public ItemProcessor
 {
 public:
    void finish();
+   void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetGoalEntry const& budget);
    void processItem(LedgerBudgetIncomeEntry const& budget);

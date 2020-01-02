@@ -52,6 +52,7 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          if (!m_accounts.contains(account.name()))
          {
             m_accounts[account.name()].onbudget = false;
+            m_accounts[account.name()].balance = account.balance();
          }
          else
          {
@@ -66,6 +67,7 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          if (!m_accounts.contains(account.name()))
          {
             m_accounts[account.name()].onbudget = true;
+            m_accounts[account.name()].balance = account.balance();
          }
          else
          {

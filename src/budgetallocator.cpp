@@ -4,6 +4,7 @@
 
 
 #include <QDebug>
+#include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
@@ -46,6 +47,15 @@ void BudgetAllocator::finish()
    }
 
    qDebug() << "remaining available" << m_available.toString();
+}
+
+void BudgetAllocator::processItem(LedgerAccount const& account)
+{
+   advanceBudgetPeriod(account.date());
+   if (account.mode() == LedgerAccount::Mode::ON_BUDGET)
+   {
+      m_available += account.balance();
+   }
 }
 
 void BudgetAllocator::processItem(LedgerBudget const& budget)
