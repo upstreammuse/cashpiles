@@ -188,7 +188,6 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
    }
 }
 
-// TODO need an option to override the apps concept of "today" so that we can check future scenarios if desired
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
    // update the current budget period to include the transaction date, but
