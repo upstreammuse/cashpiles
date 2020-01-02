@@ -201,12 +201,12 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
-      // TODO is it better to ignore the entry, throwing off our answers, or is it better to create a new category as a routine expense and move on?
-      //   this is similar to the problem we face when coming across unknown accounts
+      // create a new routine category if we haven't seen it before, since this is the safest thing to do
       if (!m_incomes.contains(entry.category()) && !m_reserves.contains(entry.category()) && !m_routines.contains(entry.category()))
       {
          qDebug() << "Category" << entry.category() << "is unknown and not properly budgeted";
-         continue;
+         qDebug() << "   setting as a routine category";
+         m_routines.insert(entry.category());
       }
 
       // ignore future incomes
