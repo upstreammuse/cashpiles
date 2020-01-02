@@ -53,7 +53,7 @@ namespace
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
    QRegularExpression const reserveRx(
          START_RX + DATE_RX + SPACE_RX + "reserve" + SPACE_RX +
-         IDENT_RX.arg("category") + SEP_RX + CURR_RX.arg("amount"));
+         IDENT_RX.arg("category") + SEP_RX + CURR_RX.arg("amount") + END_RX);
    QRegularExpression const txnCompactRx(
          START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
          IDENT_RX.arg("account") + SEP_RX + IDENT_RX.arg("payee") + SEP_RX +
