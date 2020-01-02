@@ -4,6 +4,7 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
+#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 void DateValidator::processItem(LedgerAccount const& account)
@@ -14,6 +15,11 @@ void DateValidator::processItem(LedgerAccount const& account)
 void DateValidator::processItem(LedgerBudget const& budget)
 {
    processDate(budget.date(), budget.fileName(), budget.lineNum());
+}
+
+void DateValidator::processItem(LedgerReserve const& reserve)
+{
+   processDate(reserve.date(), reserve.fileName(), reserve.lineNum());
 }
 
 void DateValidator::processItem(LedgerTransaction const& transaction)
