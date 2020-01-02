@@ -225,8 +225,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 
       if (m_goals.contains(entry.category()))
       {
-         // TODO it might be possible to replace "goal period" variable with a dynamic check for "current period includes today", since we don't go past current day's period
-         if (transaction.date() <= QDate::currentDate())  // this is a goal that happened in the past
+         // this is a goal that happened in the past
+         if (transaction.date() <= QDate::currentDate())
          {
             m_goals[entry.category()] += entry.amount();
             if (m_goals[entry.category()].isNegative())
@@ -248,8 +248,9 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 
             }
          }
-         else {
-            // in this section, the transaction date is after today, so the current budget period has to include the current date (since we stop at the current date period)
+         // in this section, the transaction date is after today, so the current budget period has to include the current date (since we stop at the current date period)
+         else
+         {
             if ((m_goals[entry.category()] + entry.amount()).isNegative()) /// need to save more for this goal
             {
                // nasty way of getting the positive amount to save
@@ -272,8 +273,6 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
             else {
                m_goals[entry.category()] += entry.amount();
             }
-
-
          }
       }
       else if (m_incomes.contains(entry.category()))
