@@ -72,6 +72,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    m_currentRoutine.clear();
    for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
    {
+      // TODO we should also return negative values, or else we will make up money
       if (!it->isZero() && !it->isNegative())
       {
          qDebug() << "Returning" << it->toString() << "from category" << it.key() << "to available";
@@ -87,6 +88,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    m_reservePeriods.clear();
    for (auto it = m_reserves.cbegin(); it != m_reserves.cend(); ++it)
    {
+      // TODO we should also return negative values, or else we will make up money
       if (!it->isZero() && !it->isNegative())
       {
          qDebug() << "Returning" << it->toString() << "from category" << it.key() << "to available";
