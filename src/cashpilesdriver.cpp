@@ -26,6 +26,7 @@ int main(int, char**)
    else
    {
       qDebug() << "failed to read file";
+      return EXIT_FAILURE;
    }
 
    DateValidator dv;
