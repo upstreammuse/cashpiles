@@ -31,7 +31,8 @@ namespace
    QRegularExpression const accountRx(
          START_RX + DATE_RX + SPACE_RX +
          "(?<command>on-budget|off-budget|close)" + SPACE_RX +
-         IDENT_RX.arg("account") + END_RX);
+         IDENT_RX.arg("account") +
+         OPTIONAL_RX.arg(SEP_RX + CURR_RX.arg("balance")) + END_RX);
    QRegularExpression const budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX);
@@ -113,8 +114,19 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
 {
    QSharedPointer<LedgerAccount> account(
             new LedgerAccount(m_fileName, m_lineNum));
-   account->setName(match.captured("account"));
    account->setDate(parseDate(match.captured("date")));
+   account->setName(match.captured("account"));
+
+   if (!match.captured("balance").isEmpty())
+   {
+      bool ok;
+      account->setBalance(Currency::fromString(match.captured("balance"), &ok));
+      if (!ok)
+      {
+         failedCurrency(match.captured("balance"));
+      }
+   }
+
    bool ok;
    account->setMode(
             LedgerAccount::modeFromString(match.captured("command"), &ok));
@@ -123,6 +135,7 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
       failed(QString("Unknown account command '%1'")
              .arg(match.captured("command")));
    }
+
    m_ledger.appendItem(account);
 }
 

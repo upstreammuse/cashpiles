@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include <QString>
+#include "currency.h"
 #include "ledgeritem.h"
 
 class LedgerAccount : public LedgerItem
@@ -19,18 +20,21 @@ public:
 
 public:
    LedgerAccount(QString const& filename, uint lineNum);
+   Currency balance() const;
    QDate date() const;
    Mode mode() const;
    QString name() const;
    void processItem(ItemProcessor& processor) const;
+   void setBalance(Currency const& balance);
    void setDate(QDate const& date);
    void setMode(Mode mode);
    void setName(QString const& account);
 
 private:
-   QString m_name;
+   Currency m_balance;
    QDate m_date;
    Mode m_mode = Mode::CLOSED;
+   QString m_name;
 };
 
 #endif
