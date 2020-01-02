@@ -7,6 +7,21 @@ LedgerReserve::LedgerReserve(QString const& filename, uint linenum) :
 {
 }
 
+Currency LedgerReserve::amount() const
+{
+   return m_amount;
+}
+
+QString LedgerReserve::category() const
+{
+   return m_category;
+}
+
+QDate LedgerReserve::date() const
+{
+   return m_date;
+}
+
 void LedgerReserve::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
