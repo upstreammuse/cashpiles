@@ -18,7 +18,7 @@ int main(int, char**)
    Ledger ledger;
 
    FileReader reader("~/cashpiles.txt", ledger);
-   reader.setDateFormat("M/d/yyyy");
+   reader.setDateFormat(QLocale::system().dateFormat(QLocale::ShortFormat));
    if (reader.readAll())
    {
       qDebug() << "successfully read file";
@@ -39,7 +39,7 @@ int main(int, char**)
    ledger.processItems(budAlloc);
 
    FileWriter writer("~/cp-output-test.txt");
-   writer.setDateFormat("M/d/yyyy");
+   writer.setDateFormat(QLocale::system().dateFormat(QLocale::ShortFormat));
    ledger.processItems(writer);
    if (writer.success())
    {

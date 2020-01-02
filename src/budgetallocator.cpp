@@ -1,8 +1,5 @@
 #include "budgetallocator.h"
 
-// TODO need the ability to configure deposits into the available category, so we can do account setup without needing fake budgets to handle the 'income'
-
-
 #include <QDebug>
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
