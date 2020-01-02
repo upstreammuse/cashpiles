@@ -2,22 +2,6 @@
 
 // TODO need the ability to configure deposits into the available category, so we can do account setup without needing fake budgets to handle the 'income'
 
-// TODO goals need to be saved per transaction?
-   // yes, otherwise allocation never looks like enough
-    // well, the total allocation for the current budget period needs to be kept sqeparate so that it knows that the saving has alreayd been completed
-
-// as of today, I have $500
-//  next week I need $600
-//  next month I need $300
-// so I must save $100 in the coming week
-//  and I must save $75 in the coming week
-
-// 600 + 300 - 500 = 400 to save, but can't do this evenly or will miss soon large amounts
-
-// so for each goal expense (ignore income?), take away the amount already saved, then amortize over the coming periods
-//   most expenses will hoave nothing to take away, so will require saving full amount
-//   as goals become past expenses, actual values will update required saving amounts
-
 
 #include <QDebug>
 #include "ledgerbudget.h"
