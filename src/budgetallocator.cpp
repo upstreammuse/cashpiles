@@ -266,15 +266,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                // savings range for goal split to cover current period days
                Currency toAllocate = toSave.amortize(goalPeriod, m_currentPeriod);
 
-               // TODO currency needs a < operator
-//               if ((m_goalReserves[entry.category()] - toAllocate).isNegative())
-//               {
-//                  qDebug() << "need to reserve " << (toAllocate - m_goalReserves[entry.category()]).toString() << " in today's budget period to stay on track";
-//               }
-m_needToReserve[entry.category()] += toAllocate;
-
-               // TODO this smells wrong... I know we  need to clear the currently saved amount since we don't have enough to cover the full expense of the upcoming transaction, but how do we save for multiple things at once if we keep erasing our current holdings?
-               //    ignore above
+               m_needToReserve[entry.category()] += toAllocate;
                m_goals[entry.category()].clear();
             }
             else {
