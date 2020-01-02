@@ -196,8 +196,6 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 
    foreach (LedgerTransactionEntry entry, transaction.entries())
    {
-      // TODO make sure that account balancer is checking to make sure that on-budget accounts have categories and vice versa
-      //   just checked, it isn't doing this yet
       if (!entry.hasCategory())
       {
          continue;

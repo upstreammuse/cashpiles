@@ -104,6 +104,14 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
+      if (m_accounts[transaction.account()].onbudget && !entry.hasCategory())
+      {
+         qDebug() << QString("File '%1', line %2: Missing category for on-budget account").arg(transaction.fileName()).arg(transaction.lineNum());
+      }
+      if (!m_accounts[transaction.account()].onbudget && entry.hasCategory())
+      {
+         qDebug() << QString("File '%1', line %2: Category set for off-budget account").arg(transaction.fileName()).arg(transaction.lineNum());
+      }
       if (entry.transfer())
       {
          m_transfers[transaction.account()][entry.payee()] += entry.amount();
