@@ -334,8 +334,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
       else
       {
-         qDebug() << "category is unknown by this allocator";
-         // TODO this is a funk state since all the types should be handled above
+         Q_ASSERT_X(false, "processItem", "Category type not handled");
       }
    }
 }
