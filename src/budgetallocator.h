@@ -26,14 +26,20 @@ private:
                             QDate const& date, bool rebudgeting = false);
 
 private:
+   struct Goal
+   {
+      Currency neededThisPeriod;
+      Currency reserved;
+      Currency reservedThisPeriod;
+   };
+
+private:
    Currency m_available;
    DateRange m_currentPeriod;
    Currency m_currentRoutine;
    Currency m_escrow;
-   QHash<QString, Currency> m_goals;
-   QHash<QString, Currency> m_goalThisPeriod;
+   QHash<QString, Goal> m_goals;
    QSet<QString> m_incomes;
-   QHash<QString, Currency> m_needToReserve;
    DateRange m_priorPeriod;
    Currency m_priorRoutine;
    QHash<QString, Currency> m_reserveAmounts;
