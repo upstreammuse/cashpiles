@@ -33,6 +33,14 @@ private:
       Currency reservedThisPeriod;
    };
 
+   struct Reserve
+   {
+      Currency amount;
+      double percentage;
+      DateRange period;
+      Currency reserved;
+   };
+
 private:
    Currency m_available;
    DateRange m_currentPeriod;
@@ -42,10 +50,7 @@ private:
    QSet<QString> m_incomes;
    DateRange m_priorPeriod;
    Currency m_priorRoutine;
-   QHash<QString, Currency> m_reserveAmounts;
-   QHash<QString, double> m_reservePercentages;
-   QHash<QString, DateRange> m_reservePeriods;
-   QHash<QString, Currency> m_reserves;
+   QHash<QString, Reserve> m_reserves;
    QSet<QString> m_routines;
 };
 
