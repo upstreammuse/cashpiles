@@ -7,21 +7,39 @@
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
+#include "texttable.h"
 
 void BudgetAllocator::finish()
 {
-   Currency goal;
+   QTextStream out(stdout);
+   TextTable table;
+   Currency total;
+   table.appendColumn(0, "== GOAL ==  ");
+   table.appendColumn(1, "== RESERVED ==  ");
+   table.appendColumn(2, "== NEEDED ==  ");
+   table.appendColumn(3, "== AVAILABLE ==");
    for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
    {
-      goal += it->reserved;
+      table.appendColumn(0, it.key() + "  ");
+      table.appendColumn(1, it->reservedThisPeriod.toString() + "  ");
       if ((it->reservedThisPeriod - it->neededThisPeriod).isNegative())
       {
-         qDebug() << "Need to reserve additional "
-                  << (it->neededThisPeriod - it->reservedThisPeriod).toString()
-                  << " this period for goal category " << it.key();
+         table.appendColumn(2, (it->neededThisPeriod -
+                                it->reservedThisPeriod).toString() + "  ");
       }
+      else
+      {
+         table.appendColumn(2, "---  ");
+      }
+      table.appendColumn(3, it->reserved.toString());
+      total += it->reserved;
    }
-   qDebug() << "reserved for goals" << goal.toString();
+   table.appendColumn(0, "== TOTAL ==  ");
+   table.appendColumn(3, total.toString());
+   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
+   table.print(out);
 
    Currency reserved;
    for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
