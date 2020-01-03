@@ -203,6 +203,20 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
+      // ignore future incomes for budgeting purposes
+      if (m_incomes.contains(entry.category()) &&
+          transaction.date() > QDate::currentDate())
+      {
+         continue;
+      }
+
+      // ignore all non-goal transactions after the current budget period
+      if (!m_goals.contains(entry.category()) &&
+          transaction.date() > m_currentPeriod.endDate())
+      {
+         continue;
+      }
+
       // create a new routine category if we haven't seen it before, since this
       // is the safest thing to do without a complete error out
       if (!m_goals.contains(entry.category()) &&
@@ -216,23 +230,10 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          m_routines.insert(entry.category());
       }
 
-      // ignore future incomes
-      if (m_incomes.contains(entry.category()) && transaction.date() > QDate::currentDate())
-      {
-         qDebug() << "ignoring future income for budgeting";
-         continue;
-      }
-
-      // ignore non-goal transactions after the current budget period, since the budget period stops with teh current date
-      if (!m_goals.contains(entry.category()) && transaction.date() > m_currentPeriod.endDate())
-      {
-         qDebug() << "ignoring future transaction beyond current budget period";
-         continue;
-      }
-
+      // process the transaction entry based on its budget category type
       if (m_goals.contains(entry.category()))
       {
-         // this is a goal that happened in the past
+         // this is a goal that has happened
          if (transaction.date() <= QDate::currentDate())
          {
             m_goals[entry.category()] += entry.amount();
@@ -247,37 +248,47 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                   m_goals[entry.category()] += m_available;
                   m_available.clear();
                }
-               else {
+               else
+               {
                   // TODO I think this sign is wrong in the code elsewhere
                   m_available += m_goals[entry.category()];
                   m_goals[entry.category()].clear();
                }
-
             }
          }
-         // in this section, the transaction date is after today, so the current budget period has to include the current date (since we stop at the current date period)
+         // this is a goal after today, and the budget period includes the
+         // current date, note that the entry amount is negative
          else
          {
-            if ((m_goals[entry.category()] + entry.amount()).isNegative()) /// need to save more for this goal
+            // need to save more for this goal
+            if ((m_goals[entry.category()] + entry.amount()).isNegative())
             {
-               // nasty way of getting the positive amount to save
-               Currency toSave = Currency() - entry.amount() - m_goals[entry.category()];
+               // get the positive amount to save
+               Currency toSave = Currency() - entry.amount() -
+                                 m_goals[entry.category()];
 
-               // find out the total date range left to save in, including the current period dates
+               // find out the total date range left to save in, including the
+               // current period dates
                DateRange goalPeriod = m_currentPeriod;
                while (goalPeriod.endDate() < transaction.date())
                {
                   ++goalPeriod;
                }
-               goalPeriod = DateRange(m_currentPeriod.startDate(), goalPeriod.endDate());
+               goalPeriod = DateRange(m_currentPeriod.startDate(),
+                                      goalPeriod.endDate());
 
-               // savings range for goal split to cover current period days
-               Currency toAllocate = toSave.amortize(goalPeriod, m_currentPeriod);
-
+               // split the total savings need for the current budget period
+               Currency toAllocate = toSave.amortize(goalPeriod,
+                                                     m_currentPeriod);
                m_needToReserve[entry.category()] += toAllocate;
+
+               // since we have to save for this entry, we have nothing left for
+               // any additional goal entries
                m_goals[entry.category()].clear();
             }
-            else {
+            // we have enough, so "spend" from the saved goal money
+            else
+            {
                m_goals[entry.category()] += entry.amount();
             }
          }
@@ -289,7 +300,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          {
             qDebug() << "income brought available funds negative";
          }
-         for (auto it = m_reservePercentages.begin(); it != m_reservePercentages.end(); ++it)
+         for (auto it = m_reservePercentages.begin();
+              it != m_reservePercentages.end(); ++it)
          {
             Currency amount = entry.amount() * it.value();
             if ((m_available - amount).isNegative())
@@ -313,8 +325,9 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                m_reserves[entry.category()] += m_available;
                m_available.clear();
             }
-            else {
-               m_available -= m_reserves[entry.category()];
+            else
+            {
+               m_available += m_reserves[entry.category()];
                m_reserves[entry.category()].clear();
             }
          }
@@ -332,8 +345,9 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                m_escrow += m_available;
                m_available.clear();
             }
-            else {
-               m_available -= m_escrow;
+            else
+            {
+               m_available += m_escrow;
                m_escrow.clear();
             }
          }
