@@ -454,7 +454,12 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       // if it is too much, take what we can
       if ((m_available - daily).isNegative())
       {
-         qDebug() << "cannot fully fund routine escrow";
+         warn(QString("Unable to fully reserve for routine expenses in budget "
+                      "period %1-%2.  Desired amount %3, available amount %4")
+              .arg(m_currentPeriod.startDate().toString())
+              .arg(m_currentPeriod.endDate().toString())
+              .arg(daily.toString())
+              .arg(m_available.toString()));
          m_escrow += m_available;
          m_available.clear();
       }
