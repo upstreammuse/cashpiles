@@ -19,8 +19,9 @@ private:
 private:
    struct Account
    {
-      bool onBudget;
       Currency balance;
+      Currency cleared;
+      bool onBudget;
    };
 
 private:

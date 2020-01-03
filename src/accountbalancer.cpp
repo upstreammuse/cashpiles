@@ -14,41 +14,54 @@ void AccountBalancer::finish()
 
    TextTable table;
    table.appendColumn(0, "== ON-BUDGET ACCOUNT ==  ");
-   table.appendColumn(1, "== BALANCE ==");
+   table.appendColumn(1, "== CLEARED ==  ");
+   table.appendColumn(2, "== BALANCE ==");
    Currency totalOn;
+   Currency totalOnCleared;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, it->balance.toString());
+         table.appendColumn(1, it->cleared.toString() + "  ");
+         table.appendColumn(2, it->balance.toString());
+         totalOnCleared += it->cleared;
          totalOn += it->balance;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, totalOn.toString());
+   table.appendColumn(1, totalOnCleared.toString() + "  ");
+   table.appendColumn(2, totalOn.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 
    table.clear();
    table.appendColumn(0, "== OFF-BUDGET ACCOUNT ==  ");
-   table.appendColumn(1, "== BALANCE ==");
+   table.appendColumn(1, "== CLEARED ==  ");
+   table.appendColumn(2, "== BALANCE ==");
    Currency totalOff;
+   Currency totalOffCleared;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (!it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, it->balance.toString());
+         table.appendColumn(1, it->cleared.toString() + "  ");
+         table.appendColumn(2, it->balance.toString());
+         totalOffCleared += it->cleared;
          totalOff += it->balance;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, totalOff.toString());
+   table.appendColumn(1, totalOffCleared.toString() + "  ");
+   table.appendColumn(2, totalOff.toString());
    table.appendColumn(0, "== NET WORTH ==  ");
-   table.appendColumn(1, (totalOn + totalOff).toString());
+   table.appendColumn(1, (totalOnCleared + totalOffCleared).toString() + "  ");
+   table.appendColumn(2, (totalOn + totalOff).toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 }
@@ -125,7 +138,15 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
            .arg(transaction.account()));
       m_accounts[transaction.account()].onBudget = true;
    }
-   m_accounts[transaction.account()].balance += transaction.amount();
+   switch (transaction.status())
+   {
+      case LedgerTransaction::Status::CLEARED:
+      case LedgerTransaction::Status::DISPUTED:
+         m_accounts[transaction.account()].cleared += transaction.amount();
+         [[clang::fallthrough]];
+      case LedgerTransaction::Status::PENDING:
+         m_accounts[transaction.account()].balance += transaction.amount();
+   }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
