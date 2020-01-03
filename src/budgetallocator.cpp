@@ -443,15 +443,16 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 
       // fund the routine escrow account based on prior daily routine expenses
       // and the duration of the current budget period
-      // note that the daily value is a negative number, since it is based on
-      // routine expenses
       Currency daily = m_priorRoutine.amortize(
                           m_priorPeriod,
                           DateRange(m_priorPeriod.startDate(),
                                     m_priorPeriod.startDate())) *
                        m_currentPeriod.days();
+      // note that the daily value was a negative number, since it was based on
+      // routine expenses
+      daily = Currency() - daily;
       // if it is too much, take what we can
-      if ((m_available + daily).isNegative())
+      if ((m_available - daily).isNegative())
       {
          qDebug() << "cannot fully fund routine escrow";
          m_escrow += m_available;
@@ -459,8 +460,8 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       }
       else
       {
-         m_available += daily;
-         m_escrow -= daily;
+         m_available -= daily;
+         m_escrow += daily;
       }
    }
 }
