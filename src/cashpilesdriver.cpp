@@ -14,6 +14,8 @@
 
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
 
+// TODO add validation to make sure categories don't exist in multiple places (two different types for the same name)
+
 int main(int argc, char** argv)
 {
    QCoreApplication app(argc, argv);
