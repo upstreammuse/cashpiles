@@ -5,6 +5,7 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
+#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 FileWriter::FileWriter(QString const& fileName, QObject* parent) :
@@ -30,7 +31,12 @@ void FileWriter::processItem(LedgerAccount const& account)
    breakBetween();
    QTextStream out(m_file);
    out << account.date().toString(m_dateFormat) << " "
-       << account.modeToString(account.mode()) << " " << account.name() << endl;
+       << account.modeToString(account.mode()) << " " << account.name();
+   if (!account.balance().isZero())
+   {
+      out << "  " << account.balance().toString();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerBudget const& budget)
@@ -78,6 +84,14 @@ void FileWriter::processItem(LedgerComment const& comment)
    breakBetween();
    QTextStream out(m_file);
    out << ";" << comment.note() << endl;
+}
+
+void FileWriter::processItem(LedgerReserve const& reserve)
+{
+   breakBetween();
+   QTextStream out(m_file);
+   out << reserve.date().toString(m_dateFormat) << " reserve "
+       << reserve.category() << "  " << reserve.amount().toString() << endl;
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)

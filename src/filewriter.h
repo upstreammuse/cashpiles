@@ -19,6 +19,7 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& entry);
    void processItem(LedgerBudgetRoutineEntry const& entry);
    void processItem(LedgerComment const& comment);
+   void processItem(LedgerReserve const& reserve);
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(QString const& dateFormat);
    void start();
