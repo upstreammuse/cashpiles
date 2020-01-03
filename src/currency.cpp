@@ -168,9 +168,6 @@ bool Currency::isZero() const
    return m_value == 0;
 }
 
-// TODO this code is a bit of a cheat, since it doesn't necessarily match the
-//   input regexp, and relies on some creative mangling, would be better to
-//   define currency format in a symmetric way, but Qt won't help with that
 QString Currency::toString() const
 {
    qint64 value = m_value;
