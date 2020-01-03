@@ -127,6 +127,7 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    m_reservePeriods[budget.name()] = DateRange(m_currentPeriod.startDate(), budget.interval());
    m_reserves[budget.name()];
 
+   // TODO this needs to be commonized with the code in the advancwe... method that does the same thing, and this one is probably buggy!
    // fund all reserve periods that end within this budget period
    while (m_reservePeriods[budget.name()].endDate() <= m_currentPeriod.endDate())
    {
@@ -176,6 +177,12 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 void BudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
+   if (!m_goals.contains(reserve.category()))
+   {
+      die(reserve.fileName(), reserve.lineNum(),
+          "reserve command only for goals right now, sorry");
+   }
+
    if ((m_available - reserve.amount()).isNegative())
    {
       qDebug() << "unable to fully fund reserve amount";
@@ -183,7 +190,8 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
       m_goalThisPeriod[reserve.category()] += m_available;
       m_available.clear();
    }
-   else {
+   else
+   {
       m_goals[reserve.category()] += reserve.amount();
       m_goalThisPeriod[reserve.category()] += reserve.amount();
       m_available -= reserve.amount();
