@@ -2,7 +2,6 @@ TEMPLATE = app
 CONFIG += console
 #QT += widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
-
 HEADERS += \
    src/accountbalancer.h \
    src/budgetallocator.h \
@@ -23,7 +22,7 @@ HEADERS += \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
-
+   src/texttable.h
 SOURCES += \
    src/accountbalancer.cpp \
    src/budgetallocator.cpp \
@@ -45,5 +44,5 @@ SOURCES += \
    src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
-
+   src/texttable.cpp
 TARGET = cashpiles

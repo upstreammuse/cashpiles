@@ -5,43 +5,42 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
+#include "texttable.h"
 
 void AccountBalancer::finish()
 {
    checkTransfers(m_lastDate.addDays(1));
-
-   QString heading1a = "ON-BUDGET ACCOUNT";
-   QString heading1b = "OFF-BUDGET ACCOUNT";
-   QString heading2 = "BALANCE";
-   int col1 = heading1b.size();
-   int col2 = heading2.size();
-   for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
-   {
-      col1 = std::max(it.key().size(), col1);
-      col2 = std::max(it.value().balance.toString().size(), col2);
-   }
-
    QTextStream out(stdout);
-   out << heading1a.leftJustified(col1) << "  " << heading2.rightJustified(col2)
-       << endl;
+
+   TextTable table;
+   table.appendColumn(0, "ON-BUDGET ACCOUNT  ");
+   table.appendColumn(1, "BALANCE");
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (it->onBudget)
       {
-         out << it.key().leftJustified(col1) << "  "
-             << it->balance.toString().rightJustified(col2) << endl;
+         table.appendColumn(0, it.key() + "  ");
+         table.appendColumn(1, it->balance.toString());
       }
    }
-   out << heading1b.leftJustified(col1) << "  " << heading2.rightJustified(col2)
-       << endl;
+   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.print(out);
+   out << endl;
+
+   table.clear();
+   table.appendColumn(0, "OFF-BUDGET ACCOUNT  ");
+   table.appendColumn(1, "BALANCE");
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (!it->onBudget)
       {
-         out << it.key().leftJustified(col1) << "  "
-             << it->balance.toString().rightJustified(col2) << endl;
+         table.appendColumn(0, it.key() + "  ");
+         table.appendColumn(1, it->balance.toString());
       }
    }
+   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.print(out);
+   out << endl;
 }
 
 void AccountBalancer::processItem(LedgerAccount const& account)
