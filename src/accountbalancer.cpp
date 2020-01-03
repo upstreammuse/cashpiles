@@ -13,31 +13,41 @@ void AccountBalancer::finish()
    QTextStream out(stdout);
 
    TextTable table;
-   table.appendColumn(0, "ON-BUDGET ACCOUNT  ");
-   table.appendColumn(1, "BALANCE");
+   table.appendColumn(0, "== ON-BUDGET ACCOUNT ==  ");
+   table.appendColumn(1, "== BALANCE ==");
+   Currency totalOn;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->balance.toString());
+         totalOn += it->balance;
       }
    }
+   table.appendColumn(0, "== TOTAL ==  ");
+   table.appendColumn(1, totalOn.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 
    table.clear();
-   table.appendColumn(0, "OFF-BUDGET ACCOUNT  ");
-   table.appendColumn(1, "BALANCE");
+   table.appendColumn(0, "== OFF-BUDGET ACCOUNT ==  ");
+   table.appendColumn(1, "== BALANCE ==");
+   Currency totalOff;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (!it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->balance.toString());
+         totalOff += it->balance;
       }
    }
+   table.appendColumn(0, "== TOTAL ==  ");
+   table.appendColumn(1, totalOff.toString());
+   table.appendColumn(0, "== NET WORTH ==  ");
+   table.appendColumn(1, (totalOn + totalOff).toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
