@@ -35,6 +35,7 @@ Interval Interval::fromString(QString const& interval, bool* ok)
    }
    else
    {
+      period = Period::DAYS;
       *success = false;
    }
 
@@ -52,7 +53,7 @@ Interval::Interval(uint number, Period period) :
 }
 
 Interval::Interval(QDate const& start, QDate const& end) :
-   m_number(start.daysTo(end) + 1),
+   m_number(uint(start.daysTo(end) + 1)),
    m_period(Period::DAYS)
 {
 }
@@ -110,10 +111,10 @@ QDate operator+(QDate const& left, Interval const& right)
          result = left.addDays(right.number());
          break;
       case Interval::Period::MONTHS:
-         result = left.addMonths(right.number());
+         result = left.addMonths(int(right.number()));
          break;
       case Interval::Period::YEARS:
-         result = left.addYears(right.number());
+         result = left.addYears(int(right.number()));
          break;
    }
    return result;
