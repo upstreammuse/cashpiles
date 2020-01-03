@@ -1,6 +1,7 @@
 #include "budgetallocator.h"
 
 #include <QDebug>
+#include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgerreserve.h"
@@ -343,7 +344,11 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
    // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
    {
-      qDebug() << "using default monthly budget period";
+      // but only warn if we aren't about to replace the default with a new one
+      if (!rebudgeting)
+      {
+         warn("Creating a default monthly budget period");
+      }
       m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1),
                                   Interval(1, Interval::Period::MONTHS));
    }
