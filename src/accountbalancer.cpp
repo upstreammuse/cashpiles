@@ -10,12 +10,37 @@ void AccountBalancer::finish()
 {
    checkTransfers(m_lastDate.addDays(1));
 
+   QString heading1a = "ON-BUDGET ACCOUNT";
+   QString heading1b = "OFF-BUDGET ACCOUNT";
+   QString heading2 = "BALANCE";
+   int col1 = heading1b.size();
+   int col2 = heading2.size();
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      QTextStream out(stdout);
-      out << QString("Account %1 balance = %2")
-             .arg(it.key())
-             .arg(it->balance.toString()) << endl;
+      col1 = std::max(it.key().size(), col1);
+      col2 = std::max(it.value().balance.toString().size(), col2);
+   }
+
+   QTextStream out(stdout);
+   out << heading1a.leftJustified(col1) << "  " << heading2.rightJustified(col2)
+       << endl;
+   for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
+   {
+      if (it->onBudget)
+      {
+         out << it.key().leftJustified(col1) << "  "
+             << it->balance.toString().rightJustified(col2) << endl;
+      }
+   }
+   out << heading1b.leftJustified(col1) << "  " << heading2.rightJustified(col2)
+       << endl;
+   for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
+   {
+      if (!it->onBudget)
+      {
+         out << it.key().leftJustified(col1) << "  "
+             << it->balance.toString().rightJustified(col2) << endl;
+      }
    }
 }
 
