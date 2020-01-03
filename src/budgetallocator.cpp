@@ -376,7 +376,7 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       m_priorRoutine += m_currentRoutine;
       m_currentRoutine.clear();
 
-      // when we start a new period, we start over with tracking how much we reserved in the current period for goals
+      // reset tracking how much we reserved in the current period for goals
       m_goalThisPeriod.clear();
 
       // advance the budget period to the new dates
@@ -410,7 +410,14 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
             // if we can't fund it all, take what we can get
             if ((m_available - amount).isNegative())
             {
-               qDebug() << "unable to fully fund reserve amount";
+               warn(QString("Unable to fully fund reserve category '%1' in "
+                            "budget period %2-%3.  Desired amount %4, "
+                            "available amount %5")
+                    .arg(it.key())
+                    .arg(m_currentPeriod.startDate().toString())
+                    .arg(m_currentPeriod.endDate().toString())
+                    .arg(amount.toString())
+                    .arg(m_available.toString()));
                amount = m_available;
             }
 
