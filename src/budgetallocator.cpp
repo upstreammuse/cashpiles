@@ -355,8 +355,7 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 
    if (date < m_currentPeriod.startDate())
    {
-      qDebug() << "cannot rewind budget period for earlier dated item";
-      return;
+      die("Cannot rewind budget period for earlier dated item");
    }
 
    // stop advancing once the budget period covers either the requested date or
