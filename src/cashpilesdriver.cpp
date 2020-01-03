@@ -1,6 +1,8 @@
+#include <QCoreApplication>
 #include <QDebug>
 #include "accountbalancer.h"
 #include "budgetallocator.h"
+#include "cashpiles.h"
 #include "currency.h"
 #include "datevalidator.h"
 #include "filereader.h"
@@ -12,13 +14,18 @@
 
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
 
-int main(int, char**)
+int main(int argc, char** argv)
 {
+   QCoreApplication app(argc, argv);
    Currency::initializeCurrencies();
+
+   QString dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat);
+   processArguments(dateFormat, app.arguments());
+
    Ledger ledger;
 
    FileReader reader("~/cashpiles.txt", ledger);
-   reader.setDateFormat(QLocale::system().dateFormat(QLocale::ShortFormat));
+   reader.setDateFormat(dateFormat);
    if (reader.readAll())
    {
       qDebug() << "successfully read file";
@@ -39,7 +46,7 @@ int main(int, char**)
    ledger.processItems(budAlloc);
 
    FileWriter writer("~/cp-output-test.txt");
-   writer.setDateFormat(QLocale::system().dateFormat(QLocale::ShortFormat));
+   writer.setDateFormat(dateFormat);
    ledger.processItems(writer);
    if (writer.success())
    {
