@@ -1,25 +1,27 @@
 #include "accountbalancer.h"
 
-#include <QDebug>
+#include <QTextStream>
+#include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
 
 void AccountBalancer::finish()
 {
-   checkTransfers(m_lastDate, "", 0);
+   checkTransfers(m_lastDate.addDays(1));
 
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      qDebug() << QString("Account %1 balance = %2")
-                  .arg(it.key())
-                  .arg(it->balance.toString());
+      QTextStream out(stdout);
+      out << QString("Account %1 balance = %2")
+             .arg(it.key())
+             .arg(it->balance.toString()) << endl;
    }
 }
 
 void AccountBalancer::processItem(LedgerAccount const& account)
 {
-   checkTransfers(account.date(), account.fileName(), account.lineNum());
+   checkTransfers(account.date());
 
    switch (account.mode())
    {
@@ -28,11 +30,9 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          {
             if (!m_accounts[account.name()].balance.isZero())
             {
-               qDebug() << QString("File '%1', line %2: Cannot close account "
-                                   "'%3' with non-zero balance")
-                           .arg(account.fileName())
-                           .arg(account.lineNum())
-                           .arg(account.name());
+               die(account.fileName(), account.lineNum(),
+                   QString("Cannot close account '%1' with non-zero balance")
+                   .arg(account.name()));
             }
             else
             {
@@ -41,41 +41,35 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          }
          else
          {
-            qDebug() << QString("File '%1', line %2: Cannot close account '%3' "
-                                "that was not open")
-                        .arg(account.fileName())
-                        .arg(account.lineNum())
-                        .arg(account.name());
+            die(account.fileName(), account.lineNum(),
+                QString("Cannot close account '%1' that was not open")
+                .arg(account.name()));
          }
          break;
       case LedgerAccount::Mode::OFF_BUDGET:
          if (!m_accounts.contains(account.name()))
          {
-            m_accounts[account.name()].onbudget = false;
+            m_accounts[account.name()].onBudget = false;
             m_accounts[account.name()].balance = account.balance();
          }
          else
          {
-            qDebug() << QString("File '%1', line %2: Cannot open account '%3' "
-                                "that was already open")
-                        .arg(account.fileName())
-                        .arg(account.lineNum())
-                        .arg(account.name());
+            die(account.fileName(), account.lineNum(),
+                QString("Cannot open account '%1' that was already open")
+                .arg(account.name()));
          }
          break;
       case LedgerAccount::Mode::ON_BUDGET:
          if (!m_accounts.contains(account.name()))
          {
-            m_accounts[account.name()].onbudget = true;
+            m_accounts[account.name()].onBudget = true;
             m_accounts[account.name()].balance = account.balance();
          }
          else
          {
-            qDebug() << QString("File '%1', line %2: Cannot open account '%3' "
-                                "that was already open")
-                        .arg(account.fileName())
-                        .arg(account.lineNum())
-                        .arg(account.name());
+            die(account.fileName(), account.lineNum(),
+                QString("Cannot open account '%1' that was already open")
+                .arg(account.name()));
          }
          break;
    }
@@ -83,55 +77,95 @@ void AccountBalancer::processItem(LedgerAccount const& account)
 
 void AccountBalancer::processItem(LedgerBudget const& budget)
 {
-   checkTransfers(budget.date(), budget.fileName(), budget.lineNum());
+   checkTransfers(budget.date());
 }
 
 void AccountBalancer::processItem(LedgerTransaction const& transaction)
 {
-   checkTransfers(transaction.date(), transaction.fileName(),
-                  transaction.lineNum());
+   checkTransfers(transaction.date());
 
    if (!m_accounts.contains(transaction.account()))
    {
-      qDebug() << QString("File '%1', line %2: Transaction against unknown or "
-                          "closed account '%3'")
-                  .arg(transaction.fileName())
-                  .arg(transaction.lineNum())
-                  .arg(transaction.account());
-      return;
+      warn(transaction.fileName(), transaction.lineNum(),
+           QString("Automatically opening on-budget account '%1'")
+           .arg(transaction.account()));
+      m_accounts[transaction.account()].onBudget = true;
    }
    m_accounts[transaction.account()].balance += transaction.amount();
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
-      if (m_accounts[transaction.account()].onbudget && !entry.hasCategory())
-      {
-         qDebug() << QString("File '%1', line %2: Missing category for on-budget account").arg(transaction.fileName()).arg(transaction.lineNum());
-      }
-      if (!m_accounts[transaction.account()].onbudget && entry.hasCategory())
-      {
-         qDebug() << QString("File '%1', line %2: Category set for off-budget account").arg(transaction.fileName()).arg(transaction.lineNum());
-      }
       if (entry.transfer())
       {
+         if (!m_accounts.contains(entry.payee()))
+         {
+            warn(transaction.fileName(), transaction.lineNum(),
+                 QString("Automatically opening on-budget account '%1'")
+                 .arg(entry.payee()));
+            m_accounts[entry.payee()].onBudget = true;
+         }
+
+         if (m_accounts[transaction.account()].onBudget &&
+             m_accounts[entry.payee()].onBudget &&
+             entry.hasCategory())
+         {
+            die(transaction.fileName(), transaction.lineNum(),
+                QString("Budget category set for transfer between on-budget "
+                        "accounts '%1' and '%2'")
+                .arg(transaction.account())
+                .arg(entry.payee()));
+         }
+         else if (m_accounts[transaction.account()].onBudget &&
+                  !m_accounts[entry.payee()].onBudget &&
+                  !entry.hasCategory())
+         {
+            die(transaction.fileName(), transaction.lineNum(),
+                QString("Missing budget category for transfer between "
+                        "on-budget account '%1' and off-budget account '%2'")
+                .arg(transaction.account())
+                .arg(entry.payee()));
+         }
+         else if (!m_accounts[transaction.account()].onBudget &&
+                  entry.hasCategory())
+         {
+            die(transaction.fileName(), transaction.lineNum(),
+                QString("Budget category set for off-budget account '%1'")
+                .arg(transaction.account()));
+         }
+
          m_transfers[transaction.account()][entry.payee()] += entry.amount();
+      }
+      else
+      {
+         if (m_accounts[transaction.account()].onBudget && !entry.hasCategory())
+         {
+            die(transaction.fileName(), transaction.lineNum(),
+                QString("Missing budget category for on-budget account '%1'")
+                .arg(transaction.account()));
+         }
+         else if (!m_accounts[transaction.account()].onBudget &&
+                  entry.hasCategory())
+         {
+            die(transaction.fileName(), transaction.lineNum(),
+                QString("Budget category set for off-budget account '%1'")
+                .arg(transaction.account()));
+         }
       }
    }
 
    if (transaction.hasBalance()
        && transaction.balance() != m_accounts[transaction.account()].balance)
    {
-      qDebug() << QString("File '%1', line %2: Account balance %3 incorrect, "
-                          "should be %4")
-                  .arg(transaction.fileName())
-                  .arg(transaction.lineNum())
-                  .arg(transaction.balance().toString())
-                  .arg(m_accounts[transaction.account()].balance.toString());
+      die(transaction.fileName(), transaction.lineNum(),
+          QString("Account '%1' stated balance %2 does not match calculated "
+                  "balance %3")
+          .arg(transaction.account())
+          .arg(transaction.balance().toString())
+          .arg(m_accounts[transaction.account()].balance.toString()));
    }
 }
 
-void AccountBalancer::checkTransfers(QDate const& date, QString const& filename,
-                                     uint lineNum)
+void AccountBalancer::checkTransfers(QDate const& date)
 {
    if (date != m_lastDate)
    {
@@ -147,15 +181,12 @@ void AccountBalancer::checkTransfers(QDate const& date, QString const& filename,
                {
                   balance = -balance;
                }
-               qDebug() << QString("File '%1', line %2: Transfers between '%3' "
-                                   "and '%4' do not match as of %5.  Mismatch "
-                                   "of %6")
-                           .arg(filename)
-                           .arg(lineNum)
-                           .arg(it.key())
-                           .arg(it2.key())
-                           .arg(date.toString())
-                           .arg(balance.toString());
+               die(QString("Transfers between '%1' and '%2' do not match as of "
+                           "%3.  Mismatch of %4")
+                   .arg(it.key())
+                   .arg(it2.key())
+                   .arg(date.toString())
+                   .arg(balance.toString()));
             }
          }
       }

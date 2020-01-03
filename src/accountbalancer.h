@@ -2,10 +2,8 @@
 #define ACCOUNTBALANCER_H
 
 #include <QDate>
-#include <QHash>
 #include "currency.h"
 #include "itemprocessor.h"
-#include "ledgeritem.h"
 
 class AccountBalancer : public ItemProcessor
 {
@@ -16,13 +14,12 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void checkTransfers(QDate const& date, QString const& filename,
-                       uint lineNum);
+   void checkTransfers(QDate const& date);
 
 private:
    struct Account
    {
-      bool onbudget;
+      bool onBudget;
       Currency balance;
    };
 
