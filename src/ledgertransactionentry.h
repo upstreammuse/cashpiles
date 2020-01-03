@@ -4,7 +4,6 @@
 #include <QString>
 #include "currency.h"
 
-// TODO might decide to keep this format for other types
 class LedgerTransactionEntry
 {
 public:
