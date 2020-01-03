@@ -393,10 +393,10 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       for (auto it = m_reserveAmounts.begin(); it != m_reserveAmounts.end();
            ++it)
       {
-         // fund all reserve periods that end within this budget period, taking
-         // into account that the current reserve period might have started
+         // fund all reserve periods that start before this budget period ends,
+         // considering that the current reserve period might have started
          // before this budget period, so only do the overlap
-         while (m_reservePeriods[it.key()].endDate() <=
+         while (m_reservePeriods[it.key()].startDate() <=
                 m_currentPeriod.endDate())
          {
             // since the savings period and the budget period can be different,
@@ -418,28 +418,20 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
             m_reserves[it.key()] += amount;
             m_available -= amount;
 
-            // move to the next savings period
-            ++m_reservePeriods[it.key()];
+            // if the reserve period extends into the next budget period, we
+            // have to stop without incrementing it, so the next budget period
+            // can handle the remainder of this reserve period
+            if (m_reservePeriods[it.key()].endDate() >
+                m_currentPeriod.endDate())
+            {
+               break;
+            }
+            // otherwise increment the reserve period and let the loop run again
+            else
+            {
+               ++m_reservePeriods[it.key()];
+            }
          }
-
-         // fund this budget period's share of the next savings period that
-         // either starts in this period and ends in a future one, or starts
-         // after this period ends
-         Currency amount = m_reserveAmounts[it.key()].amortize(
-                              m_reservePeriods[it.key()],
-                              m_reservePeriods[it.key()].intersect(
-                                    m_currentPeriod));
-
-         // if we can't fund it all, take what we can get
-         if ((m_available - amount).isNegative())
-         {
-            qDebug() << "unable to fully fund reserve amount";
-            amount = m_available;
-         }
-
-         // move funds
-         m_reserves[it.key()] += amount;
-         m_available -= amount;
       }
 
       // fund the routine escrow account based on prior daily routine expenses
