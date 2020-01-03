@@ -26,14 +26,9 @@ int main(int argc, char** argv)
 
    FileReader reader("~/cashpiles.txt", ledger);
    reader.setDateFormat(dateFormat);
-   if (reader.readAll())
+   if (!reader.readAll())
    {
-      qDebug() << "successfully read file";
-   }
-   else
-   {
-      qDebug() << "failed to read file";
-      return EXIT_FAILURE;
+      die("Failed to read input file");
    }
 
    DateValidator dv;
