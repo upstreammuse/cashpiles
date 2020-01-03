@@ -5,18 +5,17 @@
 #include <QString>
 #include "currency.h"
 #include "interval.h"
+#include "ledgeritem.h"
 
 class ItemProcessor;
 
 // TODO split these into separate files?
 
-class LedgerBudgetEntry
+class LedgerBudgetEntry : public LedgerItem
 {
 public:
-   virtual ~LedgerBudgetEntry();
    QDate date() const;
    QString name() const;
-   virtual void processItem(ItemProcessor& processor) = 0;
    void setDate(QDate const& date);
    void setName(QString const& name);
 
@@ -28,13 +27,13 @@ private:
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry
 {
 public:
-   void processItem(ItemProcessor& processor);
+   void processItem(ItemProcessor& processor) const;
 };
 
 class LedgerBudgetIncomeEntry : public LedgerBudgetEntry
 {
 public:
-   void processItem(ItemProcessor& processor);
+   void processItem(ItemProcessor& processor) const;
 };
 
 class LedgerBudgetReserveAmountEntry : public LedgerBudgetEntry
@@ -42,7 +41,7 @@ class LedgerBudgetReserveAmountEntry : public LedgerBudgetEntry
 public:
    Currency amount() const;
    Interval interval() const;
-   void processItem(ItemProcessor& processor);
+   void processItem(ItemProcessor& processor) const;
    void setAmount(Currency const& amount);
    void setInterval(Interval const& interval);
 
@@ -55,7 +54,7 @@ class LedgerBudgetReservePercentEntry : public LedgerBudgetEntry
 {
 public:
    uint percentage() const;
-   void processItem(ItemProcessor& processor);
+   void processItem(ItemProcessor& processor) const;
    void setPercentage(uint percentage);
 
 private:
@@ -65,7 +64,7 @@ private:
 class LedgerBudgetRoutineEntry : public LedgerBudgetEntry
 {
 public:
-   void processItem(ItemProcessor& processor);
+   void processItem(ItemProcessor& processor) const;
 };
 
 #endif

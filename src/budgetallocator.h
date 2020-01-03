@@ -22,7 +22,8 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void advanceBudgetPeriod(QDate const& date, bool rebudgeting = false);
+   void advanceBudgetPeriod(QString const& filename, uint lineNum,
+                            QDate const& date, bool rebudgeting = false);
 
 private:
    Currency m_available;

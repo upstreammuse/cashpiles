@@ -3,10 +3,6 @@
 #include "itemprocessor.h"
 #include "ledgerbudget.h"
 
-LedgerBudgetEntry::~LedgerBudgetEntry()
-{
-}
-
 QDate LedgerBudgetEntry::date() const
 {
    return m_date;
@@ -27,12 +23,12 @@ void LedgerBudgetEntry::setName(QString const& name)
    m_name = name;
 }
 
-void LedgerBudgetGoalEntry::processItem(ItemProcessor& processor)
+void LedgerBudgetGoalEntry::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
 }
 
-void LedgerBudgetIncomeEntry::processItem(ItemProcessor& processor)
+void LedgerBudgetIncomeEntry::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
 }
@@ -47,7 +43,7 @@ Interval LedgerBudgetReserveAmountEntry::interval() const
    return m_interval;
 }
 
-void LedgerBudgetReserveAmountEntry::processItem(ItemProcessor& processor)
+void LedgerBudgetReserveAmountEntry::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
 }
@@ -67,7 +63,8 @@ uint LedgerBudgetReservePercentEntry::percentage() const
    return m_percentage;
 }
 
-void LedgerBudgetReservePercentEntry::processItem(ItemProcessor& processor)
+void LedgerBudgetReservePercentEntry::processItem(
+      ItemProcessor& processor) const
 {
    processor.processItem(*this);
 }
@@ -77,7 +74,7 @@ void LedgerBudgetReservePercentEntry::setPercentage(uint percentage)
    m_percentage = percentage;
 }
 
-void LedgerBudgetRoutineEntry::processItem(ItemProcessor& processor)
+void LedgerBudgetRoutineEntry::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
 }

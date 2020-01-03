@@ -49,7 +49,7 @@ void BudgetAllocator::finish()
 
 void BudgetAllocator::processItem(LedgerAccount const& account)
 {
-   advanceBudgetPeriod(account.date());
+   advanceBudgetPeriod(account.fileName(), account.lineNum(), account.date());
    if (account.mode() == LedgerAccount::Mode::ON_BUDGET)
    {
       m_available += account.balance();
@@ -63,7 +63,8 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
       qDebug() << "ignoring future budget configuration";
       return;
    }
-   advanceBudgetPeriod(budget.date(), true);
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date(),
+                       true);
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_currentRoutine.clear();
@@ -100,7 +101,7 @@ void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    {
       return;
    }
-   advanceBudgetPeriod(budget.date());
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_goals[budget.name()];
 }
 
@@ -110,7 +111,7 @@ void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
    {
       return;
    }
-   advanceBudgetPeriod(budget.date());
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_incomes.insert(budget.name());
 }
 
@@ -120,7 +121,7 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    {
       return;
    }
-   advanceBudgetPeriod(budget.date());
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_reserveAmounts[budget.name()] = budget.amount();
    m_reservePeriods[budget.name()] = DateRange(m_currentPeriod.startDate(), budget.interval());
@@ -157,7 +158,7 @@ void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
    {
       return;
    }
-   advanceBudgetPeriod(budget.date());
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_reservePercentages[budget.name()] = budget.percentage() / 100.0;
    m_reserves[budget.name()];
 }
@@ -168,13 +169,13 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    {
       return;
    }
-   advanceBudgetPeriod(budget.date());
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_routines.insert(budget.name());
 }
 
 void BudgetAllocator::processItem(LedgerReserve const& reserve)
 {
-   advanceBudgetPeriod(reserve.date());
+   advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
    if ((m_available - reserve.amount()).isNegative())
    {
       qDebug() << "unable to fully fund reserve amount";
@@ -191,22 +192,27 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
 
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
-   // update the current budget period to include the transaction date, but
-   // don't go past the budget period that includes the current date
-   advanceBudgetPeriod(transaction.date());
-
-   foreach (LedgerTransactionEntry entry, transaction.entries())
+   advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
+                       transaction.date());
+   foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
+      // ignore off-budget transaction entries, the account balancer will error
+      // if a category was set or not set incorrectly
       if (!entry.hasCategory())
       {
          continue;
       }
 
-      // create a new routine category if we haven't seen it before, since this is the safest thing to do
-      if (!m_incomes.contains(entry.category()) && !m_reserves.contains(entry.category()) && !m_routines.contains(entry.category()))
+      // create a new routine category if we haven't seen it before, since this
+      // is the safest thing to do without a complete error out
+      if (!m_goals.contains(entry.category()) &&
+          !m_incomes.contains(entry.category()) &&
+          !m_reserves.contains(entry.category()) &&
+          !m_routines.contains(entry.category()))
       {
-         qDebug() << "Category" << entry.category() << "is unknown and not properly budgeted";
-         qDebug() << "   setting as a routine category";
+         warn(transaction.fileName(), transaction.lineNum(),
+              QString("Automatically creating routine expense category '%1'")
+              .arg(entry.category()));
          m_routines.insert(entry.category());
       }
 
@@ -339,7 +345,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
+void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
+                                          QDate const& date, bool rebudgeting)
 {
    // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
@@ -347,7 +354,7 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       // but only warn if we aren't about to replace the default with a new one
       if (!rebudgeting)
       {
-         warn("Creating a default monthly budget period");
+         warn(filename, lineNum, "Creating a default monthly budget period");
       }
       m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1),
                                   Interval(1, Interval::Period::MONTHS));
@@ -355,7 +362,8 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
 
    if (date < m_currentPeriod.startDate())
    {
-      die("Cannot rewind budget period for earlier dated item");
+      die(filename, lineNum,
+          "Cannot rewind budget period for earlier dated item");
    }
 
    // stop advancing once the budget period covers either the requested date or
@@ -410,7 +418,8 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
             // if we can't fund it all, take what we can get
             if ((m_available - amount).isNegative())
             {
-               warn(QString("Unable to fully fund reserve category '%1' in "
+               warn(filename, lineNum,
+                    QString("Unable to fully fund reserve category '%1' in "
                             "budget period %2-%3.  Desired amount %4, "
                             "available amount %5")
                     .arg(it.key())
@@ -454,7 +463,8 @@ void BudgetAllocator::advanceBudgetPeriod(QDate const& date, bool rebudgeting)
       // if it is too much, take what we can
       if ((m_available - daily).isNegative())
       {
-         warn(QString("Unable to fully reserve for routine expenses in budget "
+         warn(filename, lineNum,
+              QString("Unable to fully reserve for routine expenses in budget "
                       "period %1-%2.  Desired amount %3, available amount %4")
               .arg(m_currentPeriod.startDate().toString())
               .arg(m_currentPeriod.endDate().toString())
