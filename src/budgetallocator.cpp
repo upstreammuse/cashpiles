@@ -40,13 +40,32 @@ void BudgetAllocator::finish()
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.print(out);
+   out << endl;
 
-   Currency reserved;
+   table.clear();
+   total.clear();
+   table.appendColumn(0, "== RESERVE ==  ");
+   table.appendColumn(1, "== AMOUNT ==  ");
+   table.appendColumn(2, "== PERIOD ==  ");
+   table.appendColumn(3, "== PERCENTAGE ==  ");
+   table.appendColumn(4, "== AVAILABLE ==");
    for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
    {
-      reserved += it->reserved;
+      table.appendColumn(0, it.key() + "  ");
+      table.appendColumn(1, it->amount.toString() + "  ");
+      table.appendColumn(2, it->period.startDate().toString() + "-" + it->period.endDate().toString() + "  ");
+      table.appendColumn(3, QString::number(it->percentage) + "  ");
+      table.appendColumn(4, it->reserved.toString());
+      total += it->reserved;
    }
-   qDebug() << "reserved amounts" << reserved.toString();
+   table.appendColumn(0, "== TOTAL ==  ");
+   table.appendColumn(4, total.toString());
+   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(4, TextTable::Alignment::RightAlign);
+   table.print(out);
+   out << endl;
+
    qDebug() << "routine expenses" << m_priorRoutine.toString();
 
    if (!m_priorPeriod.isNull())
