@@ -123,7 +123,7 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       out << endl;
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
       {
-         out << "   ";
+         out << "  ";
          if (entry.transfer())
          {
             out << "@";
