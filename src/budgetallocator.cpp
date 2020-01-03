@@ -66,21 +66,42 @@ void BudgetAllocator::finish()
    table.print(out);
    out << endl;
 
-   qDebug() << "routine expenses" << m_priorRoutine.toString();
-
-   if (!m_priorPeriod.isNull())
+   table.clear();
+   total.clear();
+   table.appendColumn(0, "Routine  ");
+   table.appendColumn(1, "History  ");
+   table.appendColumn(2, "6-Month  ");
+   table.appendColumn(3, "Available");
+   out << "Routine history period " << m_priorPeriod.startDate().toString()
+       << " - " << m_priorPeriod.endDate().toString() << endl;
+   for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
    {
-      qDebug() << "Routine escrow based on" << m_priorPeriod.startDate().toString() << "to" << m_priorPeriod.endDate().toString();
-      qDebug() << "routine escrow balance" << m_escrow.toString();
-      Currency daily = m_priorRoutine.amortize(m_priorPeriod, DateRange(m_priorPeriod.startDate(),m_priorPeriod.startDate()));
-      qDebug() << "180 days is" << (daily * qint64(180)).toString();
-
-      Currency difference = daily * qint64(180) - m_escrow;
-      if (!difference.isZero() && !difference.isNegative())
-      {
-         qDebug() << "add" << difference.toString() << "to achieve 180 days";
-      }
+      table.appendColumn(0, it.key() + "  ");
+      table.appendColumn(1, it->priorAmount.toString() + "  ");
+      table.appendColumn(2, (it->priorAmount.amortize(
+                                m_priorPeriod,
+                                DateRange(m_priorPeriod.startDate(),
+                                          m_priorPeriod.startDate())) *
+                             qint64(180)).toString() + "  ");
+      table.appendColumn(3, it->reserved.toString());
+      total += it->reserved;
    }
+   table.appendColumn(0, "== TOTAL ==  ");
+   table.appendColumn(3, total.toString());
+   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
+   table.print(out);
+   out << endl;
+
+//   if (!m_priorPeriod.isNull())
+//   {
+//      Currency difference = daily * qint64(180) - m_escrow;
+//      if (!difference.isZero() && !difference.isNegative())
+//      {
+//         qDebug() << "add" << difference.toString() << "to achieve 180 days";
+//      }
+//   }
 
    qDebug() << "remaining available" << m_available.toString();
 }
@@ -105,7 +126,6 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
                        true);
 
    m_currentPeriod = DateRange(budget.date(), budget.interval());
-   m_currentRoutine.clear();
    for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
    {
       if (!it->reserved.isZero())
@@ -117,7 +137,6 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    m_goals.clear();
    m_incomes.clear();
    m_priorPeriod = DateRange();
-   m_priorRoutine.clear();
    for (auto it = m_reserves.cbegin(); it != m_reserves.cend(); ++it)
    {
       if (!it->reserved.isZero())
@@ -127,6 +146,14 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
       m_available += it->reserved;
    }
    m_reserves.clear();
+   for (auto it = m_routines.cbegin(); it != m_routines.cend(); ++it)
+   {
+      if (!it->reserved.isZero())
+      {
+         qDebug() << "Returning" << it->reserved.toString() << "from category" << it.key() << "to available";
+      }
+      m_available += it->reserved;
+   }
    m_routines.clear();
 }
 
@@ -211,7 +238,7 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
       return;
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
-   m_routines.insert(budget.name());
+   m_routines[budget.name()];
 }
 
 void BudgetAllocator::processItem(LedgerReserve const& reserve)
@@ -275,7 +302,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          warn(transaction.fileName(), transaction.lineNum(),
               QString("Automatically creating routine expense category '%1'")
               .arg(entry.category()));
-         m_routines.insert(entry.category());
+         m_routines[entry.category()];
       }
 
       // process the transaction entry based on its budget category type
@@ -383,21 +410,21 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
       else if (m_routines.contains(entry.category()))
       {
-         m_currentRoutine += entry.amount();
-         m_escrow += entry.amount();
-         if (m_escrow.isNegative())
+         m_routines[entry.category()].currentAmount += entry.amount();
+         m_routines[entry.category()].reserved += entry.amount();
+         if (m_routines[entry.category()].reserved.isNegative())
          {
             qDebug() << "routine escrow overspent, compensating";
-            if ((m_available + m_escrow).isNegative())
+            if ((m_available + m_routines[entry.category()].reserved).isNegative())
             {
                qDebug() << "failing to allocate for routine escrow";
-               m_escrow += m_available;
+               m_routines[entry.category()].reserved += m_available;
                m_available.clear();
             }
             else
             {
-               m_available += m_escrow;
-               m_escrow.clear();
+               m_available += m_routines[entry.category()].reserved;
+               m_routines[entry.category()].reserved.clear();
             }
          }
       }
@@ -444,8 +471,11 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
          m_priorPeriod = DateRange(m_priorPeriod.startDate(),
                                    m_currentPeriod.endDate());
       }
-      m_priorRoutine += m_currentRoutine;
-      m_currentRoutine.clear();
+      for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
+      {
+         it->priorAmount += it->currentAmount;
+         it->currentAmount.clear();
+      }
 
       // reset tracking how much we reserved in the current period for goals
       for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
@@ -521,31 +551,34 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
 
       // fund the routine escrow account based on prior daily routine expenses
       // and the duration of the current budget period
-      Currency daily = m_priorRoutine.amortize(
-                          m_priorPeriod,
-                          DateRange(m_priorPeriod.startDate(),
-                                    m_priorPeriod.startDate())) *
-                       m_currentPeriod.days();
-      // note that the daily value was a negative number, since it was based on
-      // routine expenses
-      daily = Currency() - daily;
-      // if it is too much, take what we can
-      if ((m_available - daily).isNegative())
+      for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
       {
-         warn(filename, lineNum,
-              QString("Unable to fully reserve for routine expenses in budget "
-                      "period %1-%2.  Desired amount %3, available amount %4")
-              .arg(m_currentPeriod.startDate().toString())
-              .arg(m_currentPeriod.endDate().toString())
-              .arg(daily.toString())
-              .arg(m_available.toString()));
-         m_escrow += m_available;
-         m_available.clear();
-      }
-      else
-      {
-         m_available -= daily;
-         m_escrow += daily;
+         Currency daily = it->priorAmount.amortize(
+                             m_priorPeriod,
+                             DateRange(m_priorPeriod.startDate(),
+                                       m_priorPeriod.startDate())) *
+                          m_currentPeriod.days();
+         // note that the daily value was a negative number, since it was based on
+         // routine expenses
+         daily = Currency() - daily;
+         // if it is too much, take what we can
+         if ((m_available - daily).isNegative())
+         {
+            warn(filename, lineNum,
+                 QString("Unable to fully reserve for routine expenses in budget "
+                         "period %1-%2.  Desired amount %3, available amount %4")
+                 .arg(m_currentPeriod.startDate().toString())
+                 .arg(m_currentPeriod.endDate().toString())
+                 .arg(daily.toString())
+                 .arg(m_available.toString()));
+            it->reserved += m_available;
+            m_available.clear();
+         }
+         else
+         {
+            m_available -= daily;
+            it->reserved += daily;
+         }
       }
    }
 }

@@ -41,17 +41,21 @@ private:
       Currency reserved;
    };
 
+   struct Routine
+   {
+      Currency currentAmount;
+      Currency priorAmount;
+      Currency reserved;
+   };
+
 private:
    Currency m_available;
    DateRange m_currentPeriod;
-   Currency m_currentRoutine;
-   Currency m_escrow;
    QHash<QString, Goal> m_goals;
    QSet<QString> m_incomes;
    DateRange m_priorPeriod;
-   Currency m_priorRoutine;
    QHash<QString, Reserve> m_reserves;
-   QSet<QString> m_routines;
+   QHash<QString, Routine> m_routines;
 };
 
 #endif
