@@ -24,6 +24,8 @@ public:
 private:
    void advanceBudgetPeriod(QString const& filename, uint lineNum,
                             QDate const& date, bool rebudgeting = false);
+   void syncReserve(QString const& filename, uint lineNum,
+                    QString const& category);
 
 private:
    struct Goal

@@ -188,37 +188,7 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    m_reserves[budget.name()].amount = budget.amount();
    m_reserves[budget.name()].period = DateRange(m_currentPeriod.startDate(),
                                                 budget.interval());
-
-   // TODO this needs to be commonized with the code in the advancwe... method
-   //    that does the same thing, and this one is probably buggy!
-   // fund all reserve periods that end within this budget period
-   while (m_reserves[budget.name()].period.endDate() <=
-          m_currentPeriod.endDate())
-   {
-      Currency amount = m_reserves[budget.name()].amount;
-      if ((m_available - amount).isNegative())
-      {
-         qDebug() << "unable to fully fund reserve amount";
-         amount = m_available;
-      }
-      m_reserves[budget.name()].reserved += amount;
-      m_available -= amount;
-      ++m_reserves[budget.name()].period;
-   }
-   // fund this budget period's share of the next savings period that either
-   // starts in this period and ends in a future one, or starts after this
-   // period ends
-   Currency amount = m_reserves[budget.name()].amount.amortize(
-                        m_reserves[budget.name()].period,
-                        m_reserves[budget.name()].period.intersect(
-                           m_currentPeriod));
-   if ((m_available - amount).isNegative())
-   {
-      qDebug() << "unable to fully fund reserve amount";
-      amount = m_available;
-   }
-   m_reserves[budget.name()].reserved += amount;
-   m_available -= amount;
+   syncReserve(budget.fileName(), budget.lineNum(), budget.name());
 }
 
 void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
@@ -500,53 +470,7 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
          // skip reserves that are not amount/period based
          if (it->period.isNull()) continue;
 
-         // fund all reserve periods that start before this budget period ends,
-         // considering that the current reserve period might have started
-         // before this budget period, so only do the overlap
-         while (m_reserves[it.key()].period.startDate() <=
-                m_currentPeriod.endDate())
-         {
-            // since the savings period and the budget period can be different,
-            // we only want to allocate the amount that represents the overlap
-            // between the savings period and the budget period
-            Currency amount = m_reserves[it.key()].amount.amortize(
-                                 m_reserves[it.key()].period,
-                                 m_reserves[it.key()].period.intersect(
-                                    m_currentPeriod));
-
-            // if we can't fund it all, take what we can get
-            if ((m_available - amount).isNegative())
-            {
-               warn(filename, lineNum,
-                    QString("Unable to fully fund reserve category '%1' in "
-                            "budget period %2-%3.  Desired amount %4, "
-                            "available amount %5")
-                    .arg(it.key())
-                    .arg(m_currentPeriod.startDate().toString())
-                    .arg(m_currentPeriod.endDate().toString())
-                    .arg(amount.toString())
-                    .arg(m_available.toString()));
-               amount = m_available;
-            }
-
-            // move funds from available to savings goal
-            m_reserves[it.key()].reserved += amount;
-            m_available -= amount;
-
-            // if the reserve period extends into the next budget period, we
-            // have to stop without incrementing it, so the next budget period
-            // can handle the remainder of this reserve period
-            if (m_reserves[it.key()].period.endDate() >
-                m_currentPeriod.endDate())
-            {
-               break;
-            }
-            // otherwise increment the reserve period and let the loop run again
-            else
-            {
-               ++m_reserves[it.key()].period;
-            }
-         }
+         syncReserve(filename, lineNum, it.key());
       }
 
       // fund the routine escrow account based on prior daily routine expenses
@@ -579,6 +503,56 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
             m_available -= daily;
             it->reserved += daily;
          }
+      }
+   }
+}
+
+void BudgetAllocator::syncReserve(QString const& filename, uint lineNum,
+                                  QString const& category)
+{
+   // fund all reserve periods that start before this budget period ends,
+   // considering that the current reserve period might have started
+   // before this budget period, so only do the overlap
+   while (m_reserves[category].period.startDate() <= m_currentPeriod.endDate())
+   {
+      // since the savings period and the budget period can be different,
+      // we only want to allocate the amount that represents the overlap
+      // between the savings period and the budget period
+      Currency amount = m_reserves[category].amount.amortize(
+                           m_reserves[category].period,
+                           m_reserves[category].period.intersect(
+                              m_currentPeriod));
+
+      // if we can't fund it all, take what we can get
+      if ((m_available - amount).isNegative())
+      {
+         warn(filename, lineNum,
+              QString("Unable to fully fund reserve category '%1' in "
+                      "budget period %2-%3.  Desired amount %4, "
+                      "available amount %5")
+              .arg(category)
+              .arg(m_currentPeriod.startDate().toString())
+              .arg(m_currentPeriod.endDate().toString())
+              .arg(amount.toString())
+              .arg(m_available.toString()));
+         amount = m_available;
+      }
+
+      // move funds from available to savings goal
+      m_reserves[category].reserved += amount;
+      m_available -= amount;
+
+      // if the reserve period extends into the next budget period, we
+      // have to stop without incrementing it, so the next budget period
+      // can handle the remainder of this reserve period
+      if (m_reserves[category].period.endDate() > m_currentPeriod.endDate())
+      {
+         break;
+      }
+      // otherwise increment the reserve period and let the loop run again
+      else
+      {
+         ++m_reserves[category].period;
       }
    }
 }
