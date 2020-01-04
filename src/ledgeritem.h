@@ -8,7 +8,6 @@ class ItemProcessor;
 class LedgerItem
 {
 public:
-   LedgerItem();
    LedgerItem(QString const& fileName, uint lineNum);
    virtual ~LedgerItem();
    QString fileName() const;

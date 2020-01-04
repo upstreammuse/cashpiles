@@ -1,9 +1,5 @@
 #include "ledgeritem.h"
 
-LedgerItem::LedgerItem()
-{
-}
-
 LedgerItem::LedgerItem(QString const& fileName, uint lineNum) :
    m_fileName(fileName),
    m_lineNum(lineNum)

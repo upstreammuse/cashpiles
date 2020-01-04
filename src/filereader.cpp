@@ -156,21 +156,22 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       QString line(readLine());
       if ((match = budgetLineGoalRx.match(line)).hasMatch())
       {
-         QSharedPointer<LedgerBudgetGoalEntry> entry(new LedgerBudgetGoalEntry);
+         QSharedPointer<LedgerBudgetGoalEntry> entry(
+                  new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetIncomeEntry> entry(
-                  new LedgerBudgetIncomeEntry);
+                  new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetReserveAmountEntry> entry(
-                  new LedgerBudgetReserveAmountEntry);
+                  new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
          bool ok;
          entry->setAmount(Currency::fromString(match.captured("amount"), &ok));
@@ -192,7 +193,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       else if ((match = budgetLineReservePercentRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetReservePercentEntry> entry(
-                  new LedgerBudgetReservePercentEntry);
+                  new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
          entry->setPercentage(match.captured("percentage").toUInt());
          budget->appendEntry(entry);
@@ -200,7 +201,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       else if ((match = budgetLineRoutineRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetRoutineEntry> entry(
-                  new LedgerBudgetRoutineEntry);
+                  new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
          budget->appendEntry(entry);
       }

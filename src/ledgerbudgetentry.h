@@ -14,6 +14,7 @@ class ItemProcessor;
 class LedgerBudgetEntry : public LedgerItem
 {
 public:
+   LedgerBudgetEntry(QString const& filename, uint lineNum);
    QDate date() const;
    QString name() const;
    void setDate(QDate const& date);
@@ -27,18 +28,21 @@ private:
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry
 {
 public:
+   LedgerBudgetGoalEntry(QString const& filename, uint lineNum);
    void processItem(ItemProcessor& processor) const;
 };
 
 class LedgerBudgetIncomeEntry : public LedgerBudgetEntry
 {
 public:
+   LedgerBudgetIncomeEntry(QString const& filename, uint lineNum);
    void processItem(ItemProcessor& processor) const;
 };
 
 class LedgerBudgetReserveAmountEntry : public LedgerBudgetEntry
 {
 public:
+   LedgerBudgetReserveAmountEntry(QString const& filename, uint lineNum);
    Currency amount() const;
    Interval interval() const;
    void processItem(ItemProcessor& processor) const;
@@ -53,6 +57,7 @@ private:
 class LedgerBudgetReservePercentEntry : public LedgerBudgetEntry
 {
 public:
+   LedgerBudgetReservePercentEntry(QString const& filename, uint lineNum);
    uint percentage() const;
    void processItem(ItemProcessor& processor) const;
    void setPercentage(uint percentage);
@@ -64,6 +69,7 @@ private:
 class LedgerBudgetRoutineEntry : public LedgerBudgetEntry
 {
 public:
+   LedgerBudgetRoutineEntry(QString const& filename, uint lineNum);
    void processItem(ItemProcessor& processor) const;
 };
 
