@@ -142,10 +142,13 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
    {
       case LedgerTransaction::Status::CLEARED:
       case LedgerTransaction::Status::DISPUTED:
+         m_accounts[transaction.account()].balance += transaction.amount();
          m_accounts[transaction.account()].cleared += transaction.amount();
-         [[clang::fallthrough]];
+         break;
       case LedgerTransaction::Status::PENDING:
          m_accounts[transaction.account()].balance += transaction.amount();
+         m_hasPending = true;
+         break;
    }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -208,15 +211,22 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
       }
    }
 
-   if (transaction.hasBalance()
-       && transaction.balance() != m_accounts[transaction.account()].balance)
+   if (transaction.hasBalance())
    {
-      die(transaction.fileName(), transaction.lineNum(),
-          QString("Account '%1' stated balance %2 does not match calculated "
-                  "balance %3")
-          .arg(transaction.account())
-          .arg(transaction.balance().toString())
-          .arg(m_accounts[transaction.account()].balance.toString()));
+      if (transaction.balance() != m_accounts[transaction.account()].balance)
+      {
+         die(transaction.fileName(), transaction.lineNum(),
+             QString("Account '%1' stated balance %2 does not match calculated "
+                     "balance %3")
+             .arg(transaction.account())
+             .arg(transaction.balance().toString())
+             .arg(m_accounts[transaction.account()].balance.toString()));
+      }
+      if (m_hasPending)
+      {
+         die(transaction.fileName(), transaction.lineNum(),
+             "Pending transactions included in balance statement");
+      }
    }
 }
 

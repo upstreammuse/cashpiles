@@ -26,6 +26,7 @@ private:
 
 private:
    QHash<QString, Account> m_accounts;
+   bool m_hasPending = false;
    QDate m_lastDate;
    QHash<QString, QHash<QString, Currency>> m_transfers;
 };
