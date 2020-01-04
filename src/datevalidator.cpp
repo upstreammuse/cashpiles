@@ -1,6 +1,6 @@
 #include "datevalidator.h"
 
-#include <QDebug>
+#include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
@@ -33,8 +33,9 @@ void DateValidator::processDate(QDate const& date, QString const& fileName,
 {
    if (!m_latestDate.isNull() && date < m_latestDate)
    {
-      qDebug() << QString("File '%1', Line %2: Date %3 out of order")
-                  .arg(fileName).arg(lineNum).arg(date.toString());
+      die(fileName, lineNum,
+          QString("Date %1 out of order")
+          .arg(date.toString()));
    }
    else
    {
