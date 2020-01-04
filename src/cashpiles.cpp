@@ -1,5 +1,6 @@
 #include "cashpiles.h"
 
+#include <QDate>
 #include <QRegularExpression>
 #include <QTextStream>
 
@@ -16,15 +17,26 @@
    exit(EXIT_FAILURE);
 }
 
-void processArguments(QString& dateFormat, QStringList const& arguments)
+void processArguments(QString& dateFormat, QString& inFileName, QDate& today,
+                      QStringList const& arguments)
 {
    QRegularExpression const dateFormatRx("^--dateformat=(.*)$");
+   QRegularExpression const inFileNameRx("^--file=(.*)$");
+   QRegularExpression const todayRx("^--today=(.*)$");
    foreach (QString const& arg, arguments)
    {
       QRegularExpressionMatch match;
       if ((match = dateFormatRx.match(arg)).hasMatch())
       {
          dateFormat = match.captured(1);
+      }
+      else if ((match = inFileNameRx.match(arg)).hasMatch())
+      {
+         inFileName = match.captured(1);
+      }
+      else if ((match = todayRx.match(arg)).hasMatch())
+      {
+         today = QDate::fromString(match.captured(1), dateFormat);
       }
    }
 }

@@ -9,6 +9,15 @@
 #include "ledgertransactionentry.h"
 #include "texttable.h"
 
+BudgetAllocator::BudgetAllocator(QDate const& today) :
+   m_today(today)
+{
+   if (!m_today.isValid())
+   {
+      die(QString("Today's date '%1' is invalid").arg(m_today.toString()));
+   }
+}
+
 void BudgetAllocator::finish()
 {
    QTextStream out(stdout);
@@ -113,7 +122,7 @@ void BudgetAllocator::processItem(LedgerAccount const& account)
 
 void BudgetAllocator::processItem(LedgerBudget const& budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       warn(budget.fileName(), budget.lineNum(),
            "Ignoring future budget configuration");
@@ -165,7 +174,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       return;
    }
@@ -175,7 +184,7 @@ void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       return;
    }
@@ -185,7 +194,7 @@ void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       return;
    }
@@ -199,7 +208,7 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
 
 void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       return;
    }
@@ -209,7 +218,7 @@ void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
 
 void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 {
-   if (budget.date() > QDate::currentDate())
+   if (budget.date() > m_today)
    {
       return;
    }
@@ -244,8 +253,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
 
       // ignore future incomes for budgeting purposes
-      if (m_incomes.contains(entry.category()) &&
-          transaction.date() > QDate::currentDate())
+      if (m_incomes.contains(entry.category()) && transaction.date() > m_today)
       {
          continue;
       }
@@ -274,7 +282,7 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       if (m_goals.contains(entry.category()))
       {
          // this is a goal that has happened
-         if (transaction.date() <= QDate::currentDate())
+         if (transaction.date() <= m_today)
          {
             m_goals[entry.category()].reserved += entry.amount();
             if (m_goals[entry.category()].reserved.isNegative())
@@ -386,7 +394,7 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
    // stop advancing once the budget period covers either the requested date or
    // the current date, whichever comes first
    while (m_currentPeriod.endDate() < date &&
-          m_currentPeriod.endDate() < QDate::currentDate())
+          m_currentPeriod.endDate() < m_today)
    {
       // merge escrow info and reset for the new budget period
       if (m_priorPeriod.isNull())

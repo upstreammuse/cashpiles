@@ -10,6 +10,7 @@
 class BudgetAllocator : public ItemProcessor
 {
 public:
+   BudgetAllocator(QDate const& today);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
@@ -57,6 +58,7 @@ private:
    DateRange m_priorPeriod;
    QHash<QString, Reserve> m_reserves;
    QHash<QString, Routine> m_routines;
+   QDate m_today;
 };
 
 #endif

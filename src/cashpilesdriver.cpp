@@ -22,11 +22,20 @@ int main(int argc, char** argv)
    Currency::initializeCurrencies();
 
    QString dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat);
-   processArguments(dateFormat, app.arguments());
+   QString inFileName;
+   QDate today = QDate::currentDate();
+   processArguments(dateFormat, inFileName, today, app.arguments());
+   if (inFileName.isNull())
+   {
+      die("No input file specified");
+   }
+   if (!today.isValid())
+   {
+      die(QString("Today's date invalid, expected '%1'").arg(dateFormat));
+   }
 
    Ledger ledger;
-
-   FileReader reader("~/cashpiles.txt", ledger);
+   FileReader reader(inFileName, ledger);
    reader.setDateFormat(dateFormat);
    if (!reader.readAll())
    {
@@ -39,7 +48,7 @@ int main(int argc, char** argv)
    AccountBalancer ab;
    ledger.processItems(ab);
 
-   BudgetAllocator budAlloc;
+   BudgetAllocator budAlloc(today);
    ledger.processItems(budAlloc);
 
    FileWriter writer("~/cp-output-test.txt");

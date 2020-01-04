@@ -5,6 +5,9 @@
 #include "currency.h"
 #include "itemprocessor.h"
 
+// TODO this processes transactions into the future, which is OK, but it should
+// have a "future" category in the output table to make that obvious
+
 class AccountBalancer : public ItemProcessor
 {
 public:
