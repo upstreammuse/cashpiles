@@ -39,7 +39,7 @@ QString LedgerAccount::modeToString(Mode mode)
          return "closed";
    }
 
-   Q_ASSERT(false);
+   Q_ASSERT_X(false, "modeToString", "Mode not handled");
    return "";
 }
 

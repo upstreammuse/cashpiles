@@ -41,7 +41,7 @@ QString LedgerTransaction::statusToString(Status status)
          return "!";
    }
 
-   Q_ASSERT(false);
+   Q_ASSERT_X(false, "statusToString", "Status not handled");
    return "";
 }
 
