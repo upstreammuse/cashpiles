@@ -1,6 +1,6 @@
 #include "budgetallocator.h"
 
-#include <QDebug>
+#include <QTextStream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
@@ -53,7 +53,8 @@ void BudgetAllocator::finish()
    {
       table.appendColumn(0, it.key() + "  ");
       table.appendColumn(1, it->amount.toString() + "  ");
-      table.appendColumn(2, it->period.startDate().toString() + "-" + it->period.endDate().toString() + "  ");
+      table.appendColumn(2, it->period.startDate().toString() + "-" +
+                         it->period.endDate().toString() + "  ");
       table.appendColumn(3, QString::number(it->percentage) + "  ");
       table.appendColumn(4, it->reserved.toString());
       total += it->reserved;
@@ -94,16 +95,11 @@ void BudgetAllocator::finish()
    table.print(out);
    out << endl;
 
-//   if (!m_priorPeriod.isNull())
-//   {
-//      Currency difference = daily * qint64(180) - m_escrow;
-//      if (!difference.isZero() && !difference.isNegative())
-//      {
-//         qDebug() << "add" << difference.toString() << "to achieve 180 days";
-//      }
-//   }
-
-   qDebug() << "remaining available" << m_available.toString();
+   out << "Available to budget: " << m_available.toString() << endl;
+   if (m_available.isNegative())
+   {
+      out << "WARNING: You have budgeted more than you can afford!" << endl;
+   }
 }
 
 void BudgetAllocator::processItem(LedgerAccount const& account)
@@ -119,7 +115,8 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > QDate::currentDate())
    {
-      qDebug() << "ignoring future budget configuration";
+      warn(budget.fileName(), budget.lineNum(),
+           "Ignoring future budget configuration");
       return;
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date(),
@@ -130,7 +127,10 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (!it->reserved.isZero())
       {
-         qDebug() << "Returning" << it->reserved.toString() << "from category" << it.key() << "to available";
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(it->reserved.toString())
+              .arg(it.key()));
       }
       m_available += it->reserved;
    }
@@ -141,7 +141,10 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (!it->reserved.isZero())
       {
-         qDebug() << "Returning" << it->reserved.toString() << "from category" << it.key() << "to available";
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(it->reserved.toString())
+              .arg(it.key()));
       }
       m_available += it->reserved;
    }
@@ -150,7 +153,10 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (!it->reserved.isZero())
       {
-         qDebug() << "Returning" << it->reserved.toString() << "from category" << it.key() << "to available";
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(it->reserved.toString())
+              .arg(it.key()));
       }
       m_available += it->reserved;
    }
@@ -188,7 +194,7 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    m_reserves[budget.name()].amount = budget.amount();
    m_reserves[budget.name()].period = DateRange(m_currentPeriod.startDate(),
                                                 budget.interval());
-   syncReserve(budget.fileName(), budget.lineNum(), budget.name());
+   syncReserve(budget.name());
 }
 
 void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
@@ -219,20 +225,9 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
       die(reserve.fileName(), reserve.lineNum(),
           "reserve command only for goals right now, sorry");
    }
-
-   if ((m_available - reserve.amount()).isNegative())
-   {
-      qDebug() << "unable to fully fund reserve amount";
-      m_goals[reserve.category()].reserved += m_available;
-      m_goals[reserve.category()].reservedThisPeriod += m_available;
-      m_available.clear();
-   }
-   else
-   {
-      m_goals[reserve.category()].reserved += reserve.amount();
-      m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
-      m_available -= reserve.amount();
-   }
+   m_goals[reserve.category()].reserved += reserve.amount();
+   m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
+   m_available -= reserve.amount();
 }
 
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
@@ -284,20 +279,11 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
             m_goals[entry.category()].reserved += entry.amount();
             if (m_goals[entry.category()].reserved.isNegative())
             {
-               // TODO change this message, this is a case where a goal wan't saved for properly
-               qDebug() << "goal category " << entry.category() << "underfunded, compensating";
-               // TODO make generic function to allocate from available to a category, it gets used everywhere
-               if ((m_available + m_goals[entry.category()].reserved).isNegative())
-               {
-                  qDebug() << "failing to allocate for category" << entry.category();
-                  m_goals[entry.category()].reserved += m_available;
-                  m_available.clear();
-               }
-               else
-               {
-                  m_available += m_goals[entry.category()].reserved;
-                  m_goals[entry.category()].reserved.clear();
-               }
+               warn(transaction.fileName(), transaction.lineNum(),
+                    QString("Goal category %1 overspent")
+                    .arg(entry.category()));
+               m_available += m_goals[entry.category()].reserved;
+               m_goals[entry.category()].reserved.clear();
             }
          }
          // this is a goal after today, and the budget period includes the
@@ -305,7 +291,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          else
          {
             // need to save more for this goal
-            if ((m_goals[entry.category()].reserved + entry.amount()).isNegative())
+            if ((m_goals[entry.category()].reserved +
+                 entry.amount()).isNegative())
             {
                // get the positive amount to save
                Currency toSave = Currency() - entry.amount() -
@@ -322,9 +309,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                                       goalPeriod.endDate());
 
                // split the total savings need for the current budget period
-               Currency toAllocate = toSave.amortize(goalPeriod,
-                                                     m_currentPeriod);
-               m_goals[entry.category()].neededThisPeriod += toAllocate;
+               m_goals[entry.category()].neededThisPeriod +=
+                     toSave.amortize(goalPeriod, m_currentPeriod);
 
                // since we have to save for this entry, we have nothing left for
                // any additional goal entries
@@ -340,21 +326,12 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       else if (m_incomes.contains(entry.category()))
       {
          m_available += entry.amount();
-         if (m_available.isNegative())
-         {
-            qDebug() << "income brought available funds negative";
-         }
          for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
          {
             // skip reserves that are not percentage based
             if (!it->period.isNull()) continue;
 
             Currency amount = entry.amount() * it->percentage;
-            if ((m_available - amount).isNegative())
-            {
-               qDebug() << "failing to allocate for category" << it.key();
-               amount = m_available;
-            }
             m_reserves[it.key()].reserved += amount;
             m_available -= amount;
          }
@@ -364,18 +341,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          m_reserves[entry.category()].reserved += entry.amount();
          if (m_reserves[entry.category()].reserved.isNegative())
          {
-            qDebug() << "category" << entry.category() << "overspent, compensating";
-            if ((m_available + m_reserves[entry.category()].reserved).isNegative())
-            {
-               qDebug() << "failing to allocate for category" << entry.category();
-               m_reserves[entry.category()].reserved += m_available;
-               m_available.clear();
-            }
-            else
-            {
-               m_available += m_reserves[entry.category()].reserved;
-               m_reserves[entry.category()].reserved.clear();
-            }
+            m_available += m_reserves[entry.category()].reserved;
+            m_reserves[entry.category()].reserved.clear();
          }
       }
       else if (m_routines.contains(entry.category()))
@@ -384,18 +351,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          m_routines[entry.category()].reserved += entry.amount();
          if (m_routines[entry.category()].reserved.isNegative())
          {
-            qDebug() << "routine escrow overspent, compensating";
-            if ((m_available + m_routines[entry.category()].reserved).isNegative())
-            {
-               qDebug() << "failing to allocate for routine escrow";
-               m_routines[entry.category()].reserved += m_available;
-               m_available.clear();
-            }
-            else
-            {
-               m_available += m_routines[entry.category()].reserved;
-               m_routines[entry.category()].reserved.clear();
-            }
+            m_available += m_routines[entry.category()].reserved;
+            m_routines[entry.category()].reserved.clear();
          }
       }
       else
@@ -470,45 +427,28 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
          // skip reserves that are not amount/period based
          if (it->period.isNull()) continue;
 
-         syncReserve(filename, lineNum, it.key());
+         syncReserve(it.key());
       }
 
       // fund the routine escrow account based on prior daily routine expenses
       // and the duration of the current budget period
       for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
       {
+         // note that the daily value was a negative number, since it was based
+         // on routine expenses
          Currency daily = it->priorAmount.amortize(
                              m_priorPeriod,
                              DateRange(m_priorPeriod.startDate(),
                                        m_priorPeriod.startDate())) *
                           m_currentPeriod.days();
-         // note that the daily value was a negative number, since it was based on
-         // routine expenses
          daily = Currency() - daily;
-         // if it is too much, take what we can
-         if ((m_available - daily).isNegative())
-         {
-            warn(filename, lineNum,
-                 QString("Unable to fully reserve for routine expenses in budget "
-                         "period %1-%2.  Desired amount %3, available amount %4")
-                 .arg(m_currentPeriod.startDate().toString())
-                 .arg(m_currentPeriod.endDate().toString())
-                 .arg(daily.toString())
-                 .arg(m_available.toString()));
-            it->reserved += m_available;
-            m_available.clear();
-         }
-         else
-         {
-            m_available -= daily;
-            it->reserved += daily;
-         }
+         m_available -= daily;
+         it->reserved += daily;
       }
    }
 }
 
-void BudgetAllocator::syncReserve(QString const& filename, uint lineNum,
-                                  QString const& category)
+void BudgetAllocator::syncReserve(QString const& category)
 {
    // fund all reserve periods that start before this budget period ends,
    // considering that the current reserve period might have started
@@ -522,21 +462,6 @@ void BudgetAllocator::syncReserve(QString const& filename, uint lineNum,
                            m_reserves[category].period,
                            m_reserves[category].period.intersect(
                               m_currentPeriod));
-
-      // if we can't fund it all, take what we can get
-      if ((m_available - amount).isNegative())
-      {
-         warn(filename, lineNum,
-              QString("Unable to fully fund reserve category '%1' in "
-                      "budget period %2-%3.  Desired amount %4, "
-                      "available amount %5")
-              .arg(category)
-              .arg(m_currentPeriod.startDate().toString())
-              .arg(m_currentPeriod.endDate().toString())
-              .arg(amount.toString())
-              .arg(m_available.toString()));
-         amount = m_available;
-      }
 
       // move funds from available to savings goal
       m_reserves[category].reserved += amount;
