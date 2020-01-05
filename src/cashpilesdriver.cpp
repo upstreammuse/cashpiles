@@ -16,6 +16,10 @@
 
 // TODO add validation to make sure categories don't exist in multiple places (two different types for the same name)
 
+// TODO consider what to do if a future transaction for a goal category is positive
+// - it gets processed, so it adds to the 'available' funds for the category, which is confusing
+// - it might be a valid use case, though, if planning for spend, refund, spend, etc.
+
 int main(int argc, char** argv)
 {
    QCoreApplication app(argc, argv);
