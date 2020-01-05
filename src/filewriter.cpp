@@ -31,12 +31,7 @@ void FileWriter::processItem(LedgerAccount const& account)
    breakBetween();
    QTextStream out(m_file);
    out << account.date().toString(m_dateFormat) << " "
-       << account.modeToString(account.mode()) << " " << account.name();
-   if (!account.balance().isZero())
-   {
-      out << "  " << account.balance().toString();
-   }
-   out << endl;
+       << account.modeToString(account.mode()) << " " << account.name() << endl;
 }
 
 void FileWriter::processItem(LedgerBudget const& budget)

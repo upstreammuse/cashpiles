@@ -48,11 +48,6 @@ LedgerAccount::LedgerAccount(QString const& filename, uint lineNum) :
 {
 }
 
-Currency LedgerAccount::balance() const
-{
-   return m_balance;
-}
-
 QDate LedgerAccount::date() const
 {
    return m_date;
@@ -71,11 +66,6 @@ QString LedgerAccount::name() const
 void LedgerAccount::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
-}
-
-void LedgerAccount::setBalance(Currency const& balance)
-{
-   m_balance = balance;
 }
 
 void LedgerAccount::setDate(QDate const& date)

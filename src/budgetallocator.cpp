@@ -114,10 +114,6 @@ void BudgetAllocator::finish()
 void BudgetAllocator::processItem(LedgerAccount const& account)
 {
    advanceBudgetPeriod(account.fileName(), account.lineNum(), account.date());
-   if (account.mode() == LedgerAccount::Mode::ON_BUDGET)
-   {
-      m_available += account.balance();
-   }
 }
 
 void BudgetAllocator::processItem(LedgerBudget const& budget)
