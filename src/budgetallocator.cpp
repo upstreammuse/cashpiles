@@ -230,8 +230,16 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
       die(reserve.fileName(), reserve.lineNum(),
           "reserve command only for goals right now, sorry");
    }
+
+   // if the reservation is in this period, get credit for it
+   if (reserve.date() <= m_currentPeriod.endDate())
+   {
+      m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
+   }
+
+   // either way, reserve the amount, which will reduce available budget amount
+   // but also 'buy down' the amount needed to reserve now
    m_goals[reserve.category()].reserved += reserve.amount();
-   m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
    m_available -= reserve.amount();
 }
 
