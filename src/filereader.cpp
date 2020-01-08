@@ -37,23 +37,30 @@ namespace
          END_RX);
    QRegularExpression const budgetLineGoalRx(
          START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX.arg("category") +
-         END_RX);
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const budgetLineIncomeRx(
          START_RX + SEP_RX + "income" + SPACE_RX + IDENT_RX.arg("category") +
-         END_RX);
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const budgetLineReserveAmountRx(
          START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
-         SEP_RX + CURR_RX.arg("amount") + SPACE_RX + INTERVAL_RX + END_RX);
+         SEP_RX + CURR_RX.arg("amount") + SPACE_RX + INTERVAL_RX +
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const budgetLineReservePercentRx(
          START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX.arg("category") +
-         SEP_RX + PERCENT_RX.arg("percentage") + END_RX);
+         SEP_RX + PERCENT_RX.arg("percentage") +
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const budgetLineRoutineRx(
          START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX.arg("category") +
-         END_RX);
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
-   QRegularExpression const reserveRx(
+   QRegularExpression const reserveCompactRx(
          START_RX + DATE_RX + SPACE_RX + "reserve" + SPACE_RX +
          IDENT_RX.arg("category") + SEP_RX + CURR_RX.arg("amount") + END_RX);
+   QRegularExpression const reserveRx(
+         START_RX + DATE_RX + SPACE_RX + "reserve" + END_RX);
+   QRegularExpression const reserveLineRx(
+         START_RX + SEP_RX + IDENT_RX.arg("category") + SEP_RX +
+         CURR_RX.arg("amount") + OPTIONAL_RX.arg(SPACE_RX + NOTE_RX) + END_RX);
    QRegularExpression const txnCompactRx(
          START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
          IDENT_RX.arg("account") + SEP_RX + IDENT_RX.arg("payee") + SEP_RX +
@@ -148,6 +155,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
          QSharedPointer<LedgerBudgetGoalEntry> entry(
                   new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
+         entry->setOwner(match.captured("owner"));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
@@ -155,6 +163,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
          QSharedPointer<LedgerBudgetIncomeEntry> entry(
                   new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
+         entry->setOwner(match.captured("owner"));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
@@ -162,6 +171,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
          QSharedPointer<LedgerBudgetReserveAmountEntry> entry(
                   new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
+         entry->setOwner(match.captured("owner"));
          bool ok;
          entry->setAmount(Currency::fromString(match.captured("amount"), &ok));
          if (!ok)
@@ -184,6 +194,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
          QSharedPointer<LedgerBudgetReservePercentEntry> entry(
                   new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
+         entry->setOwner(match.captured("owner"));
          entry->setPercentage(match.captured("percentage").toUInt());
          budget->appendEntry(entry);
       }
@@ -192,6 +203,7 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
          QSharedPointer<LedgerBudgetRoutineEntry> entry(
                   new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
          entry->setName(match.captured("category"));
+         entry->setOwner(match.captured("owner"));
          budget->appendEntry(entry);
       }
       else
@@ -210,6 +222,28 @@ void FileReader::processComment(QRegularExpressionMatch const& match)
             new LedgerComment(m_fileName, m_lineNum));
    comment->setNote(match.captured("note"));
    m_ledger.appendItem(comment);
+}
+
+void FileReader::processCompactReserve(const QRegularExpressionMatch &match)
+{
+   QSharedPointer<LedgerReserve> reserve(
+            new LedgerReserve(m_fileName, m_lineNum));
+   reserve->setDate(parseDate(match.captured("date")));
+
+   QSharedPointer<LedgerReserveEntry> entry(
+            new LedgerReserveEntry(m_fileName, m_lineNum));
+   entry->setCategory(match.captured("category"));
+
+   bool ok;
+   entry->setAmount(Currency::fromString(match.captured("amount"), &ok));
+   if (!ok)
+   {
+      failedCurrency(match.captured("amount"));
+   }
+
+   reserve->appendEntry(entry);
+
+   m_ledger.appendItem(reserve);
 }
 
 void FileReader::processCompactTransaction(QRegularExpressionMatch const& match)
@@ -248,7 +282,15 @@ void FileReader::processCompactTransaction(QRegularExpressionMatch const& match)
    {
       failedCurrency(match.captured("amount"));
    }
-   entry.setCategory(match.captured("category"));
+   if (match.captured("category").startsWith("@"))
+   {
+      entry.setCategory(match.captured("category").mid(1));
+      entry.setOwner(true);
+   }
+   else
+   {
+      entry.setCategory(match.captured("category"));
+   }
    if (match.captured("payee").startsWith("@"))
    {
       entry.setPayee(match.captured("payee").mid(1));
@@ -328,9 +370,9 @@ void FileReader::processLine(QString const& line)
    {
       processComment(match);
    }
-   else if ((match = reserveRx.match(line)).hasMatch())
+   else if ((match = reserveCompactRx.match(line)).hasMatch())
    {
-      processReserve(match);
+      processCompactReserve(match);
    }
    else if ((match = txnCompactRx.match(line)).hasMatch())
    {
@@ -340,33 +382,68 @@ void FileReader::processLine(QString const& line)
    {
       processCompactTransactionOff(match);
    }
+   else if ((match = reserveRx.match(line)).hasMatch())
+   {
+      processReserve(match);
+   }
    else if ((match = txnRx.match(line)).hasMatch())
    {
       processTransaction(match);
    }
+   // TODO remember where the blank lines are to recreate the file with the same
+   // line spacing as the original
    else if (!line.trimmed().isEmpty())
    {
       failed(QString("Invalid contents '%1'").arg(line));
    }
 }
 
-void FileReader::processReserve(const QRegularExpressionMatch &match)
+void FileReader::processReserve(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
    reserve->setDate(parseDate(match.captured("date")));
-   reserve->setCategory(match.captured("category"));
 
-   bool ok;
-   reserve->setAmount(Currency::fromString(match.captured("amount"), &ok));
-   if (!ok)
+   forever
    {
-      failedCurrency(match.captured("amount"));
+      QString line(readLine());
+      if ((match = reserveLineRx.match(line)).hasMatch())
+      {
+         QSharedPointer<LedgerReserveEntry> entry(
+                  new LedgerReserveEntry(m_fileName, m_lineNum));
+         if (match.captured("category").startsWith("@"))
+         {
+            entry->setCategory(match.captured("category").mid(1));
+            entry->setOwner(true);
+         }
+         else
+         {
+            entry->setCategory(match.captured("category"));
+         }
+
+         bool ok;
+         entry->setAmount(Currency::fromString(match.captured("amount"), &ok));
+         if (!ok)
+         {
+            failedCurrency(match.captured("amount"));
+         }
+
+         reserve->appendEntry(entry);
+      }
+      else
+      {
+         unReadLine(line);
+         break;
+      }
    }
 
    m_ledger.appendItem(reserve);
 }
 
+// TODO this still needs to validate that a transaction adds up to the correct
+// amount as stated in the input file, but maybe don't do it here so the file
+// reader can only focus on pure syntax (which lets us read and write files that
+// are syntactically correct but maybe with bad data in them)
 void FileReader::processTransaction(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerTransaction> xact(
@@ -406,7 +483,15 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
          {
             failedCurrency(match.captured("amount"));
          }
-         entry.setCategory(match.captured("category"));
+         if (match.captured("category").startsWith("@"))
+         {
+            entry.setCategory(match.captured("category").mid(1));
+            entry.setOwner(true);
+         }
+         else
+         {
+            entry.setCategory(match.captured("category"));
+         }
          if (!match.captured("note").isEmpty())
          {
             entry.setNote(match.captured("note"));

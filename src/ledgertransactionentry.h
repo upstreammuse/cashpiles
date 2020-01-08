@@ -18,6 +18,10 @@ public:
    bool hasNote() const;
    void setNote(QString const& note);
 
+   // TODO this isn't immediately obvious... "categoryIsOwner?"
+   bool isOwner() const;
+   void setOwner(bool owner);
+
    QString payee() const;
    void setPayee(QString const& payee);
 
@@ -30,6 +34,7 @@ private:
    bool m_hasCategory = false;
    QString m_note;
    bool m_hasNote = false;
+   bool m_owner = false;
    QString m_payee;
    bool m_transfer = false;
 };

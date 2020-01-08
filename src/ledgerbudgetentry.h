@@ -17,12 +17,15 @@ public:
    LedgerBudgetEntry(QString const& filename, uint lineNum);
    QDate date() const;
    QString name() const;
+   QString owner() const;
    void setDate(QDate const& date);
    void setName(QString const& name);
+   void setOwner(QString const& owner);
 
 private:
    QDate m_date;
    QString m_name;
+   QString m_owner;
 };
 
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry

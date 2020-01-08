@@ -44,6 +44,10 @@ void ItemProcessor::processItem(LedgerReserve const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerReserveEntry const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerTransaction const&)
 {
 }

@@ -21,10 +21,11 @@ private:
    void processAccount(QRegularExpressionMatch const& match);
    void processBudget(QRegularExpressionMatch& match);
    void processComment(QRegularExpressionMatch const& match);
+   void processCompactReserve(QRegularExpressionMatch const& match);
    void processCompactTransaction(QRegularExpressionMatch const& match);
    void processCompactTransactionOff(QRegularExpressionMatch const& match);
    void processLine(QString const& line);
-   void processReserve(QRegularExpressionMatch const& match);
+   void processReserve(QRegularExpressionMatch& match);
    void processTransaction(QRegularExpressionMatch& match);
 
    bool hasLines();

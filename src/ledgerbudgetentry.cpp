@@ -18,6 +18,11 @@ QString LedgerBudgetEntry::name() const
    return m_name;
 }
 
+QString LedgerBudgetEntry::owner() const
+{
+   return m_owner;
+}
+
 void LedgerBudgetEntry::setDate(QDate const& date)
 {
    m_date = date;
@@ -26,6 +31,11 @@ void LedgerBudgetEntry::setDate(QDate const& date)
 void LedgerBudgetEntry::setName(QString const& name)
 {
    m_name = name;
+}
+
+void LedgerBudgetEntry::setOwner(QString const& owner)
+{
+   m_owner = owner;
 }
 
 LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(QString const& filename,

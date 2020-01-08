@@ -44,6 +44,16 @@ void LedgerTransactionEntry::setNote(QString const& note)
    m_note = note;
 }
 
+bool LedgerTransactionEntry::isOwner() const
+{
+   return m_owner;
+}
+
+void LedgerTransactionEntry::setOwner(bool owner)
+{
+   m_owner = owner;
+}
+
 QString LedgerTransactionEntry::payee() const
 {
    return m_payee;

@@ -45,33 +45,57 @@ void FileWriter::processItem(LedgerBudget const& budget)
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  goal    " << entry.name() << endl;
+   out << "  goal    " << entry.name();
+   if (!entry.owner().isEmpty())
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  income  " << entry.name() << endl;
+   out << "  income  " << entry.name();
+   if (!entry.owner().isEmpty())
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 {
    QTextStream out(m_file);
    out << "  reserve " << entry.name() << "  " << entry.amount().toString()
-       << " " << entry.interval().toString() << endl;
+       << " " << entry.interval().toString();
+   if (!entry.owner().isEmpty())
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  reserve " << entry.name() << "  " << entry.percentage() << "%"
-       << endl;
+   out << "  reserve " << entry.name() << "  " << entry.percentage() << "%";
+   if (!entry.owner().isEmpty())
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  routine " << entry.name() << endl;
+   out << "  routine " << entry.name();
+   if (!entry.owner().isEmpty())
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
 }
 
 void FileWriter::processItem(LedgerComment const& comment)
@@ -85,8 +109,33 @@ void FileWriter::processItem(LedgerReserve const& reserve)
 {
    breakBetween();
    QTextStream out(m_file);
-   out << reserve.date().toString(m_dateFormat) << " reserve "
-       << reserve.category() << "  " << reserve.amount().toString() << endl;
+   out << reserve.date().toString(m_dateFormat) << " reserve";
+   if (reserve.numEntries() > 1)
+   {
+      m_singleReserve = false;
+      out << endl;
+   }
+   else
+   {
+      m_singleReserve = true;
+   }
+}
+
+void FileWriter::processItem(LedgerReserveEntry const& reserve)
+{
+   QTextStream out(m_file);
+   if (m_singleReserve)
+   {
+      out << " " << reserve.category() << "  " << reserve.amount().toString()
+          << endl;
+      m_singleReserve = false;
+   }
+   else
+   {
+      out << "  " << reserve.category() << "  " << reserve.amount().toString()
+          << endl;
+   }
+
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)

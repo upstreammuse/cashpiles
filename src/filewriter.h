@@ -20,6 +20,7 @@ public:
    void processItem(LedgerBudgetRoutineEntry const& entry);
    void processItem(LedgerComment const& comment);
    void processItem(LedgerReserve const& reserve);
+   void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(QString const& dateFormat);
    void start();
@@ -34,6 +35,8 @@ private:
    QIODevice* m_file = nullptr;
    QString m_fileName;
    bool m_firstItem = true;
+   // TODO there needs to be a cleaner way than this
+   bool m_singleReserve = false;
    bool m_success = false;
 };
 

@@ -104,10 +104,14 @@ void BudgetAllocator::finish()
    table.print(out);
    out << endl;
 
-   out << "Available to budget: " << m_available.toString() << endl;
-   if (m_available.isNegative())
+   out << "Available to budget: " << endl;
+   for (auto it = m_availables.begin(); it != m_availables.end(); ++it)
    {
-      out << "WARNING: You have budgeted more than you can afford!" << endl;
+      out << it.key() << ": " << it->toString() << endl;
+      if (it->isNegative())
+      {
+         out << "WARNING: over budget!" << endl;
+      }
    }
 }
 
@@ -137,7 +141,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
               .arg(it->reserved.toString())
               .arg(it.key()));
       }
-      m_available += it->reserved;
+      m_availables[m_owners[it.key()]] += it->reserved;
    }
    m_goals.clear();
    m_incomes.clear();
@@ -151,7 +155,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
               .arg(it->reserved.toString())
               .arg(it.key()));
       }
-      m_available += it->reserved;
+      m_availables[m_owners[it.key()]] += it->reserved;
    }
    m_reserves.clear();
    for (auto it = m_routines.cbegin(); it != m_routines.cend(); ++it)
@@ -163,7 +167,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
               .arg(it->reserved.toString())
               .arg(it.key()));
       }
-      m_available += it->reserved;
+      m_availables[m_owners[it.key()]] += it->reserved;
    }
    m_routines.clear();
 }
@@ -174,8 +178,15 @@ void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    {
       return;
    }
+   if (m_owners.contains(budget.name()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+   m_availables[budget.owner()];
    m_goals[budget.name()];
+   m_owners[budget.name()] = budget.owner();
 }
 
 void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
@@ -184,8 +195,15 @@ void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
    {
       return;
    }
+   if (m_owners.contains(budget.name()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+   m_availables[budget.owner()];
    m_incomes.insert(budget.name());
+   m_owners[budget.name()] = budget.owner();
 }
 
 void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
@@ -194,8 +212,15 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    {
       return;
    }
+   if (m_owners.contains(budget.name()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
+   m_availables[budget.owner()];
+   m_owners[budget.name()] = budget.owner();
    m_reserves[budget.name()].amount = budget.amount();
    m_reserves[budget.name()].period = DateRange(m_currentPeriod.startDate(),
                                                 budget.interval());
@@ -208,7 +233,14 @@ void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
    {
       return;
    }
+   if (m_owners.contains(budget.name()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+   m_availables[budget.owner()];
+   m_owners[budget.name()] = budget.owner();
    m_reserves[budget.name()].percentage = budget.percentage() / 100.0;
 }
 
@@ -218,29 +250,70 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    {
       return;
    }
+   if (m_owners.contains(budget.name()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+   m_availables[budget.owner()];
+   m_owners[budget.name()] = budget.owner();
    m_routines[budget.name()];
 }
 
 void BudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
-   if (!m_goals.contains(reserve.category()))
+
+   // TODO need the validation code inside the LedgerReserve to make sure they
+   // actually balance to the stated amount, as with transactions
+   if (reserve.numEntries() > 1 && !reserve.amount().isZero())
    {
       die(reserve.fileName(), reserve.lineNum(),
-          "reserve command only for goals right now, sorry");
+          "Multi-line reserve commands must balance to zero");
    }
 
-   // if the reservation is in this period, get credit for it
-   if (reserve.date() <= m_currentPeriod.endDate())
+   if (reserve.numEntries() < 2)
    {
-      m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
+      m_singleReserve = true;
    }
+}
 
-   // either way, reserve the amount, which will reduce available budget amount
-   // but also 'buy down' the amount needed to reserve now
-   m_goals[reserve.category()].reserved += reserve.amount();
-   m_available -= reserve.amount();
+// TODO could make sure that all categories are owned by the owners listed, to prevent accidentally moving money into someone else's category
+// TODO alternatively, could have a separate command for within an owner, and owner to owner, but that feels artificial
+// TODO alternatively, could have the reserve command require the owner as well as the category, which isn't too onerous, even if redundant
+void BudgetAllocator::processItem(LedgerReserveEntry const& reserve)
+{
+   advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
+
+   if (reserve.isOwner())
+   {
+      m_availables[reserve.category()] += reserve.amount();
+   }
+   else
+   {
+      if (!m_goals.contains(reserve.category()))
+      {
+         die(reserve.fileName(), reserve.lineNum(),
+             "reserve command only for goals right now, sorry");
+      }
+
+      // if the reservation is in this period, get credit for it
+      if (reserve.date() <= m_currentPeriod.endDate())
+      {
+         m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
+      }
+
+      // either way, reserve the amount, which will reduce available budget amount
+      // but also 'buy down' the amount needed to reserve now
+      m_goals[reserve.category()].reserved += reserve.amount();
+
+      if (m_singleReserve)
+      {
+         m_availables[m_owners[reserve.category()]] -= reserve.amount();
+         m_singleReserve = false;
+      }
+   }
 }
 
 void BudgetAllocator::processItem(LedgerTransaction const& transaction)
@@ -269,9 +342,17 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
+      // if the category is an owner, make sure we recognize it
+      if (entry.isOwner() && !m_availables.contains(entry.category()))
+      {
+         die(transaction.fileName(), transaction.lineNum(),
+             QString("Unknown category owner '%1'").arg(entry.category()));
+      }
+
       // create a new routine category if we haven't seen it before, since this
       // is the safest thing to do without a complete error out
-      if (!m_goals.contains(entry.category()) &&
+      if (!entry.isOwner() &&
+          !m_goals.contains(entry.category()) &&
           !m_incomes.contains(entry.category()) &&
           !m_reserves.contains(entry.category()) &&
           !m_routines.contains(entry.category()))
@@ -283,7 +364,11 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
 
       // process the transaction entry based on its budget category type
-      if (m_goals.contains(entry.category()))
+      if (entry.isOwner())
+      {
+         m_availables[entry.category()] += entry.amount();
+      }
+      else if (m_goals.contains(entry.category()))
       {
          // this is a goal that has happened
          if (transaction.date() <= m_today)
@@ -294,7 +379,8 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
                warn(transaction.fileName(), transaction.lineNum(),
                     QString("Goal category %1 overspent")
                     .arg(entry.category()));
-               m_available += m_goals[entry.category()].reserved;
+               m_availables[m_owners[entry.category()]] +=
+                     m_goals[entry.category()].reserved;
                m_goals[entry.category()].reserved.clear();
             }
          }
@@ -337,15 +423,18 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
       else if (m_incomes.contains(entry.category()))
       {
-         m_available += entry.amount();
+         m_availables[m_owners[entry.category()]] += entry.amount();
          for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
          {
             // skip reserves that are not percentage based
             if (!it->period.isNull()) continue;
 
+            // skip reserves with a different owner
+            if (m_owners[it.key()] != m_owners[entry.category()]) continue;
+
             Currency amount = entry.amount() * it->percentage;
-            m_reserves[it.key()].reserved += amount;
-            m_available -= amount;
+            it->reserved += amount;
+            m_availables[m_owners[it.key()]] -= amount;
          }
       }
       else if (m_reserves.contains(entry.category()))
@@ -353,17 +442,20 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
          m_reserves[entry.category()].reserved += entry.amount();
          if (m_reserves[entry.category()].reserved.isNegative())
          {
-            m_available += m_reserves[entry.category()].reserved;
+            m_availables[m_owners[entry.category()]] +=
+                  m_reserves[entry.category()].reserved;
             m_reserves[entry.category()].reserved.clear();
          }
       }
       else if (m_routines.contains(entry.category()))
       {
+         // TODO see about changing the sign of currentAmount
          m_routines[entry.category()].currentAmount += entry.amount();
          m_routines[entry.category()].reserved += entry.amount();
          if (m_routines[entry.category()].reserved.isNegative())
          {
-            m_available += m_routines[entry.category()].reserved;
+            m_availables[m_owners[entry.category()]] +=
+                  m_routines[entry.category()].reserved;
             m_routines[entry.category()].reserved.clear();
          }
       }
@@ -400,7 +492,7 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
    while (m_currentPeriod.endDate() < date &&
           m_currentPeriod.endDate() < m_today)
    {
-      // merge escrow info and reset for the new budget period
+      // merge routine info and reset for the new budget period
       if (m_priorPeriod.isNull())
       {
          m_priorPeriod = m_currentPeriod;
@@ -442,8 +534,8 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
          syncReserve(it.key());
       }
 
-      // fund the routine escrow account based on prior daily routine expenses
-      // and the duration of the current budget period
+      // fund the routine categories based on prior daily routine expenses and
+      // the duration of the current budget period
       for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
       {
          // note that the daily value was a negative number, since it was based
@@ -454,7 +546,7 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
                                        m_priorPeriod.startDate())) *
                           m_currentPeriod.days();
          daily = Currency() - daily;
-         m_available -= daily;
+         m_availables[m_owners[it.key()]] -= daily;
          it->reserved += daily;
       }
    }
@@ -477,7 +569,7 @@ void BudgetAllocator::syncReserve(QString const& category)
 
       // move funds from available to savings goal
       m_reserves[category].reserved += amount;
-      m_available -= amount;
+      m_availables[m_owners[category]] -= amount;
 
       // if the reserve period extends into the next budget period, we
       // have to stop without incrementing it, so the next budget period

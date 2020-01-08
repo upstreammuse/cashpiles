@@ -20,6 +20,7 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
    void processItem(LedgerReserve const& reserve);
+   void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
 
 private:
@@ -51,13 +52,15 @@ private:
    };
 
 private:
-   Currency m_available;
+   QHash<QString, Currency> m_availables;
    DateRange m_currentPeriod;
    QHash<QString, Goal> m_goals;
    QSet<QString> m_incomes;
+   QHash<QString, QString> m_owners;
    DateRange m_priorPeriod;
    QHash<QString, Reserve> m_reserves;
    QHash<QString, Routine> m_routines;
+   bool m_singleReserve = false;
    QDate m_today;
 };
 
