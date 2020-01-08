@@ -126,16 +126,18 @@ void FileWriter::processItem(LedgerReserveEntry const& reserve)
    QTextStream out(m_file);
    if (m_singleReserve)
    {
-      out << " " << reserve.category() << "  " << reserve.amount().toString()
-          << endl;
+      out << " ";
       m_singleReserve = false;
    }
    else
    {
-      out << "  " << reserve.category() << "  " << reserve.amount().toString()
-          << endl;
+      out << "  ";
    }
-
+   if (reserve.isOwner())
+   {
+      out << "@";
+   }
+   out << reserve.category() << "  " << reserve.amount().toString() << endl;
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
