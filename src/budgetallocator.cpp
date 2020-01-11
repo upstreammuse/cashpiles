@@ -279,9 +279,6 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
    }
 }
 
-// TODO could make sure that all categories are owned by the owners listed, to prevent accidentally moving money into someone else's category
-// TODO alternatively, could have a separate command for within an owner, and owner to owner, but that feels artificial
-// TODO alternatively, could have the reserve command require the owner as well as the category, which isn't too onerous, even if redundant
 void BudgetAllocator::processItem(LedgerReserveEntry const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
@@ -449,7 +446,6 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
       else if (m_routines.contains(entry.category()))
       {
-         // TODO see about changing the sign of currentAmount
          m_routines[entry.category()].currentAmount += entry.amount();
          m_routines[entry.category()].reserved += entry.amount();
          if (m_routines[entry.category()].reserved.isNegative())
