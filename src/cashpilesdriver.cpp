@@ -1,5 +1,5 @@
 #include <QCoreApplication>
-#include <QDebug>
+#include <QLocale>
 #include "accountbalancer.h"
 #include "budgetallocator.h"
 #include "cashpiles.h"
@@ -44,10 +44,7 @@ int main(int argc, char** argv)
    Ledger ledger;
    FileReader reader(inFileName, ledger);
    reader.setDateFormat(dateFormat);
-   if (!reader.readAll())
-   {
-      die("Failed to read input file");
-   }
+   reader.readAll();
 
    DateValidator dv;
    ledger.processItems(dv);
@@ -61,14 +58,6 @@ int main(int argc, char** argv)
    FileWriter writer("~/cp-output-test.txt");
    writer.setDateFormat(dateFormat);
    ledger.processItems(writer);
-   if (writer.success())
-   {
-      qDebug() << "successfully wrote file";
-   }
-   else
-   {
-      qDebug() << "failed to write file";
-   }
 
    return EXIT_SUCCESS;
 }

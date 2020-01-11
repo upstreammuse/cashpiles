@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+class Currency;
 class Interval;
 class Ledger;
 class QIODevice;
@@ -14,7 +15,7 @@ class FileReader : public QObject
 public:
    FileReader(QString const& fileName, Ledger& ledger,
               QObject* parent = nullptr);
-   bool readAll();
+   void readAll();
    void setDateFormat(QString const& dateFormat);
 
 private:
@@ -34,9 +35,9 @@ private:
    void unReadLine(QString const& line);
 
 private:
-   void failed(QString const& message);
-   void failedCurrency(QString const& currency);
+   Currency parseCurrency(QString const& currency);
    QDate parseDate(QString const& date);
+   Interval parseInterval(QString const& interval);
 
 private:
    QString m_dateFormat = "yyyy/MM/dd";
@@ -45,7 +46,6 @@ private:
    Ledger& m_ledger;
    uint m_lineNum = 0;
    QStringList m_lines;
-   bool m_success = false;
 };
 
 #endif

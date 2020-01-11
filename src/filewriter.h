@@ -25,10 +25,6 @@ public:
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(QString const& dateFormat);
    void start();
-   bool success();
-
-private:
-   void failed(QString const& message);
 
 private:
    QString m_dateFormat = "yyyy/MM/dd";
@@ -36,7 +32,6 @@ private:
    QString m_fileName;
    // TODO there needs to be a cleaner way than this
    bool m_singleReserve = false;
-   bool m_success = false;
 };
 
 #endif

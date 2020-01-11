@@ -2,6 +2,7 @@
 #define LEDGER_H
 
 #include <QList>
+#include <QSharedPointer>
 
 class ItemProcessor;
 class LedgerItem;

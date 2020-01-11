@@ -1,7 +1,8 @@
 #include "filewriter.h"
 
-#include <QDebug>
 #include <QFile>
+#include <QTextStream>
+#include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
@@ -31,12 +32,20 @@ void FileWriter::processItem(LedgerAccount const& account)
    QTextStream out(m_file);
    out << account.date().toString(m_dateFormat) << " "
        << account.modeToString(account.mode()) << " " << account.name() << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBlank const&)
 {
    QTextStream out(m_file);
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudget const& budget)
@@ -44,6 +53,10 @@ void FileWriter::processItem(LedgerBudget const& budget)
    QTextStream out(m_file);
    out << budget.date().toString(m_dateFormat) << " budget "
        << budget.interval().toString() << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
@@ -55,6 +68,10 @@ void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
       out << "  " << entry.owner();
    }
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
@@ -66,6 +83,10 @@ void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
       out << "  " << entry.owner();
    }
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
@@ -78,6 +99,10 @@ void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
       out << "  " << entry.owner();
    }
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
@@ -89,6 +114,10 @@ void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
       out << "  " << entry.owner();
    }
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
@@ -100,12 +129,20 @@ void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
       out << "  " << entry.owner();
    }
    out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerComment const& comment)
 {
    QTextStream out(m_file);
    out << ";" << comment.note() << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerReserve const& reserve)
@@ -120,6 +157,10 @@ void FileWriter::processItem(LedgerReserve const& reserve)
    else
    {
       m_singleReserve = true;
+   }
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
    }
 }
 
@@ -140,6 +181,10 @@ void FileWriter::processItem(LedgerReserveEntry const& reserve)
       out << "@";
    }
    out << reserve.category() << "  " << reserve.amount().toString() << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
@@ -224,6 +269,10 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       }
       out << endl;
    }
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
 }
 
 void FileWriter::setDateFormat(QString const& dateFormat)
@@ -233,20 +282,8 @@ void FileWriter::setDateFormat(QString const& dateFormat)
 
 void FileWriter::start()
 {
-   m_success = true;
    if (!m_file || !m_file->open(QIODevice::WriteOnly | QIODevice::Text))
    {
-      failed("Unable to open file");
+      die(QString("Unable to open output file").arg(m_fileName));
    }
-}
-
-bool FileWriter::success()
-{
-   return m_success;
-}
-
-void FileWriter::failed(QString const& message)
-{
-   qDebug() << QString("File '%1': %2").arg(m_fileName).arg(message);
-   m_success = false;
 }
