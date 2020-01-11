@@ -193,6 +193,9 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
              m_accounts[entry.payee()].onBudget &&
              entry.hasCategory())
          {
+            // TODO there needs to be a validation layer between reading the file (syntax validation) and this sort of semantic validation
+            //   the semantic validation is there because a human made the input file, and should still be used as part of reading a gui-saved file
+            //   but the semantic validation isn't related to actual processing errors, so it could be in a layer before the real processing starts
             die(transaction.fileName(), transaction.lineNum(),
                 QString("Budget category set for transfer between on-budget "
                         "accounts '%1' and '%2'")

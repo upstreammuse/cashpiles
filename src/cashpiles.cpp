@@ -12,6 +12,8 @@
 #include "filewriter.h"
 #include "ledger.h"
 
+// TODO I expect the balance of on-budget accounts to add up to the same amount as the total of all the budget categories plus available.  This isn't happening, so I need to understand why
+
 // TODO if a category isn't a goal, then future transactions for it are ignored, so there is no check or prompt to save for them
 // TODO on a related note, the future goal transactions get subtracted from the categoroy, so the table shows $0.00 available
 
