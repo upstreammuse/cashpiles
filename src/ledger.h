@@ -12,7 +12,7 @@ class Ledger
 public:
    void processItems(ItemProcessor& processor);
 
-public slots:
+public:
    void appendItem(QSharedPointer<LedgerItem> item);
 
 protected:
