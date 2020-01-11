@@ -18,7 +18,6 @@ public:
    bool hasNote() const;
    void setNote(QString const& note);
 
-   // TODO this isn't immediately obvious... "categoryIsOwner?"
    bool isOwner() const;
    void setOwner(bool owner);
 
