@@ -11,14 +11,19 @@ Identifier::Identifier(QString const& value, Type type) :
    Q_ASSERT(type != Type::UNINITIALIZED);
 }
 
+Identifier::Type Identifier::type() const
+{
+   Q_ASSERT(m_type != Type::UNINITIALIZED);
+   return m_type;
+}
+
 Identifier::operator QString() const
 {
    Q_ASSERT(m_type != Type::UNINITIALIZED);
    return m_value;
 }
 
-Identifier::Type Identifier::type() const
+bool Identifier::operator==(Identifier const& other) const
 {
-   Q_ASSERT(m_type != Type::UNINITIALIZED);
-   return m_type;
+   return m_type == other.type() && m_value == other.m_value;
 }

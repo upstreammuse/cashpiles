@@ -18,8 +18,11 @@ public:
 public:
    Identifier();
    Identifier(QString const& value, Type type);
-   operator QString() const;
+
    Type type() const;
+
+   operator QString() const;
+   bool operator==(Identifier const& other) const;
 
 private:
    Type m_type = Type::UNINITIALIZED;

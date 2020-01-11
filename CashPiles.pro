@@ -24,7 +24,8 @@ HEADERS += \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
-   src/texttable.h
+   src/texttable.h \
+   src/transferbalancer.h
 SOURCES += \
    src/accountbalancer.cpp \
    src/budgetallocator.cpp \
@@ -47,5 +48,6 @@ SOURCES += \
    src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
-   src/texttable.cpp
+   src/texttable.cpp \
+   src/transferbalancer.cpp
 TARGET = cashpiles

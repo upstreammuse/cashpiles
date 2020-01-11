@@ -11,6 +11,10 @@
 #include "filereader.h"
 #include "filewriter.h"
 #include "ledger.h"
+#include "transferbalancer.h"
+
+// TODO category owners are silently created when '@' is used on a category name that otherwise doesn't exist
+//   this made it tricky to spot the error with a badly formatted transfer transaction
 
 // TODO I expect the balance of on-budget accounts to add up to the same amount as the total of all the budget categories plus available.  This isn't happening, so I need to understand why
 
@@ -63,6 +67,9 @@ int main(int argc, char** argv)
 
    DateValidator dv;
    ledger.processItems(dv);
+
+   TransferBalancer tb;
+   ledger.processItems(tb);
 
    AccountBalancer ab(today);
    ledger.processItems(ab);
