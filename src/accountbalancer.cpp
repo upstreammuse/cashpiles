@@ -100,9 +100,11 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          {
             if (!m_accounts[account.name()].balance.isZero())
             {
-               die(account.fileName(), account.lineNum(),
-                   QString("Cannot close account '%1' with non-zero balance")
-                   .arg(account.name()));
+               warn(account.fileName(), account.lineNum(),
+                    QString("Cannot close account '%1' with non-zero balance "
+                            "%2")
+                    .arg(account.name())
+                    .arg(m_accounts[account.name()].balance.toString()));
             }
             else
             {
@@ -111,9 +113,9 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          }
          else
          {
-            die(account.fileName(), account.lineNum(),
-                QString("Cannot close account '%1' that was not open")
-                .arg(account.name()));
+            warn(account.fileName(), account.lineNum(),
+                 QString("Cannot close account '%1' that was not open")
+                 .arg(account.name()));
          }
          break;
       case LedgerAccount::Mode::OFF_BUDGET:
@@ -123,9 +125,9 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          }
          else
          {
-            die(account.fileName(), account.lineNum(),
-                QString("Cannot open account '%1' that was already open")
-                .arg(account.name()));
+            warn(account.fileName(), account.lineNum(),
+                 QString("Cannot open account '%1' that was already open")
+                 .arg(account.name()));
          }
          break;
       case LedgerAccount::Mode::ON_BUDGET:
@@ -135,9 +137,9 @@ void AccountBalancer::processItem(LedgerAccount const& account)
          }
          else
          {
-            die(account.fileName(), account.lineNum(),
-                QString("Cannot open account '%1' that was already open")
-                .arg(account.name()));
+            warn(account.fileName(), account.lineNum(),
+                 QString("Cannot open account '%1' that was already open")
+                 .arg(account.name()));
          }
          break;
    }
