@@ -8,6 +8,7 @@ class Identifier
 public:
    enum class Type
    {
+      UNINITIALIZED,
       ACCOUNT,
       CATEGORY,
       GENERIC,
@@ -15,12 +16,13 @@ public:
    };
 
 public:
+   Identifier();
    Identifier(QString const& value, Type type);
    operator QString() const;
    Type type() const;
 
 private:
-   Type m_type;
+   Type m_type = Type::UNINITIALIZED;
    QString m_value;
 };
 
