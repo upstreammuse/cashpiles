@@ -36,7 +36,7 @@ QString LedgerAccount::modeToString(Mode mode)
       case Mode::OFF_BUDGET:
          return "off-budget";
       case Mode::CLOSED:
-         return "closed";
+         return "close";
    }
 
    Q_ASSERT_X(false, "modeToString", "Mode not handled");
