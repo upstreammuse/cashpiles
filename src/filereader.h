@@ -2,6 +2,7 @@
 #define FILEREADER_H
 
 #include <QObject>
+#include "ledgeraccount.h"
 
 class Currency;
 class Interval;
@@ -38,6 +39,7 @@ private:
    Currency parseCurrency(QString const& currency);
    QDate parseDate(QString const& date);
    Interval parseInterval(QString const& interval);
+   LedgerAccount::Mode parseMode(QString const& mode);
 
 private:
    QString m_dateFormat = "yyyy/MM/dd";

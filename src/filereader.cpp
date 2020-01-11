@@ -121,17 +121,7 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
    QSharedPointer<LedgerAccount> account(
             new LedgerAccount(m_fileName, m_lineNum));
    account->setDate(parseDate(match.captured("date")));
-
-   bool ok;
-   account->setMode(
-            LedgerAccount::modeFromString(match.captured("command"), &ok));
-   if (!ok)
-   {
-      die(m_fileName, m_lineNum,
-          QString("Unknown account command '%1'")
-          .arg(match.captured("command")));
-   }
-
+   account->setMode(parseMode(match.captured("command")));
    account->setName(
             Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
    m_ledger.appendItem(account);
@@ -559,4 +549,17 @@ Interval FileReader::parseInterval(QString const& interval)
           .arg(interval));
    }
    return i;
+}
+
+LedgerAccount::Mode FileReader::parseMode(QString const& mode)
+{
+   bool ok;
+   LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
+   if (!ok)
+   {
+      die(m_fileName, m_lineNum,
+          QString("Unknown account command '%1'")
+          .arg(mode));
+   }
+   return m;
 }
