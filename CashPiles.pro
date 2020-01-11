@@ -28,7 +28,6 @@ SOURCES += \
    src/accountbalancer.cpp \
    src/budgetallocator.cpp \
    src/cashpiles.cpp \
-   src/cashpilesdriver.cpp \
    src/currency.cpp \
    src/daterange.cpp \
    src/datevalidator.cpp \
