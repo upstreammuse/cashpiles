@@ -178,6 +178,10 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
          out << entry.payee() << "  ";
          if (entry.hasCategory())
          {
+            if (entry.isOwner())
+            {
+               out << "@";
+            }
             out << entry.category() << "  ";
          }
          out << entry.amount().toString();
@@ -198,7 +202,12 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       out << entry.payee();
       if (entry.hasCategory())
       {
-         out << "  " << entry.category();
+         out << "  ";
+         if (entry.isOwner())
+         {
+            out << "@";
+         }
+         out << entry.category();
       }
       out << "  " << transaction.amount().toString();
       if (transaction.hasBalance())
