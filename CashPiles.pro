@@ -11,6 +11,7 @@ HEADERS += \
    src/datevalidator.h \
    src/filereader.h \
    src/filewriter.h \
+   src/identifier.h \
    src/interval.h \
    src/itemprocessor.h \
    src/ledger.h \
@@ -33,6 +34,7 @@ SOURCES += \
    src/datevalidator.cpp \
    src/filereader.cpp \
    src/filewriter.cpp \
+   src/identifier.cpp \
    src/interval.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
