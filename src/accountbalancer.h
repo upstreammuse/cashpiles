@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include "currency.h"
+#include "identifier.h"
 #include "itemprocessor.h"
 
 class AccountBalancer : public ItemProcessor
@@ -11,11 +12,7 @@ public:
    AccountBalancer(QDate const& today);
    void finish();
    void processItem(LedgerAccount const& account);
-   void processItem(LedgerBudget const& budget);
    void processItem(LedgerTransaction const& transaction);
-
-private:
-   void checkTransfers(QDate const& date);
 
 private:
    struct Account
@@ -29,9 +26,7 @@ private:
 private:
    QMap<QString, Account> m_accounts;
    bool m_hasPending = false;
-   QDate m_lastDate;
-   QDate m_today;
-   QHash<QString, QHash<QString, Currency>> m_transfers;
+   QDate const m_today;
 };
 
 #endif

@@ -14,11 +14,8 @@ AccountBalancer::AccountBalancer(QDate const& today) :
 
 void AccountBalancer::finish()
 {
-   checkTransfers(m_lastDate.addDays(1));
    QTextStream out(stdout);
-
    out << "Account balance date: " << m_today.toString() << endl;
-   out << "Future balance date: " << m_lastDate.toString() << endl << endl;
 
    TextTable table;
    table.appendColumn(0, "== ON-BUDGET ACCOUNT ==  ");
@@ -91,8 +88,6 @@ void AccountBalancer::finish()
 
 void AccountBalancer::processItem(LedgerAccount const& account)
 {
-   checkTransfers(account.date());
-
    switch (account.mode())
    {
       case LedgerAccount::Mode::CLOSED:
@@ -145,15 +140,8 @@ void AccountBalancer::processItem(LedgerAccount const& account)
    }
 }
 
-void AccountBalancer::processItem(LedgerBudget const& budget)
-{
-   checkTransfers(budget.date());
-}
-
 void AccountBalancer::processItem(LedgerTransaction const& transaction)
 {
-   checkTransfers(transaction.date());
-
    if (!m_accounts.contains(transaction.account()))
    {
       warn(transaction.fileName(), transaction.lineNum(),
@@ -219,8 +207,6 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
                 QString("Budget category set for off-budget account '%1'")
                 .arg(transaction.account()));
          }
-
-         m_transfers[transaction.account()][entry.payee()] += entry.amount();
       }
       else
       {
@@ -256,34 +242,5 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
          die(transaction.fileName(), transaction.lineNum(),
              "Pending transactions included in balance statement");
       }
-   }
-}
-
-void AccountBalancer::checkTransfers(QDate const& date)
-{
-   if (date != m_lastDate)
-   {
-      for (auto it = m_accounts.cbegin(); it != m_accounts.cend(); ++it)
-      {
-         for (auto it2 = m_accounts.cbegin(); it2 != m_accounts.cend(); ++it2)
-         {
-            Currency balance = m_transfers[it.key()][it2.key()] +
-                               m_transfers[it2.key()][it.key()];
-            if (!balance.isZero())
-            {
-               if (balance.isNegative())
-               {
-                  balance = -balance;
-               }
-               die(QString("Transfers between '%1' and '%2' do not match as of "
-                           "%3.  Mismatch of %4")
-                   .arg(it.key())
-                   .arg(it2.key())
-                   .arg(date.toString())
-                   .arg(balance.toString()));
-            }
-         }
-      }
-      m_lastDate = date;
    }
 }
