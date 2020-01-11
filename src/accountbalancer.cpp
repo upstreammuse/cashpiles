@@ -7,63 +7,86 @@
 #include "ledgertransaction.h"
 #include "texttable.h"
 
+AccountBalancer::AccountBalancer(QDate const& today) :
+   m_today(today)
+{
+}
+
 void AccountBalancer::finish()
 {
    checkTransfers(m_lastDate.addDays(1));
    QTextStream out(stdout);
 
+   out << "Account balance date: " << m_today.toString() << endl;
+   out << "Future balance date: " << m_lastDate.toString() << endl << endl;
+
    TextTable table;
    table.appendColumn(0, "== ON-BUDGET ACCOUNT ==  ");
    table.appendColumn(1, "== CLEARED ==  ");
-   table.appendColumn(2, "== BALANCE ==");
+   table.appendColumn(2, "== BALANCE ==  ");
+   table.appendColumn(3, "== FUTURE ==");
    Currency totalOn;
    Currency totalOnCleared;
+   Currency totalOnFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->cleared.toString() + "  ");
-         table.appendColumn(2, it->balance.toString());
+         table.appendColumn(2, it->balance.toString() + "  ");
+         table.appendColumn(3, it->future.toString());
          totalOnCleared += it->cleared;
          totalOn += it->balance;
+         totalOnFuture += it->future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(1, totalOnCleared.toString() + "  ");
-   table.appendColumn(2, totalOn.toString());
+   table.appendColumn(2, totalOn.toString() + "  ");
+   table.appendColumn(3, totalOnFuture.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 
    table.clear();
    table.appendColumn(0, "== OFF-BUDGET ACCOUNT ==  ");
    table.appendColumn(1, "== CLEARED ==  ");
-   table.appendColumn(2, "== BALANCE ==");
+   table.appendColumn(2, "== BALANCE ==  ");
+   table.appendColumn(3, "== FUTURE ==");
    Currency totalOff;
    Currency totalOffCleared;
+   Currency totalOffFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
       if (!it->onBudget)
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->cleared.toString() + "  ");
-         table.appendColumn(2, it->balance.toString());
+         table.appendColumn(2, it->balance.toString() + "  ");
+         table.appendColumn(3, it->future.toString());
          totalOffCleared += it->cleared;
          totalOff += it->balance;
+         totalOffFuture += it->future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(1, totalOffCleared.toString() + "  ");
-   table.appendColumn(2, totalOff.toString());
+   table.appendColumn(2, totalOff.toString() + "  ");
+   table.appendColumn(3, totalOffFuture.toString());
    table.appendColumn(0, "== NET WORTH ==  ");
    table.appendColumn(1, (totalOnCleared + totalOffCleared).toString() + "  ");
-   table.appendColumn(2, (totalOn + totalOff).toString());
+   table.appendColumn(2, (totalOn + totalOff).toString() + "  ");
+   table.appendColumn(3, (totalOnFuture + totalOffFuture).toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
+
+   out << "Available for budgeting: " << totalOn.toString() << endl << endl;
 }
 
 void AccountBalancer::processItem(LedgerAccount const& account)
@@ -136,17 +159,20 @@ void AccountBalancer::processItem(LedgerTransaction const& transaction)
            .arg(transaction.account()));
       m_accounts[transaction.account()].onBudget = true;
    }
-   switch (transaction.status())
+
+   m_accounts[transaction.account()].future += transaction.amount();
+   if (transaction.date() <= m_today)
    {
-      case LedgerTransaction::Status::CLEARED:
-      case LedgerTransaction::Status::DISPUTED:
-         m_accounts[transaction.account()].balance += transaction.amount();
-         m_accounts[transaction.account()].cleared += transaction.amount();
-         break;
-      case LedgerTransaction::Status::PENDING:
-         m_accounts[transaction.account()].balance += transaction.amount();
-         m_hasPending = true;
-         break;
+      m_accounts[transaction.account()].balance += transaction.amount();
+      switch (transaction.status())
+      {
+         case LedgerTransaction::Status::CLEARED:
+         case LedgerTransaction::Status::DISPUTED:
+            m_accounts[transaction.account()].cleared += transaction.amount();
+            break;
+         case LedgerTransaction::Status::PENDING:
+            break;
+      }
    }
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())

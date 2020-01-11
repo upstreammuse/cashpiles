@@ -12,6 +12,9 @@
 #include "ledgeraccount.h"
 #include "ledgercomment.h"
 
+// TODO if a category isn't a goal, then future transactions for it are ignored, so there is no check or prompt to save for them
+// TODO on a related note, the future goal transactions get subtracted from the categoroy, so the table shows $0.00 available
+
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
 
 // TODO add validation to make sure categories don't exist in multiple places (two different types for the same name)
@@ -49,7 +52,7 @@ int main(int argc, char** argv)
    DateValidator dv;
    ledger.processItems(dv);
 
-   AccountBalancer ab;
+   AccountBalancer ab(today);
    ledger.processItems(ab);
 
    BudgetAllocator budAlloc(today);
