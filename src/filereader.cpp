@@ -121,7 +121,6 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
    QSharedPointer<LedgerAccount> account(
             new LedgerAccount(m_fileName, m_lineNum));
    account->setDate(parseDate(match.captured("date")));
-   account->setName(match.captured("account"));
 
    bool ok;
    account->setMode(
@@ -133,6 +132,8 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
           .arg(match.captured("command")));
    }
 
+   account->setName(
+            Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
    m_ledger.appendItem(account);
 }
 

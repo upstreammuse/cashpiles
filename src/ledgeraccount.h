@@ -2,8 +2,8 @@
 #define LEDGERACCOUNT_H
 
 #include <QDate>
-#include <QString>
 #include "currency.h"
+#include "identifier.h"
 #include "ledgeritem.h"
 
 class LedgerAccount : public LedgerItem
@@ -20,18 +20,22 @@ public:
 
 public:
    LedgerAccount(QString const& filename, uint lineNum);
+
    QDate date() const;
-   Mode mode() const;
-   QString name() const;
-   void processItem(ItemProcessor& processor) const;
    void setDate(QDate const& date);
+
+   Mode mode() const;
    void setMode(Mode mode);
-   void setName(QString const& account);
+
+   Identifier name() const;
+   void setName(Identifier const& name);
+
+   void processItem(ItemProcessor& processor) const;
 
 private:
    QDate m_date;
    Mode m_mode = Mode::CLOSED;
-   QString m_name;
+   Identifier m_name;
 };
 
 #endif

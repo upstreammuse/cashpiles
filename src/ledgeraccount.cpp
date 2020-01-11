@@ -50,7 +50,14 @@ LedgerAccount::LedgerAccount(QString const& filename, uint lineNum) :
 
 QDate LedgerAccount::date() const
 {
+   Q_ASSERT(m_date.isValid());
    return m_date;
+}
+
+void LedgerAccount::setDate(QDate const& date)
+{
+   Q_ASSERT(date.isValid());
+   m_date = date;
 }
 
 LedgerAccount::Mode LedgerAccount::mode() const
@@ -58,27 +65,24 @@ LedgerAccount::Mode LedgerAccount::mode() const
    return m_mode;
 }
 
-QString LedgerAccount::name() const
-{
-   return m_name;
-}
-
-void LedgerAccount::processItem(ItemProcessor& processor) const
-{
-   processor.processItem(*this);
-}
-
-void LedgerAccount::setDate(QDate const& date)
-{
-   m_date = date;
-}
-
 void LedgerAccount::setMode(Mode mode)
 {
    m_mode = mode;
 }
 
-void LedgerAccount::setName(QString const& name)
+Identifier LedgerAccount::name() const
 {
+   Q_ASSERT(m_name.type() == Identifier::Type::ACCOUNT);
+   return m_name;
+}
+
+void LedgerAccount::setName(Identifier const& name)
+{
+   Q_ASSERT(name.type() == Identifier::Type::ACCOUNT);
    m_name = name;
+}
+
+void LedgerAccount::processItem(ItemProcessor& processor) const
+{
+   processor.processItem(*this);
 }
