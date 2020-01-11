@@ -15,6 +15,7 @@ HEADERS += \
    src/itemprocessor.h \
    src/ledger.h \
    src/ledgeraccount.h \
+   src/ledgerblank.h \
    src/ledgerbudget.h \
    src/ledgerbudgetentry.h \
    src/ledgercomment.h \
@@ -37,6 +38,7 @@ SOURCES += \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccount.cpp \
+   src/ledgerblank.cpp \
    src/ledgerbudget.cpp \
    src/ledgerbudgetentry.cpp \
    src/ledgercomment.cpp \

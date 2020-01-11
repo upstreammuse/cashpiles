@@ -12,6 +12,10 @@ void ItemProcessor::processItem(LedgerAccount const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerBlank const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerBudget const&)
 {
 }

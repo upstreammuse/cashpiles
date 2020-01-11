@@ -2,6 +2,7 @@
 #define ITEMPROCESSOR_H
 
 class LedgerAccount;
+class LedgerBlank;
 class LedgerBudget;
 class LedgerBudgetGoalEntry;
 class LedgerBudgetIncomeEntry;
@@ -19,6 +20,7 @@ public:
    virtual ~ItemProcessor();
    virtual void finish();
    virtual void processItem(LedgerAccount const& account);
+   virtual void processItem(LedgerBlank const& blank);
    virtual void processItem(LedgerBudget const& budget);
    virtual void processItem(LedgerBudgetGoalEntry const& budget);
    virtual void processItem(LedgerBudgetIncomeEntry const& budget);

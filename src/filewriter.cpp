@@ -28,15 +28,19 @@ void FileWriter::finish()
 
 void FileWriter::processItem(LedgerAccount const& account)
 {
-   breakBetween();
    QTextStream out(m_file);
    out << account.date().toString(m_dateFormat) << " "
        << account.modeToString(account.mode()) << " " << account.name() << endl;
 }
 
+void FileWriter::processItem(LedgerBlank const&)
+{
+   QTextStream out(m_file);
+   out << endl;
+}
+
 void FileWriter::processItem(LedgerBudget const& budget)
 {
-   breakBetween();
    QTextStream out(m_file);
    out << budget.date().toString(m_dateFormat) << " budget "
        << budget.interval().toString() << endl;
@@ -100,14 +104,12 @@ void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 
 void FileWriter::processItem(LedgerComment const& comment)
 {
-   breakBetween();
    QTextStream out(m_file);
    out << ";" << comment.note() << endl;
 }
 
 void FileWriter::processItem(LedgerReserve const& reserve)
 {
-   breakBetween();
    QTextStream out(m_file);
    out << reserve.date().toString(m_dateFormat) << " reserve";
    if (reserve.numEntries() > 1)
@@ -142,7 +144,6 @@ void FileWriter::processItem(LedgerReserveEntry const& reserve)
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
 {
-   breakBetween();
    QTextStream out(m_file);
    out << transaction.date().toString(m_dateFormat);
    out << " " << transaction.statusToString(transaction.status());
@@ -233,19 +234,6 @@ void FileWriter::start()
 bool FileWriter::success()
 {
    return m_success;
-}
-
-void FileWriter::breakBetween()
-{
-   QTextStream out(m_file);
-   if (m_firstItem)
-   {
-      m_firstItem = false;
-   }
-   else
-   {
-      out << endl;
-   }
 }
 
 void FileWriter::failed(QString const& message)

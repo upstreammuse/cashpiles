@@ -3,6 +3,7 @@
 #include <QDebug>
 #include "ledger.h"
 #include "ledgeraccount.h"
+#include "ledgerblank.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetentry.h"
 #include "ledgercomment.h"
@@ -133,6 +134,12 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
    }
 
    m_ledger.appendItem(account);
+}
+
+void FileReader::processBlank()
+{
+   QSharedPointer<LedgerBlank> blank(new LedgerBlank(m_fileName, m_lineNum));
+   m_ledger.appendItem(blank);
 }
 
 void FileReader::processBudget(QRegularExpressionMatch& match)
@@ -390,9 +397,11 @@ void FileReader::processLine(QString const& line)
    {
       processTransaction(match);
    }
-   // TODO remember where the blank lines are to recreate the file with the same
-   // line spacing as the original
-   else if (!line.trimmed().isEmpty())
+   else if (line.trimmed().isEmpty())
+   {
+      processBlank();
+   }
+   else
    {
       failed(QString("Invalid contents '%1'").arg(line));
    }

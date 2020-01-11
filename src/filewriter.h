@@ -12,6 +12,7 @@ public:
    explicit FileWriter(QString const& fileName, QObject* parent = nullptr);
    void finish();
    void processItem(LedgerAccount const& account);
+   void processItem(LedgerBlank const& blank);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetGoalEntry const& entry);
    void processItem(LedgerBudgetIncomeEntry const& entry);
@@ -27,14 +28,12 @@ public:
    bool success();
 
 private:
-   void breakBetween();
    void failed(QString const& message);
 
 private:
    QString m_dateFormat = "yyyy/MM/dd";
    QIODevice* m_file = nullptr;
    QString m_fileName;
-   bool m_firstItem = true;
    // TODO there needs to be a cleaner way than this
    bool m_singleReserve = false;
    bool m_success = false;

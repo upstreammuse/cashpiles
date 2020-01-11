@@ -19,6 +19,7 @@ public:
 
 private:
    void processAccount(QRegularExpressionMatch const& match);
+   void processBlank();
    void processBudget(QRegularExpressionMatch& match);
    void processComment(QRegularExpressionMatch const& match);
    void processCompactReserve(QRegularExpressionMatch const& match);
