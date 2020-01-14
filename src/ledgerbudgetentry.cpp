@@ -8,6 +8,17 @@ LedgerBudgetEntry::LedgerBudgetEntry(QString const& filename, uint lineNum) :
 {
 }
 
+Identifier LedgerBudgetEntry::category() const
+{
+   return m_category;
+}
+
+void LedgerBudgetEntry::setCategory(Identifier const& category)
+{
+   Q_ASSERT(category.type() == Identifier::Type::CATEGORY);
+   m_category = category;
+}
+
 QDate LedgerBudgetEntry::date() const
 {
    return m_date;
@@ -15,26 +26,18 @@ QDate LedgerBudgetEntry::date() const
 
 void LedgerBudgetEntry::setDate(QDate const& date)
 {
+   Q_ASSERT(date.isValid());
    m_date = date;
 }
 
-QString LedgerBudgetEntry::name() const
-{
-   return m_name;
-}
-
-void LedgerBudgetEntry::setName(QString const& name)
-{
-   m_name = name;
-}
-
-QString LedgerBudgetEntry::owner() const
+Identifier LedgerBudgetEntry::owner() const
 {
    return m_owner;
 }
 
-void LedgerBudgetEntry::setOwner(QString const& owner)
+void LedgerBudgetEntry::setOwner(Identifier const& owner)
 {
+   Q_ASSERT(owner.type() == Identifier::Type::OWNER);
    m_owner = owner;
 }
 

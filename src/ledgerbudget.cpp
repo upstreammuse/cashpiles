@@ -15,6 +15,7 @@ QDate LedgerBudget::date() const
 
 void LedgerBudget::setDate(QDate const& date)
 {
+   Q_ASSERT(date.isValid());
    m_date = date;
    foreach (QSharedPointer<LedgerBudgetEntry> entry, m_entries)
    {

@@ -62,8 +62,8 @@ void FileWriter::processItem(LedgerBudget const& budget)
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  goal    " << entry.name();
-   if (!entry.owner().isEmpty())
+   out << "  goal    " << entry.category();
+   if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();
    }
@@ -77,8 +77,8 @@ void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  income  " << entry.name();
-   if (!entry.owner().isEmpty())
+   out << "  income  " << entry.category();
+   if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();
    }
@@ -92,9 +92,9 @@ void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  reserve " << entry.name() << "  " << entry.amount().toString()
+   out << "  reserve " << entry.category() << "  " << entry.amount().toString()
        << " " << entry.interval().toString();
-   if (!entry.owner().isEmpty())
+   if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();
    }
@@ -108,8 +108,8 @@ void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  reserve " << entry.name() << "  " << entry.percentage() << "%";
-   if (!entry.owner().isEmpty())
+   out << "  reserve " << entry.category() << "  " << entry.percentage() << "%";
+   if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();
    }
@@ -123,8 +123,8 @@ void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  routine " << entry.name();
-   if (!entry.owner().isEmpty())
+   out << "  routine " << entry.category();
+   if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();
    }
@@ -176,7 +176,7 @@ void FileWriter::processItem(LedgerReserveEntry const& reserve)
    {
       out << "  ";
    }
-   if (reserve.isOwner())
+   if (reserve.category().type() == Identifier::Type::OWNER)
    {
       out << "@";
    }

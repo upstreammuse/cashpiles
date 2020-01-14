@@ -4,6 +4,7 @@
 #include <QDate>
 #include <QString>
 #include "currency.h"
+#include "identifier.h"
 #include "interval.h"
 #include "ledgeritem.h"
 
@@ -16,19 +17,19 @@ class LedgerBudgetEntry : public LedgerItem
 public:
    LedgerBudgetEntry(QString const& filename, uint lineNum);
 
+   Identifier category() const;
+   void setCategory(Identifier const& category);
+
    QDate date() const;
    void setDate(QDate const& date);
 
-   QString name() const;
-   void setName(QString const& name);
-
-   QString owner() const;
-   void setOwner(QString const& owner);
+   Identifier owner() const;
+   void setOwner(Identifier const& owner);
 
 private:
+   Identifier m_category;
    QDate m_date;
-   QString m_name;
-   QString m_owner;
+   Identifier m_owner;
 };
 
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry

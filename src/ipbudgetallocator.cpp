@@ -178,15 +178,15 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    {
       return;
    }
-   if (m_owners.contains(budget.name()))
+   if (m_owners.contains(budget.category()))
    {
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
-   m_goals[budget.name()];
-   m_owners[budget.name()] = budget.owner();
+   m_goals[budget.category()];
+   m_owners[budget.category()] = budget.owner();
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
@@ -195,15 +195,15 @@ void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
    {
       return;
    }
-   if (m_owners.contains(budget.name()))
+   if (m_owners.contains(budget.category()))
    {
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
-   m_incomes.insert(budget.name());
-   m_owners[budget.name()] = budget.owner();
+   m_incomes.insert(budget.category());
+   m_owners[budget.category()] = budget.owner();
 }
 
 void IPBudgetAllocator::processItem(
@@ -213,7 +213,7 @@ void IPBudgetAllocator::processItem(
    {
       return;
    }
-   if (m_owners.contains(budget.name()))
+   if (m_owners.contains(budget.category()))
    {
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
@@ -221,11 +221,11 @@ void IPBudgetAllocator::processItem(
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_availables[budget.owner()];
-   m_owners[budget.name()] = budget.owner();
-   m_reserves[budget.name()].amount = budget.amount();
-   m_reserves[budget.name()].period = DateRange(m_currentPeriod.startDate(),
-                                                budget.interval());
-   syncReserve(budget.name());
+   m_owners[budget.category()] = budget.owner();
+   m_reserves[budget.category()].amount = budget.amount();
+   m_reserves[budget.category()].period = DateRange(m_currentPeriod.startDate(),
+                                                    budget.interval());
+   syncReserve(budget.category());
 }
 
 void IPBudgetAllocator::processItem(
@@ -235,15 +235,15 @@ void IPBudgetAllocator::processItem(
    {
       return;
    }
-   if (m_owners.contains(budget.name()))
+   if (m_owners.contains(budget.category()))
    {
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
-   m_owners[budget.name()] = budget.owner();
-   m_reserves[budget.name()].percentage = budget.percentage() / 100.0;
+   m_owners[budget.category()] = budget.owner();
+   m_reserves[budget.category()].percentage = budget.percentage() / 100.0;
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
@@ -252,15 +252,15 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    {
       return;
    }
-   if (m_owners.contains(budget.name()))
+   if (m_owners.contains(budget.category()))
    {
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
-   m_owners[budget.name()] = budget.owner();
-   m_routines[budget.name()];
+   m_owners[budget.category()] = budget.owner();
+   m_routines[budget.category()];
 }
 
 void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
@@ -285,7 +285,7 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
-   if (reserve.isOwner())
+   if (reserve.category().type() == Identifier::Type::OWNER)
    {
       m_availables[reserve.category()] += reserve.amount();
    }
@@ -552,7 +552,7 @@ void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
    }
 }
 
-void IPBudgetAllocator::syncReserve(QString const& category)
+void IPBudgetAllocator::syncReserve(Identifier const& category)
 {
    // fund all reserve periods that start before this budget period ends,
    // considering that the current reserve period might have started

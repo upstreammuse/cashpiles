@@ -4,39 +4,46 @@
 #include <QDate>
 #include <QSharedPointer>
 #include "currency.h"
+#include "identifier.h"
 #include "ledgeritem.h"
 
+// TODO split into separate file
 class LedgerReserveEntry : public LedgerItem
 {
 public:
    LedgerReserveEntry(QString const& filename, uint linenum);
+
    Currency amount() const;
-   QString category() const;
-   QDate date() const;
-   bool isOwner() const;
-   void processItem(ItemProcessor& processor) const;
    void setAmount(Currency const& amount);
-   void setCategory(QString const& category);
+
+   Identifier category() const;
+   void setCategory(Identifier const& category);
+
+   QDate date() const;
    void setDate(QDate const& date);
-   void setOwner(bool owner);
+
+   void processItem(ItemProcessor& processor) const;
 
 private:
    Currency m_amount;
-   QString m_category;
+   Identifier m_category;
    QDate m_date;
-   bool m_owner = false;
 };
 
 class LedgerReserve : public LedgerItem
 {
 public:
    LedgerReserve(QString const& filename, uint linenum);
+
    Currency amount() const;
-   void appendEntry(QSharedPointer<LedgerReserveEntry> entry);
+
    QDate date() const;
-   int numEntries() const;
-   void processItem(ItemProcessor& processor) const;
    void setDate(QDate const& date);
+
+   void appendEntry(QSharedPointer<LedgerReserveEntry> entry);
+   int numEntries() const;
+
+   void processItem(ItemProcessor& processor) const;
 
 private:
    QDate m_date;

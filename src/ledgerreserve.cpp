@@ -12,9 +12,21 @@ Currency LedgerReserveEntry::amount() const
    return m_amount;
 }
 
-QString LedgerReserveEntry::category() const
+void LedgerReserveEntry::setAmount(Currency const& amount)
+{
+   m_amount = amount;
+}
+
+Identifier LedgerReserveEntry::category() const
 {
    return m_category;
+}
+
+void LedgerReserveEntry::setCategory(Identifier const& category)
+{
+   Q_ASSERT(category.type() == Identifier::Type::CATEGORY ||
+            category.type() == Identifier::Type::OWNER);
+   m_category = category;
 }
 
 QDate LedgerReserveEntry::date() const
@@ -22,34 +34,15 @@ QDate LedgerReserveEntry::date() const
    return m_date;
 }
 
-bool LedgerReserveEntry::isOwner() const
+void LedgerReserveEntry::setDate(QDate const& date)
 {
-   return m_owner;
+   Q_ASSERT(date.isValid());
+   m_date = date;
 }
 
 void LedgerReserveEntry::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
-}
-
-void LedgerReserveEntry::setAmount(Currency const& amount)
-{
-   m_amount = amount;
-}
-
-void LedgerReserveEntry::setCategory(QString const& category)
-{
-   m_category = category;
-}
-
-void LedgerReserveEntry::setDate(QDate const& date)
-{
-   m_date = date;
-}
-
-void LedgerReserveEntry::setOwner(bool owner)
-{
-   m_owner = owner;
 }
 
 LedgerReserve::LedgerReserve(QString const& filename, uint linenum) :
@@ -67,15 +60,25 @@ Currency LedgerReserve::amount() const
    return amount;
 }
 
+QDate LedgerReserve::date() const
+{
+   return m_date;
+}
+
+void LedgerReserve::setDate(QDate const& date)
+{
+   Q_ASSERT(date.isValid());
+   m_date = date;
+   foreach (auto entry, m_entries)
+   {
+      entry->setDate(date);
+   }
+}
+
 void LedgerReserve::appendEntry(QSharedPointer<LedgerReserveEntry> entry)
 {
    entry->setDate(m_date);
    m_entries.append(entry);
-}
-
-QDate LedgerReserve::date() const
-{
-   return m_date;
 }
 
 int LedgerReserve::numEntries() const
@@ -89,14 +92,5 @@ void LedgerReserve::processItem(ItemProcessor& processor) const
    foreach (auto entry, m_entries)
    {
       entry->processItem(processor);
-   }
-}
-
-void LedgerReserve::setDate(QDate const& date)
-{
-   m_date = date;
-   foreach (auto entry, m_entries)
-   {
-      entry->setDate(date);
    }
 }

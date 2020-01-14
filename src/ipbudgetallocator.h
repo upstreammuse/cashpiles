@@ -5,6 +5,7 @@
 #include <QSet>
 #include "currency.h"
 #include "daterange.h"
+#include "identifier.h"
 #include "itemprocessor.h"
 
 class IPBudgetAllocator : public ItemProcessor
@@ -26,7 +27,7 @@ public:
 private:
    void advanceBudgetPeriod(QString const& filename, uint lineNum,
                             QDate const& date, bool rebudgeting = false);
-   void syncReserve(QString const& category);
+   void syncReserve(Identifier const& category);
 
 private:
    struct Goal
@@ -52,14 +53,16 @@ private:
    };
 
 private:
-   QHash<QString, Currency> m_availables;
+   // TODO what if we subclass Identifier with subtypes that automatically
+   // ensure they are working with the correct identifier types?
+   QHash<Identifier, Currency> m_availables;
    DateRange m_currentPeriod;
-   QHash<QString, Goal> m_goals;
-   QSet<QString> m_incomes;
-   QHash<QString, QString> m_owners;
+   QHash<Identifier, Goal> m_goals;
+   QSet<Identifier> m_incomes;
+   QHash<Identifier, Identifier> m_owners;
    DateRange m_priorPeriod;
-   QHash<QString, Reserve> m_reserves;
-   QHash<QString, Routine> m_routines;
+   QHash<Identifier, Reserve> m_reserves;
+   QHash<Identifier, Routine> m_routines;
    bool m_singleReserve = false;
    QDate m_today;
 };

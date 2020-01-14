@@ -146,24 +146,30 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       {
          QSharedPointer<LedgerBudgetGoalEntry> entry(
                   new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
-         entry->setName(match.captured("category"));
-         entry->setOwner(match.captured("owner"));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineIncomeRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetIncomeEntry> entry(
                   new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
-         entry->setName(match.captured("category"));
-         entry->setOwner(match.captured("owner"));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
          budget->appendEntry(entry);
       }
       else if ((match = budgetLineReserveAmountRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetReserveAmountEntry> entry(
                   new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
-         entry->setName(match.captured("category"));
-         entry->setOwner(match.captured("owner"));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
          entry->setAmount(parseCurrency(match.captured("amount")));
          entry->setInterval(parseInterval(match.captured("interval")));
          budget->appendEntry(entry);
@@ -172,8 +178,10 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       {
          QSharedPointer<LedgerBudgetReservePercentEntry> entry(
                   new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
-         entry->setName(match.captured("category"));
-         entry->setOwner(match.captured("owner"));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
          entry->setPercentage(match.captured("percentage").toUInt());
          budget->appendEntry(entry);
       }
@@ -181,8 +189,10 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       {
          QSharedPointer<LedgerBudgetRoutineEntry> entry(
                   new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
-         entry->setName(match.captured("category"));
-         entry->setOwner(match.captured("owner"));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
          budget->appendEntry(entry);
       }
       else
@@ -211,7 +221,8 @@ void FileReader::processCompactReserve(const QRegularExpressionMatch &match)
 
    QSharedPointer<LedgerReserveEntry> entry(
             new LedgerReserveEntry(m_fileName, m_lineNum));
-   entry->setCategory(match.captured("category"));
+   entry->setCategory(Identifier(match.captured("category"),
+                                 Identifier::Type::CATEGORY));
    entry->setAmount(parseCurrency(match.captured("amount")));
 
    reserve->appendEntry(entry);
@@ -377,12 +388,13 @@ void FileReader::processReserve(QRegularExpressionMatch& match)
                   new LedgerReserveEntry(m_fileName, m_lineNum));
          if (match.captured("category").startsWith("@"))
          {
-            entry->setCategory(match.captured("category").mid(1));
-            entry->setOwner(true);
+            entry->setCategory(Identifier(match.captured("category").mid(1),
+                                          Identifier::Type::OWNER));
          }
          else
          {
-            entry->setCategory(match.captured("category"));
+            entry->setCategory(Identifier(match.captured("category"),
+                                          Identifier::Type::CATEGORY));
          }
 
          entry->setAmount(parseCurrency(match.captured("amount")));

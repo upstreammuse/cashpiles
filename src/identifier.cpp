@@ -28,6 +28,12 @@ bool Identifier::operator==(Identifier const& other) const
    return m_value == other.m_value;
 }
 
+bool Identifier::operator!=(Identifier const& other) const
+{
+   Q_ASSERT(m_type == other.m_type);
+   return m_value != other.m_value;
+}
+
 bool Identifier::operator<(Identifier const& other) const
 {
    Q_ASSERT(m_type == other.m_type);
