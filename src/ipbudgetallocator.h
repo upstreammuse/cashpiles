@@ -32,6 +32,7 @@ private:
 private:
    struct Goal
    {
+      Currency future;
       Currency neededThisPeriod;
       Currency reserved;
       Currency reservedThisPeriod;

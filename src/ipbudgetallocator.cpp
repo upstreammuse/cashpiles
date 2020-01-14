@@ -26,13 +26,16 @@ void IPBudgetAllocator::finish()
    table.appendColumn(0, "== GOAL ==  ");
    table.appendColumn(1, "== RESERVED ==  ");
    table.appendColumn(2, "== NEEDED ==  ");
-   table.appendColumn(3, "== AVAILABLE ==");
+   table.appendColumn(3, "== AVAILABLE ==  ");
+   table.appendColumn(4, "== FUTURE ==");
    for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
    {
       table.appendColumn(0, it.key() + "  ");
       table.appendColumn(1, it->reservedThisPeriod.toString() + "  ");
       if ((it->reservedThisPeriod - it->neededThisPeriod).isNegative())
       {
+         // TODO what is more natural, showing what is left to be allocated, or
+         // the total amount needed?
          table.appendColumn(2, (it->neededThisPeriod -
                                 it->reservedThisPeriod).toString() + "  ");
       }
@@ -40,14 +43,16 @@ void IPBudgetAllocator::finish()
       {
          table.appendColumn(2, "---  ");
       }
-      table.appendColumn(3, it->reserved.toString());
+      table.appendColumn(3, it->reserved.toString() + "  ");
+      table.appendColumn(4, it->future.toString());
       total += it->reserved;
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(3, total.toString());
+   table.appendColumn(3, total.toString() + "  ");
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
+   table.setColumnAlignment(4, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 
@@ -310,6 +315,7 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
       }
 
       // either way, reserve the amount
+      m_goals[reserve.category()].future += reserve.amount();
       m_goals[reserve.category()].reserved += reserve.amount();
 
       // if doing a single line reserve, there is an implicit counter reserve
@@ -390,23 +396,23 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
                      m_goals[entry.category()].reserved;
                m_goals[entry.category()].reserved.clear();
             }
+
+            // we are still in the present, so the future matches the present
+            m_goals[entry.category()].future =
+                  m_goals[entry.category()].reserved;
          }
          // this is a goal after today, and the budget period includes the
-         // current date, note that the entry amount is negative
+         // current date, note that the entry amount is negative, also note that
+         // we only allocate from the future now
          else
          {
-            // TODO future goal transactions affect the 'reserved' balance, and
-            // this makes the table not match the current account balances, so
-            // we need to have a similar 'future' column that divides what has
-            // happened and current state from the eventual future state
-
             // need to save more for this goal
-            if ((m_goals[entry.category()].reserved +
+            if ((m_goals[entry.category()].future +
                  entry.amount()).isNegative())
             {
                // get the positive amount to save
                Currency toSave = Currency() - entry.amount() -
-                                 m_goals[entry.category()].reserved;
+                                 m_goals[entry.category()].future;
 
                // find out the total date range left to save in, including the
                // current period dates
@@ -424,12 +430,12 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
 
                // since we have to save for this entry, we have nothing left for
                // any additional goal entries
-               m_goals[entry.category()].reserved.clear();
+               m_goals[entry.category()].future.clear();
             }
             // we have enough, so "spend" from the saved goal money
             else
             {
-               m_goals[entry.category()].reserved += entry.amount();
+               m_goals[entry.category()].future += entry.amount();
             }
          }
       }
