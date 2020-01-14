@@ -23,23 +23,20 @@ void IPTransactionCategorizer::processItem(LedgerAccount const& account)
 
 void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 {
-   // TODO this goes away with identifier migration
-   Identifier account(transaction.account(), Identifier::Type::ACCOUNT);
-
    // TODO 'checkCreateAccount' or something to encapsulate this
-   if (!m_accounts.contains(account))
+   if (!m_accounts.contains(transaction.account()))
    {
       warn(transaction.fileName(), transaction.lineNum(),
            QString("Automatically opening on-budget account '%1'")
            .arg(transaction.account()));
-      m_accounts[account] = true;
+      m_accounts[transaction.account()] = true;
    }
 
    // TODO this could be a dedicated method to handle transaction entries in
    // the same manner as budget and reserve entries
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
-      if (!m_accounts[account] &&
+      if (!m_accounts[transaction.account()] &&
           entry.category().type() != Identifier::Type::UNINITIALIZED)
       {
          die(transaction.fileName(), transaction.lineNum(),
@@ -64,7 +61,8 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                m_accounts[entry.payee()] = true;
             }
 
-            if (m_accounts[account] && m_accounts[entry.payee()] &&
+            if (m_accounts[transaction.account()] &&
+                m_accounts[entry.payee()] &&
                 entry.category().type() != Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
@@ -73,7 +71,8 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                    .arg(transaction.account())
                    .arg(entry.payee()));
             }
-            else if (m_accounts[account] && !m_accounts[entry.payee()] &&
+            else if (m_accounts[transaction.account()] &&
+                     !m_accounts[entry.payee()] &&
                      entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
@@ -87,7 +86,7 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 
          case Identifier::Type::GENERIC:
 
-            if (m_accounts[account] &&
+            if (m_accounts[transaction.account()] &&
                 entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
