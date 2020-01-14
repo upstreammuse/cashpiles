@@ -4,14 +4,14 @@
 #include <QDate>
 #include <QRegularExpression>
 #include <QTextStream>
-#include "accountbalancer.h"
-#include "budgetallocator.h"
 #include "currency.h"
-#include "datevalidator.h"
 #include "filereader.h"
 #include "filewriter.h"
+#include "ipaccountbalancer.h"
+#include "ipbudgetallocator.h"
+#include "ipdatevalidator.h"
+#include "iptransferbalancer.h"
 #include "ledger.h"
-#include "transferbalancer.h"
 
 // TODO category owners are silently created when '@' is used on a category name that otherwise doesn't exist
 //   this made it tricky to spot the error with a badly formatted transfer transaction
@@ -65,16 +65,16 @@ int main(int argc, char** argv)
    reader.setDateFormat(dateFormat);
    reader.readAll();
 
-   DateValidator dv;
+   IPDateValidator dv;
    ledger.processItems(dv);
 
-   TransferBalancer tb;
+   IPTransferBalancer tb;
    ledger.processItems(tb);
 
-   AccountBalancer ab(today);
+   IPAccountBalancer ab(today);
    ledger.processItems(ab);
 
-   BudgetAllocator budAlloc(today);
+   IPBudgetAllocator budAlloc(today);
    ledger.processItems(budAlloc);
 
    FileWriter writer("~/cp-output-test.txt");

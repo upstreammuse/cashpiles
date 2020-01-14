@@ -1,5 +1,5 @@
-#ifndef BUDGETALLOCATOR_H
-#define BUDGETALLOCATOR_H
+#ifndef IPBUDGETALLOCATOR_H
+#define IPBUDGETALLOCATOR_H
 
 #include <QHash>
 #include <QSet>
@@ -7,10 +7,10 @@
 #include "daterange.h"
 #include "itemprocessor.h"
 
-class BudgetAllocator : public ItemProcessor
+class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   BudgetAllocator(QDate const& today);
+   IPBudgetAllocator(QDate const& today);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);

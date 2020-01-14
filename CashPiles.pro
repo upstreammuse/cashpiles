@@ -3,16 +3,17 @@ CONFIG += console
 #QT += widgets
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 HEADERS += \
-   src/accountbalancer.h \
-   src/budgetallocator.h \
    src/cashpiles.h \
    src/currency.h \
    src/daterange.h \
-   src/datevalidator.h \
    src/filereader.h \
    src/filewriter.h \
    src/identifier.h \
    src/interval.h \
+   src/ipaccountbalancer.h \
+   src/ipbudgetallocator.h \
+   src/ipdatevalidator.h \
+   src/iptransferbalancer.h \
    src/itemprocessor.h \
    src/ledger.h \
    src/ledgeraccount.h \
@@ -24,19 +25,19 @@ HEADERS += \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
-   src/texttable.h \
-   src/transferbalancer.h
+   src/texttable.h
 SOURCES += \
-   src/accountbalancer.cpp \
-   src/budgetallocator.cpp \
    src/cashpiles.cpp \
    src/currency.cpp \
    src/daterange.cpp \
-   src/datevalidator.cpp \
    src/filereader.cpp \
    src/filewriter.cpp \
    src/identifier.cpp \
    src/interval.cpp \
+   src/ipaccountbalancer.cpp \
+   src/ipbudgetallocator.cpp \
+   src/ipdatevalidator.cpp \
+   src/iptransferbalancer.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccount.cpp \
@@ -48,6 +49,5 @@ SOURCES += \
    src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
-   src/texttable.cpp \
-   src/transferbalancer.cpp
+   src/texttable.cpp
 TARGET = cashpiles

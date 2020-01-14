@@ -1,10 +1,10 @@
-#ifndef DATEVALIDATOR_H
-#define DATEVALIDATOR_H
+#ifndef IPDATEVALIDATOR_H
+#define IPDATEVALIDATOR_H
 
 #include <QDate>
 #include "itemprocessor.h"
 
-class DateValidator : public ItemProcessor
+class IPDateValidator : public ItemProcessor
 {
 public:
    void processItem(LedgerAccount const& account);

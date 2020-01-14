@@ -1,4 +1,4 @@
-#include "transferbalancer.h"
+#include "iptransferbalancer.h"
 
 #include "cashpiles.h"
 #include "ledgeraccount.h"
@@ -6,28 +6,28 @@
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
-void TransferBalancer::finish()
+void IPTransferBalancer::finish()
 {
    checkTransfers(m_lastDate.addDays(1));
 }
 
-void TransferBalancer::processItem(LedgerAccount const& account)
+void IPTransferBalancer::processItem(LedgerAccount const& account)
 {
    checkTransfers(account.date());
    m_accounts.insert(account.name());
 }
 
-void TransferBalancer::processItem(LedgerBudget const& budget)
+void IPTransferBalancer::processItem(LedgerBudget const& budget)
 {
    checkTransfers(budget.date());
 }
 
-void TransferBalancer::processItem(LedgerReserve const& reserve)
+void IPTransferBalancer::processItem(LedgerReserve const& reserve)
 {
    checkTransfers(reserve.date());
 }
 
-void TransferBalancer::processItem(LedgerTransaction const& transaction)
+void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
 {
    checkTransfers(transaction.date());
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
@@ -46,7 +46,7 @@ void TransferBalancer::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void TransferBalancer::checkTransfers(QDate const& date)
+void IPTransferBalancer::checkTransfers(QDate const& date)
 {
    if (date != m_lastDate)
    {

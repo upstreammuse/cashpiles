@@ -1,4 +1,4 @@
-#include "budgetallocator.h"
+#include "ipbudgetallocator.h"
 
 #include <QTextStream>
 #include "cashpiles.h"
@@ -9,7 +9,7 @@
 #include "ledgertransactionentry.h"
 #include "texttable.h"
 
-BudgetAllocator::BudgetAllocator(QDate const& today) :
+IPBudgetAllocator::IPBudgetAllocator(QDate const& today) :
    m_today(today)
 {
    if (!m_today.isValid())
@@ -18,7 +18,7 @@ BudgetAllocator::BudgetAllocator(QDate const& today) :
    }
 }
 
-void BudgetAllocator::finish()
+void IPBudgetAllocator::finish()
 {
    QTextStream out(stdout);
    TextTable table;
@@ -115,12 +115,12 @@ void BudgetAllocator::finish()
    }
 }
 
-void BudgetAllocator::processItem(LedgerAccount const& account)
+void IPBudgetAllocator::processItem(LedgerAccount const& account)
 {
    advanceBudgetPeriod(account.fileName(), account.lineNum(), account.date());
 }
 
-void BudgetAllocator::processItem(LedgerBudget const& budget)
+void IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > m_today)
    {
@@ -172,7 +172,7 @@ void BudgetAllocator::processItem(LedgerBudget const& budget)
    m_routines.clear();
 }
 
-void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
    if (budget.date() > m_today)
    {
@@ -189,7 +189,7 @@ void BudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    m_owners[budget.name()] = budget.owner();
 }
 
-void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
    if (budget.date() > m_today)
    {
@@ -206,7 +206,8 @@ void BudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
    m_owners[budget.name()] = budget.owner();
 }
 
-void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
+void IPBudgetAllocator::processItem(
+      LedgerBudgetReserveAmountEntry const& budget)
 {
    if (budget.date() > m_today)
    {
@@ -227,7 +228,8 @@ void BudgetAllocator::processItem(LedgerBudgetReserveAmountEntry const& budget)
    syncReserve(budget.name());
 }
 
-void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
+void IPBudgetAllocator::processItem(
+      LedgerBudgetReservePercentEntry const &budget)
 {
    if (budget.date() > m_today)
    {
@@ -244,7 +246,7 @@ void BudgetAllocator::processItem(LedgerBudgetReservePercentEntry const &budget)
    m_reserves[budget.name()].percentage = budget.percentage() / 100.0;
 }
 
-void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 {
    if (budget.date() > m_today)
    {
@@ -261,7 +263,7 @@ void BudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    m_routines[budget.name()];
 }
 
-void BudgetAllocator::processItem(LedgerReserve const& reserve)
+void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
@@ -279,7 +281,7 @@ void BudgetAllocator::processItem(LedgerReserve const& reserve)
    }
 }
 
-void BudgetAllocator::processItem(LedgerReserveEntry const& reserve)
+void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
@@ -301,8 +303,8 @@ void BudgetAllocator::processItem(LedgerReserveEntry const& reserve)
          m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
       }
 
-      // either way, reserve the amount, which will reduce available budget amount
-      // but also 'buy down' the amount needed to reserve now
+      // either way, reserve the amount, which will reduce available budget
+      // amount but also 'buy down' the amount needed to reserve now
       m_goals[reserve.category()].reserved += reserve.amount();
 
       if (m_singleReserve)
@@ -313,7 +315,7 @@ void BudgetAllocator::processItem(LedgerReserveEntry const& reserve)
    }
 }
 
-void BudgetAllocator::processItem(LedgerTransaction const& transaction)
+void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
 {
    advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
                        transaction.date());
@@ -462,8 +464,9 @@ void BudgetAllocator::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
-                                          QDate const& date, bool rebudgeting)
+void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
+                                            uint lineNum, QDate const& date,
+                                            bool rebudgeting)
 {
    // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
@@ -548,7 +551,7 @@ void BudgetAllocator::advanceBudgetPeriod(QString const& filename, uint lineNum,
    }
 }
 
-void BudgetAllocator::syncReserve(QString const& category)
+void IPBudgetAllocator::syncReserve(QString const& category)
 {
    // fund all reserve periods that start before this budget period ends,
    // considering that the current reserve period might have started

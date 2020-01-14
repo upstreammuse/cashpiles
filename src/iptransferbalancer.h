@@ -1,5 +1,5 @@
-#ifndef TRANSFERBALANCER_H
-#define TRANSFERBALANCER_H
+#ifndef IPTRANSFERBALANCER_H
+#define IPTRANSFERBALANCER_H
 
 #include <QDate>
 #include <QHash>
@@ -8,7 +8,7 @@
 #include "identifier.h"
 #include "itemprocessor.h"
 
-class TransferBalancer : public ItemProcessor
+class IPTransferBalancer : public ItemProcessor
 {
 public:
    void finish();

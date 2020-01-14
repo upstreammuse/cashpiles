@@ -1,15 +1,15 @@
-#ifndef ACCOUNTBALANCER_H
-#define ACCOUNTBALANCER_H
+#ifndef IPACCOUNTBALANCER_H
+#define IPACCOUNTBALANCER_H
 
 #include <QDate>
 #include "currency.h"
 #include "identifier.h"
 #include "itemprocessor.h"
 
-class AccountBalancer : public ItemProcessor
+class IPAccountBalancer : public ItemProcessor
 {
 public:
-   AccountBalancer(QDate const& today);
+   IPAccountBalancer(QDate const& today);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerTransaction const& transaction);

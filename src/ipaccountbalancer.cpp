@@ -1,4 +1,4 @@
-#include "accountbalancer.h"
+#include "ipaccountbalancer.h"
 
 #include <QTextStream>
 #include "cashpiles.h"
@@ -7,12 +7,12 @@
 #include "ledgertransaction.h"
 #include "texttable.h"
 
-AccountBalancer::AccountBalancer(QDate const& today) :
+IPAccountBalancer::IPAccountBalancer(QDate const& today) :
    m_today(today)
 {
 }
 
-void AccountBalancer::finish()
+void IPAccountBalancer::finish()
 {
    QTextStream out(stdout);
    out << "Account balance date: " << m_today.toString() << endl;
@@ -86,7 +86,7 @@ void AccountBalancer::finish()
    out << "Available for budgeting: " << totalOn.toString() << endl << endl;
 }
 
-void AccountBalancer::processItem(LedgerAccount const& account)
+void IPAccountBalancer::processItem(LedgerAccount const& account)
 {
    switch (account.mode())
    {
@@ -140,7 +140,7 @@ void AccountBalancer::processItem(LedgerAccount const& account)
    }
 }
 
-void AccountBalancer::processItem(LedgerTransaction const& transaction)
+void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 {
    if (!m_accounts.contains(transaction.account()))
    {
