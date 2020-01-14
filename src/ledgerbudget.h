@@ -12,12 +12,16 @@ class LedgerBudget : public LedgerItem
 {
 public:
    LedgerBudget(QString const& fileName, uint lineNum);
-   void appendEntry(QSharedPointer<LedgerBudgetEntry> entry);
+
    QDate date() const;
-   Interval interval() const;
-   void processItem(ItemProcessor& processor) const;
    void setDate(QDate const& date);
+
+   Interval interval() const;
    void setInterval(Interval interval);
+
+   void appendEntry(QSharedPointer<LedgerBudgetEntry> entry);
+
+   void processItem(ItemProcessor& processor) const;
 
 private:
    QDate m_date;

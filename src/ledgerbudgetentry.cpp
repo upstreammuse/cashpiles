@@ -13,24 +13,24 @@ QDate LedgerBudgetEntry::date() const
    return m_date;
 }
 
-QString LedgerBudgetEntry::name() const
-{
-   return m_name;
-}
-
-QString LedgerBudgetEntry::owner() const
-{
-   return m_owner;
-}
-
 void LedgerBudgetEntry::setDate(QDate const& date)
 {
    m_date = date;
 }
 
+QString LedgerBudgetEntry::name() const
+{
+   return m_name;
+}
+
 void LedgerBudgetEntry::setName(QString const& name)
 {
    m_name = name;
+}
+
+QString LedgerBudgetEntry::owner() const
+{
+   return m_owner;
 }
 
 void LedgerBudgetEntry::setOwner(QString const& owner)
@@ -71,24 +71,24 @@ Currency LedgerBudgetReserveAmountEntry::amount() const
    return m_amount;
 }
 
-Interval LedgerBudgetReserveAmountEntry::interval() const
-{
-   return m_interval;
-}
-
-void LedgerBudgetReserveAmountEntry::processItem(ItemProcessor& processor) const
-{
-   processor.processItem(*this);
-}
-
 void LedgerBudgetReserveAmountEntry::setAmount(Currency const& amount)
 {
    m_amount = amount;
 }
 
+Interval LedgerBudgetReserveAmountEntry::interval() const
+{
+   return m_interval;
+}
+
 void LedgerBudgetReserveAmountEntry::setInterval(Interval const& interval)
 {
    m_interval = interval;
+}
+
+void LedgerBudgetReserveAmountEntry::processItem(ItemProcessor& processor) const
+{
+   processor.processItem(*this);
 }
 
 LedgerBudgetReservePercentEntry::LedgerBudgetReservePercentEntry(
@@ -102,15 +102,15 @@ uint LedgerBudgetReservePercentEntry::percentage() const
    return m_percentage;
 }
 
+void LedgerBudgetReservePercentEntry::setPercentage(uint percentage)
+{
+   m_percentage = percentage;
+}
+
 void LedgerBudgetReservePercentEntry::processItem(
       ItemProcessor& processor) const
 {
    processor.processItem(*this);
-}
-
-void LedgerBudgetReservePercentEntry::setPercentage(uint percentage)
-{
-   m_percentage = percentage;
 }
 
 LedgerBudgetRoutineEntry::LedgerBudgetRoutineEntry(QString const& filename,
