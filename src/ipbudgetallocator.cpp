@@ -131,6 +131,12 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date(),
                        true);
 
+   // TODO instead of draining the current budget, it should be possible to do
+   // a few things
+   // - add a new category to an existing budget setup
+   // - remove a category from an existing budget setup (refunding to owner)
+   // when a new budget is created from scratch, then it's ok to do this, since
+   // we are in theory starting over
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
    {
@@ -303,10 +309,11 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
          m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
       }
 
-      // either way, reserve the amount, which will reduce available budget
-      // amount but also 'buy down' the amount needed to reserve now
+      // either way, reserve the amount
       m_goals[reserve.category()].reserved += reserve.amount();
 
+      // if doing a single line reserve, there is an implicit counter reserve
+      // that applies to the category owner
       if (m_singleReserve)
       {
          m_availables[m_owners[reserve.category()]] -= reserve.amount();
@@ -388,6 +395,11 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
          // current date, note that the entry amount is negative
          else
          {
+            // TODO future goal transactions affect the 'reserved' balance, and
+            // this makes the table not match the current account balances, so
+            // we need to have a similar 'future' column that divides what has
+            // happened and current state from the eventual future state
+
             // need to save more for this goal
             if ((m_goals[entry.category()].reserved +
                  entry.amount()).isNegative())
