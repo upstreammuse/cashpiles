@@ -32,16 +32,19 @@ void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
    checkTransfers(transaction.date());
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
-      // TODO this will become a check on the identifier to be an account name
-      if (entry.transfer())
+      switch (entry.payee().type())
       {
-         // TODO this goes away with Identifier integration
-         Identifier i1(transaction.account(), Identifier::Type::ACCOUNT);
-         Identifier i2(entry.payee(), Identifier::Type::ACCOUNT);
-
-         m_accounts.insert(i1);
-         m_accounts.insert(i2);
-         m_transfers[i1][i2] += entry.amount();
+         case Identifier::Type::ACCOUNT:
+            m_accounts.insert(transaction.account());
+            m_accounts.insert(entry.payee());
+            m_transfers[transaction.account()][entry.payee()] += entry.amount();
+            break;
+         case Identifier::Type::GENERIC:
+            break;
+         case Identifier::Type::UNINITIALIZED:
+         case Identifier::Type::CATEGORY:
+         case Identifier::Type::OWNER:
+            die("Internal logic error, entry has wrong type");
       }
    }
 }

@@ -3,6 +3,8 @@
 
 #include <QDate>
 #include <QList>
+#include <QSharedPointer>
+#include "identifier.h"
 #include "ledgertransactionentry.h"
 #include "ledgeritem.h"
 
@@ -21,8 +23,8 @@ public:
 public:
    LedgerTransaction(QString const& filename, uint lineNum);
 
-   QString account() const;
-   void setAccount(QString const& account);
+   Identifier account() const;
+   void setAccount(Identifier const& account);
 
    Currency amount() const;
 
@@ -40,20 +42,19 @@ public:
    Status status() const;
    void setStatus(Status status);
 
-   // TODO it would be more symmetric to make this process the same way as the budget entries
+   // TODO it would be more symmetric to make this process the same way as the
+   // budget entries
    void appendEntry(LedgerTransactionEntry const& entry);
    QList<LedgerTransactionEntry> const& entries() const;
 
    void processItem(ItemProcessor& processor) const;
 
 private:
-   QString m_account;
-   Currency m_balance;
+   Identifier m_account;
+   QSharedPointer<Currency> m_balance;
    QDate m_date;
    QList<LedgerTransactionEntry> m_entries;
-   bool m_hasBalance = false;
-   bool m_hasNote = false;
-   QString m_note;
+   QSharedPointer<QString> m_note;
    Status m_status = PENDING;
 };
 

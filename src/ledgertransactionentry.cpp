@@ -10,20 +10,13 @@ void LedgerTransactionEntry::setAmount(Currency const& amount)
    m_amount = amount;
 }
 
-QString LedgerTransactionEntry::category() const
+Identifier LedgerTransactionEntry::category() const
 {
-   Q_ASSERT(m_hasCategory);
    return m_category;
 }
 
-bool LedgerTransactionEntry::hasCategory() const
+void LedgerTransactionEntry::setCategory(Identifier const& category)
 {
-   return m_hasCategory;
-}
-
-void LedgerTransactionEntry::setCategory(QString const& category)
-{
-   m_hasCategory = true;
    m_category = category;
 }
 
@@ -44,32 +37,12 @@ void LedgerTransactionEntry::setNote(QString const& note)
    m_note = note;
 }
 
-bool LedgerTransactionEntry::isOwner() const
-{
-   return m_owner;
-}
-
-void LedgerTransactionEntry::setOwner(bool owner)
-{
-   m_owner = owner;
-}
-
-QString LedgerTransactionEntry::payee() const
+Identifier LedgerTransactionEntry::payee() const
 {
    return m_payee;
 }
 
-void LedgerTransactionEntry::setPayee(QString const& payee)
+void LedgerTransactionEntry::setPayee(Identifier const& payee)
 {
    m_payee = payee;
-}
-
-bool LedgerTransactionEntry::transfer() const
-{
-   return m_transfer;
-}
-
-void LedgerTransactionEntry::setTransfer(bool transfer)
-{
-   m_transfer = transfer;
 }

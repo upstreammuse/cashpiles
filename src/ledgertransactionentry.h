@@ -3,6 +3,7 @@
 
 #include <QString>
 #include "currency.h"
+#include "identifier.h"
 
 class LedgerTransactionEntry
 {
@@ -10,32 +11,22 @@ public:
    Currency amount() const;
    void setAmount(Currency const& amount);
 
-   QString category() const;
-   bool hasCategory() const;
-   void setCategory(QString const& category);
+   Identifier category() const;
+   void setCategory(Identifier const& category);
 
    QString note() const;
    bool hasNote() const;
    void setNote(QString const& note);
 
-   bool isOwner() const;
-   void setOwner(bool owner);
-
-   QString payee() const;
-   void setPayee(QString const& payee);
-
-   bool transfer() const;
-   void setTransfer(bool transfer);
+   Identifier payee() const;
+   void setPayee(Identifier const& payee);
 
 private:
    Currency m_amount;
-   QString m_category;
-   bool m_hasCategory = false;
+   Identifier m_category;
    QString m_note;
    bool m_hasNote = false;
-   bool m_owner = false;
-   QString m_payee;
-   bool m_transfer = false;
+   Identifier m_payee;
 };
 
 #endif

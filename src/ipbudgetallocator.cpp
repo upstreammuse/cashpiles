@@ -323,7 +323,7 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
    {
       // ignore off-budget transaction entries, the account balancer will error
       // if a category was set or not set incorrectly
-      if (!entry.hasCategory())
+      if (entry.category().type() == Identifier::Type::UNINITIALIZED)
       {
          continue;
       }
@@ -342,7 +342,8 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
 
       // if the category is an owner, make sure we recognize it
-      if (entry.isOwner() && !m_availables.contains(entry.category()))
+      if (entry.category().type() == Identifier::Type::OWNER &&
+          !m_availables.contains(entry.category()))
       {
          die(transaction.fileName(), transaction.lineNum(),
              QString("Unknown category owner '%1'").arg(entry.category()));
@@ -350,7 +351,7 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
 
       // create a new routine category if we haven't seen it before, since this
       // is the safest thing to do without a complete error out
-      if (!entry.isOwner() &&
+      if (entry.category().type() != Identifier::Type::OWNER &&
           !m_goals.contains(entry.category()) &&
           !m_incomes.contains(entry.category()) &&
           !m_reserves.contains(entry.category()) &&
@@ -363,7 +364,7 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
       }
 
       // process the transaction entry based on its budget category type
-      if (entry.isOwner())
+      if (entry.category().type() == Identifier::Type::OWNER)
       {
          m_availables[entry.category()] += entry.amount();
       }

@@ -223,7 +223,8 @@ void FileReader::processCompactTransaction(QRegularExpressionMatch const& match)
 {
    QSharedPointer<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
-   transaction->setAccount(match.captured("account"));
+   transaction->setAccount(
+            Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
    if (!match.captured("balance").isEmpty())
    {
       transaction->setBalance(parseCurrency(match.captured("balance")));
@@ -249,21 +250,23 @@ void FileReader::processCompactTransaction(QRegularExpressionMatch const& match)
    entry.setAmount(parseCurrency(match.captured("amount")));
    if (match.captured("category").startsWith("@"))
    {
-      entry.setCategory(match.captured("category").mid(1));
-      entry.setOwner(true);
+      entry.setCategory(Identifier(match.captured("category").mid(1),
+                                   Identifier::Type::OWNER));
    }
    else
    {
-      entry.setCategory(match.captured("category"));
+      entry.setCategory(Identifier(match.captured("category"),
+                                   Identifier::Type::CATEGORY));
    }
    if (match.captured("payee").startsWith("@"))
    {
-      entry.setPayee(match.captured("payee").mid(1));
-      entry.setTransfer(true);
+      entry.setPayee(Identifier(match.captured("payee").mid(1),
+                                Identifier::Type::ACCOUNT));
    }
    else
    {
-      entry.setPayee(match.captured("payee"));
+      entry.setPayee(Identifier(match.captured("payee"),
+                                Identifier::Type::GENERIC));
    }
    transaction->appendEntry(entry);
 
@@ -275,7 +278,8 @@ void FileReader::processCompactTransactionOff(
 {
    QSharedPointer<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
-   transaction->setAccount(match.captured("account"));
+   transaction->setAccount(
+            Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
    if (!match.captured("balance").isEmpty())
    {
       transaction->setBalance(parseCurrency(match.captured("balance")));
@@ -299,12 +303,13 @@ void FileReader::processCompactTransactionOff(
    entry.setAmount(parseCurrency(match.captured("amount")));
    if (match.captured("payee").startsWith("@"))
    {
-      entry.setPayee(match.captured("payee").mid(1));
-      entry.setTransfer(true);
+      entry.setPayee(Identifier(match.captured("payee").mid(1),
+                                Identifier::Type::ACCOUNT));
    }
    else
    {
-      entry.setPayee(match.captured("payee"));
+      entry.setPayee(Identifier(match.captured("payee"),
+                                Identifier::Type::GENERIC));
    }
    transaction->appendEntry(entry);
 
@@ -402,7 +407,8 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerTransaction> xact(
             new LedgerTransaction(m_fileName, m_lineNum));
-   xact->setAccount(match.captured("account"));
+   xact->setAccount(
+            Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
    if (!match.captured("balance").isEmpty())
    {
       xact->setBalance(parseCurrency(match.captured("balance")));
@@ -430,12 +436,13 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
          entry.setAmount(parseCurrency(match.captured("amount")));
          if (match.captured("category").startsWith("@"))
          {
-            entry.setCategory(match.captured("category").mid(1));
-            entry.setOwner(true);
+            entry.setCategory(Identifier(match.captured("category").mid(1),
+                                         Identifier::Type::OWNER));
          }
          else
          {
-            entry.setCategory(match.captured("category"));
+            entry.setCategory(Identifier(match.captured("category"),
+                                         Identifier::Type::CATEGORY));
          }
          if (!match.captured("note").isEmpty())
          {
@@ -443,12 +450,13 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
          }
          if (match.captured("payee").startsWith("@"))
          {
-            entry.setPayee(match.captured("payee").mid(1));
-            entry.setTransfer(true);
+            entry.setPayee(Identifier(match.captured("payee").mid(1),
+                                      Identifier::Type::ACCOUNT));
          }
          else
          {
-            entry.setPayee(match.captured("payee"));
+            entry.setPayee(Identifier(match.captured("payee"),
+                                      Identifier::Type::GENERIC));
          }
          xact->appendEntry(entry);
       }
@@ -462,12 +470,13 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
          }
          if (match.captured("payee").startsWith("@"))
          {
-            entry.setPayee(match.captured("payee").mid(1));
-            entry.setTransfer(true);
+            entry.setPayee(Identifier(match.captured("payee").mid(1),
+                                      Identifier::Type::ACCOUNT));
          }
          else
          {
-            entry.setPayee(match.captured("payee"));
+            entry.setPayee(Identifier(match.captured("payee"),
+                                      Identifier::Type::GENERIC));
          }
          xact->appendEntry(entry);
       }

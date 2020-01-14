@@ -39,37 +39,15 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
    // the same manner as budget and reserve entries
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
-      // TODO this goes away when entries use identifiers
-      Identifier category;
-      if (entry.hasCategory() && entry.isOwner())
-      {
-         category = Identifier(entry.category(), Identifier::Type::OWNER);
-      }
-      else if (entry.hasCategory() && !entry.isOwner())
-      {
-         category = Identifier(entry.category(), Identifier::Type::CATEGORY);
-      }
-
       if (!m_accounts[account] &&
-          category.type() != Identifier::Type::UNINITIALIZED)
+          entry.category().type() != Identifier::Type::UNINITIALIZED)
       {
          die(transaction.fileName(), transaction.lineNum(),
              QString("Budget category set for off-budget account '%1'")
              .arg(transaction.account()));
       }
 
-      // TODO this goes away when entries use identifiers
-      Identifier payee;
-      if (entry.transfer())
-      {
-         payee = Identifier(entry.payee(), Identifier::Type::ACCOUNT);
-      }
-      else
-      {
-         payee = Identifier(entry.payee(), Identifier::Type::GENERIC);
-      }
-
-      switch (payee.type())
+      switch (entry.payee().type())
       {
          case Identifier::Type::OWNER:
          case Identifier::Type::CATEGORY:
@@ -78,16 +56,16 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
             // die never returns, so putting a break here triggers a warning
          case Identifier::Type::ACCOUNT:
 
-            if (!m_accounts.contains(payee))
+            if (!m_accounts.contains(entry.payee()))
             {
                warn(transaction.fileName(), transaction.lineNum(),
                     QString("Automatically opening on-budget account '%1'")
                     .arg(entry.payee()));
-               m_accounts[payee] = true;
+               m_accounts[entry.payee()] = true;
             }
 
-            if (m_accounts[account] && m_accounts[payee] &&
-                category.type() != Identifier::Type::UNINITIALIZED)
+            if (m_accounts[account] && m_accounts[entry.payee()] &&
+                entry.category().type() != Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
                    QString("Budget category set for transfer between on-budget "
@@ -95,8 +73,8 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                    .arg(transaction.account())
                    .arg(entry.payee()));
             }
-            else if (m_accounts[account] && !m_accounts[payee] &&
-                     category.type() == Identifier::Type::UNINITIALIZED)
+            else if (m_accounts[account] && !m_accounts[entry.payee()] &&
+                     entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
                    QString("Missing budget category for transfer between "
@@ -110,7 +88,7 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
          case Identifier::Type::GENERIC:
 
             if (m_accounts[account] &&
-                category.type() == Identifier::Type::UNINITIALIZED)
+                entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
                die(transaction.fileName(), transaction.lineNum(),
                    QString("Missing budget category for on-budget account '%1'")

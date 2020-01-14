@@ -216,18 +216,36 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       foreach (LedgerTransactionEntry const& entry, transaction.entries())
       {
          out << "  ";
-         if (entry.transfer())
+         switch (entry.payee().type())
          {
-            out << "@";
+            case Identifier::Type::GENERIC:
+               break;
+            case Identifier::Type::ACCOUNT:
+               out << "@";
+               break;
+            case Identifier::Type::OWNER:
+            case Identifier::Type::CATEGORY:
+            case Identifier::Type::UNINITIALIZED:
+               die(transaction.fileName(), transaction.lineNum(),
+                   "Internal logic error, payee has invalid type");
+               // break is a warning here, die does not return
          }
          out << entry.payee() << "  ";
-         if (entry.hasCategory())
+         switch (entry.category().type())
          {
-            if (entry.isOwner())
-            {
-               out << "@";
-            }
-            out << entry.category() << "  ";
+            case Identifier::Type::OWNER:
+               out << "@" << entry.category() << "  ";
+               break;
+            case Identifier::Type::CATEGORY:
+               out << entry.category() << "  ";
+               break;
+            case Identifier::Type::UNINITIALIZED:
+               break;
+            case Identifier::Type::GENERIC:
+            case Identifier::Type::ACCOUNT:
+               die(transaction.fileName(), transaction.lineNum(),
+                   "Internal logic error, category has invalid type");
+               // break is a warning here, die does not return
          }
          out << entry.amount().toString();
          if (entry.hasNote())
@@ -240,19 +258,36 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
    else
    {
       LedgerTransactionEntry entry(transaction.entries()[0]);
-      if (entry.transfer())
+      switch (entry.payee().type())
       {
-         out << "@";
+         case Identifier::Type::GENERIC:
+            break;
+         case Identifier::Type::ACCOUNT:
+            out << "@";
+            break;
+         case Identifier::Type::OWNER:
+         case Identifier::Type::CATEGORY:
+         case Identifier::Type::UNINITIALIZED:
+            die(transaction.fileName(), transaction.lineNum(),
+                "Internal logic error, payee has invalid type");
+            // break is a warning here because die does not return
       }
       out << entry.payee();
-      if (entry.hasCategory())
+      switch (entry.category().type())
       {
-         out << "  ";
-         if (entry.isOwner())
-         {
-            out << "@";
-         }
-         out << entry.category();
+         case Identifier::Type::OWNER:
+            out << "  @" << entry.category();
+            break;
+         case Identifier::Type::CATEGORY:
+            out << "  " << entry.category();
+            break;
+         case Identifier::Type::UNINITIALIZED:
+            break;
+         case Identifier::Type::GENERIC:
+         case Identifier::Type::ACCOUNT:
+            die(transaction.fileName(), transaction.lineNum(),
+                "Internal logic error, category has invalid type");
+            // break is a warning here because die does not return
       }
       out << "  " << transaction.amount().toString();
       if (transaction.hasBalance())

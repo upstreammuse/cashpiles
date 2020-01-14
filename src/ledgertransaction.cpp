@@ -50,12 +50,12 @@ LedgerTransaction::LedgerTransaction(QString const& filename, uint lineNum) :
 {
 }
 
-QString LedgerTransaction::account() const
+Identifier LedgerTransaction::account() const
 {
    return m_account;
 }
 
-void LedgerTransaction::setAccount(QString const& account)
+void LedgerTransaction::setAccount(Identifier const& account)
 {
    m_account = account;
 }
@@ -72,19 +72,18 @@ Currency LedgerTransaction::amount() const
 
 Currency LedgerTransaction::balance() const
 {
-   Q_ASSERT(m_hasBalance);
-   return m_balance;
+   Q_ASSERT(m_balance);
+   return *m_balance;
 }
 
 bool LedgerTransaction::hasBalance() const
 {
-   return m_hasBalance;
+   return m_balance;
 }
 
 void LedgerTransaction::setBalance(Currency const& balance)
 {
-   m_hasBalance = true;
-   m_balance = balance;
+   m_balance.reset(new Currency(balance));
 }
 
 QDate LedgerTransaction::date() const
@@ -99,19 +98,18 @@ void LedgerTransaction::setDate(QDate const& date)
 
 QString LedgerTransaction::note() const
 {
-   Q_ASSERT(m_hasNote);
-   return m_note;
+   Q_ASSERT(m_note);
+   return *m_note;
 }
 
 bool LedgerTransaction::hasNote() const
 {
-   return m_hasNote;
+   return m_note;
 }
 
 void LedgerTransaction::setNote(QString const& note)
 {
-   m_hasNote = true;
-   m_note = note;
+   m_note.reset(new QString(note));
 }
 
 LedgerTransaction::Status LedgerTransaction::status() const
