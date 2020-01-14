@@ -20,11 +20,11 @@ private:
       Currency balance;
       Currency cleared;
       Currency future;
-      bool onBudget;
+      bool onBudget = true;
    };
 
 private:
-   QMap<QString, Account> m_accounts;
+   QMap<Identifier, Account> m_accounts;
    bool m_hasPending = false;
    QDate const m_today;
 };

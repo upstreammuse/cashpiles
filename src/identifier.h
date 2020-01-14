@@ -23,6 +23,7 @@ public:
 
    operator QString() const;
    bool operator==(Identifier const& other) const;
+   bool operator<(Identifier const& other) const;
 
 private:
    Type m_type = Type::UNINITIALIZED;

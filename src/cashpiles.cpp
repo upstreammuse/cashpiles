@@ -10,6 +10,7 @@
 #include "ipaccountbalancer.h"
 #include "ipbudgetallocator.h"
 #include "ipdatevalidator.h"
+#include "iptransactioncategorizer.h"
 #include "iptransferbalancer.h"
 #include "ledger.h"
 
@@ -70,6 +71,9 @@ int main(int argc, char** argv)
 
    IPTransferBalancer tb;
    ledger.processItems(tb);
+
+   IPTransactionCategorizer tc;
+   ledger.processItems(tc);
 
    IPAccountBalancer ab(today);
    ledger.processItems(ab);

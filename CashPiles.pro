@@ -13,6 +13,7 @@ HEADERS += \
    src/ipaccountbalancer.h \
    src/ipbudgetallocator.h \
    src/ipdatevalidator.h \
+   src/iptransactioncategorizer.h \
    src/iptransferbalancer.h \
    src/itemprocessor.h \
    src/ledger.h \
@@ -37,6 +38,7 @@ SOURCES += \
    src/ipaccountbalancer.cpp \
    src/ipbudgetallocator.cpp \
    src/ipdatevalidator.cpp \
+   src/iptransactioncategorizer.cpp \
    src/iptransferbalancer.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \

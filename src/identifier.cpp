@@ -13,7 +13,6 @@ Identifier::Identifier(QString const& value, Type type) :
 
 Identifier::Type Identifier::type() const
 {
-   Q_ASSERT(m_type != Type::UNINITIALIZED);
    return m_type;
 }
 
@@ -25,5 +24,12 @@ Identifier::operator QString() const
 
 bool Identifier::operator==(Identifier const& other) const
 {
-   return m_type == other.type() && m_value == other.m_value;
+   Q_ASSERT(m_type == other.m_type);
+   return m_value == other.m_value;
+}
+
+bool Identifier::operator<(Identifier const& other) const
+{
+   Q_ASSERT(m_type == other.m_type);
+   return m_value < other.m_value;
 }

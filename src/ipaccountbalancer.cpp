@@ -7,6 +7,10 @@
 #include "ledgertransaction.h"
 #include "texttable.h"
 
+// TODO there needs to be a validation layer between reading the file (syntax validation) and this sort of semantic validation
+//   the semantic validation is there because a human made the input file, and should still be used as part of reading a gui-saved file
+//   but the semantic validation isn't related to actual processing errors, so it could be in a layer before the real processing starts
+
 IPAccountBalancer::IPAccountBalancer(QDate const& today) :
    m_today(today)
 {
@@ -142,105 +146,39 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
 
 void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 {
-   if (!m_accounts.contains(transaction.account()))
-   {
-      warn(transaction.fileName(), transaction.lineNum(),
-           QString("Automatically opening on-budget account '%1'")
-           .arg(transaction.account()));
-      m_accounts[transaction.account()].onBudget = true;
-   }
+   // TODO this goes away with identifier migration
+   Identifier account(transaction.account(), Identifier::Type::ACCOUNT);
 
-   m_accounts[transaction.account()].future += transaction.amount();
+   m_accounts[account].future += transaction.amount();
    if (transaction.date() <= m_today)
    {
-      m_accounts[transaction.account()].balance += transaction.amount();
+      m_accounts[account].balance += transaction.amount();
       switch (transaction.status())
       {
          case LedgerTransaction::Status::CLEARED:
          case LedgerTransaction::Status::DISPUTED:
-            m_accounts[transaction.account()].cleared += transaction.amount();
+            m_accounts[account].cleared += transaction.amount();
             break;
          case LedgerTransaction::Status::PENDING:
             break;
       }
    }
 
-   foreach (LedgerTransactionEntry const& entry, transaction.entries())
-   {
-      if (entry.transfer())
-      {
-         if (!m_accounts.contains(entry.payee()))
-         {
-            warn(transaction.fileName(), transaction.lineNum(),
-                 QString("Automatically opening on-budget account '%1'")
-                 .arg(entry.payee()));
-            m_accounts[entry.payee()].onBudget = true;
-         }
-
-         if (m_accounts[transaction.account()].onBudget &&
-             m_accounts[entry.payee()].onBudget &&
-             entry.hasCategory())
-         {
-            // TODO there needs to be a validation layer between reading the file (syntax validation) and this sort of semantic validation
-            //   the semantic validation is there because a human made the input file, and should still be used as part of reading a gui-saved file
-            //   but the semantic validation isn't related to actual processing errors, so it could be in a layer before the real processing starts
-            die(transaction.fileName(), transaction.lineNum(),
-                QString("Budget category set for transfer between on-budget "
-                        "accounts '%1' and '%2'")
-                .arg(transaction.account())
-                .arg(entry.payee()));
-         }
-         else if (m_accounts[transaction.account()].onBudget &&
-                  !m_accounts[entry.payee()].onBudget &&
-                  !entry.hasCategory())
-         {
-            die(transaction.fileName(), transaction.lineNum(),
-                QString("Missing budget category for transfer between "
-                        "on-budget account '%1' and off-budget account '%2'")
-                .arg(transaction.account())
-                .arg(entry.payee()));
-         }
-         else if (!m_accounts[transaction.account()].onBudget &&
-                  entry.hasCategory())
-         {
-            die(transaction.fileName(), transaction.lineNum(),
-                QString("Budget category set for off-budget account '%1'")
-                .arg(transaction.account()));
-         }
-      }
-      else
-      {
-         if (m_accounts[transaction.account()].onBudget && !entry.hasCategory())
-         {
-            die(transaction.fileName(), transaction.lineNum(),
-                QString("Missing budget category for on-budget account '%1'")
-                .arg(transaction.account()));
-         }
-         else if (!m_accounts[transaction.account()].onBudget &&
-                  entry.hasCategory())
-         {
-            die(transaction.fileName(), transaction.lineNum(),
-                QString("Budget category set for off-budget account '%1'")
-                .arg(transaction.account()));
-         }
-      }
-   }
-
    if (transaction.hasBalance())
    {
-      if (transaction.balance() != m_accounts[transaction.account()].balance)
+      if (transaction.balance() != m_accounts[account].balance)
       {
-         die(transaction.fileName(), transaction.lineNum(),
-             QString("Account '%1' stated balance %2 does not match calculated "
-                     "balance %3")
-             .arg(transaction.account())
-             .arg(transaction.balance().toString())
-             .arg(m_accounts[transaction.account()].balance.toString()));
+         warn(transaction.fileName(), transaction.lineNum(),
+              QString("Account '%1' stated balance %2 does not match "
+                      "calculated balance %3")
+              .arg(transaction.account())
+              .arg(transaction.balance().toString())
+              .arg(m_accounts[account].balance.toString()));
       }
       if (m_hasPending)
       {
-         die(transaction.fileName(), transaction.lineNum(),
-             "Pending transactions included in balance statement");
+         warn(transaction.fileName(), transaction.lineNum(),
+              "Pending transactions included in balance statement");
       }
    }
 }
