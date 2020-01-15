@@ -160,6 +160,7 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
             m_accounts[account].cleared += transaction.amount();
             break;
          case LedgerTransaction::Status::PENDING:
+            m_accounts[account].hasPending = true;
             break;
       }
    }
@@ -175,10 +176,11 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
               .arg(transaction.balance().toString())
               .arg(m_accounts[account].balance.toString()));
       }
-      if (m_hasPending)
+      if (m_accounts[account].hasPending)
       {
          warn(transaction.fileName(), transaction.lineNum(),
               "Pending transactions included in balance statement");
+         m_accounts[account].hasPending = false;
       }
    }
 }
