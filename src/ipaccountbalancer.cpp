@@ -97,7 +97,7 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
       case LedgerAccount::Mode::CLOSED:
          if (m_accounts.contains(account.name()))
          {
-            if (!m_accounts[account.name()].balance.isZero())
+            if (!m_accounts[account.name()].future.isZero())
             {
                warn(account.fileName(), account.lineNum(),
                     QString("Cannot close account '%1' with non-zero balance "
@@ -167,7 +167,7 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 
    if (transaction.hasBalance())
    {
-      if (transaction.balance() != m_accounts[account].balance)
+      if (transaction.balance() != m_accounts[account].future)
       {
          warn(transaction.fileName(), transaction.lineNum(),
               QString("Account '%1' stated balance %2 does not match "
