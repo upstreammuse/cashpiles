@@ -23,6 +23,7 @@ void IPBudgetAllocator::finish()
    QTextStream out(stdout);
    TextTable table;
    Currency total;
+   Currency totalAll;
    table.appendColumn(0, "== GOAL ==  ");
    table.appendColumn(1, "== RESERVED ==  ");
    table.appendColumn(2, "== NEEDED ==  ");
@@ -47,6 +48,7 @@ void IPBudgetAllocator::finish()
       table.appendColumn(4, it->future.toString());
       total += it->reserved;
    }
+   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(3, total.toString() + "  ");
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
@@ -73,6 +75,7 @@ void IPBudgetAllocator::finish()
       table.appendColumn(4, it->reserved.toString());
       total += it->reserved;
    }
+   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(4, total.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
@@ -101,6 +104,7 @@ void IPBudgetAllocator::finish()
       table.appendColumn(3, it->reserved.toString());
       total += it->reserved;
    }
+   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(3, total.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
@@ -112,12 +116,14 @@ void IPBudgetAllocator::finish()
    out << "Available to budget: " << endl;
    for (auto it = m_availables.begin(); it != m_availables.end(); ++it)
    {
+      totalAll += *it;
       out << it.key() << ": " << it->toString() << endl;
       if (it->isNegative())
       {
          out << "WARNING: over budget!" << endl;
       }
    }
+   out << "Total budgetable money: " << totalAll.toString() << endl;
 }
 
 void IPBudgetAllocator::processItem(LedgerAccount const& account)
