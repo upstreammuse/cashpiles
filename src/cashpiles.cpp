@@ -14,8 +14,6 @@
 #include "iptransferbalancer.h"
 #include "ledger.h"
 
-// TODO you can have a 1-line reserve statement that creates money in an owner instead of a category
-
 // TODO category owners are silently created when '@' is used on a category name that otherwise doesn't exist
 //   this made it tricky to spot the error with a badly formatted transfer transaction
 
