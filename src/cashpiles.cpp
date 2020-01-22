@@ -20,7 +20,6 @@
 //   this made it tricky to spot the error with a badly formatted transfer transaction
 
 // TODO if a category isn't a goal, then future transactions for it are ignored, so there is no check or prompt to save for them
-// TODO on a related note, the future goal transactions get subtracted from the categoroy, so the table shows $0.00 available
 
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
 
