@@ -304,6 +304,12 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
 
    if (reserve.category().type() == Identifier::Type::OWNER)
    {
+      if (m_singleReserve)
+      {
+         die(reserve.fileName(), reserve.lineNum(),
+             "Single-line reserve statements cannot contain owners");
+
+      }
       m_availables[reserve.category()] += reserve.amount();
    }
    else
