@@ -54,8 +54,6 @@ private:
    };
 
 private:
-   // TODO what if we subclass Identifier with subtypes that automatically
-   // ensure they are working with the correct identifier types?
    QHash<Identifier, Currency> m_availables;
    DateRange m_currentPeriod;
    QHash<Identifier, Goal> m_goals;
