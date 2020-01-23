@@ -353,15 +353,10 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
          continue;
       }
 
-      // ignore future incomes for budgeting purposes
-      if (m_incomes.contains(entry.category()) && transaction.date() > m_today)
-      {
-         continue;
-      }
-
-      // ignore all non-goal transactions after the current budget period
-      if (!m_goals.contains(entry.category()) &&
-          transaction.date() > m_currentPeriod.endDate())
+      // ignore non-goal transactions after today
+      // TODO the budget categories should have a 'future' column like accounts
+      //   do, so that we can see the effect of future pending transactions
+      if (!m_goals.contains(entry.category()) && transaction.date() > m_today)
       {
          continue;
       }
