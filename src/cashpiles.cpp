@@ -16,8 +16,6 @@
 
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
 
-// TODO add validation to make sure categories don't exist in multiple places (two different types for the same name)
-
 // TODO consider what to do if a future transaction for a goal category is positive
 // - it gets processed, so it adds to the 'available' funds for the category, which is confusing
 // - it might be a valid use case, though, if planning for spend, refund, spend, etc.
