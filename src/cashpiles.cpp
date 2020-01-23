@@ -14,8 +14,6 @@
 #include "iptransferbalancer.h"
 #include "ledger.h"
 
-// TODO need to add support for withholding category so income taxes don't break routine expense calculations
-
 [[noreturn]] void die(QString const& message)
 {
    warn(message);
