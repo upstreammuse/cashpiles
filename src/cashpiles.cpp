@@ -14,9 +14,6 @@
 #include "iptransferbalancer.h"
 #include "ledger.h"
 
-// TODO category owners are silently created when '@' is used on a category name that otherwise doesn't exist
-//   this made it tricky to spot the error with a badly formatted transfer transaction
-
 // TODO if a category isn't a goal, then future transactions for it are ignored, so there is no check or prompt to save for them
 
 // TODO need to add support for withholding category so income taxes don't break routine expense calculations
