@@ -6,7 +6,6 @@
 
 void IPTransactionCategorizer::processItem(LedgerAccount const& account)
 {
-   // TODO might want to move balancer warnings to 'dies' into here
    switch (account.mode())
    {
       case LedgerAccount::Mode::CLOSED:
