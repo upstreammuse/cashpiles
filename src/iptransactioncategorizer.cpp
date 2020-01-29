@@ -32,8 +32,6 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
       m_accounts[transaction.account()] = true;
    }
 
-   // TODO this could be a dedicated method to handle transaction entries in
-   // the same manner as budget and reserve entries
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
       if (!m_accounts[transaction.account()] &&

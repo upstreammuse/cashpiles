@@ -42,8 +42,6 @@ public:
    Status status() const;
    void setStatus(Status status);
 
-   // TODO it would be more symmetric to make this process the same way as the
-   // budget entries
    void appendEntry(LedgerTransactionEntry const& entry);
    QList<LedgerTransactionEntry> const& entries() const;
 
