@@ -276,8 +276,6 @@ void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
-   // TODO need the validation code inside the LedgerReserve to make sure they
-   // actually balance to the stated amount, as with transactions
    if (reserve.numEntries() > 1 && !reserve.amount().isZero())
    {
       die(reserve.fileName(), reserve.lineNum(),
