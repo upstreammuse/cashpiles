@@ -7,7 +7,6 @@
 #include "identifier.h"
 #include "ledgeritem.h"
 
-// TODO split into separate file
 class LedgerReserveEntry : public LedgerItem
 {
 public:
