@@ -140,12 +140,6 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date(),
                        true);
 
-   // TODO instead of draining the current budget, it should be possible to do
-   // a few things
-   // - add a new category to an existing budget setup
-   // - remove a category from an existing budget setup (refunding to owner)
-   // when a new budget is created from scratch, then it's ok to do this, since
-   // we are in theory starting over
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
    {
