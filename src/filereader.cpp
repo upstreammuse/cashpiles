@@ -411,10 +411,6 @@ void FileReader::processReserve(QRegularExpressionMatch& match)
    m_ledger.appendItem(reserve);
 }
 
-// TODO this still needs to validate that a transaction adds up to the correct
-// amount as stated in the input file, but maybe don't do it here so the file
-// reader can only focus on pure syntax (which lets us read and write files that
-// are syntactically correct but maybe with bad data in them)
 void FileReader::processTransaction(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerTransaction> xact(
