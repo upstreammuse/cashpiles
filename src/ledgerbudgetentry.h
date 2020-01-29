@@ -10,8 +10,6 @@
 
 class ItemProcessor;
 
-// TODO split these into separate files?
-
 class LedgerBudgetEntry : public LedgerItem
 {
 public:
