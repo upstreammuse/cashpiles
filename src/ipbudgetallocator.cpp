@@ -35,8 +35,6 @@ void IPBudgetAllocator::finish()
       table.appendColumn(1, it->reservedThisPeriod.toString() + "  ");
       if ((it->reservedThisPeriod - it->neededThisPeriod).isNegative())
       {
-         // TODO what is more natural, showing what is left to be allocated, or
-         // the total amount needed?
          table.appendColumn(2, (it->neededThisPeriod -
                                 it->reservedThisPeriod).toString() + "  ");
       }
