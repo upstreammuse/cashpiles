@@ -142,41 +142,38 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
 
 void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 {
-   // TODO this goes away with identifier migration
-   Identifier account(transaction.account(), Identifier::Type::ACCOUNT);
-
-   m_accounts[account].future += transaction.amount();
+   m_accounts[transaction.account()].future += transaction.amount();
    if (transaction.date() <= m_today)
    {
-      m_accounts[account].balance += transaction.amount();
+      m_accounts[transaction.account()].balance += transaction.amount();
       switch (transaction.status())
       {
          case LedgerTransaction::Status::CLEARED:
          case LedgerTransaction::Status::DISPUTED:
-            m_accounts[account].cleared += transaction.amount();
+            m_accounts[transaction.account()].cleared += transaction.amount();
             break;
          case LedgerTransaction::Status::PENDING:
-            m_accounts[account].hasPending = true;
+            m_accounts[transaction.account()].hasPending = true;
             break;
       }
    }
 
    if (transaction.hasBalance())
    {
-      if (transaction.balance() != m_accounts[account].future)
+      if (transaction.balance() != m_accounts[transaction.account()].future)
       {
          warn(transaction.fileName(), transaction.lineNum(),
               QString("Account '%1' stated balance %2 does not match "
                       "calculated balance %3")
               .arg(transaction.account())
               .arg(transaction.balance().toString())
-              .arg(m_accounts[account].balance.toString()));
+              .arg(m_accounts[transaction.account()].balance.toString()));
       }
-      if (m_accounts[account].hasPending)
+      if (m_accounts[transaction.account()].hasPending)
       {
          warn(transaction.fileName(), transaction.lineNum(),
               "Pending transactions included in balance statement");
-         m_accounts[account].hasPending = false;
+         m_accounts[transaction.account()].hasPending = false;
       }
    }
 }
