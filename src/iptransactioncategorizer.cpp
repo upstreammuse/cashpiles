@@ -22,14 +22,8 @@ void IPTransactionCategorizer::processItem(LedgerAccount const& account)
 
 void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 {
-   // TODO 'checkCreateAccount' or something to encapsulate this
-   if (!m_accounts.contains(transaction.account()))
-   {
-      warn(transaction.fileName(), transaction.lineNum(),
-           QString("Automatically opening on-budget account '%1'")
-           .arg(transaction.account()));
-      m_accounts[transaction.account()] = true;
-   }
+   checkCreateAccount(transaction.account(), transaction.fileName(),
+                      transaction.lineNum());
 
    foreach (LedgerTransactionEntry const& entry, transaction.entries())
    {
@@ -43,21 +37,9 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 
       switch (entry.payee().type())
       {
-         case Identifier::Type::OWNER:
-         case Identifier::Type::CATEGORY:
-         case Identifier::Type::UNINITIALIZED:
-            die("Internal logic error: payee has wrong type");
-            // die never returns, so putting a break here triggers a warning
          case Identifier::Type::ACCOUNT:
-
-            if (!m_accounts.contains(entry.payee()))
-            {
-               warn(transaction.fileName(), transaction.lineNum(),
-                    QString("Automatically opening on-budget account '%1'")
-                    .arg(entry.payee()));
-               m_accounts[entry.payee()] = true;
-            }
-
+            checkCreateAccount(entry.payee(), transaction.fileName(),
+                               transaction.lineNum());
             if (m_accounts[transaction.account()] &&
                 m_accounts[entry.payee()] &&
                 entry.category().type() != Identifier::Type::UNINITIALIZED)
@@ -78,11 +60,8 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                    .arg(transaction.account())
                    .arg(entry.payee()));
             }
-
             break;
-
          case Identifier::Type::GENERIC:
-
             if (m_accounts[transaction.account()] &&
                 entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
@@ -90,8 +69,23 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                    QString("Missing budget category for on-budget account '%1'")
                    .arg(transaction.account()));
             }
-
             break;
+         case Identifier::Type::OWNER:
+         case Identifier::Type::CATEGORY:
+         case Identifier::Type::UNINITIALIZED:
+            die("Internal logic error: payee has wrong type");
       }
+   }
+}
+
+void IPTransactionCategorizer::checkCreateAccount(
+      Identifier const& account, QString const& filename, uint linenum)
+{
+   if (!m_accounts.contains(account))
+   {
+      warn(filename, linenum,
+           QString("Automatically opening on-budget account '%1'")
+           .arg(account));
+      m_accounts[account] = true;
    }
 }

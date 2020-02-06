@@ -11,5 +11,9 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
+   void checkCreateAccount(Identifier const& account, QString const& filename,
+                           uint linenum);
+
+private:
    QHash<Identifier, bool> m_accounts;
 };
