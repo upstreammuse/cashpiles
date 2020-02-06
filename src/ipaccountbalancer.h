@@ -21,6 +21,7 @@ private:
       Currency cleared;
       Currency future;
       bool hasPending = false;
+      bool isClosed = true;
       bool onBudget = true;
    };
 

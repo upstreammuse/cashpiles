@@ -27,7 +27,9 @@ void IPAccountBalancer::finish()
    Currency totalOnFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      if (it->onBudget)
+      if (it->onBudget &&
+          (!it->isClosed || !it->cleared.isZero() || !it->balance.isZero() ||
+           !it->future.isZero()))
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->cleared.toString() + "  ");
@@ -58,7 +60,9 @@ void IPAccountBalancer::finish()
    Currency totalOffFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      if (!it->onBudget)
+      if (!it->onBudget &&
+          (!it->isClosed || !it->cleared.isZero() || !it->balance.isZero() ||
+           !it->future.isZero()))
       {
          table.appendColumn(0, it.key() + "  ");
          table.appendColumn(1, it->cleared.toString() + "  ");
@@ -91,50 +95,38 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
    switch (account.mode())
    {
       case LedgerAccount::Mode::CLOSED:
-         if (m_accounts.contains(account.name()))
-         {
-            if (!m_accounts[account.name()].future.isZero())
-            {
-               warn(account.fileName(), account.lineNum(),
-                    QString("Cannot close account '%1' with non-zero balance "
-                            "%2")
-                    .arg(account.name())
-                    .arg(m_accounts[account.name()].balance.toString()));
-            }
-            else
-            {
-               m_accounts.remove(account.name());
-            }
-         }
-         else
+         if (m_accounts[account.name()].isClosed)
          {
             warn(account.fileName(), account.lineNum(),
                  QString("Cannot close account '%1' that was not open")
                  .arg(account.name()));
          }
+         else if (!m_accounts[account.name()].future.isZero())
+         {
+            warn(account.fileName(), account.lineNum(),
+                 QString("Cannot close account '%1' with non-zero balance %2")
+                 .arg(account.name())
+                 .arg(m_accounts[account.name()].balance.toString()));
+         }
+         else
+         {
+            m_accounts[account.name()].isClosed = true;
+         }
          break;
       case LedgerAccount::Mode::OFF_BUDGET:
-         if (!m_accounts.contains(account.name()))
-         {
-            m_accounts[account.name()].onBudget = false;
-         }
-         else
-         {
-            warn(account.fileName(), account.lineNum(),
-                 QString("Cannot open account '%1' that was already open")
-                 .arg(account.name()));
-         }
-         break;
       case LedgerAccount::Mode::ON_BUDGET:
-         if (!m_accounts.contains(account.name()))
-         {
-            m_accounts[account.name()].onBudget = true;
-         }
-         else
+         if (!m_accounts[account.name()].isClosed)
          {
             warn(account.fileName(), account.lineNum(),
                  QString("Cannot open account '%1' that was already open")
                  .arg(account.name()));
+         }
+         else
+         {
+            m_accounts[account.name()].hasPending = false;
+            m_accounts[account.name()].isClosed = false;
+            m_accounts[account.name()].onBudget =
+                  (account.mode() == LedgerAccount::Mode::ON_BUDGET);
          }
          break;
    }
