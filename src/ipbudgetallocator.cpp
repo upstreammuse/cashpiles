@@ -161,52 +161,78 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
       }
    }
 
-   // reconfigure the budget period and clear categories
+   // reconfigure the budget period
    m_currentPeriod = DateRange(budget.date(), budget.interval());
-   for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
-   {
-      if (!it->reserved.isZero())
-      {
-         warn(budget.fileName(), budget.lineNum(),
-              QString("Returning %1 from category '%2' to available")
-              .arg(it->reserved.toString())
-              .arg(it.key()));
-      }
-      m_availables[m_owners[it.key()]] += it->reserved;
-   }
-   m_goals.clear();
-   m_incomes.clear();
    m_priorPeriod = DateRange();
-   for (auto it = m_reserves.cbegin(); it != m_reserves.cend(); ++it)
-   {
-      if (!it->reserved.isZero())
-      {
-         warn(budget.fileName(), budget.lineNum(),
-              QString("Returning %1 from category '%2' to available")
-              .arg(it->reserved.toString())
-              .arg(it.key()));
-      }
-      m_availables[m_owners[it.key()]] += it->reserved;
-   }
-   m_reserves.clear();
-   for (auto it = m_routines.cbegin(); it != m_routines.cend(); ++it)
-   {
-      if (!it->reserved.isZero())
-      {
-         warn(budget.fileName(), budget.lineNum(),
-              QString("Returning %1 from category '%2' to available")
-              .arg(it->reserved.toString())
-              .arg(it.key()));
-      }
-      m_availables[m_owners[it.key()]] += it->reserved;
-   }
-   m_routines.clear();
-   m_owners.clear();
 
    // at this point we have reset the budget period to start with the new
    // period's date, and there is nothing more to do, because categories that
    // automatically fund themselves in each period will do that when they are
    // first created
+}
+
+void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
+{
+   if (budget.date() > m_today)
+   {
+      return;
+   }
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+
+   if (m_goals.contains(budget.category()))
+   {
+      if (!m_goals[budget.category()].reserved.isZero())
+      {
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(m_goals[budget.category()].reserved.toString())
+              .arg(budget.category()));
+      }
+      m_availables[m_owners[budget.category()]] +=
+            m_goals[budget.category()].reserved;
+      m_goals.remove(budget.category());
+      m_owners.remove(budget.category());
+   }
+   else if (m_incomes.contains(budget.category()))
+   {
+      m_incomes.remove(budget.category());
+      m_owners.remove(budget.category());
+   }
+   else if (m_reserves.contains(budget.category()))
+   {
+      if (!m_reserves[budget.category()].reserved.isZero())
+      {
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(m_reserves[budget.category()].reserved.toString())
+              .arg(budget.category()));
+      }
+      m_availables[m_owners[budget.category()]] +=
+            m_reserves[budget.category()].reserved;
+      m_reserves.remove(budget.category());
+      m_owners.remove(budget.category());
+   }
+   else if (m_routines.contains(budget.category()))
+   {
+      if (!m_routines[budget.category()].reserved.isZero())
+      {
+         warn(budget.fileName(), budget.lineNum(),
+              QString("Returning %1 from category '%2' to available")
+              .arg(m_routines[budget.category()].reserved.toString())
+              .arg(budget.category()));
+      }
+      m_availables[m_owners[budget.category()]] +=
+            m_routines[budget.category()].reserved;
+      m_routines.remove(budget.category());
+      m_owners.remove(budget.category());
+   }
+   else
+   {
+      warn(budget.fileName(), budget.lineNum(),
+           QString("Cannot close budget category '%1' that did not already "
+                   "exist")
+           .arg(budget.category()));
+   }
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)

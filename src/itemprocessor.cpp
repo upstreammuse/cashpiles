@@ -20,6 +20,10 @@ void ItemProcessor::processItem(LedgerBudget const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerBudgetCloseEntry const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerBudgetGoalEntry const&)
 {
 }

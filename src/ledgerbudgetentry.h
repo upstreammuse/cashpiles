@@ -30,6 +30,13 @@ private:
    Identifier m_owner;
 };
 
+class LedgerBudgetCloseEntry : public LedgerBudgetEntry
+{
+public:
+   LedgerBudgetCloseEntry(QString const& filename, uint lineNum);
+   void processItem(ItemProcessor& processor) const;
+};
+
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry
 {
 public:

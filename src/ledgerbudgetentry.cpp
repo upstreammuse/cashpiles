@@ -41,6 +41,17 @@ void LedgerBudgetEntry::setOwner(Identifier const& owner)
    m_owner = owner;
 }
 
+LedgerBudgetCloseEntry::LedgerBudgetCloseEntry(QString const& filename,
+                                               uint lineNum) :
+   LedgerBudgetEntry(filename, lineNum)
+{
+}
+
+void LedgerBudgetCloseEntry::processItem(ItemProcessor& processor) const
+{
+   processor.processItem(*this);
+}
+
 LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(QString const& filename,
                                              uint lineNum) :
    LedgerBudgetEntry(filename, lineNum)

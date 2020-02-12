@@ -56,6 +56,16 @@ void FileWriter::processItem(LedgerBudget const& budget)
    }
 }
 
+void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)
+{
+   QTextStream out(m_file);
+   out << "  close   " << entry.category() << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
+}
+
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
    QTextStream out(m_file);

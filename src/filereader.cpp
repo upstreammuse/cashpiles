@@ -37,6 +37,9 @@ namespace
    QRegularExpression const budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX);
+   QRegularExpression const budgetLineCloseRx(
+         START_RX + SEP_RX + "close" + SPACE_RX + IDENT_RX.arg("category") +
+         END_RX);
    QRegularExpression const budgetLineGoalRx(
          START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX.arg("category") +
          OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
@@ -142,7 +145,15 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
    forever
    {
       QString line(readLine());
-      if ((match = budgetLineGoalRx.match(line)).hasMatch())
+      if ((match = budgetLineCloseRx.match(line)).hasMatch())
+      {
+         QSharedPointer<LedgerBudgetCloseEntry> entry(
+                  new LedgerBudgetCloseEntry(m_fileName, m_lineNum));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         budget->appendEntry(entry);
+      }
+      else if ((match = budgetLineGoalRx.match(line)).hasMatch())
       {
          QSharedPointer<LedgerBudgetGoalEntry> entry(
                   new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
