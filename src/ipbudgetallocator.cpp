@@ -137,9 +137,31 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
            "Ignoring future budget configuration");
       return;
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date(),
-                       true);
 
+   // make sure that the budget period is advanced to include yesterday, and
+   // that yesterday is the end of the last period
+   // in other words make sure that we ended a period yesterday, and that
+   // nothing else has yet happened today, such that the budget command is the
+   // first item to occur on the first day of a new period
+   if (!m_currentPeriod.isNull())
+   {
+      if (budget.date() <= m_currentPeriod.endDate())
+      {
+         die(budget.fileName(), budget.lineNum(),
+             "Budget can only be reconfigured as the first item in a new "
+             "budget period.");
+      }
+      advanceBudgetPeriod(budget.fileName(), budget.lineNum(),
+                          budget.date().addDays(-1));
+      if (m_currentPeriod.endDate().addDays(1) != budget.date())
+      {
+         die(budget.fileName(), budget.lineNum(),
+             "Budget can only be reconfigured as the first item in a new "
+             "budget period.");
+      }
+   }
+
+   // reconfigure the budget period and clear categories
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    for (auto it = m_goals.cbegin(); it != m_goals.cend(); ++it)
    {
@@ -179,6 +201,12 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
       m_availables[m_owners[it.key()]] += it->reserved;
    }
    m_routines.clear();
+   m_owners.clear();
+
+   // at this point we have reset the budget period to start with the new
+   // period's date, and there is nothing more to do, because categories that
+   // automatically fund themselves in each period will do that when they are
+   // first created
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
@@ -485,17 +513,12 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
 }
 
 void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
-                                            uint lineNum, QDate const& date,
-                                            bool rebudgeting)
+                                            uint lineNum, QDate const& date)
 {
    // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
    {
-      // but only warn if we aren't about to replace the default with a new one
-      if (!rebudgeting)
-      {
-         warn(filename, lineNum, "Creating a default monthly budget period");
-      }
+      warn(filename, lineNum, "Creating a default monthly budget period");
       m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1),
                                   Interval(1, Interval::Period::MONTHS));
    }
@@ -536,13 +559,6 @@ void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
 
       // advance the budget period to the new dates
       ++m_currentPeriod;
-
-      // if we are rebudgeting and the new period starts on the same day as the
-      // old one would have, skip allocating funds for that old period
-      if (rebudgeting && date == m_currentPeriod.startDate())
-      {
-         continue;
-      }
 
       // fund each category that allocates amounts per budget period
       for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)

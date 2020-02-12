@@ -26,7 +26,7 @@ public:
 
 private:
    void advanceBudgetPeriod(QString const& filename, uint lineNum,
-                            QDate const& date, bool rebudgeting = false);
+                            QDate const& date);
    void syncReserve(Identifier const& category);
 
 private:
