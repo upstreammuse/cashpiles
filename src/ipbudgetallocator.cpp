@@ -274,6 +274,12 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
+   if (reserve.date() > m_today)
+   {
+      warn(reserve.fileName(), reserve.lineNum(),
+           "Ignoring future category reservation");
+      return;
+   }
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
    if (reserve.numEntries() > 1 && !reserve.amount().isZero())
@@ -290,6 +296,10 @@ void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 
 void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
 {
+   if (reserve.date() > m_today)
+   {
+      return;
+   }
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
    if (reserve.category().type() == Identifier::Type::OWNER)
@@ -310,15 +320,10 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
              "reserve command only for goals right now, sorry");
       }
 
-      // if the reservation is in this period, get credit for it
-      if (reserve.date() <= m_currentPeriod.endDate())
-      {
-         m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
-      }
-
-      // either way, reserve the amount
+      // reserve the amount, knowing that we are within the current period
       m_goals[reserve.category()].future += reserve.amount();
       m_goals[reserve.category()].reserved += reserve.amount();
+      m_goals[reserve.category()].reservedThisPeriod += reserve.amount();
 
       // if doing a single line reserve, there is an implicit counter reserve
       // that applies to the category owner
