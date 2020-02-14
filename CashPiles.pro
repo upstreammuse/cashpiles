@@ -20,7 +20,13 @@ HEADERS += \
    src/ledgeraccount.h \
    src/ledgerblank.h \
    src/ledgerbudget.h \
+   src/ledgerbudgetcloseentry.h \
    src/ledgerbudgetentry.h \
+   src/ledgerbudgetgoalentry.h \
+   src/ledgerbudgetincomeentry.h \
+   src/ledgerbudgetreserveamountentry.h \
+   src/ledgerbudgetreservepercententry.h \
+   src/ledgerbudgetroutineentry.h \
    src/ledgercomment.h \
    src/ledgeritem.h \
    src/ledgerreserve.h \
@@ -45,7 +51,13 @@ SOURCES += \
    src/ledgeraccount.cpp \
    src/ledgerblank.cpp \
    src/ledgerbudget.cpp \
+   src/ledgerbudgetcloseentry.cpp \
    src/ledgerbudgetentry.cpp \
+   src/ledgerbudgetgoalentry.cpp \
+   src/ledgerbudgetincomeentry.cpp \
+   src/ledgerbudgetreserveamountentry.cpp \
+   src/ledgerbudgetreservepercententry.cpp \
+   src/ledgerbudgetroutineentry.cpp \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
    src/ledgerreserve.cpp \
