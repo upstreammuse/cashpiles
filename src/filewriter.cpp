@@ -11,6 +11,7 @@
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
+#include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
@@ -137,6 +138,21 @@ void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 {
    QTextStream out(m_file);
    out << "  routine " << entry.category();
+   if (entry.owner() != QString(""))
+   {
+      out << "  " << entry.owner();
+   }
+   out << endl;
+   if (out.status() != QTextStream::Status::Ok)
+   {
+      die(QString("Unable to write to output file").arg(m_fileName));
+   }
+}
+
+void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
+{
+   QTextStream out(m_file);
+   out << "  withholding " << entry.category();
    if (entry.owner() != QString(""))
    {
       out << "  " << entry.owner();

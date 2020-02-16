@@ -10,6 +10,7 @@
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
+#include "ledgerbudgetwithholdingentry.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
@@ -232,6 +233,11 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
       m_routines.remove(budget.category());
       m_owners.remove(budget.category());
    }
+   else if (m_withholdings.contains(budget.category()))
+   {
+      m_withholdings.remove(budget.category());
+      m_owners.remove(budget.category());
+   }
    else
    {
       warn(budget.fileName(), budget.lineNum(),
@@ -332,6 +338,23 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    m_routines[budget.category()];
 }
 
+void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
+{
+   if (budget.date() > m_today)
+   {
+      return;
+   }
+   if (m_owners.contains(budget.category()))
+   {
+      die(budget.fileName(), budget.lineNum(),
+          "Budget category listed multiple times");
+   }
+   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
+   m_availables[budget.owner()];
+   m_owners[budget.category()] = budget.owner();
+   m_withholdings.insert(budget.category());
+}
+
 void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    if (reserve.date() > m_today)
@@ -428,7 +451,8 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
           !m_goals.contains(entry.category()) &&
           !m_incomes.contains(entry.category()) &&
           !m_reserves.contains(entry.category()) &&
-          !m_routines.contains(entry.category()))
+          !m_routines.contains(entry.category()) &&
+          !m_withholdings.contains(entry.category()))
       {
          warn(transaction.fileName(), transaction.lineNum(),
               QString("Automatically creating routine expense category '%1'")
@@ -536,6 +560,10 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
                   m_routines[entry.category()].reserved;
             m_routines[entry.category()].reserved.clear();
          }
+      }
+      else if (m_withholdings.contains(entry.category()))
+      {
+         m_availables[m_owners[entry.category()]] += entry.amount();
       }
       else
       {

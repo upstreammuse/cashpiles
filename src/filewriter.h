@@ -20,6 +20,7 @@ public:
    void processItem(LedgerBudgetReserveAmountEntry const& entry);
    void processItem(LedgerBudgetReservePercentEntry const& entry);
    void processItem(LedgerBudgetRoutineEntry const& entry);
+   void processItem(LedgerBudgetWithholdingEntry const& entry);
    void processItem(LedgerComment const& comment);
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerReserveEntry const& reserve);

@@ -21,6 +21,7 @@ public:
    void processItem(LedgerBudgetReserveAmountEntry const& budget);
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
+   void processItem(LedgerBudgetWithholdingEntry const& budget);
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
@@ -65,6 +66,7 @@ private:
    QHash<Identifier, Routine> m_routines;
    bool m_singleReserve = false;
    QDate m_today;
+   QSet<Identifier> m_withholdings;
 };
 
 #endif

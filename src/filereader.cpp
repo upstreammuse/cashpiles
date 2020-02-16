@@ -13,6 +13,7 @@
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
+#include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
@@ -62,6 +63,10 @@ namespace
          OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const budgetLineRoutineRx(
          START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX.arg("category") +
+         OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
+   QRegularExpression const budgetLineWithholdingRx(
+         START_RX + SEP_RX + "withholding" + SPACE_RX +
+         IDENT_RX.arg("category") +
          OPTIONAL_RX.arg(SEP_RX + IDENT_RX.arg("owner")) + END_RX);
    QRegularExpression const commentRx(START_RX + NOTE_RX + END_RX);
    QRegularExpression const reserveCompactRx(
@@ -206,6 +211,16 @@ void FileReader::processBudget(QRegularExpressionMatch& match)
       {
          QSharedPointer<LedgerBudgetRoutineEntry> entry(
                   new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
+         entry->setCategory(Identifier(match.captured("category"),
+                                       Identifier::Type::CATEGORY));
+         entry->setOwner(Identifier(match.captured("owner"),
+                                    Identifier::Type::OWNER));
+         budget->appendEntry(entry);
+      }
+      else if ((match = budgetLineWithholdingRx.match(line)).hasMatch())
+      {
+         QSharedPointer<LedgerBudgetWithholdingEntry> entry(
+                  new LedgerBudgetWithholdingEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.captured("category"),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.captured("owner"),

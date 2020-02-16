@@ -44,6 +44,10 @@ void ItemProcessor::processItem(LedgerBudgetRoutineEntry const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerBudgetWithholdingEntry const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerComment const&)
 {
 }
