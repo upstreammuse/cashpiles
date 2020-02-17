@@ -14,6 +14,12 @@ class FileReader : public QObject
    Q_OBJECT
 
 public:
+   static Currency parseCurrency(QString const& currency,
+                                 QString const& fileName, uint lineNum);
+   static QDate parseDate(QString const& date, QString const& dateFormat,
+                          QString const& fileName, uint lineNum);
+
+public:
    FileReader(QString const& fileName, Ledger& ledger,
               QObject* parent = nullptr);
    void readAll();

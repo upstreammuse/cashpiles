@@ -10,7 +10,8 @@ class QStringList;
 [[noreturn]] void die(QString const& fileName, unsigned int lineNum,
                       QString const& message);
 
-void processArguments(QString& dateFormat, QString& inFileName, QDate& today,
+void processArguments(bool& convertYnab, QString& dateFormat,
+                      QString& inFileName, QString& outFileName, QDate& today,
                       QStringList const& arguments);
 
 void warn(QString const& message);

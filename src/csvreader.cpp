@@ -1,45 +1,67 @@
-// Updated 12/11 for refactor
-
 #include "csvreader.h"
+
+#include <QFile>
+#include "cashpiles.h"
 
 CsvReader::CsvReader(QString const& fileName, QObject* parent) :
    QObject(parent),
-   m_file(new QFile(fileName, this)),
-   m_fileName(fileName)
+   m_file(new QFile(fileName, this))
 {
+   m_record.fileName = fileName;
 }
 
-void CsvReader::readAll()
+void CsvReader::closeFile()
+{
+   m_file->close();
+}
+
+bool CsvReader::hasContent()
+{
+   return !m_file->atEnd();
+}
+
+void CsvReader::openFile()
 {
    if (!m_file->open(QIODevice::ReadOnly))
    {
-      error("Could not open the CSV file", false);
-      emit finished();
-      return;
+      die(QString("Unable to open input file '%1'").arg(m_record.fileName));
    }
+}
 
-   QByteArray line;
-   while (!(line = m_file->readLine()).isEmpty())
+CsvReader::Record CsvReader::readRecord()
+{
+   QString line;
+   while (hasContent() && (m_waitingForHeader ||
+                           m_record.data.size() != m_header.size()))
    {
-      ++m_lineNum;
-      foreach (char const c, line)
+      line = m_file->readLine();
+      if (!line.endsWith('\n'))
       {
-         bool ok = true;
+         line.append('\n');
+      }
+      ++m_record.lineNum;
+      foreach (QChar const c, line)
+      {
          if (c == ',') parseComma();
-         else if (c == '"') ok = parseQuote();
-         else if (c == '\\') ok = parseBackslash();
-         else if (c == '\n') ok = parseNewline();
-         else if (c >= ' ') ok = parseChar(c);
-         if (!ok)
-         {
-            emit finished();
-            return;
-         }
+         else if (c == '"') parseQuote();
+         else if (c == '\\') parseBackslash();
+         else if (c == '\n') parseNewline();
+         else if (c >= ' ') parseChar(c);
       }
    }
 
-   m_file->close();
-   emit finished();
+   if (m_waitingForHeader)
+   {
+      die("Unable to read complete CSV header");
+   }
+   if (m_record.data.size() != 0 && m_record.data.size() != m_header.size())
+   {
+      die(m_record.fileName, m_record.lineNum,
+          "Unable to read complete CSV record");
+   }
+   CsvReader::Record record(m_record);
+   m_record.data.clear();
+   return record;
 }
 
 void CsvReader::commitField()
@@ -50,57 +72,32 @@ void CsvReader::commitField()
    }
    else
    {
-      m_record[m_header[m_fieldIndex]] = m_fieldValue;
+      m_record.data[m_header[m_fieldIndex]] = m_fieldValue;
    }
    m_fieldValue.clear();
    ++m_fieldIndex;
 }
 
-bool CsvReader::commitRecord()
+void CsvReader::commitRecord()
 {
    if (m_waitingForHeader)
    {
       m_waitingForHeader = false;
    }
-   else if (m_header.size() == m_fieldIndex)
+   else if (m_record.data.size() != 0 &&
+            m_record.data.size() != m_header.size())
    {
-      emit record(m_record, m_fileName, m_lineNum);
-      m_record.clear();
-   }
-   else
-   {
-      error("The end of a line was found when more text was expected");
-      return false;
+      die(m_record.fileName, m_record.lineNum,
+          "The end of a line was found when more text was expected");
    }
    m_fieldIndex = 0;
-   return true;
 }
 
-void CsvReader::error(QString const& message_, bool withLineNum)
-{
-   QString msg;
-   if (withLineNum)
-   {
-      emit message(QString("Error in CSV file '%1', line %2: %3")
-                   .arg(m_fileName)
-                   .arg(m_lineNum)
-                   .arg(message_));
-   }
-   else
-   {
-      emit message(QString("Error in CSV file '%1': %2")
-                   .arg(m_fileName)
-                   .arg(message_));
-   }
-}
-
-bool CsvReader::parseBackslash()
+void CsvReader::parseBackslash()
 {
    switch (m_fieldMode)
    {
       case FieldMode::EMPTY:
-         m_fieldMode = FieldMode::NORMAL_ESCAPED;
-         break;
       case FieldMode::NORMAL:
          m_fieldMode = FieldMode::NORMAL_ESCAPED;
          break;
@@ -116,17 +113,17 @@ bool CsvReader::parseBackslash()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         error("An extra backslash was found when a comma was expected");
-         return false;
+         die(m_record.fileName, m_record.lineNum,
+             "An extra backslash was found when a comma was expected");
    }
-   return true;
 }
 
-bool CsvReader::parseChar(char c)
+void CsvReader::parseChar(QChar c)
 {
    switch (m_fieldMode)
    {
       case FieldMode::EMPTY:
+      case FieldMode::NORMAL_ESCAPED:
          m_fieldValue += c;
          m_fieldMode = FieldMode::NORMAL;
          break;
@@ -134,19 +131,14 @@ bool CsvReader::parseChar(char c)
       case FieldMode::QUOTED:
          m_fieldValue += c;
          break;
-      case FieldMode::NORMAL_ESCAPED:
-         m_fieldValue += c;
-         m_fieldMode = FieldMode::NORMAL;
-         break;
       case FieldMode::QUOTED_ESCAPED:
          m_fieldValue += c;
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         error("Extra text was found when a comma was expected");
-         return false;
+         die(m_record.fileName, m_record.lineNum,
+             "Extra text was found when a comma was expected");
    }
-   return true;
 }
 
 void CsvReader::parseComma()
@@ -173,7 +165,7 @@ void CsvReader::parseComma()
    }
 }
 
-bool CsvReader::parseNewline()
+void CsvReader::parseNewline()
 {
    switch (m_fieldMode)
    {
@@ -181,10 +173,7 @@ bool CsvReader::parseNewline()
       case FieldMode::NORMAL:
       case FieldMode::CLOSED:
          commitField();
-         if (!commitRecord())
-         {
-            return false;
-         }
+         commitRecord();
          m_fieldMode = FieldMode::EMPTY;
          break;
       case FieldMode::NORMAL_ESCAPED:
@@ -199,10 +188,9 @@ bool CsvReader::parseNewline()
          m_fieldMode = FieldMode::QUOTED;
          break;
    }
-   return true;
 }
 
-bool CsvReader::parseQuote()
+void CsvReader::parseQuote()
 {
    switch (m_fieldMode)
    {
@@ -224,8 +212,7 @@ bool CsvReader::parseQuote()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         error("An extra quote was found when a comma was expected");
-         return false;
+         die(m_record.fileName, m_record.lineNum,
+             "An extra quote was found when a comma was expected");
    }
-   return true;
 }

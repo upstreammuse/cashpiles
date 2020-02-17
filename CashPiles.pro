@@ -4,6 +4,7 @@ CONFIG += console
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 HEADERS += \
    src/cashpiles.h \
+   src/csvreader.h \
    src/currency.h \
    src/daterange.h \
    src/filereader.h \
@@ -33,9 +34,11 @@ HEADERS += \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
-   src/texttable.h
+   src/texttable.h \
+   src/ynabregisterreader.h
 SOURCES += \
    src/cashpiles.cpp \
+   src/csvreader.cpp \
    src/currency.cpp \
    src/daterange.cpp \
    src/filereader.cpp \
@@ -65,5 +68,6 @@ SOURCES += \
    src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
-   src/texttable.cpp
+   src/texttable.cpp \
+   src/ynabregisterreader.cpp
 TARGET = cashpiles

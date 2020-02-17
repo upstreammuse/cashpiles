@@ -13,6 +13,7 @@
 #include "iptransactioncategorizer.h"
 #include "iptransferbalancer.h"
 #include "ledger.h"
+#include "ynabregisterreader.h"
 
 [[noreturn]] void die(QString const& message)
 {
@@ -32,10 +33,13 @@ int main(int argc, char** argv)
    QCoreApplication app(argc, argv);
    Currency::initializeCurrencies();
 
+   bool convertYnab = false;
    QString dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat);
    QString inFileName;
+   QString outFileName;
    QDate today = QDate::currentDate();
-   processArguments(dateFormat, inFileName, today, app.arguments());
+   processArguments(convertYnab, dateFormat, inFileName, outFileName, today,
+                    app.arguments());
    if (inFileName.isNull())
    {
       die("No input file specified");
@@ -46,9 +50,18 @@ int main(int argc, char** argv)
    }
 
    Ledger ledger;
-   FileReader reader(inFileName, ledger);
-   reader.setDateFormat(dateFormat);
-   reader.readAll();
+   if (convertYnab)
+   {
+      YnabRegisterReader reader(inFileName, ledger);
+      reader.setDateFormat(dateFormat);
+      reader.readAll();
+   }
+   else
+   {
+      FileReader reader(inFileName, ledger);
+      reader.setDateFormat(dateFormat);
+      reader.readAll();
+   }
 
    IPDateValidator dv;
    ledger.processItems(dv);
@@ -56,29 +69,42 @@ int main(int argc, char** argv)
    IPTransferBalancer tb;
    ledger.processItems(tb);
 
-   IPTransactionCategorizer tc;
-   ledger.processItems(tc);
+   if (!convertYnab)
+   {
+      IPTransactionCategorizer tc;
+      ledger.processItems(tc);
 
-   IPAccountBalancer ab(today);
-   ledger.processItems(ab);
+      IPAccountBalancer ab(today);
+      ledger.processItems(ab);
 
-   IPBudgetAllocator budAlloc(today);
-   ledger.processItems(budAlloc);
+      IPBudgetAllocator budAlloc(today);
+      ledger.processItems(budAlloc);
+   }
 
-   FileWriter writer("~/cp-output-test.txt");
-   writer.setDateFormat(dateFormat);
-   ledger.processItems(writer);
+   if (outFileName != "")
+   {
+      if (outFileName == inFileName)
+      {
+         die("Refusing to overwrite original input file");
+      }
+      FileWriter writer(outFileName);
+      writer.setDateFormat(dateFormat);
+      ledger.processItems(writer);
+   }
 
    return EXIT_SUCCESS;
 }
 
-void processArguments(QString& dateFormat, QString& inFileName, QDate& today,
+void processArguments(bool& convertYnab, QString& dateFormat,
+                      QString& inFileName, QString& outFileName, QDate& today,
                       QStringList const& arguments)
 {
    QRegularExpression const dateFormatRx("^--dateformat=(.*)$");
    QRegularExpression const inFileNameRx("^--file=(.*)$");
+   QRegularExpression const outFileNameRx("^--rewrite=(.*)$");
    QRegularExpression const todayRx("^--today=(.*)$");
-   foreach (QString const& arg, arguments)
+   QRegularExpression const ynabRx("^--ynab$");
+   foreach (QString const& arg, arguments.mid(1))
    {
       QRegularExpressionMatch match;
       if ((match = dateFormatRx.match(arg)).hasMatch())
@@ -89,9 +115,21 @@ void processArguments(QString& dateFormat, QString& inFileName, QDate& today,
       {
          inFileName = match.captured(1);
       }
+      else if ((match = outFileNameRx.match(arg)).hasMatch())
+      {
+         outFileName = match.captured(1);
+      }
       else if ((match = todayRx.match(arg)).hasMatch())
       {
          today = QDate::fromString(match.captured(1), dateFormat);
+      }
+      else if ((match = ynabRx.match(arg)).hasMatch())
+      {
+         convertYnab = true;
+      }
+      else
+      {
+         die(QString("Unrecognized option '%1'").arg(arg));
       }
    }
 }

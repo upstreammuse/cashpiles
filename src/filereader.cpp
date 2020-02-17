@@ -103,6 +103,34 @@ namespace
          CURR_RX.arg("amount") + OPTIONAL_RX.arg(SPACE_RX + NOTE_RX) + END_RX);
 }
 
+Currency FileReader::parseCurrency(QString const& currency,
+                                   QString const& fileName, uint lineNum)
+{
+   bool ok;
+   Currency c(Currency::fromString(currency, &ok));
+   if (!ok)
+   {
+      die(fileName, lineNum,
+          QString("Unable to parse currency '%1'")
+          .arg(currency));
+   }
+   return c;
+}
+
+QDate FileReader::parseDate(QString const& date, QString const& dateFormat,
+                            QString const& fileName, uint lineNum)
+{
+   QDate d(QDate::fromString(date, dateFormat));
+   if (!d.isValid())
+   {
+      die(fileName, lineNum,
+          QString("Unable to parse date '%1', expected something like '%2'")
+          .arg(date)
+          .arg(dateFormat));
+   }
+   return d;
+}
+
 FileReader::FileReader(QString const& fileName, Ledger& ledger, QObject* parent) :
    QObject(parent),
    m_file(new QFile(fileName, this)),
@@ -563,28 +591,12 @@ void FileReader::unReadLine(QString const& line)
 
 Currency FileReader::parseCurrency(QString const& currency)
 {
-   bool ok;
-   Currency c(Currency::fromString(currency, &ok));
-   if (!ok)
-   {
-      die(m_fileName, m_lineNum,
-          QString("Unable to parse currency '%1'")
-          .arg(currency));
-   }
-   return c;
+   return parseCurrency(currency, m_fileName, m_lineNum);
 }
 
 QDate FileReader::parseDate(QString const& date)
 {
-   QDate d(QDate::fromString(date, m_dateFormat));
-   if (!d.isValid())
-   {
-      die(m_fileName, m_lineNum,
-          QString("Unable to parse date '%1', expected something like '%2'")
-          .arg(date)
-          .arg(m_dateFormat));
-   }
-   return d;
+   return parseDate(date, m_dateFormat, m_fileName, m_lineNum);
 }
 
 Interval FileReader::parseInterval(QString const& interval)
