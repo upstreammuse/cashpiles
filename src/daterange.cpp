@@ -6,26 +6,26 @@ DateRange::DateRange()
 {
 }
 
-DateRange::DateRange(QDate const& start, QDate const& end) :
-   m_interval(start, end),
-   m_startDate(Date::fromQDate(start))
+DateRange::DateRange(Date const& start, Date const& end) :
+   m_interval(start.toQDate(), end.toQDate()),
+   m_startDate(start)
 {
 }
 
-DateRange::DateRange(QDate const& start, Interval const& interval) :
+DateRange::DateRange(Date const& start, Interval const& interval) :
    m_interval(interval),
-   m_startDate(Date::fromQDate(start))
+   m_startDate(start)
 {
 }
 
-qint64 DateRange::days() const
+long long int DateRange::days() const
 {
    return m_startDate.daysTo(Date::fromQDate(m_startDate.toQDate() + m_interval));
 }
 
-QDate DateRange::endDate() const
+Date DateRange::endDate() const
 {
-   return (m_startDate.toQDate() + m_interval).addDays(-1);
+   return Date::fromQDate((m_startDate.toQDate() + m_interval).addDays(-1));
 }
 
 DateRange DateRange::intersect(DateRange const& other) const
@@ -35,8 +35,8 @@ DateRange DateRange::intersect(DateRange const& other) const
       return DateRange();
    }
 
-   QDate startDate = std::max(m_startDate.toQDate(), other.startDate());
-   QDate endDate = std::min(this->endDate(), other.endDate());
+   Date startDate = std::max(m_startDate, other.startDate());
+   Date endDate = std::min(this->endDate(), other.endDate());
    if (startDate <= endDate)
    {
       return DateRange(startDate, endDate);
@@ -52,9 +52,9 @@ bool DateRange::isNull() const
    return m_startDate.isNull();
 }
 
-QDate DateRange::startDate() const
+Date DateRange::startDate() const
 {
-   return m_startDate.toQDate();
+   return m_startDate;
 }
 
 DateRange& DateRange::operator++()

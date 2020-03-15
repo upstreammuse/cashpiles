@@ -8,13 +8,13 @@ class DateRange
 {
 public:
    DateRange();
-   DateRange(QDate const& start, QDate const& end);
-   DateRange(QDate const& start, Interval const& interval);
-   qint64 days() const;
-   QDate endDate() const;
+   DateRange(Date const& start, Date const& end);
+   DateRange(Date const& start, Interval const& interval);
+   long long int days() const;
+   Date endDate() const;
    DateRange intersect(DateRange const& other) const;
    bool isNull() const;
-   QDate startDate() const;
+   Date startDate() const;
 
    DateRange& operator++();
    bool operator==(DateRange const& other) const;

@@ -74,8 +74,8 @@ void IPBudgetAllocator::finish()
    {
       table.appendColumn(0, it.key() + "  ");
       table.appendColumn(1, it->amount.toString() + "  ");
-      table.appendColumn(2, it->period.startDate().toString() + "-" +
-                         it->period.endDate().toString() + "  ");
+      table.appendColumn(2, QString::fromStdString(it->period.startDate().toString()) + "-" +
+                         QString::fromStdString(it->period.endDate().toString()) + "  ");
       table.appendColumn(3, QString::number(it->percentage) + "  ");
       table.appendColumn(4, it->reserved.toString());
       total += it->reserved;
@@ -95,8 +95,8 @@ void IPBudgetAllocator::finish()
    table.appendColumn(1, "History  ");
    table.appendColumn(2, "6-Month  ");
    table.appendColumn(3, "Available");
-   out << "Routine history period " << m_priorPeriod.startDate().toString()
-       << " - " << m_priorPeriod.endDate().toString() << endl;
+   out << "Routine history period " << QString::fromStdString(m_priorPeriod.startDate().toString())
+       << " - " << QString::fromStdString(m_priorPeriod.endDate().toString()) << endl;
    for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
    {
       table.appendColumn(0, it.key() + "  ");
@@ -152,7 +152,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // first item to occur on the first day of a new period
    if (!m_currentPeriod.isNull())
    {
-      if (budget.date() <= m_currentPeriod.endDate())
+      if (Date::fromQDate(budget.date()) <= m_currentPeriod.endDate())
       {
          die(budget.fileName(), budget.lineNum(),
              "Budget can only be reconfigured as the first item in a new "
@@ -160,7 +160,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
       }
       advanceBudgetPeriod(budget.fileName(), budget.lineNum(),
                           budget.date().addDays(-1));
-      if (m_currentPeriod.endDate().addDays(1) != budget.date())
+      if (m_currentPeriod.endDate().addDays(1) != Date::fromQDate(budget.date()))
       {
          die(budget.fileName(), budget.lineNum(),
              "Budget can only be reconfigured as the first item in a new "
@@ -169,7 +169,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    }
 
    // reconfigure the budget period
-   m_currentPeriod = DateRange(budget.date(), budget.interval());
+   m_currentPeriod = DateRange(Date::fromQDate(budget.date()), budget.interval());
    m_priorPeriod = DateRange();
 
    // at this point we have reset the budget period to start with the new
@@ -502,7 +502,7 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
                // find out the total date range left to save in, including the
                // current period dates
                DateRange goalPeriod = m_currentPeriod;
-               while (goalPeriod.endDate() < transaction.date())
+               while (goalPeriod.endDate() < Date::fromQDate(transaction.date()))
                {
                   ++goalPeriod;
                }
@@ -579,11 +579,11 @@ void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
    if (m_currentPeriod.isNull())
    {
       warn(filename, lineNum, "Creating a default monthly budget period");
-      m_currentPeriod = DateRange(QDate(date.year(), date.month(), 1),
+      m_currentPeriod = DateRange(Date(date.year(), date.month(), 1),
                                   Interval(1, Interval::Period::MONTHS));
    }
 
-   if (date < m_currentPeriod.startDate())
+   if (Date::fromQDate(date) < m_currentPeriod.startDate())
    {
       die(filename, lineNum,
           "Cannot rewind budget period for earlier dated item");
@@ -591,8 +591,8 @@ void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
 
    // stop advancing once the budget period covers either the requested date or
    // the current date, whichever comes first
-   while (m_currentPeriod.endDate() < date &&
-          m_currentPeriod.endDate() < m_today)
+   while (m_currentPeriod.endDate() < Date::fromQDate(date) &&
+          m_currentPeriod.endDate() < Date::fromQDate(m_today))
    {
       // merge routine info and reset for the new budget period
       if (m_priorPeriod.isNull())
