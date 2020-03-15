@@ -71,10 +71,10 @@ int main(int argc, char** argv)
       IPTransactionCategorizer tc;
       ledger.processItems(tc);
 
-      IPAccountBalancer ab(today.toQDate());
+      IPAccountBalancer ab(today);
       ledger.processItems(ab);
 
-      IPBudgetAllocator budAlloc(today.toQDate());
+      IPBudgetAllocator budAlloc(today);
       ledger.processItems(budAlloc);
    }
 
