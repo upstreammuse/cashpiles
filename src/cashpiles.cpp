@@ -1,5 +1,6 @@
 #include "cashpiles.h"
 
+#include <clocale>
 #include <regex>
 #include <QDate>
 #include <QTextStream>
@@ -29,8 +30,7 @@
 
 int main(int argc, char** argv)
 {
-   Currency::initializeCurrencies();
-
+   setlocale(LC_ALL,"");
    bool convertYnab = false;
    std::string dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat).toStdString();
    std::string inFileName;
