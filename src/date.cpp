@@ -1,6 +1,26 @@
 #include "date.h"
 
+#include <ctime>
 #include <QDate>
+
+Date Date::currentDate()
+{
+   std::time_t time = std::time(nullptr);
+   struct tm dateTime;
+
+#ifdef WINNT
+   localtime_s(&dateTime, &time);
+#else
+   localtime_s(&time, &dateTime);
+#endif
+
+   Date retval;
+   retval.m_day = dateTime.tm_mday;
+   retval.m_month = dateTime.tm_mon + 1;
+   retval.m_year = dateTime.tm_year + 1900;
+   Q_ASSERT(retval.toQDate() == QDate::currentDate());
+   return retval;
+}
 
 Date Date::fromQDate(QDate const& date)
 {
@@ -8,6 +28,106 @@ Date Date::fromQDate(QDate const& date)
    d.m_day = date.day();
    d.m_month = date.month();
    d.m_year = date.year();
+   Q_ASSERT(d.toQDate() == date);
+   return d;
+}
+
+Date Date::fromString(std::string const& date, std::string const& format)
+{
+   size_t month = format.find_first_of("M");
+   size_t monthLeading = format.find_first_of("MM");
+   size_t day = format.find_first_of("d");
+   size_t dayLeading = format.find_first_of("dd");
+   size_t year = format.find_first_of("yyyy");
+
+   if (monthLeading != std::string::npos)
+   {
+      month = monthLeading;
+   }
+   if (dayLeading != std::string::npos)
+   {
+      day = dayLeading;
+   }
+
+   std::string monthS;
+   std::string dayS;
+   std::string yearS;
+   for (size_t i = 0, j = 0; i < date.size() && j < format.size(); /*inside*/)
+   {
+      if (j == month)
+      {
+         monthS.append(1, date[i]);
+         ++i;
+         ++j;
+         if (monthLeading == std::string::npos)
+         {
+            if (i < date.size() && isdigit(date[i]))
+            {
+               monthS.append(1, date[i]);
+               ++i;
+            }
+         }
+         else
+         {
+            monthS.append(1, date[i]);
+            ++i;
+            ++j;
+         }
+      }
+      else if (j == day)
+      {
+         dayS.append(1, date[i]);
+         ++i;
+         ++j;
+         if (dayLeading == std::string::npos)
+         {
+            if (i < date.size() && isdigit(date[i]))
+            {
+               dayS.append(1, date[i]);
+               ++i;
+            }
+         }
+         else
+         {
+            dayS.append(1, date[i]);
+            ++i;
+            ++j;
+         }
+      }
+      else if (j == year)
+      {
+         dayS.append(date.c_str() + i, 4);
+         i += 4;
+      }
+      else if (date[i] == format[j])
+      {
+         ++i;
+         ++j;
+      }
+      else
+      {
+         return Date();
+      }
+   }
+
+   if (monthS.find_first_not_of("0123456789") != std::string::npos)
+   {
+      return Date();
+   }
+   if (dayS.find_first_not_of("0123456789") != std::string::npos)
+   {
+      return Date();
+   }
+   if (yearS.find_first_not_of("0123456789") != std::string::npos)
+   {
+      return Date();
+   }
+
+   Date d;
+   d.m_month = strtol(monthS.c_str(), nullptr, 10);
+   d.m_day = strtol(dayS.c_str(), nullptr, 10);
+   d.m_year = strtol(yearS.c_str(), nullptr, 10);
+   Q_ASSERT(d.toQDate() == QDate::fromString(QString::fromStdString(format)));
    return d;
 }
 
@@ -25,12 +145,26 @@ long long int Date::daysTo(Date const& other) const
              other.toQDate().toString().toStdString().c_str(),
              toQDate().daysTo(other.toQDate()));
    }
+   Q_ASSERT(julianEnd - julianStart == toQDate().daysTo(other.toQDate()));
    return julianEnd - julianStart;
 }
 
 bool Date::isNull() const
 {
    return m_day <= 0 || m_month <= 0 || m_year <= 0;
+}
+
+bool Date::isValid() const
+{
+   if (m_year <= 0) return false;
+   if (m_month <= 0 || m_month > 12) return false;
+   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+   if ((m_year % 4 == 0 && m_year % 100 != 0) || m_year % 400 == 0)
+   {
+      daysInMonth[2] = 29;
+   }
+   if (m_day <= 0 || m_day > daysInMonth[m_month]) return false;
+   return true;
 }
 
 QDate Date::toQDate() const

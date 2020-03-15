@@ -2,7 +2,6 @@
 
 #include <clocale>
 #include <regex>
-#include <QDate>
 #include <QTextStream>
 #include "currency.h"
 #include "filereader.h"
@@ -35,7 +34,7 @@ int main(int argc, char** argv)
    std::string dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat).toStdString();
    std::string inFileName;
    std::string outFileName;
-   QDate today = QDate::currentDate();
+   Date today = Date::currentDate();
    processArguments(convertYnab, dateFormat, inFileName, outFileName, today,
                     argc, argv);
    if (inFileName == "")
@@ -72,10 +71,10 @@ int main(int argc, char** argv)
       IPTransactionCategorizer tc;
       ledger.processItems(tc);
 
-      IPAccountBalancer ab(today);
+      IPAccountBalancer ab(today.toQDate());
       ledger.processItems(ab);
 
-      IPBudgetAllocator budAlloc(today);
+      IPBudgetAllocator budAlloc(today.toQDate());
       ledger.processItems(budAlloc);
    }
 
@@ -95,7 +94,7 @@ int main(int argc, char** argv)
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& outFileName,
-                      QDate& today, int argc, char** argv)
+                      Date& today, int argc, char** argv)
 {
    static std::regex const dateFormatRx("^--dateformat=(.*)$");
    static std::regex const inFileNameRx("^--file=(.*)$");
@@ -120,8 +119,7 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       }
       else if (std::regex_match(arg, match, todayRx))
       {
-         today = QDate::fromString(QString::fromStdString(match.str(1)),
-                                   QString::fromStdString(dateFormat));
+         today = Date::fromString(match.str(1), dateFormat);
       }
       else if (std::regex_match(arg, match, ynabRx))
       {
