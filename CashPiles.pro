@@ -6,6 +6,7 @@ HEADERS += \
    src/cashpiles.h \
    src/csvreader.h \
    src/currency.h \
+   src/date.h \
    src/daterange.h \
    src/filereader.h \
    src/filewriter.h \
@@ -40,6 +41,7 @@ SOURCES += \
    src/cashpiles.cpp \
    src/csvreader.cpp \
    src/currency.cpp \
+   src/date.cpp \
    src/daterange.cpp \
    src/filereader.cpp \
    src/filewriter.cpp \
