@@ -3,13 +3,14 @@
 
 #include <QDate>
 #include "currency.h"
+#include "date.h"
 #include "identifier.h"
 #include "itemprocessor.h"
 
 class IPAccountBalancer : public ItemProcessor
 {
 public:
-   IPAccountBalancer(QDate const& today);
+   IPAccountBalancer(Date const& today);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerTransaction const& transaction);

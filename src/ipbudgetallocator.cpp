@@ -16,8 +16,8 @@
 #include "ledgertransactionentry.h"
 #include "texttable.h"
 
-IPBudgetAllocator::IPBudgetAllocator(QDate const& today) :
-   m_today(today)
+IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
+   m_today(today.toQDate())
 {
    if (!m_today.isValid())
    {

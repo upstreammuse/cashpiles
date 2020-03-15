@@ -7,8 +7,8 @@
 #include "ledgertransaction.h"
 #include "texttable.h"
 
-IPAccountBalancer::IPAccountBalancer(QDate const& today) :
-   m_today(today)
+IPAccountBalancer::IPAccountBalancer(Date const& today) :
+   m_today(today.toQDate())
 {
 }
 

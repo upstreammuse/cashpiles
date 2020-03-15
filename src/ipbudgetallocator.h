@@ -12,7 +12,7 @@
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator(QDate const& today);
+   IPBudgetAllocator(Date const& today);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
