@@ -12,6 +12,7 @@ Currency Currency::fromString(QString const& string, bool* ok_)
    ok = true;
    struct lconv* lc = localeconv();
 
+   // remove currency symbol
    std::string symbol(lc->currency_symbol);
    size_t pos;
    if ((pos = s.find(symbol)) != std::string::npos)
@@ -19,12 +20,14 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       s.erase(pos, symbol.size());
    }
 
+   // remove separator symbols
    std::string sep(lc->mon_thousands_sep);
    for (pos = s.find(sep); pos != std::string::npos; pos = s.find(sep, pos))
    {
       s.erase(pos, sep.size());
    }
 
+   // make sure we only have digits, -, and .
    std::string allowed("0123456789");
    allowed.append(lc->mon_decimal_point);
    allowed.append(lc->negative_sign);
@@ -34,6 +37,7 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       return Currency();
    }
 
+   // get the numbers before and after the decimal
    std::string decimal(lc->mon_decimal_point);
    std::string before;
    std::string after;
@@ -48,12 +52,14 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       after = "";
    }
 
+   // make sure we either have no decimal, or the correct decimal digits
    if (after.size() != 0 && after.size() != lc->frac_digits)
    {
       ok = false;
       return Currency();
    }
 
+   // turn the values into a currency class
    Currency retval;
    retval.m_value = strtoll(before.c_str(), nullptr, 10);
    for (size_t i = 0; i < after.size(); ++i)
