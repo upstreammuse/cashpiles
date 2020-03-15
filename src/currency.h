@@ -8,9 +8,7 @@ class DateRange;
 class Currency
 {
 public:
-   static void addCurrency(QString const& regExp, uint decimalPlaces);
    static Currency fromString(QString const& string, bool* ok = nullptr);
-   static void initializeCurrencies();
    static void normalize(Currency& a, Currency& b);
 
 public:
@@ -30,16 +28,6 @@ public:
    bool operator!=(Currency const& other) const;
    Currency& operator+=(Currency const& other);
    Currency& operator-=(Currency const& other);
-
-private:
-   struct CompiledCurrencyGroup
-   {
-      QRegularExpression rx;
-      uint decimalPlaces;
-   };
-   static QList<CompiledCurrencyGroup> m_currencies;
-
-private:
 
 private:
    uint m_decimalPlaces = 0;

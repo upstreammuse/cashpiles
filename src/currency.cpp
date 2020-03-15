@@ -4,55 +4,68 @@
 #include <QLocale>
 #include "daterange.h"
 
-QList<Currency::CompiledCurrencyGroup> Currency::m_currencies;
-
-void Currency::addCurrency(QString const& regExp, uint decimalPlaces)
+Currency Currency::fromString(QString const& string, bool* ok_)
 {
-   QString rx(regExp);
-   rx.replace('$', QLocale::system().currencySymbol());
-   rx.replace('-', QLocale::system().negativeSign());
-   rx.replace(',', QLocale::system().groupSeparator());
-   rx.replace('.', QLocale::system().decimalPoint());
-   m_currencies.append(
-            CompiledCurrencyGroup{QRegularExpression(rx), decimalPlaces});
-}
-
-Currency Currency::fromString(QString const& string, bool* ok)
-{
-   Currency result;
-
+   std::string s(string.toStdString());
    bool dummy;
-   bool* success = ok ? ok : &dummy;
-   *success = false;
+   bool& ok = ok_ != nullptr ? *ok_ : dummy;
+   ok = true;
+   struct lconv* lc = localeconv();
 
-   foreach (CompiledCurrencyGroup const& ccg, m_currencies)
+   std::string symbol(lc->currency_symbol);
+   size_t pos;
+   if ((pos = s.find(symbol)) != std::string::npos)
    {
-      QRegularExpressionMatch match(ccg.rx.match(string));
-      if (match.hasMatch())
-      {
-         result.m_decimalPlaces = ccg.decimalPlaces;
-         result.m_value = match.captured("value")
-                          .remove(QLocale::system().currencySymbol())
-                          .remove(QLocale::system().groupSeparator())
-                          .remove(QLocale::system().decimalPoint())
-                          .toLongLong(success);
-         if (*success)
-         {
-            return result;
-         }
-      }
+      s.erase(pos, symbol.size());
    }
 
-   return result;
-}
+   std::string sep(lc->mon_thousands_sep);
+   for (pos = s.find(sep); pos != std::string::npos; pos = s.find(sep, pos))
+   {
+      s.erase(pos, sep.size());
+   }
 
-void Currency::initializeCurrencies()
-{
-   addCurrency(
-            "^(?<value>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\,\\d{3})*\\.\\d{2,})$", 2);
-   addCurrency("^(?<value>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\,\\d{3})*)$", 0);
-   addCurrency("^(?<value>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\d{3})*\\.\\d{2,})$", 2);
-   addCurrency("^(?<value>(\\-\\$|\\$\\-|\\$)\\d{1,3}(\\d{3})*)$", 0);
+   std::string allowed("0123456789");
+   allowed.append(lc->mon_decimal_point);
+   allowed.append(lc->negative_sign);
+   if (s.find_first_not_of(allowed) != std::string::npos)
+   {
+      ok = false;
+      return Currency();
+   }
+
+   std::string decimal(lc->mon_decimal_point);
+   std::string before;
+   std::string after;
+   if ((pos = s.find(decimal)) != std::string::npos)
+   {
+      before = std::string(s, 0, pos);
+      after = std::string(s, pos + 1);
+   }
+   else
+   {
+      before = s;
+      after = "";
+   }
+
+   long long num = strtoll(before.c_str(), nullptr, 10);
+   for (size_t i = 0; i < after.size(); ++i)
+   {
+      num *= 10;
+   }
+   if (num < 0)
+   {
+      num -= strtoll(after.c_str(), nullptr, 10);
+   }
+   else
+   {
+      num += strtoll(after.c_str(), nullptr, 10);
+   }
+
+   Currency retval;
+   retval.m_value = num;
+   retval.m_decimalPlaces = after.size();
+   return retval;
 }
 
 void Currency::normalize(Currency& a, Currency& b)
