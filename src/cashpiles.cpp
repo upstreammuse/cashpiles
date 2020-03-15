@@ -1,8 +1,7 @@
 #include "cashpiles.h"
 
-#include <QCoreApplication>
+#include <regex>
 #include <QDate>
-#include <QRegularExpression>
 #include <QTextStream>
 #include "currency.h"
 #include "filereader.h"
@@ -30,36 +29,35 @@
 
 int main(int argc, char** argv)
 {
-   QCoreApplication app(argc, argv);
    Currency::initializeCurrencies();
 
    bool convertYnab = false;
-   QString dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat);
-   QString inFileName;
-   QString outFileName;
+   std::string dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat).toStdString();
+   std::string inFileName;
+   std::string outFileName;
    QDate today = QDate::currentDate();
    processArguments(convertYnab, dateFormat, inFileName, outFileName, today,
-                    app.arguments());
-   if (inFileName.isNull())
+                    argc, argv);
+   if (inFileName == "")
    {
       die("No input file specified");
    }
    if (!today.isValid())
    {
-      die(QString("Today's date invalid, expected '%1'").arg(dateFormat));
+      die(QString("Today's date invalid, expected '%1'").arg(QString::fromStdString(dateFormat)));
    }
 
    Ledger ledger;
    if (convertYnab)
    {
-      YnabRegisterReader reader(inFileName, ledger);
-      reader.setDateFormat(dateFormat);
+      YnabRegisterReader reader(QString::fromStdString(inFileName), ledger);
+      reader.setDateFormat(QString::fromStdString(dateFormat));
       reader.readAll();
    }
    else
    {
-      FileReader reader(inFileName, ledger);
-      reader.setDateFormat(dateFormat);
+      FileReader reader(QString::fromStdString(inFileName), ledger);
+      reader.setDateFormat(QString::fromStdString(dateFormat));
       reader.readAll();
    }
 
@@ -87,49 +85,51 @@ int main(int argc, char** argv)
       {
          die("Refusing to overwrite original input file");
       }
-      FileWriter writer(outFileName);
-      writer.setDateFormat(dateFormat);
+      FileWriter writer(QString::fromStdString(outFileName));
+      writer.setDateFormat(QString::fromStdString(dateFormat));
       ledger.processItems(writer);
    }
 
    return EXIT_SUCCESS;
 }
 
-void processArguments(bool& convertYnab, QString& dateFormat,
-                      QString& inFileName, QString& outFileName, QDate& today,
-                      QStringList const& arguments)
+void processArguments(bool& convertYnab, std::string& dateFormat,
+                      std::string& inFileName, std::string& outFileName,
+                      QDate& today, int argc, char** argv)
 {
-   QRegularExpression const dateFormatRx("^--dateformat=(.*)$");
-   QRegularExpression const inFileNameRx("^--file=(.*)$");
-   QRegularExpression const outFileNameRx("^--rewrite=(.*)$");
-   QRegularExpression const todayRx("^--today=(.*)$");
-   QRegularExpression const ynabRx("^--ynab$");
-   foreach (QString const& arg, arguments.mid(1))
+   static std::regex const dateFormatRx("^--dateformat=(.*)$");
+   static std::regex const inFileNameRx("^--file=(.*)$");
+   static std::regex const outFileNameRx("^--rewrite=(.*)$");
+   static std::regex const todayRx("^--today=(.*)$");
+   static std::regex const ynabRx("^--ynab$");
+   std::smatch match;
+   for (int i = 1; i < argc; ++i)
    {
-      QRegularExpressionMatch match;
-      if ((match = dateFormatRx.match(arg)).hasMatch())
+      std::string arg(argv[i]);
+      if (std::regex_match(arg, match, dateFormatRx))
       {
-         dateFormat = match.captured(1);
+         dateFormat = match.str(1);
       }
-      else if ((match = inFileNameRx.match(arg)).hasMatch())
+      else if (std::regex_match(arg, match, inFileNameRx))
       {
-         inFileName = match.captured(1);
+         inFileName = match.str(1);
       }
-      else if ((match = outFileNameRx.match(arg)).hasMatch())
+      else if (std::regex_match(arg, match, outFileNameRx))
       {
-         outFileName = match.captured(1);
+         outFileName = match.str(1);
       }
-      else if ((match = todayRx.match(arg)).hasMatch())
+      else if (std::regex_match(arg, match, todayRx))
       {
-         today = QDate::fromString(match.captured(1), dateFormat);
+         today = QDate::fromString(QString::fromStdString(match.str(1)),
+                                   QString::fromStdString(dateFormat));
       }
-      else if ((match = ynabRx.match(arg)).hasMatch())
+      else if (std::regex_match(arg, match, ynabRx))
       {
          convertYnab = true;
       }
       else
       {
-         die(QString("Unrecognized option '%1'").arg(arg));
+         die(QString("Unrecognized option '%1'").arg(QString::fromStdString(arg)));
       }
    }
 }
