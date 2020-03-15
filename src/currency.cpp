@@ -48,22 +48,20 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       after = "";
    }
 
-   long long num = strtoll(before.c_str(), nullptr, 10);
+   Currency retval;
+   retval.m_value = strtoll(before.c_str(), nullptr, 10);
    for (size_t i = 0; i < after.size(); ++i)
    {
-      num *= 10;
+      retval.m_value *= 10;
    }
-   if (num < 0)
+   if (retval.m_value < 0)
    {
-      num -= strtoll(after.c_str(), nullptr, 10);
+      retval.m_value -= strtoll(after.c_str(), nullptr, 10);
    }
    else
    {
-      num += strtoll(after.c_str(), nullptr, 10);
+      retval.m_value += strtoll(after.c_str(), nullptr, 10);
    }
-
-   Currency retval;
-   retval.m_value = num;
    retval.m_decimalPlaces = after.size();
    return retval;
 }
