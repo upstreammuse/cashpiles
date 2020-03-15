@@ -131,6 +131,23 @@ Date Date::fromString(std::string const& date, std::string const& format)
    return d;
 }
 
+Date::Date()
+{
+}
+
+Date::Date(int year, int month, int day) :
+   m_day(day),
+   m_month(month),
+   m_year(year)
+{
+}
+
+Date Date::addDays(long long int days) const
+{
+   // TODO convert back from julian day number
+   return fromQDate(toQDate().addDays(days));
+}
+
 long long int Date::daysTo(Date const& other) const
 {
    long long julianStart = toJulianDayNumber();
@@ -172,11 +189,37 @@ QDate Date::toQDate() const
    return QDate(m_year, m_month, m_day);
 }
 
+std::string Date::toString(std::string const& format) const
+{
+   // TODO when I have more energy
+   return toQDate().toString(QString::fromStdString(format)).toStdString();
+}
+
 bool Date::operator==(Date const& other) const
 {
    return m_day == other.m_day &&
          m_month == other.m_month &&
          m_year == other.m_year;
+}
+
+bool Date::operator!=(Date const& other) const
+{
+   return !(*this == other);
+}
+
+bool Date::operator<(Date const& other) const
+{
+   return toJulianDayNumber() < other.toJulianDayNumber();
+}
+
+bool Date::operator<=(Date const& other) const
+{
+   return *this < other || *this == other;
+}
+
+bool Date::operator>(Date const& other) const
+{
+   return !(*this <= other);
 }
 
 long long int Date::toJulianDayNumber() const
