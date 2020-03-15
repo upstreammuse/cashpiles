@@ -1,7 +1,7 @@
 #ifndef DATERANGE_H
 #define DATERANGE_H
 
-#include <QDate>
+#include "date.h"
 #include "interval.h"
 
 class DateRange
@@ -21,7 +21,7 @@ public:
 
 private:
    Interval m_interval;
-   QDate m_startDate;
+   Date m_startDate;
 };
 
 #endif

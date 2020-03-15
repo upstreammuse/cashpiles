@@ -1,6 +1,7 @@
 #ifndef IPBUDGETALLOCATOR_H
 #define IPBUDGETALLOCATOR_H
 
+#include <QDate>
 #include <QHash>
 #include <QSet>
 #include "currency.h"

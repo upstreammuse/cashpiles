@@ -1,29 +1,31 @@
 #include "daterange.h"
 
+#include <QDate>
+
 DateRange::DateRange()
 {
 }
 
 DateRange::DateRange(QDate const& start, QDate const& end) :
    m_interval(start, end),
-   m_startDate(start)
+   m_startDate(Date::fromQDate(start))
 {
 }
 
 DateRange::DateRange(QDate const& start, Interval const& interval) :
    m_interval(interval),
-   m_startDate(start)
+   m_startDate(Date::fromQDate(start))
 {
 }
 
 qint64 DateRange::days() const
 {
-   return m_startDate.daysTo(m_startDate + m_interval);
+   return m_startDate.daysTo(Date::fromQDate(m_startDate.toQDate() + m_interval));
 }
 
 QDate DateRange::endDate() const
 {
-   return (m_startDate + m_interval).addDays(-1);
+   return (m_startDate.toQDate() + m_interval).addDays(-1);
 }
 
 DateRange DateRange::intersect(DateRange const& other) const
@@ -33,7 +35,7 @@ DateRange DateRange::intersect(DateRange const& other) const
       return DateRange();
    }
 
-   QDate startDate = std::max(m_startDate, other.startDate());
+   QDate startDate = std::max(m_startDate.toQDate(), other.startDate());
    QDate endDate = std::min(this->endDate(), other.endDate());
    if (startDate <= endDate)
    {
@@ -52,12 +54,12 @@ bool DateRange::isNull() const
 
 QDate DateRange::startDate() const
 {
-   return m_startDate;
+   return m_startDate.toQDate();
 }
 
 DateRange& DateRange::operator++()
 {
-   m_startDate = m_startDate + m_interval;
+   m_startDate = Date::fromQDate(m_startDate.toQDate() + m_interval);
    return *this;
 }
 

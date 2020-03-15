@@ -1,6 +1,7 @@
 #include "currency.h"
 
 #include <cmath>
+#include <QDate>
 #include <QLocale>
 #include "daterange.h"
 
