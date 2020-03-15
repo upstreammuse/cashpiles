@@ -48,6 +48,12 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       after = "";
    }
 
+   if (after.size() != 0 && after.size() != lc->frac_digits)
+   {
+      ok = false;
+      return Currency();
+   }
+
    Currency retval;
    retval.m_value = strtoll(before.c_str(), nullptr, 10);
    for (size_t i = 0; i < after.size(); ++i)
