@@ -7,7 +7,7 @@ DateRange::DateRange()
 }
 
 DateRange::DateRange(Date const& start, Date const& end) :
-   m_interval(start.toQDate(), end.toQDate()),
+   m_interval(start, end),
    m_startDate(start)
 {
 }
@@ -20,12 +20,12 @@ DateRange::DateRange(Date const& start, Interval const& interval) :
 
 long long int DateRange::days() const
 {
-   return m_startDate.daysTo(Date::fromQDate(m_startDate.toQDate() + m_interval));
+   return m_startDate.daysTo(m_startDate + m_interval);
 }
 
 Date DateRange::endDate() const
 {
-   return Date::fromQDate((m_startDate.toQDate() + m_interval).addDays(-1));
+   return (m_startDate + m_interval).addDays(-1);
 }
 
 DateRange DateRange::intersect(DateRange const& other) const
@@ -59,7 +59,7 @@ Date DateRange::startDate() const
 
 DateRange& DateRange::operator++()
 {
-   m_startDate = Date::fromQDate(m_startDate.toQDate() + m_interval);
+   m_startDate = m_startDate + m_interval;
    return *this;
 }
 

@@ -1,9 +1,9 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
-#include <QtGlobal>
+#include <QString>
 
-class QDate;
+class Date;
 
 class Interval
 {
@@ -19,7 +19,7 @@ public:
 public:
    Interval();
    Interval(uint number, Period period);
-   Interval(QDate const& start, QDate const& end);
+   Interval(Date const& start, Date const& end);
    uint number() const;
    Period period() const;
    QString toString() const;
@@ -31,6 +31,6 @@ private:
    Period m_period = Period::DAYS;
 };
 
-QDate operator+(QDate const& left, Interval const& right);
+Date operator+(Date const& left, Interval const& right);
 
 #endif
