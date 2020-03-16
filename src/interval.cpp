@@ -1,6 +1,6 @@
 #include "interval.h"
 
-#include <QDate>
+#include "date.h"
 
 Interval Interval::fromString(QString const& interval, bool* ok)
 {
@@ -52,8 +52,8 @@ Interval::Interval(uint number, Period period) :
 {
 }
 
-Interval::Interval(QDate const& start, QDate const& end) :
-   m_number(uint(start.daysTo(end) + 1)),
+Interval::Interval(Date const& start, Date const& end) :
+   m_number(start.daysTo(end) + 1),
    m_period(Period::DAYS)
 {
 }
@@ -98,23 +98,23 @@ bool Interval::operator==(Interval const& other) const
    return m_number == other.m_number && m_period == other.m_period;
 }
 
-QDate operator+(QDate const& left, Interval const& right)
+Date operator+(Date const& left, Interval const& right)
 {
    if (left.isNull())
    {
-      return QDate();
+      return Date();
    }
-   QDate result;
+   Date result;
    switch (right.period())
    {
       case Interval::Period::DAYS:
          result = left.addDays(right.number());
          break;
       case Interval::Period::MONTHS:
-         result = left.addMonths(int(right.number()));
+         result = left.addMonths(right.number());
          break;
       case Interval::Period::YEARS:
-         result = left.addYears(int(right.number()));
+         result = left.addYears(right.number());
          break;
    }
    return result;

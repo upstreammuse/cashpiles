@@ -14,7 +14,9 @@ public:
 public:
    Date();
    Date(int year, int month, int day);
-   Date addDays(long long int days) const;
+   Date addDays(int days) const;
+   Date addMonths(int months) const;
+   Date addYears(int years) const;
    long long int daysTo(Date const& other) const;
    bool isNull() const;
    bool isValid() const;

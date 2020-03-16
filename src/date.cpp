@@ -142,10 +142,51 @@ Date::Date(int year, int month, int day) :
 {
 }
 
-Date Date::addDays(long long int days) const
+Date Date::addDays(int days) const
 {
    // TODO convert back from julian day number
    return fromQDate(toQDate().addDays(days));
+}
+
+Date Date::addMonths(int months) const
+{
+   // TODO figure out if this works for negative months, based on how modulo and division work
+   Date d = *this;
+   d.m_month += months % 12;
+   while (d.m_month > 12)
+   {
+      d.m_month -= 12;
+      d.m_year += 1;
+   }
+   d.m_year += months / 12;
+   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+   if ((d.m_year % 4 == 0 && d.m_year % 100 != 0) || d.m_year % 400 == 0)
+   {
+      daysInMonth[2] = 29;
+   }
+   if (d.m_day > daysInMonth[d.m_month])
+   {
+      d.m_day = daysInMonth[d.m_month];
+   }
+   Q_ASSERT(d.toQDate() == toQDate().addMonths(months));
+   return d;
+}
+
+Date Date::addYears(int years) const
+{
+   Date d = *this;
+   d.m_year += years;
+   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+   if ((d.m_year % 4 == 0 && d.m_year % 100 != 0) || d.m_year % 400 == 0)
+   {
+      daysInMonth[2] = 29;
+   }
+   if (d.m_day > daysInMonth[d.m_month])
+   {
+      d.m_day = daysInMonth[d.m_month];
+   }
+   Q_ASSERT(d.toQDate() == toQDate().addYears(years));
+   return d;
 }
 
 long long int Date::daysTo(Date const& other) const
@@ -222,6 +263,7 @@ bool Date::operator>(Date const& other) const
    return !(*this <= other);
 }
 
+// from Wikipedia, would love to derive how this works
 long long int Date::toJulianDayNumber() const
 {
    return (1461 * (m_year + 4800 + (m_month - 14) / 12)) / 4 +
