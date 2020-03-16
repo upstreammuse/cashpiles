@@ -1,7 +1,5 @@
 #include "daterange.h"
 
-#include <QDate>
-
 DateRange::DateRange()
 {
 }
