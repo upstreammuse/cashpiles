@@ -5,6 +5,7 @@
 #include "ledgeraccount.h"
 
 class Currency;
+class Date;
 class Interval;
 class Ledger;
 class QIODevice;
@@ -16,7 +17,7 @@ class FileReader : public QObject
 public:
    static Currency parseCurrency(QString const& currency,
                                  QString const& fileName, uint lineNum);
-   static QDate parseDate(QString const& date, QString const& dateFormat,
+   static Date parseDate(QString const& date, QString const& dateFormat,
                           QString const& fileName, uint lineNum);
 
 public:
@@ -43,7 +44,7 @@ private:
 
 private:
    Currency parseCurrency(QString const& currency);
-   QDate parseDate(QString const& date);
+   Date parseDate(QString const& date);
    Interval parseInterval(QString const& interval);
    LedgerAccount::Mode parseMode(QString const& mode);
 

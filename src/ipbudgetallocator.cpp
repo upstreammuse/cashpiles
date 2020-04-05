@@ -21,7 +21,7 @@ IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
 {
    if (!m_today.isValid())
    {
-      die(QString("Today's date '%1' is invalid").arg(m_today.toString()));
+      die(QString("Today's date '%1' is invalid").arg(m_today.toString()).toStdString());
    }
 }
 
@@ -140,7 +140,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > m_today)
    {
-      warn(budget.fileName(), budget.lineNum(),
+      warn(budget.fileName().toStdString(), budget.lineNum(),
            "Ignoring future budget configuration");
       return;
    }
@@ -154,7 +154,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (Date::fromQDate(budget.date()) <= m_currentPeriod.endDate())
       {
-         die(budget.fileName(), budget.lineNum(),
+         die(budget.fileName().toStdString(), budget.lineNum(),
              "Budget can only be reconfigured as the first item in a new "
              "budget period.");
       }
@@ -162,7 +162,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
                           budget.date().addDays(-1));
       if (m_currentPeriod.endDate().addDays(1) != Date::fromQDate(budget.date()))
       {
-         die(budget.fileName(), budget.lineNum(),
+         die(budget.fileName().toStdString(), budget.lineNum(),
              "Budget can only be reconfigured as the first item in a new "
              "budget period.");
       }
@@ -190,10 +190,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    {
       if (!m_goals[budget.category()].reserved.isZero())
       {
-         warn(budget.fileName(), budget.lineNum(),
+         warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
               .arg(m_goals[budget.category()].reserved.toString())
-              .arg(budget.category()));
+              .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=
             m_goals[budget.category()].reserved;
@@ -209,10 +209,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    {
       if (!m_reserves[budget.category()].reserved.isZero())
       {
-         warn(budget.fileName(), budget.lineNum(),
+         warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
               .arg(m_reserves[budget.category()].reserved.toString())
-              .arg(budget.category()));
+              .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=
             m_reserves[budget.category()].reserved;
@@ -223,10 +223,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    {
       if (!m_routines[budget.category()].reserved.isZero())
       {
-         warn(budget.fileName(), budget.lineNum(),
+         warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
               .arg(m_routines[budget.category()].reserved.toString())
-              .arg(budget.category()));
+              .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=
             m_routines[budget.category()].reserved;
@@ -240,10 +240,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    }
    else
    {
-      warn(budget.fileName(), budget.lineNum(),
+      warn(budget.fileName().toStdString(), budget.lineNum(),
            QString("Cannot close budget category '%1' that did not already "
                    "exist")
-           .arg(budget.category()));
+           .arg(budget.category()).toStdString());
    }
 }
 
@@ -255,7 +255,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -272,7 +272,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -290,7 +290,7 @@ void IPBudgetAllocator::processItem(
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -312,7 +312,7 @@ void IPBudgetAllocator::processItem(
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -329,7 +329,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -346,7 +346,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
    }
    if (m_owners.contains(budget.category()))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(budget.fileName().toStdString(), budget.lineNum(),
           "Budget category listed multiple times");
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
@@ -359,7 +359,7 @@ void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
    if (reserve.date() > m_today)
    {
-      warn(reserve.fileName(), reserve.lineNum(),
+      warn(reserve.fileName().toStdString(), reserve.lineNum(),
            "Ignoring future category reservation");
       return;
    }
@@ -367,7 +367,7 @@ void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 
    if (reserve.numEntries() > 1 && !reserve.amount().isZero())
    {
-      die(reserve.fileName(), reserve.lineNum(),
+      die(reserve.fileName().toStdString(), reserve.lineNum(),
           "Multi-line reserve commands must balance to zero");
    }
 
@@ -389,7 +389,7 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
    {
       if (m_singleReserve)
       {
-         die(reserve.fileName(), reserve.lineNum(),
+         die(reserve.fileName().toStdString(), reserve.lineNum(),
              "Single-line reserve statements cannot contain owners");
 
       }
@@ -399,7 +399,7 @@ void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
    {
       if (!m_goals.contains(reserve.category()))
       {
-         die(reserve.fileName(), reserve.lineNum(),
+         die(reserve.fileName().toStdString(), reserve.lineNum(),
              "reserve command only for goals right now, sorry");
       }
 
@@ -441,8 +441,8 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
       if (entry.category().type() == Identifier::Type::OWNER &&
           !m_availables.contains(entry.category()))
       {
-         die(transaction.fileName(), transaction.lineNum(),
-             QString("Unknown category owner '%1'").arg(entry.category()));
+         die(transaction.fileName().toStdString(), transaction.lineNum(),
+             QString("Unknown category owner '%1'").arg(entry.category()).toStdString());
       }
 
       // create a new routine category if we haven't seen it before, since this
@@ -454,9 +454,9 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
           !m_routines.contains(entry.category()) &&
           !m_withholdings.contains(entry.category()))
       {
-         warn(transaction.fileName(), transaction.lineNum(),
+         warn(transaction.fileName().toStdString(), transaction.lineNum(),
               QString("Automatically creating routine expense category '%1'")
-              .arg(entry.category()));
+              .arg(entry.category()).toStdString());
          m_routines[entry.category()];
          m_owners[entry.category()] = Identifier("", Identifier::Type::OWNER);
       }
@@ -474,9 +474,9 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
             m_goals[entry.category()].reserved += entry.amount();
             if (m_goals[entry.category()].reserved.isNegative())
             {
-               warn(transaction.fileName(), transaction.lineNum(),
+               warn(transaction.fileName().toStdString(), transaction.lineNum(),
                     QString("Goal category %1 overspent")
-                    .arg(entry.category()));
+                    .arg(entry.category()).toStdString());
                m_availables[m_owners[entry.category()]] +=
                      m_goals[entry.category()].reserved;
                m_goals[entry.category()].reserved.clear();
@@ -578,14 +578,14 @@ void IPBudgetAllocator::advanceBudgetPeriod(QString const& filename,
    // use a monthly period by default if not initialized otherwise
    if (m_currentPeriod.isNull())
    {
-      warn(filename, lineNum, "Creating a default monthly budget period");
+      warn(filename.toStdString(), lineNum, "Creating a default monthly budget period");
       m_currentPeriod = DateRange(Date(date.year(), date.month(), 1),
                                   Interval(1, Interval::Period::MONTHS));
    }
 
    if (Date::fromQDate(date) < m_currentPeriod.startDate())
    {
-      die(filename, lineNum,
+      die(filename.toStdString(), lineNum,
           "Cannot rewind budget period for earlier dated item");
    }
 

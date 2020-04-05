@@ -1,8 +1,8 @@
 #include "cashpiles.h"
 
 #include <clocale>
+#include <iostream>
 #include <regex>
-#include <QTextStream>
 #include "currency.h"
 #include "filereader.h"
 #include "filewriter.h"
@@ -14,24 +14,30 @@
 #include "ledger.h"
 #include "ynabregisterreader.h"
 
-[[noreturn]] void die(QString const& message)
+[[noreturn]] void die(std::string const& message)
 {
    warn(message);
    exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void die(QString const& fileName, unsigned int lineNum,
-                      QString const& message)
+[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+                      std::string const& message)
 {
    warn(fileName, lineNum, message);
    exit(EXIT_FAILURE);
+}
+
+[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+                      char const* message)
+{
+   die(fileName, lineNum, std::string(message));
 }
 
 int main(int argc, char** argv)
 {
    setlocale(LC_ALL,"");
    bool convertYnab = false;
-   std::string dateFormat = QLocale::system().dateFormat(QLocale::ShortFormat).toStdString();
+   std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
    std::string outFileName;
    Date today = Date::currentDate();
@@ -43,7 +49,7 @@ int main(int argc, char** argv)
    }
    if (!today.isValid())
    {
-      die(QString("Today's date invalid, expected '%1'").arg(QString::fromStdString(dateFormat)));
+      die(QString("Today's date invalid, expected '%1'").arg(QString::fromStdString(dateFormat)).toStdString());
    }
 
    Ledger ledger;
@@ -127,22 +133,20 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       }
       else
       {
-         die(QString("Unrecognized option '%1'").arg(QString::fromStdString(arg)));
+         die(QString("Unrecognized option '%1'").arg(QString::fromStdString(arg)).toStdString());
       }
    }
 }
 
-void warn(QString const& message)
+void warn(std::string const& message)
 {
-   QTextStream err(stderr);
-   err << message << endl;
+   std::cerr << message << std::endl;
 }
 
-void warn(QString const& fileName, unsigned int lineNum,
-          QString const& message)
+void warn(std::string const& fileName, unsigned int lineNum,
+          std::string const& message)
 {
-   warn(QString("File '%1', line %2: %3")
-        .arg(fileName)
-        .arg(lineNum)
-        .arg(message));
+   std::stringstream ss;
+   ss << "File '" << fileName << "', line " << lineNum << ": " << message;
+   warn(ss.str());
 }

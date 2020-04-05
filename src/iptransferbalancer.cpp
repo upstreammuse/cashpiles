@@ -69,7 +69,7 @@ void IPTransferBalancer::checkTransfers(QDate const& date)
                    .arg(*it)
                    .arg(*it2)
                    .arg(m_lastDate.toString(m_dateFormat))
-                   .arg(balance.toString()));
+                   .arg(balance.toString()).toStdString());
             }
          }
       }

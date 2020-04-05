@@ -97,16 +97,16 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
       case LedgerAccount::Mode::CLOSED:
          if (m_accounts[account.name()].isClosed)
          {
-            warn(account.fileName(), account.lineNum(),
+            warn(account.fileName().toStdString(), account.lineNum(),
                  QString("Cannot close account '%1' that was not open")
-                 .arg(account.name()));
+                 .arg(account.name()).toStdString());
          }
          else if (!m_accounts[account.name()].future.isZero())
          {
-            warn(account.fileName(), account.lineNum(),
+            warn(account.fileName().toStdString(), account.lineNum(),
                  QString("Cannot close account '%1' with non-zero balance %2")
                  .arg(account.name())
-                 .arg(m_accounts[account.name()].balance.toString()));
+                 .arg(m_accounts[account.name()].balance.toString()).toStdString());
          }
          else
          {
@@ -117,9 +117,9 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
       case LedgerAccount::Mode::ON_BUDGET:
          if (!m_accounts[account.name()].isClosed)
          {
-            warn(account.fileName(), account.lineNum(),
+            warn(account.fileName().toStdString(), account.lineNum(),
                  QString("Cannot open account '%1' that was already open")
-                 .arg(account.name()));
+                 .arg(account.name()).toStdString());
          }
          else
          {
@@ -154,16 +154,16 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
    {
       if (transaction.balance() != m_accounts[transaction.account()].future)
       {
-         warn(transaction.fileName(), transaction.lineNum(),
+         warn(transaction.fileName().toStdString(), transaction.lineNum(),
               QString("Account '%1' stated balance %2 does not match "
                       "calculated balance %3")
               .arg(transaction.account())
               .arg(transaction.balance().toString())
-              .arg(m_accounts[transaction.account()].balance.toString()));
+              .arg(m_accounts[transaction.account()].balance.toString()).toStdString());
       }
       if (m_accounts[transaction.account()].hasPending)
       {
-         warn(transaction.fileName(), transaction.lineNum(),
+         warn(transaction.fileName().toStdString(), transaction.lineNum(),
               "Pending transactions included in balance statement");
          m_accounts[transaction.account()].hasPending = false;
       }

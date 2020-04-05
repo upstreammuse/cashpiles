@@ -2,6 +2,7 @@
 
 #include <QLocale>
 #include "cashpiles.h"
+#include "date.h"
 #include "ledger.h"
 #include "ledgeraccount.h"
 #include "ledgerblank.h"
@@ -110,23 +111,23 @@ Currency FileReader::parseCurrency(QString const& currency,
    Currency c(Currency::fromString(currency, &ok));
    if (!ok)
    {
-      die(fileName, lineNum,
+      die(fileName.toStdString(), lineNum,
           QString("Unable to parse currency '%1'")
-          .arg(currency));
+          .arg(currency).toStdString());
    }
    return c;
 }
 
-QDate FileReader::parseDate(QString const& date, QString const& dateFormat,
-                            QString const& fileName, uint lineNum)
+Date FileReader::parseDate(QString const& date, QString const& dateFormat,
+                           QString const& fileName, uint lineNum)
 {
-   QDate d(QDate::fromString(date, dateFormat));
+   Date d(Date::fromString(date.toStdString(), dateFormat.toStdString()));
    if (!d.isValid())
    {
-      die(fileName, lineNum,
+      die(fileName.toStdString(), lineNum,
           QString("Unable to parse date '%1', expected something like '%2'")
           .arg(date)
-          .arg(dateFormat));
+          .arg(dateFormat).toStdString());
    }
    return d;
 }
@@ -143,7 +144,7 @@ void FileReader::readAll()
 {
    if (!m_file || !m_file->open(QIODevice::ReadOnly | QIODevice::Text))
    {
-      die(QString("Unable to open input file '%1'").arg(m_fileName));
+      die(QString("Unable to open input file '%1'").arg(m_fileName).toStdString());
    }
    while (hasLines())
    {
@@ -162,7 +163,7 @@ void FileReader::processAccount(QRegularExpressionMatch const& match)
 {
    QSharedPointer<LedgerAccount> account(
             new LedgerAccount(m_fileName, m_lineNum));
-   account->setDate(parseDate(match.captured("date")));
+   account->setDate(parseDate(match.captured("date")).toQDate());
    account->setMode(parseMode(match.captured("command")));
    account->setName(
             Identifier(match.captured("account"), Identifier::Type::ACCOUNT));
@@ -178,7 +179,7 @@ void FileReader::processBlank()
 void FileReader::processBudget(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerBudget> budget(new LedgerBudget(m_fileName, m_lineNum));
-   budget->setDate(parseDate(match.captured("date")));
+   budget->setDate(parseDate(match.captured("date")).toQDate());
    budget->setInterval(parseInterval(match.captured("interval")));
 
    forever
@@ -277,7 +278,7 @@ void FileReader::processCompactReserve(const QRegularExpressionMatch &match)
 {
    QSharedPointer<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.captured("date")));
+   reserve->setDate(parseDate(match.captured("date")).toQDate());
 
    QSharedPointer<LedgerReserveEntry> entry(
             new LedgerReserveEntry(m_fileName, m_lineNum));
@@ -306,12 +307,12 @@ void FileReader::processCompactTransaction(QRegularExpressionMatch const& match)
             transaction->statusFromString(match.captured("cleared"), &ok));
    if (!ok)
    {
-      die(m_fileName, m_lineNum,
+      die(m_fileName.toStdString(), m_lineNum,
           QString("Could not read transaction status '%1'")
-          .arg(match.captured("cleared")));
+          .arg(match.captured("cleared")).toStdString());
    }
 
-   transaction->setDate(parseDate(match.captured("date")));
+   transaction->setDate(parseDate(match.captured("date")).toQDate());
    if (!match.captured("note").isEmpty())
    {
       transaction->setNote(match.captured("note"));
@@ -360,11 +361,11 @@ void FileReader::processCompactTransactionOff(
             transaction->statusFromString(match.captured("cleared"), &ok));
    if (!ok)
    {
-      die(m_fileName, m_lineNum,
+      die(m_fileName.toStdString(), m_lineNum,
           QString("Could not read transaction status '%1'")
-          .arg(match.captured("cleared")));
+          .arg(match.captured("cleared")).toStdString());
    }
-   transaction->setDate(parseDate(match.captured("date")));
+   transaction->setDate(parseDate(match.captured("date")).toQDate());
    if (!match.captured("note").isEmpty())
    {
       transaction->setNote(match.captured("note"));
@@ -428,8 +429,8 @@ void FileReader::processLine(QString const& line)
    }
    else
    {
-      die(m_fileName, m_lineNum,
-          QString("Invalid contents '%1'").arg(line));
+      die(m_fileName.toStdString(), m_lineNum,
+          QString("Invalid contents '%1'").arg(line).toStdString());
    }
 }
 
@@ -437,7 +438,7 @@ void FileReader::processReserve(QRegularExpressionMatch& match)
 {
    QSharedPointer<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.captured("date")));
+   reserve->setDate(parseDate(match.captured("date")).toQDate());
 
    forever
    {
@@ -485,11 +486,11 @@ void FileReader::processTransaction(QRegularExpressionMatch& match)
    xact->setStatus(xact->statusFromString(match.captured("cleared"), &ok));
    if (!ok)
    {
-      die(m_fileName, m_lineNum,
+      die(m_fileName.toStdString(), m_lineNum,
           QString("Could not read transaction status '%1'")
-          .arg(match.captured("cleared")));
+          .arg(match.captured("cleared")).toStdString());
    }
-   xact->setDate(parseDate(match.captured("date")));
+   xact->setDate(parseDate(match.captured("date")).toQDate());
    if (!match.captured("note").isEmpty())
    {
       xact->setNote(match.captured("note"));
@@ -594,7 +595,7 @@ Currency FileReader::parseCurrency(QString const& currency)
    return parseCurrency(currency, m_fileName, m_lineNum);
 }
 
-QDate FileReader::parseDate(QString const& date)
+Date FileReader::parseDate(QString const& date)
 {
    return parseDate(date, m_dateFormat, m_fileName, m_lineNum);
 }
@@ -605,9 +606,9 @@ Interval FileReader::parseInterval(QString const& interval)
    Interval i(Interval::fromString(interval, &ok));
    if (!ok)
    {
-      die(m_fileName, m_lineNum,
+      die(m_fileName.toStdString(), m_lineNum,
           QString("Unable to parse interval '%1'")
-          .arg(interval));
+          .arg(interval).toStdString());
    }
    return i;
 }
@@ -618,9 +619,9 @@ LedgerAccount::Mode FileReader::parseMode(QString const& mode)
    LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
    if (!ok)
    {
-      die(m_fileName, m_lineNum,
+      die(m_fileName.toStdString(), m_lineNum,
           QString("Unknown account command '%1'")
-          .arg(mode));
+          .arg(mode).toStdString());
    }
    return m;
 }
