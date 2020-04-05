@@ -33,9 +33,9 @@ void IPDateValidator::processDate(QDate const& date, QString const& fileName,
 {
    if (!m_latestDate.isNull() && date < m_latestDate)
    {
-      die(fileName, lineNum,
+      die(fileName.toStdString(), lineNum,
           QString("Date %1 out of order")
-          .arg(date.toString()));
+          .arg(date.toString()).toStdString());
    }
    else
    {

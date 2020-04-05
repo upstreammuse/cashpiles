@@ -2,6 +2,7 @@
 
 #include "cashpiles.h"
 #include "csvreader.h"
+#include "date.h"
 #include "filereader.h"
 #include "ledger.h"
 #include "ledgertransaction.h"
@@ -90,16 +91,16 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
          }
          else
          {
-            die(record.fileName, record.lineNum,
+            die(record.fileName.toStdString(), record.lineNum,
                 QString("Unknown cleared status '%1'")
-                .arg(*it));
+                .arg(*it).toStdString());
          }
       }
       else if (it.key() == "Date")
       {
          m_transaction->setDate(
                   FileReader::parseDate(*it, m_dateFormat, record.fileName,
-                                        record.lineNum));
+                                        record.lineNum).toQDate());
       }
       else if (it.key() == "Flag")
       {
@@ -165,7 +166,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       else
       {
          die(QString("YNAB file has unknown column header '%1'")
-             .arg(it.key()));
+             .arg(it.key()).toStdString());
       }
    }
    entry.setAmount(inflow - outflow);

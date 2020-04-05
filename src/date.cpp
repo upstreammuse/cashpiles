@@ -34,11 +34,11 @@ Date Date::fromQDate(QDate const& date)
 
 Date Date::fromString(std::string const& date, std::string const& format)
 {
-   size_t month = format.find_first_of("M");
-   size_t monthLeading = format.find_first_of("MM");
-   size_t day = format.find_first_of("d");
-   size_t dayLeading = format.find_first_of("dd");
-   size_t year = format.find_first_of("yyyy");
+   size_t month = format.find("M");
+   size_t monthLeading = format.find("MM");
+   size_t day = format.find("d");
+   size_t dayLeading = format.find("dd");
+   size_t year = format.find("yyyy");
 
    if (monthLeading != std::string::npos)
    {
@@ -96,8 +96,9 @@ Date Date::fromString(std::string const& date, std::string const& format)
       }
       else if (j == year)
       {
-         dayS.append(date.c_str() + i, 4);
+         yearS.append(date.c_str() + i, 4);
          i += 4;
+         j += 4;
       }
       else if (date[i] == format[j])
       {
@@ -127,7 +128,7 @@ Date Date::fromString(std::string const& date, std::string const& format)
    d.m_month = strtol(monthS.c_str(), nullptr, 10);
    d.m_day = strtol(dayS.c_str(), nullptr, 10);
    d.m_year = strtol(yearS.c_str(), nullptr, 10);
-   Q_ASSERT(d.toQDate() == QDate::fromString(QString::fromStdString(format)));
+   Q_ASSERT(d.toQDate() == QDate::fromString(QString::fromStdString(date), QString::fromStdString(format)));
    return d;
 }
 

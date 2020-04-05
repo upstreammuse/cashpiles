@@ -30,9 +30,9 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
       if (!m_accounts[transaction.account()] &&
           entry.category().type() != Identifier::Type::UNINITIALIZED)
       {
-         die(transaction.fileName(), transaction.lineNum(),
+         die(transaction.fileName().toStdString(), transaction.lineNum(),
              QString("Budget category set for off-budget account '%1'")
-             .arg(transaction.account()));
+             .arg(transaction.account()).toStdString());
       }
 
       switch (entry.payee().type())
@@ -44,30 +44,30 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                 m_accounts[entry.payee()] &&
                 entry.category().type() != Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName(), transaction.lineNum(),
+               die(transaction.fileName().toStdString(), transaction.lineNum(),
                    QString("Budget category set for transfer between on-budget "
                            "accounts '%1' and '%2'")
                    .arg(transaction.account())
-                   .arg(entry.payee()));
+                   .arg(entry.payee()).toStdString());
             }
             else if (m_accounts[transaction.account()] &&
                      !m_accounts[entry.payee()] &&
                      entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName(), transaction.lineNum(),
+               die(transaction.fileName().toStdString(), transaction.lineNum(),
                    QString("Missing budget category for transfer between "
                            "on-budget account '%1' and off-budget account '%2'")
                    .arg(transaction.account())
-                   .arg(entry.payee()));
+                   .arg(entry.payee()).toStdString());
             }
             break;
          case Identifier::Type::GENERIC:
             if (m_accounts[transaction.account()] &&
                 entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName(), transaction.lineNum(),
+               die(transaction.fileName().toStdString(), transaction.lineNum(),
                    QString("Missing budget category for on-budget account '%1'")
-                   .arg(transaction.account()));
+                   .arg(transaction.account()).toStdString());
             }
             break;
          case Identifier::Type::OWNER:
@@ -83,9 +83,9 @@ void IPTransactionCategorizer::checkCreateAccount(
 {
    if (!m_accounts.contains(account))
    {
-      warn(filename, linenum,
+      warn(filename.toStdString(), linenum,
            QString("Automatically opening on-budget account '%1'")
-           .arg(account));
+           .arg(account).toStdString());
       m_accounts[account] = true;
    }
 }

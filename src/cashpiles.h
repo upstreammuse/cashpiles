@@ -4,20 +4,22 @@
 #include <string>
 
 class Date;
-class QString;
 
-[[noreturn]] void die(QString const& message);
+[[noreturn]] void die(std::string const& message);
 
-[[noreturn]] void die(QString const& fileName, unsigned int lineNum,
-                      QString const& message);
+[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+                      std::string const& message);
+
+[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+                      char const* message);
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& outFileName,
                       Date& today, int argc, char** argv);
 
-void warn(QString const& message);
+void warn(std::string const& message);
 
-void warn(QString const& fileName, unsigned int lineNum,
-          QString const& message);
+void warn(std::string const& fileName, unsigned int lineNum,
+          std::string const& message);
 
 #endif
