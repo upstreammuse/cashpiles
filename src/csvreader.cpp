@@ -1,46 +1,47 @@
 #include "csvreader.h"
 
-#include <QFile>
+#include <sstream>
 #include "cashpiles.h"
 
-CsvReader::CsvReader(QString const& fileName, QObject* parent) :
-   QObject(parent),
-   m_file(new QFile(fileName, this))
+CsvReader::CsvReader(std::string const& fileName)
 {
    m_record.fileName = fileName;
 }
 
 void CsvReader::closeFile()
 {
-   m_file->close();
+   m_file.close();
 }
 
 bool CsvReader::hasContent()
 {
-   return !m_file->atEnd();
+   return !m_file.eof();
 }
 
 void CsvReader::openFile()
 {
-   if (!m_file->open(QIODevice::ReadOnly))
+   m_file.open(m_record.fileName);
+   if (!m_file)
    {
-      die(QString("Unable to open input file '%1'").arg(m_record.fileName).toStdString());
+      std::stringstream ss;
+      ss << "Unable to open input file '" << m_record.fileName << "'";
+      die(ss.str());
    }
 }
 
 CsvReader::Record CsvReader::readRecord()
 {
-   QString line;
+   std::string line;
    while (hasContent() && (m_waitingForHeader ||
                            m_record.data.size() != m_header.size()))
    {
-      line = m_file->readLine();
-      if (!line.endsWith('\n'))
+      getline(m_file, line);
+      if (line.back() != '\n')
       {
-         line.append('\n');
+         line += '\n';
       }
       ++m_record.lineNum;
-      foreach (QChar const c, line)
+      for (char const c : line)
       {
          if (c == ',') parseComma();
          else if (c == '"') parseQuote();
@@ -56,7 +57,7 @@ CsvReader::Record CsvReader::readRecord()
    }
    if (m_record.data.size() != 0 && m_record.data.size() != m_header.size())
    {
-      die(m_record.fileName.toStdString(), m_record.lineNum,
+      die(m_record.fileName, m_record.lineNum,
           "Unable to read complete CSV record");
    }
    CsvReader::Record record(m_record);
@@ -68,7 +69,7 @@ void CsvReader::commitField()
 {
    if (m_waitingForHeader)
    {
-      m_header.append(m_fieldValue);
+      m_header.push_back(m_fieldValue);
    }
    else
    {
@@ -87,7 +88,7 @@ void CsvReader::commitRecord()
    else if (m_record.data.size() != 0 &&
             m_record.data.size() != m_header.size())
    {
-      die(m_record.fileName.toStdString(), m_record.lineNum,
+      die(m_record.fileName, m_record.lineNum,
           "The end of a line was found when more text was expected");
    }
    m_fieldIndex = 0;
@@ -113,12 +114,12 @@ void CsvReader::parseBackslash()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName.toStdString(), m_record.lineNum,
+         die(m_record.fileName, m_record.lineNum,
              "An extra backslash was found when a comma was expected");
    }
 }
 
-void CsvReader::parseChar(QChar c)
+void CsvReader::parseChar(char c)
 {
    switch (m_fieldMode)
    {
@@ -136,7 +137,7 @@ void CsvReader::parseChar(QChar c)
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName.toStdString(), m_record.lineNum,
+         die(m_record.fileName, m_record.lineNum,
              "Extra text was found when a comma was expected");
    }
 }
@@ -212,7 +213,7 @@ void CsvReader::parseQuote()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName.toStdString(), m_record.lineNum,
+         die(m_record.fileName, m_record.lineNum,
              "An extra quote was found when a comma was expected");
    }
 }
