@@ -7,10 +7,10 @@ class Date;
 
 [[noreturn]] void die(std::string const& message);
 
-[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+[[noreturn]] void die(std::string const& fileName, size_t lineNum,
                       std::string const& message);
 
-[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+[[noreturn]] void die(std::string const& fileName, size_t lineNum,
                       char const* message);
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
@@ -19,7 +19,7 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
 
 void warn(std::string const& message);
 
-void warn(std::string const& fileName, unsigned int lineNum,
+void warn(std::string const& fileName, size_t lineNum,
           std::string const& message);
 
 #endif

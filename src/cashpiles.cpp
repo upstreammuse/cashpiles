@@ -20,14 +20,14 @@
    exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+[[noreturn]] void die(std::string const& fileName, size_t lineNum,
                       std::string const& message)
 {
    warn(fileName, lineNum, message);
    exit(EXIT_FAILURE);
 }
 
-[[noreturn]] void die(std::string const& fileName, unsigned int lineNum,
+[[noreturn]] void die(std::string const& fileName, size_t lineNum,
                       char const* message)
 {
    die(fileName, lineNum, std::string(message));
@@ -143,7 +143,7 @@ void warn(std::string const& message)
    std::cerr << message << std::endl;
 }
 
-void warn(std::string const& fileName, unsigned int lineNum,
+void warn(std::string const& fileName, size_t lineNum,
           std::string const& message)
 {
    std::stringstream ss;

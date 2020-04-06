@@ -1,24 +1,22 @@
 #pragma once
 
-#include <QHash>
-#include <QObject>
+#include <fstream>
+#include <map>
+#include <string>
+#include <vector>
 
-class QIODevice;
-
-class CsvReader : public QObject
+class CsvReader
 {
-   Q_OBJECT
-
 public:
    struct Record
    {
-      QHash<QString, QString> data;
-      QString fileName;
-      uint lineNum = 0;
+      std::map<std::string, std::string> data;
+      std::string fileName;
+      size_t lineNum = 0;
    };
 
 public:
-   explicit CsvReader(QString const& fileName, QObject* parent = nullptr);
+   explicit CsvReader(std::string const& fileName);
    void closeFile();
    bool hasContent();
    void openFile();
@@ -34,17 +32,17 @@ private:
    void commitField();
    void commitRecord();
    void parseBackslash();
-   void parseChar(QChar c);
+   void parseChar(char c);
    void parseComma();
    void parseNewline();
    void parseQuote();
 
 private:
-   int m_fieldIndex = 0;
+   size_t m_fieldIndex = 0;
    FieldMode m_fieldMode = FieldMode::EMPTY;
-   QString m_fieldValue;
-   QIODevice* m_file = nullptr;
-   QStringList m_header;
+   std::string m_fieldValue;
+   std::ifstream m_file;
+   std::vector<std::string> m_header;
    Record m_record;
    bool m_waitingForHeader = true;
 };

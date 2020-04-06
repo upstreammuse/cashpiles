@@ -11,19 +11,19 @@ YnabRegisterReader::YnabRegisterReader(QString const& fileName, Ledger& ledger,
                                        QObject* parent) :
    QObject(parent),
    m_ledger(ledger),
-   m_reader(new CsvReader(fileName, this))
+   m_reader(fileName.toStdString())
 {
 }
 
 void YnabRegisterReader::readAll()
 {
-   m_reader->openFile();
-   while (m_reader->hasContent())
+   m_reader.openFile();
+   while (m_reader.hasContent())
    {
-      CsvReader::Record record(m_reader->readRecord());
+      CsvReader::Record record(m_reader.readRecord());
       processRecord(record);
    }
-   m_reader->closeFile();
+   m_reader.closeFile();
 
    if (!m_transaction.isNull())
    {
@@ -45,7 +45,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    if (m_transaction.isNull())
    {
       m_transaction.reset(
-               new LedgerTransaction(record.fileName, record.lineNum));
+               new LedgerTransaction(QString::fromStdString(record.fileName), record.lineNum));
    }
    bool inSplit = false;
 
@@ -53,68 +53,68 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    Currency inflow;
    Currency outflow;
    QString note;
-   for (QHash<QString, QString>::const_iterator it(record.data.cbegin());
-        it != record.data.cend(); ++it)
+   for (auto it : record.data)
    {
-      if (it.key() == "Account")
+      if (it.first == "Account")
       {
-         m_transaction->setAccount(Identifier(*it, Identifier::Type::ACCOUNT));
+         m_transaction->setAccount(
+                  Identifier(QString::fromStdString(it.second), Identifier::Type::ACCOUNT));
       }
-      else if (it.key() == "Category" || it.key() == "Category Group" ||
-               it.key() == "Master Category" || it.key() == "Sub Category")
+      else if (it.first == "Category" || it.first == "Category Group" ||
+               it.first == "Master Category" || it.first == "Sub Category")
       {
          // ignored, part of full category name we use
       }
-      else if (it.key() == "Category Group/Category")
+      else if (it.first == "Category Group/Category")
       {
-         if (*it != "")
+         if (it.second != "")
          {
-            entry.setCategory(Identifier(*it, Identifier::Type::CATEGORY));
+            entry.setCategory(Identifier(QString::fromStdString(it.second), Identifier::Type::CATEGORY));
          }
       }
-      else if (it.key() == "Check Number")
+      else if (it.first == "Check Number")
       {
-         if (*it != "" )
+         if (it.second != "" )
          {
-            note += QString("[checkNumber=%1]").arg(*it);
+            note += QString("[checkNumber=%1]").arg(QString::fromStdString(it.second));
          }
       }
-      else if (it.key() == "Cleared")
+      else if (it.first == "Cleared")
       {
-         if (*it == "U" || *it == "Uncleared")
+         if (it.second == "U" || it.second == "Uncleared")
          {
             m_transaction->setStatus(LedgerTransaction::Status::PENDING);
          }
-         else if (*it == "C" || *it == "Cleared" || *it == "Reconciled")
+         else if (it.second == "C" || it.second == "Cleared" || it.second == "Reconciled")
          {
             m_transaction->setStatus(LedgerTransaction::Status::CLEARED);
          }
          else
          {
-            die(record.fileName.toStdString(), record.lineNum,
+            die(record.fileName, record.lineNum,
                 QString("Unknown cleared status '%1'")
-                .arg(*it).toStdString());
+                .arg(QString::fromStdString(it.second)).toStdString());
          }
       }
-      else if (it.key() == "Date")
+      else if (it.first == "Date")
       {
          m_transaction->setDate(
-                  FileReader::parseDate(*it, m_dateFormat, record.fileName,
+                  FileReader::parseDate(QString::fromStdString(it.second), m_dateFormat, QString::fromStdString(record.fileName),
                                         record.lineNum).toQDate());
       }
-      else if (it.key() == "Flag")
+      else if (it.first == "Flag")
       {
-         if (*it != "")
+         if (it.second != "")
          {
-            note += QString("[flag=%1]").arg(*it);
+            note += QString("[flag=%1]").arg(QString::fromStdString(it.second));
          }
       }
-      else if (it.key() == "Inflow")
+      else if (it.first == "Inflow")
       {
-         inflow = FileReader::parseCurrency(*it, record.fileName,
+         inflow = FileReader::parseCurrency(QString::fromStdString(it.second), QString::fromStdString(record.fileName),
                                             record.lineNum);
       }
-      else if (it.key() == "Memo")
+      else if (it.first == "Memo")
       {
          QRegularExpression const splitV4Rx(
                   "^\\(Split ([0-9]*)/([0-9]*)\\) (.*)$");
@@ -122,33 +122,33 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
                   "^Split \\(([0-9]*)/([0-9]*)\\) (.*)$");
          QRegularExpressionMatch match;
          QString memo;
-         if ((match = splitV4Rx.match(*it)).hasMatch())
+         if ((match = splitV4Rx.match(QString::fromStdString(it.second))).hasMatch())
          {
             memo = match.captured(3);
             inSplit = match.captured(1).toInt() != match.captured(2).toInt();
          }
-         else if ((match = splitV5Rx.match(*it)).hasMatch())
+         else if ((match = splitV5Rx.match(QString::fromStdString(it.second))).hasMatch())
          {
             memo = match.captured(3);
             inSplit = match.captured(1).toInt() != match.captured(2).toInt();
          }
          else
          {
-            memo = *it;
+            memo = QString::fromStdString(it.second);
          }
          if (memo != "")
          {
             note += QString("[memo=%1]").arg(memo);
          }
       }
-      else if (it.key() == "Outflow")
+      else if (it.first == "Outflow")
       {
-         outflow = FileReader::parseCurrency(*it, record.fileName, record.lineNum);
+         outflow = FileReader::parseCurrency(QString::fromStdString(it.second), QString::fromStdString(record.fileName), record.lineNum);
       }
-      else if (it.key() == "Payee")
+      else if (it.first == "Payee")
       {
          QRegularExpression const transferRx("^Transfer : (.*)$");
-         QRegularExpressionMatch match = transferRx.match(*it);
+         QRegularExpressionMatch match = transferRx.match(QString::fromStdString(it.second));
          if (match.hasMatch())
          {
             entry.setPayee(
@@ -156,17 +156,17 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
          }
          else
          {
-            entry.setPayee(Identifier(*it, Identifier::Type::GENERIC));
+            entry.setPayee(Identifier(QString::fromStdString(it.second), Identifier::Type::GENERIC));
          }
       }
-      else if (it.key() == "Running Balance")
+      else if (it.first == "Running Balance")
       {
          // ignored, no CP equivalent
       }
       else
       {
          die(QString("YNAB file has unknown column header '%1'")
-             .arg(it.key()).toStdString());
+             .arg(QString::fromStdString(it.first)).toStdString());
       }
    }
    entry.setAmount(inflow - outflow);

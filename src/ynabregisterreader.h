@@ -27,6 +27,6 @@ private:
    QString m_dateFormat = "MM/dd/yyyy";
    QMap<QDate, QSharedPointer<LedgerItem>> m_items;
    Ledger& m_ledger;
-   CsvReader* m_reader;
+   CsvReader m_reader;
    QSharedPointer<LedgerTransaction> m_transaction;
 };
