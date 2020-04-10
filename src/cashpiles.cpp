@@ -61,8 +61,8 @@ int main(int argc, char** argv)
    }
    else
    {
-      FileReader reader(QString::fromStdString(inFileName), ledger);
-      reader.setDateFormat(QString::fromStdString(dateFormat));
+      FileReader reader(inFileName, ledger);
+      reader.setDateFormat(dateFormat);
       reader.readAll();
    }
 

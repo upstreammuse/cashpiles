@@ -1,6 +1,7 @@
 #ifndef LEDGER_H
 #define LEDGER_H
 
+#include <memory>
 #include <QList>
 #include <QSharedPointer>
 
@@ -13,10 +14,10 @@ public:
    void processItems(ItemProcessor& processor);
 
 public:
-   void appendItem(QSharedPointer<LedgerItem> item);
+   void appendItem(std::shared_ptr<LedgerItem> item);
 
 protected:
-   QList<QSharedPointer<LedgerItem>> m_items;
+   std::vector<std::shared_ptr<LedgerItem>> m_items;
 };
 
 #endif

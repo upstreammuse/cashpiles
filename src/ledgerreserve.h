@@ -1,6 +1,7 @@
 #ifndef LEDGERRESERVE_H
 #define LEDGERRESERVE_H
 
+#include <memory>
 #include <QDate>
 #include <QSharedPointer>
 #include "currency.h"
@@ -39,14 +40,14 @@ public:
    QDate date() const;
    void setDate(QDate const& date);
 
-   void appendEntry(QSharedPointer<LedgerReserveEntry> entry);
+   void appendEntry(std::shared_ptr<LedgerReserveEntry> entry);
    int numEntries() const;
 
    void processItem(ItemProcessor& processor) const;
 
 private:
    QDate m_date;
-   QList<QSharedPointer<LedgerReserveEntry>> m_entries;
+   std::vector<std::shared_ptr<LedgerReserveEntry>> m_entries;
 };
 
 #endif

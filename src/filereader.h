@@ -1,60 +1,56 @@
-#ifndef FILEREADER_H
-#define FILEREADER_H
+#pragma once
 
-#include <QObject>
+#include <fstream>
+#include <regex>
+#include <stack>
+
 #include "ledgeraccount.h"
 
 class Currency;
 class Date;
 class Interval;
 class Ledger;
-class QIODevice;
 
-class FileReader : public QObject
+class FileReader
 {
-   Q_OBJECT
+public:
+   static Currency parseCurrency(std::string const& currency,
+                                 std::string const& fileName, size_t lineNum);
+   static Date parseDate(std::string const& date, std::string const& dateFormat,
+                         std::string const& fileName, size_t lineNum);
 
 public:
-   static Currency parseCurrency(QString const& currency,
-                                 QString const& fileName, uint lineNum);
-   static Date parseDate(QString const& date, QString const& dateFormat,
-                          QString const& fileName, uint lineNum);
-
-public:
-   FileReader(QString const& fileName, Ledger& ledger,
-              QObject* parent = nullptr);
+   FileReader(std::string const& fileName, Ledger& ledger);
    void readAll();
-   void setDateFormat(QString const& dateFormat);
+   void setDateFormat(std::string const& dateFormat);
 
 private:
-   void processAccount(QRegularExpressionMatch const& match);
+   void processAccount(std::smatch const& match);
    void processBlank();
-   void processBudget(QRegularExpressionMatch& match);
-   void processComment(QRegularExpressionMatch const& match);
-   void processCompactReserve(QRegularExpressionMatch const& match);
-   void processCompactTransaction(QRegularExpressionMatch const& match);
-   void processCompactTransactionOff(QRegularExpressionMatch const& match);
-   void processLine(QString const& line);
-   void processReserve(QRegularExpressionMatch& match);
-   void processTransaction(QRegularExpressionMatch& match);
+   void processBudget(std::smatch& match);
+   void processComment(std::smatch const& match);
+   void processCompactReserve(std::smatch const& match);
+   void processCompactTransaction(std::smatch const& match);
+   void processCompactTransactionOff(std::smatch const& match);
+   void processLine(std::string const& line);
+   void processReserve(std::smatch& match);
+   void processTransaction(std::smatch& match);
 
    bool hasLines();
-   QString readLine();
-   void unReadLine(QString const& line);
+   std::string readLine();
+   void unReadLine(std::string const& line);
 
 private:
-   Currency parseCurrency(QString const& currency);
-   Date parseDate(QString const& date);
-   Interval parseInterval(QString const& interval);
-   LedgerAccount::Mode parseMode(QString const& mode);
+   Currency parseCurrency(std::string const& currency);
+   Date parseDate(std::string const& date);
+   Interval parseInterval(std::string const& interval);
+   LedgerAccount::Mode parseMode(std::string const& mode);
 
 private:
-   QString m_dateFormat = "yyyy/MM/dd";
-   QIODevice* m_file = nullptr;
-   QString m_fileName;
+   std::string m_dateFormat = "yyyy/MM/dd";
+   std::ifstream m_file;
+   std::string m_fileName;
    Ledger& m_ledger;
-   uint m_lineNum = 0;
-   QStringList m_lines;
+   size_t m_lineNum = 0;
+   std::stack<std::string> m_lines;
 };
-
-#endif

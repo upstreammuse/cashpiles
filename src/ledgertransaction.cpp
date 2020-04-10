@@ -3,7 +3,7 @@
 #include "itemprocessor.h"
 
 LedgerTransaction::Status LedgerTransaction::statusFromString(
-      QString const& status, bool* ok)
+      std::string const& status, bool* ok)
 {
    bool dummy;
    bool* success = ok ? ok : &dummy;
@@ -107,9 +107,9 @@ bool LedgerTransaction::hasNote() const
    return m_note;
 }
 
-void LedgerTransaction::setNote(QString const& note)
+void LedgerTransaction::setNote(std::string const& note)
 {
-   m_note.reset(new QString(note));
+   m_note.reset(new QString(QString::fromStdString(note)));
 }
 
 LedgerTransaction::Status LedgerTransaction::status() const

@@ -458,7 +458,7 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
               QString("Automatically creating routine expense category '%1'")
               .arg(entry.category()).toStdString());
          m_routines[entry.category()];
-         m_owners[entry.category()] = Identifier("", Identifier::Type::OWNER);
+         m_owners[entry.category()] = Identifier(std::string(""), Identifier::Type::OWNER);
       }
 
       // process the transaction entry based on its budget category type

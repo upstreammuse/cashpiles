@@ -16,7 +16,7 @@ public:
 
    QString note() const;
    bool hasNote() const;
-   void setNote(QString const& note);
+   void setNote(std::string const& note);
 
    Identifier payee() const;
    void setPayee(Identifier const& payee);
