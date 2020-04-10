@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <QDate>
 #include <QMap>
 #include <QSharedPointer>
@@ -24,9 +25,9 @@ private:
    void processRecord(CsvReader::Record const& record);
 
 private:
-   QString m_dateFormat = "MM/dd/yyyy";
-   QMap<QDate, QSharedPointer<LedgerItem>> m_items;
+   std::string m_dateFormat = "MM/dd/yyyy";
+   QMap<QDate, std::shared_ptr<LedgerItem>> m_items;
    Ledger& m_ledger;
    CsvReader m_reader;
-   QSharedPointer<LedgerTransaction> m_transaction;
+   std::shared_ptr<LedgerTransaction> m_transaction;
 };

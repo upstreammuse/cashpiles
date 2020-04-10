@@ -7,14 +7,14 @@
 void Ledger::processItems(ItemProcessor& processor)
 {
    processor.start();
-   foreach (QSharedPointer<LedgerItem> item, m_items)
+   for (auto it : m_items)
    {
-      item->processItem(processor);
+      it->processItem(processor);
    }
    processor.finish();
 }
 
-void Ledger::appendItem(QSharedPointer<LedgerItem> item)
+void Ledger::appendItem(std::shared_ptr<LedgerItem> item)
 {
-   m_items.append(item);
+   m_items.push_back(item);
 }

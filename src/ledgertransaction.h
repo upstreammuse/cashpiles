@@ -17,7 +17,7 @@ public:
       PENDING,
       DISPUTED
    };
-   static Status statusFromString(QString const& status, bool* ok);
+   static Status statusFromString(std::string const& status, bool* ok);
    static QString statusToString(Status status);
 
 public:
@@ -37,7 +37,7 @@ public:
 
    QString note() const;
    bool hasNote() const;
-   void setNote(QString const& note);
+   void setNote(std::string const& note);
 
    Status status() const;
    void setStatus(Status status);

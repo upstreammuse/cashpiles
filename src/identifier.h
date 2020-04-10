@@ -18,6 +18,7 @@ public:
 public:
    Identifier();
    Identifier(QString const& value, Type type);
+   Identifier(std::string const& value, Type type);
 
    Type type() const;
 

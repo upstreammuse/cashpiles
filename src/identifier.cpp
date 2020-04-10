@@ -11,6 +11,13 @@ Identifier::Identifier(QString const& value, Type type) :
    Q_ASSERT(type != Type::UNINITIALIZED);
 }
 
+Identifier::Identifier(std::string const& value, Type type) :
+   m_type(type),
+   m_value(QString::fromStdString(value))
+{
+   assert(type != Type::UNINITIALIZED);
+}
+
 Identifier::Type Identifier::type() const
 {
    return m_type;

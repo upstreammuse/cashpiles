@@ -31,10 +31,10 @@ bool LedgerTransactionEntry::hasNote() const
    return m_hasNote;
 }
 
-void LedgerTransactionEntry::setNote(QString const& note)
+void LedgerTransactionEntry::setNote(std::string const& note)
 {
    m_hasNote = true;
-   m_note = note;
+   m_note = QString::fromStdString(note);
 }
 
 Identifier LedgerTransactionEntry::payee() const

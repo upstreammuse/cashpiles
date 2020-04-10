@@ -26,24 +26,24 @@ void YnabRegisterReader::readAll()
    }
    m_reader.closeFile();
 
-   if (!m_transaction.isNull())
+   if (m_transaction)
    {
       warn("YNAB file had extra record data at end");
    }
-   foreach (QSharedPointer<LedgerItem> item, m_items)
+   for (auto it : m_items)
    {
-      m_ledger.appendItem(item);
+      m_ledger.appendItem(it);
    }
 }
 
 void YnabRegisterReader::setDateFormat(QString const& dateFormat)
 {
-   m_dateFormat = dateFormat;
+   m_dateFormat = dateFormat.toStdString();
 }
 
 void YnabRegisterReader::processRecord(CsvReader::Record const& record)
 {
-   if (m_transaction.isNull())
+   if (!m_transaction)
    {
       m_transaction.reset(
                new LedgerTransaction(QString::fromStdString(record.fileName), record.lineNum));
@@ -100,7 +100,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       else if (it.first == "Date")
       {
          m_transaction->setDate(
-                  FileReader::parseDate(QString::fromStdString(it.second), m_dateFormat, QString::fromStdString(record.fileName),
+                  FileReader::parseDate(it.second, m_dateFormat, record.fileName,
                                         record.lineNum).toQDate());
       }
       else if (it.first == "Flag")
@@ -112,7 +112,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Inflow")
       {
-         inflow = FileReader::parseCurrency(QString::fromStdString(it.second), QString::fromStdString(record.fileName),
+         inflow = FileReader::parseCurrency(it.second, record.fileName,
                                             record.lineNum);
       }
       else if (it.first == "Memo")
@@ -144,7 +144,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Outflow")
       {
-         outflow = FileReader::parseCurrency(QString::fromStdString(it.second), QString::fromStdString(record.fileName), record.lineNum);
+         outflow = FileReader::parseCurrency(it.second, record.fileName, record.lineNum);
       }
       else if (it.first == "Payee")
       {
@@ -173,7 +173,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    entry.setAmount(inflow - outflow);
    if (note != "")
    {
-      entry.setNote(note);
+      entry.setNote(note.toStdString());
    }
    m_transaction->appendEntry(entry);
 

@@ -75,10 +75,10 @@ void LedgerReserve::setDate(QDate const& date)
    }
 }
 
-void LedgerReserve::appendEntry(QSharedPointer<LedgerReserveEntry> entry)
+void LedgerReserve::appendEntry(std::shared_ptr<LedgerReserveEntry> entry)
 {
    entry->setDate(m_date);
-   m_entries.append(entry);
+   m_entries.push_back(entry);
 }
 
 int LedgerReserve::numEntries() const
