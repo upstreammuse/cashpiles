@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include <QSet>
+#include <QSharedPointer>
 #include "currency.h"
 #include "interval.h"
 #include "ledgerbudgetentry.h"

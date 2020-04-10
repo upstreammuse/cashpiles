@@ -32,18 +32,18 @@ void IPAccountBalancer::finish()
            !it->future.isZero()))
       {
          table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, it->cleared.toString() + "  ");
-         table.appendColumn(2, it->balance.toString() + "  ");
-         table.appendColumn(3, it->future.toString());
+         table.appendColumn(1, QString::fromStdString(it->cleared.toString()) + "  ");
+         table.appendColumn(2, QString::fromStdString(it->balance.toString()) + "  ");
+         table.appendColumn(3, QString::fromStdString(it->future.toString()));
          totalOnCleared += it->cleared;
          totalOn += it->balance;
          totalOnFuture += it->future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, totalOnCleared.toString() + "  ");
-   table.appendColumn(2, totalOn.toString() + "  ");
-   table.appendColumn(3, totalOnFuture.toString());
+   table.appendColumn(1, QString::fromStdString(totalOnCleared.toString()) + "  ");
+   table.appendColumn(2, QString::fromStdString(totalOn.toString()) + "  ");
+   table.appendColumn(3, QString::fromStdString(totalOnFuture.toString()));
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
@@ -65,29 +65,29 @@ void IPAccountBalancer::finish()
            !it->future.isZero()))
       {
          table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, it->cleared.toString() + "  ");
-         table.appendColumn(2, it->balance.toString() + "  ");
-         table.appendColumn(3, it->future.toString());
+         table.appendColumn(1, QString::fromStdString(it->cleared.toString()) + "  ");
+         table.appendColumn(2, QString::fromStdString(it->balance.toString()) + "  ");
+         table.appendColumn(3, QString::fromStdString(it->future.toString()));
          totalOffCleared += it->cleared;
          totalOff += it->balance;
          totalOffFuture += it->future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, totalOffCleared.toString() + "  ");
-   table.appendColumn(2, totalOff.toString() + "  ");
-   table.appendColumn(3, totalOffFuture.toString());
+   table.appendColumn(1, QString::fromStdString(totalOffCleared.toString()) + "  ");
+   table.appendColumn(2, QString::fromStdString(totalOff.toString()) + "  ");
+   table.appendColumn(3, QString::fromStdString(totalOffFuture.toString()));
    table.appendColumn(0, "== NET WORTH ==  ");
-   table.appendColumn(1, (totalOnCleared + totalOffCleared).toString() + "  ");
-   table.appendColumn(2, (totalOn + totalOff).toString() + "  ");
-   table.appendColumn(3, (totalOnFuture + totalOffFuture).toString());
+   table.appendColumn(1, QString::fromStdString((totalOnCleared + totalOffCleared).toString()) + "  ");
+   table.appendColumn(2, QString::fromStdString((totalOn + totalOff).toString()) + "  ");
+   table.appendColumn(3, QString::fromStdString((totalOnFuture + totalOffFuture).toString()));
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.print(out);
    out << endl;
 
-   out << "Available for budgeting: " << totalOn.toString() << endl << endl;
+   out << "Available for budgeting: " << QString::fromStdString(totalOn.toString()) << endl << endl;
 }
 
 void IPAccountBalancer::processItem(LedgerAccount const& account)
@@ -106,7 +106,7 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
             warn(account.fileName().toStdString(), account.lineNum(),
                  QString("Cannot close account '%1' with non-zero balance %2")
                  .arg(account.name())
-                 .arg(m_accounts[account.name()].balance.toString()).toStdString());
+                 .arg(QString::fromStdString(m_accounts[account.name()].balance.toString())).toStdString());
          }
          else
          {
@@ -158,8 +158,8 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
               QString("Account '%1' stated balance %2 does not match "
                       "calculated balance %3")
               .arg(transaction.account())
-              .arg(transaction.balance().toString())
-              .arg(m_accounts[transaction.account()].balance.toString()).toStdString());
+              .arg(QString::fromStdString(transaction.balance().toString()))
+              .arg(QString::fromStdString(m_accounts[transaction.account()].balance.toString())).toStdString());
       }
       if (m_accounts[transaction.account()].hasPending)
       {

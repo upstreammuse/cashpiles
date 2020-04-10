@@ -106,7 +106,7 @@ void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 {
    QTextStream out(m_file);
-   out << "  reserve " << entry.category() << "  " << entry.amount().toString()
+   out << "  reserve " << entry.category() << "  " << QString::fromStdString(entry.amount().toString())
        << " " << entry.interval().toString();
    if (entry.owner() != QString(""))
    {
@@ -209,7 +209,7 @@ void FileWriter::processItem(LedgerReserveEntry const& reserve)
    {
       out << "@";
    }
-   out << reserve.category() << "  " << reserve.amount().toString() << endl;
+   out << reserve.category() << "  " << QString::fromStdString(reserve.amount().toString()) << endl;
    if (out.status() != QTextStream::Status::Ok)
    {
       die(QString("Unable to write to output file").arg(m_fileName).toStdString());
@@ -232,10 +232,10 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
    }
    if (transaction.entries().size() > 1 || numNotes > 1)
    {
-      out << transaction.amount().toString();
+      out << QString::fromStdString(transaction.amount().toString());
       if (transaction.hasBalance())
       {
-         out << " = " << transaction.balance().toString();
+         out << " = " << QString::fromStdString(transaction.balance().toString());
       }
       if (transaction.hasNote())
       {
@@ -276,7 +276,7 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
                    "Internal logic error, category has invalid type");
                // break is a warning here, die does not return
          }
-         out << entry.amount().toString();
+         out << QString::fromStdString(entry.amount().toString());
          if (entry.hasNote())
          {
             out << " ;" << entry.note();
@@ -318,10 +318,10 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
                 "Internal logic error, category has invalid type");
             // break is a warning here because die does not return
       }
-      out << "  " << transaction.amount().toString();
+      out << "  " << QString::fromStdString(transaction.amount().toString());
       if (transaction.hasBalance())
       {
-         out << " = " << transaction.balance().toString();
+         out << " = " << QString::fromStdString(transaction.balance().toString());
       }
       if (transaction.hasNote())
       {

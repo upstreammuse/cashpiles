@@ -2,6 +2,7 @@
 #define IPACCOUNTBALANCER_H
 
 #include <QDate>
+#include <QMap>
 #include "currency.h"
 #include "date.h"
 #include "identifier.h"
