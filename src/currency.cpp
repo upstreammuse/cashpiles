@@ -1,12 +1,10 @@
 #include "currency.h"
 
 #include <cmath>
-#include <QLocale>
 #include "daterange.h"
 
-Currency Currency::fromString(QString const& string, bool* ok_)
+Currency Currency::fromString(std::string s, bool* ok_)
 {
-   std::string s(string.toStdString());
    bool dummy;
    bool& ok = ok_ != nullptr ? *ok_ : dummy;
    ok = true;
@@ -36,6 +34,12 @@ Currency Currency::fromString(QString const& string, bool* ok_)
       ok = false;
       return Currency();
    }
+   // this is a stupid hack, but when we split the number at the decimal, we end up reading "-0" when the number is less than a whole currency unit, and that gets translated into a positive number
+   bool negate = false;
+   if (atof(s.c_str()) < 0)
+   {
+      negate = true;
+   }
 
    // get the numbers before and after the decimal
    std::string decimal(lc->mon_decimal_point);
@@ -61,18 +65,20 @@ Currency Currency::fromString(QString const& string, bool* ok_)
 
    // turn the values into a currency class
    Currency retval;
+   // make sure we are working with a positive number for now
    retval.m_value = strtoll(before.c_str(), nullptr, 10);
+   if (retval.m_value < 0)
+   {
+      retval.m_value = -retval.m_value;
+   }
    for (size_t i = 0; i < after.size(); ++i)
    {
       retval.m_value *= 10;
    }
-   if (retval.m_value < 0)
+   retval.m_value += strtoll(after.c_str(), nullptr, 10);
+   if (negate)
    {
-      retval.m_value -= strtoll(after.c_str(), nullptr, 10);
-   }
-   else
-   {
-      retval.m_value += strtoll(after.c_str(), nullptr, 10);
+      retval.m_value = -retval.m_value;
    }
    retval.m_decimalPlaces = after.size();
    return retval;
@@ -157,11 +163,11 @@ Currency Currency::amortize(DateRange const& total,
    qint64 dayOffset = total.startDate().daysTo(overlap.startDate());
 
    // number of days we will use amountA
-   qint64 daysOfA = std::min(std::max(qint64(0), numberA - dayOffset),
-                             overlap.days());
+   long long int daysOfA = std::min(std::max(qint64(0), numberA - dayOffset),
+                                    overlap.days());
 
    // the rest of the days we will use amountB
-   qint64 daysOfB = overlap.days() - daysOfA;
+   long long int daysOfB = overlap.days() - daysOfA;
 
    // the total for the days we are using
    Currency amortized = amountA * daysOfA + amountB * daysOfB;
@@ -191,18 +197,80 @@ bool Currency::isZero() const
    return m_value == 0;
 }
 
-QString Currency::toString() const
+// TODO why is C++ string handling so bad?
+std::string Currency::toString() const
 {
-   qint64 value = m_value;
-   QString output;
-   if (value < 0)
+   struct lconv* lc = localeconv();
+   char buffer[100] = "";
+   char temp[100] = "";
+   long long int value = m_value;
+   unsigned int places = std::max(m_decimalPlaces, (unsigned int)lc->frac_digits);
+   bool negate = false;
+   if (m_value < 0)
    {
       value = -value;
-      output += "-";
+      negate = true;
    }
-   output += QLocale::system().toCurrencyString(
-                value / pow(10, m_decimalPlaces));
-   return output;
+
+   for (unsigned int i = 0; i < places; ++i)
+   {
+      sprintf(temp, "%d%s", value % 10, buffer);
+      strcpy(buffer, temp);
+      value /= 10;
+   }
+   if (lc->frac_digits != 0)
+   {
+      sprintf(temp, "%s%s", lc->mon_decimal_point, buffer);
+      strcpy(buffer, temp);
+   }
+   if (value <= 0)
+   {
+      sprintf(temp, "0%s", buffer);
+      strcpy(buffer, temp);
+   }
+
+
+   char lastGroupSize = CHAR_MAX;
+   for (char *i = lc->mon_grouping; *i != 0; ++i)
+   {
+      lastGroupSize = *i;
+      for (char j = 0; j < lastGroupSize && value > 0; ++j)
+      {
+         sprintf(temp, "%d%s", value % 10, buffer);
+         strcpy(buffer, temp);
+         value /= 10;
+      }
+      if (value > 0)
+      {
+         sprintf(temp, "%s%s", lc->mon_thousands_sep, buffer);
+         strcpy(buffer, temp);
+      }
+   }
+   while (value > 0)
+   {
+      for (char j = 0; j < lastGroupSize && value > 0; ++j)
+      {
+         sprintf(temp, "%d%s", value % 10, buffer);
+         strcpy(buffer, temp);
+         value /= 10;
+      }
+      if (value > 0)
+      {
+         sprintf(temp, "%s%s", lc->mon_thousands_sep, buffer);
+         strcpy(buffer, temp);
+      }
+   }
+
+   // ignoring p_sign_posn to avoid dealing with parentheses
+   sprintf(temp, "%s%s", lc->currency_symbol, buffer);
+   strcpy(buffer, temp);
+   if (negate)
+   {
+      sprintf(temp, "%s%s", lc->negative_sign, buffer);
+      strcpy(buffer, temp);
+   }
+
+   return buffer;
 }
 
 Currency Currency::operator-() const

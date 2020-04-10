@@ -39,23 +39,23 @@ void IPBudgetAllocator::finish()
    for (auto it = m_goals.begin(); it != m_goals.end(); ++it)
    {
       table.appendColumn(0, it.key() + "  ");
-      table.appendColumn(1, it->reservedThisPeriod.toString() + "  ");
+      table.appendColumn(1, QString::fromStdString(it->reservedThisPeriod.toString()) + "  ");
       if ((it->reservedThisPeriod - it->neededThisPeriod).isNegative())
       {
-         table.appendColumn(2, (it->neededThisPeriod -
-                                it->reservedThisPeriod).toString() + "  ");
+         table.appendColumn(2, QString::fromStdString((it->neededThisPeriod -
+                                it->reservedThisPeriod).toString()) + "  ");
       }
       else
       {
          table.appendColumn(2, "---  ");
       }
-      table.appendColumn(3, it->reserved.toString() + "  ");
-      table.appendColumn(4, it->future.toString());
+      table.appendColumn(3, QString::fromStdString(it->reserved.toString()) + "  ");
+      table.appendColumn(4, QString::fromStdString(it->future.toString()));
       total += it->reserved;
    }
    totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(3, total.toString() + "  ");
+   table.appendColumn(3, QString::fromStdString(total.toString()) + "  ");
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
@@ -73,16 +73,16 @@ void IPBudgetAllocator::finish()
    for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
    {
       table.appendColumn(0, it.key() + "  ");
-      table.appendColumn(1, it->amount.toString() + "  ");
+      table.appendColumn(1, QString::fromStdString(it->amount.toString()) + "  ");
       table.appendColumn(2, QString::fromStdString(it->period.startDate().toString()) + "-" +
                          QString::fromStdString(it->period.endDate().toString()) + "  ");
       table.appendColumn(3, QString::number(it->percentage) + "  ");
-      table.appendColumn(4, it->reserved.toString());
+      table.appendColumn(4, QString::fromStdString(it->reserved.toString()));
       total += it->reserved;
    }
    totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(4, total.toString());
+   table.appendColumn(4, QString::fromStdString(total.toString()));
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(4, TextTable::Alignment::RightAlign);
@@ -100,18 +100,18 @@ void IPBudgetAllocator::finish()
    for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
    {
       table.appendColumn(0, it.key() + "  ");
-      table.appendColumn(1, it->priorAmount.toString() + "  ");
-      table.appendColumn(2, (it->priorAmount.amortize(
+      table.appendColumn(1, QString::fromStdString(it->priorAmount.toString()) + "  ");
+      table.appendColumn(2, QString::fromStdString((it->priorAmount.amortize(
                                 m_priorPeriod,
                                 DateRange(m_priorPeriod.startDate(),
                                           m_priorPeriod.startDate())) *
-                             qint64(180)).toString() + "  ");
-      table.appendColumn(3, it->reserved.toString());
+                             qint64(180)).toString()) + "  ");
+      table.appendColumn(3, QString::fromStdString(it->reserved.toString()));
       total += it->reserved;
    }
    totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(3, total.toString());
+   table.appendColumn(3, QString::fromStdString(total.toString()));
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
@@ -122,13 +122,13 @@ void IPBudgetAllocator::finish()
    for (auto it = m_availables.begin(); it != m_availables.end(); ++it)
    {
       totalAll += *it;
-      out << it.key() << ": " << it->toString() << endl;
+      out << it.key() << ": " << QString::fromStdString(it->toString()) << endl;
       if (it->isNegative())
       {
          out << "WARNING: over budget!" << endl;
       }
    }
-   out << "Total budgetable money: " << totalAll.toString() << endl;
+   out << "Total budgetable money: " << QString::fromStdString(totalAll.toString()) << endl;
 }
 
 void IPBudgetAllocator::processItem(LedgerAccount const& account)
@@ -192,7 +192,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
       {
          warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
-              .arg(m_goals[budget.category()].reserved.toString())
+              .arg(QString::fromStdString(m_goals[budget.category()].reserved.toString()))
               .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=
@@ -211,7 +211,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
       {
          warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
-              .arg(m_reserves[budget.category()].reserved.toString())
+              .arg(QString::fromStdString(m_reserves[budget.category()].reserved.toString()))
               .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=
@@ -225,7 +225,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
       {
          warn(budget.fileName().toStdString(), budget.lineNum(),
               QString("Returning %1 from category '%2' to available")
-              .arg(m_routines[budget.category()].reserved.toString())
+              .arg(QString::fromStdString(m_routines[budget.category()].reserved.toString()))
               .arg(budget.category()).toStdString());
       }
       m_availables[m_owners[budget.category()]] +=

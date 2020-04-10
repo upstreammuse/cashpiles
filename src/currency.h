@@ -1,14 +1,14 @@
 #ifndef CURRENCY_H
 #define CURRENCY_H
 
-#include <QRegularExpression>
+#include <string>
 
 class DateRange;
 
 class Currency
 {
 public:
-   static Currency fromString(QString const& string, bool* ok = nullptr);
+   static Currency fromString(std::string s, bool* ok = nullptr);
    static void normalize(Currency& a, Currency& b);
 
 public:
@@ -17,12 +17,12 @@ public:
    void clear();
    bool isNegative() const;
    bool isZero() const;
-   QString toString() const;
+   std::string toString() const;
 
    Currency operator-() const;
    Currency operator+(Currency const& other) const;
    Currency operator-(Currency const& other) const;
-   Currency operator*(qint64 factor) const;
+   Currency operator*(long long int factor) const;
    Currency operator*(double factor) const;
    bool operator==(Currency const& other) const;
    bool operator!=(Currency const& other) const;
@@ -30,8 +30,8 @@ public:
    Currency& operator-=(Currency const& other);
 
 private:
-   uint m_decimalPlaces = 0;
-   qint64 m_value = 0;
+   unsigned int m_decimalPlaces = 0;
+   long long int m_value = 0;
 };
 
 #endif

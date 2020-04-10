@@ -1,6 +1,7 @@
 #include "filereader.h"
 
 #include <QLocale>
+#include <QRegularExpression>
 #include "cashpiles.h"
 #include "date.h"
 #include "ledger.h"
@@ -108,7 +109,7 @@ Currency FileReader::parseCurrency(QString const& currency,
                                    QString const& fileName, uint lineNum)
 {
    bool ok;
-   Currency c(Currency::fromString(currency, &ok));
+   Currency c(Currency::fromString(currency.toStdString(), &ok));
    if (!ok)
    {
       die(fileName.toStdString(), lineNum,
