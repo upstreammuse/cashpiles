@@ -1,7 +1,6 @@
-#ifndef IDENTIFIER_H
-#define IDENTIFIER_H
+#pragma once
 
-#include <QString>
+#include <string>
 
 class Identifier
 {
@@ -17,19 +16,20 @@ public:
 
 public:
    Identifier();
-   Identifier(QString const& value, Type type);
    Identifier(std::string const& value, Type type);
 
+   bool isNotEmpty() const;
    Type type() const;
 
-   operator QString() const;
    bool operator==(Identifier const& other) const;
    bool operator!=(Identifier const& other) const;
    bool operator<(Identifier const& other) const;
 
+   friend std::ostream& operator<<(std::ostream& out, Identifier const& ident);
+
 private:
    Type m_type = Type::UNINITIALIZED;
-   QString m_value;
+   std::string m_value;
 };
 
-#endif
+std::ostream& operator<<(std::ostream& out, Identifier const& ident);

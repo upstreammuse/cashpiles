@@ -5,6 +5,6 @@
 class LedgerBudgetRoutineEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetRoutineEntry(QString const& filename, uint lineNum);
+   LedgerBudgetRoutineEntry(std::string const& filename, size_t lineNum);
    void processItem(ItemProcessor& processor) const;
 };

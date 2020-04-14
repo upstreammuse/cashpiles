@@ -5,6 +5,6 @@
 class LedgerBudgetWithholdingEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetWithholdingEntry(QString const& filename, uint lineNum);
+   LedgerBudgetWithholdingEntry(std::string const& filename, size_t lineNum);
    void processItem(ItemProcessor& processor) const;
 };

@@ -1,5 +1,4 @@
-#ifndef CURRENCY_H
-#define CURRENCY_H
+#pragma once
 
 #include <string>
 
@@ -30,8 +29,6 @@ public:
    Currency& operator-=(Currency const& other);
 
 private:
-   unsigned int m_decimalPlaces = 0;
+   size_t m_decimalPlaces = 0;
    long long int m_value = 0;
 };
-
-#endif

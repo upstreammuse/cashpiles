@@ -1,10 +1,9 @@
-#ifndef LEDGERBUDGET_H
-#define LEDGERBUDGET_H
+#pragma once
 
-#include <QDate>
-#include <QSet>
-#include <QSharedPointer>
+#include <memory>
+#include <vector>
 #include "currency.h"
+#include "date.h"
 #include "interval.h"
 #include "ledgerbudgetentry.h"
 #include "ledgeritem.h"
@@ -12,22 +11,20 @@
 class LedgerBudget : public LedgerItem
 {
 public:
-   LedgerBudget(QString const& fileName, uint lineNum);
+   LedgerBudget(std::string const& fileName, size_t lineNum);
 
-   QDate date() const;
-   void setDate(QDate const& date);
+   Date date() const;
+   void setDate(Date const& date);
 
    Interval interval() const;
    void setInterval(Interval interval);
 
-   void appendEntry(QSharedPointer<LedgerBudgetEntry> entry);
+   void appendEntry(std::shared_ptr<LedgerBudgetEntry> entry);
 
    void processItem(ItemProcessor& processor) const;
 
 private:
-   QDate m_date;
-   QList<QSharedPointer<LedgerBudgetEntry>> m_entries;
+   Date m_date;
+   std::vector<std::shared_ptr<LedgerBudgetEntry>> m_entries;
    Interval m_interval;
 };
-
-#endif

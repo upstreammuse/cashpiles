@@ -3,7 +3,7 @@
 #include "itemprocessor.h"
 
 LedgerBudgetReserveAmountEntry::LedgerBudgetReserveAmountEntry(
-      QString const& filename, uint lineNum) :
+      std::string const& filename, size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }

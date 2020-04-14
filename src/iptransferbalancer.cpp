@@ -1,5 +1,6 @@
 #include "iptransferbalancer.h"
 
+#include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
@@ -30,7 +31,7 @@ void IPTransferBalancer::processItem(LedgerReserve const& reserve)
 void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
 {
    checkTransfers(transaction.date());
-   foreach (LedgerTransactionEntry const& entry, transaction.entries())
+   for (LedgerTransactionEntry const& entry : transaction.entries())
    {
       switch (entry.payee().type())
       {
@@ -49,7 +50,7 @@ void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void IPTransferBalancer::checkTransfers(QDate const& date)
+void IPTransferBalancer::checkTransfers(Date const& date)
 {
    if (date != m_lastDate)
    {
@@ -64,12 +65,11 @@ void IPTransferBalancer::checkTransfers(QDate const& date)
                {
                   balance = -balance;
                }
-               die(QString("Transfers between '%1' and '%2' do not match on "
-                           "%3.  Mismatch of %4")
-                   .arg(*it)
-                   .arg(*it2)
-                   .arg(m_lastDate.toString(m_dateFormat))
-                   .arg(QString::fromStdString(balance.toString())).toStdString());
+               std::stringstream ss;
+               ss << "Transfers between '" << *it << "' and '" << *it2
+                  << "' do not match on " << m_lastDate.toString(m_dateFormat)
+                  << ".  Mismatch of " << balance.toString();
+               die(ss.str());
             }
          }
       }

@@ -2,8 +2,8 @@
 
 #include "itemprocessor.h"
 
-LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(QString const& filename,
-                                             uint lineNum) :
+LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(std::string const& filename,
+                                             size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }

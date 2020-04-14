@@ -1,8 +1,10 @@
 #include "ledgerreserve.h"
 
+#include <cassert>
 #include "itemprocessor.h"
 
-LedgerReserveEntry::LedgerReserveEntry(QString const& filename, uint linenum) :
+LedgerReserveEntry::LedgerReserveEntry(std::string const& filename,
+                                       size_t linenum) :
    LedgerItem(filename, linenum)
 {
 }
@@ -24,19 +26,19 @@ Identifier LedgerReserveEntry::category() const
 
 void LedgerReserveEntry::setCategory(Identifier const& category)
 {
-   Q_ASSERT(category.type() == Identifier::Type::CATEGORY ||
-            category.type() == Identifier::Type::OWNER);
+   assert(category.type() == Identifier::Type::CATEGORY ||
+          category.type() == Identifier::Type::OWNER);
    m_category = category;
 }
 
-QDate LedgerReserveEntry::date() const
+Date LedgerReserveEntry::date() const
 {
    return m_date;
 }
 
-void LedgerReserveEntry::setDate(QDate const& date)
+void LedgerReserveEntry::setDate(Date const& date)
 {
-   Q_ASSERT(date.isValid());
+   assert(date.isValid());
    m_date = date;
 }
 
@@ -45,7 +47,7 @@ void LedgerReserveEntry::processItem(ItemProcessor& processor) const
    processor.processItem(*this);
 }
 
-LedgerReserve::LedgerReserve(QString const& filename, uint linenum) :
+LedgerReserve::LedgerReserve(std::string const& filename, size_t linenum) :
    LedgerItem(filename, linenum)
 {
 }
@@ -53,23 +55,23 @@ LedgerReserve::LedgerReserve(QString const& filename, uint linenum) :
 Currency LedgerReserve::amount() const
 {
    Currency amount;
-   foreach (auto entry, m_entries)
+   for (auto entry : m_entries)
    {
       amount += entry->amount();
    }
    return amount;
 }
 
-QDate LedgerReserve::date() const
+Date LedgerReserve::date() const
 {
    return m_date;
 }
 
-void LedgerReserve::setDate(QDate const& date)
+void LedgerReserve::setDate(Date const& date)
 {
-   Q_ASSERT(date.isValid());
+   assert(date.isValid());
    m_date = date;
-   foreach (auto entry, m_entries)
+   for (auto entry : m_entries)
    {
       entry->setDate(date);
    }
@@ -81,7 +83,7 @@ void LedgerReserve::appendEntry(std::shared_ptr<LedgerReserveEntry> entry)
    m_entries.push_back(entry);
 }
 
-int LedgerReserve::numEntries() const
+size_t LedgerReserve::numEntries() const
 {
    return m_entries.size();
 }
@@ -89,7 +91,7 @@ int LedgerReserve::numEntries() const
 void LedgerReserve::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
-   foreach (auto entry, m_entries)
+   for (auto entry : m_entries)
    {
       entry->processItem(processor);
    }

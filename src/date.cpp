@@ -226,6 +226,12 @@ bool Date::isValid() const
    return true;
 }
 
+int Date::month() const
+{
+   assert(isValid());
+   return m_month;
+}
+
 QDate Date::toQDate() const
 {
    return QDate(m_year, m_month, m_day);
@@ -235,6 +241,12 @@ std::string Date::toString(std::string const& format) const
 {
    // TODO when I have more energy
    return toQDate().toString(QString::fromStdString(format)).toStdString();
+}
+
+int Date::year() const
+{
+   assert(isValid());
+   return m_year;
 }
 
 bool Date::operator==(Date const& other) const

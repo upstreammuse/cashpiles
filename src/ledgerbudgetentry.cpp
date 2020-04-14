@@ -1,8 +1,10 @@
 #include "ledgerbudgetentry.h"
 
+#include <cassert>
 #include "itemprocessor.h"
 
-LedgerBudgetEntry::LedgerBudgetEntry(QString const& filename, uint lineNum) :
+LedgerBudgetEntry::LedgerBudgetEntry(std::string const& filename,
+                                     size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
@@ -14,18 +16,18 @@ Identifier LedgerBudgetEntry::category() const
 
 void LedgerBudgetEntry::setCategory(Identifier const& category)
 {
-   Q_ASSERT(category.type() == Identifier::Type::CATEGORY);
+   assert(category.type() == Identifier::Type::CATEGORY);
    m_category = category;
 }
 
-QDate LedgerBudgetEntry::date() const
+Date LedgerBudgetEntry::date() const
 {
    return m_date;
 }
 
-void LedgerBudgetEntry::setDate(QDate const& date)
+void LedgerBudgetEntry::setDate(Date const& date)
 {
-   Q_ASSERT(date.isValid());
+   assert(date.isValid());
    m_date = date;
 }
 
@@ -36,6 +38,6 @@ Identifier LedgerBudgetEntry::owner() const
 
 void LedgerBudgetEntry::setOwner(Identifier const& owner)
 {
-   Q_ASSERT(owner.type() == Identifier::Type::OWNER);
+   assert(owner.type() == Identifier::Type::OWNER);
    m_owner = owner;
 }

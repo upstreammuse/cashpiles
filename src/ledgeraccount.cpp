@@ -1,8 +1,10 @@
 #include "ledgeraccount.h"
 
+#include <cassert>
 #include "itemprocessor.h"
 
-LedgerAccount::Mode LedgerAccount::modeFromString(QString const& mode, bool* ok)
+LedgerAccount::Mode LedgerAccount::modeFromString(std::string const& mode,
+                                                  bool* ok)
 {
    bool dummy;
    bool* success = ok ? ok : &dummy;
@@ -27,7 +29,7 @@ LedgerAccount::Mode LedgerAccount::modeFromString(QString const& mode, bool* ok)
    }
 }
 
-QString LedgerAccount::modeToString(Mode mode)
+std::string LedgerAccount::modeToString(Mode mode)
 {
    switch (mode)
    {
@@ -39,24 +41,24 @@ QString LedgerAccount::modeToString(Mode mode)
          return "close";
    }
 
-   Q_ASSERT_X(false, "modeToString", "Mode not handled");
+   assert("Mode not handled" && false);
    return "";
 }
 
-LedgerAccount::LedgerAccount(QString const& filename, uint lineNum) :
+LedgerAccount::LedgerAccount(std::string const& filename, size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
 
-QDate LedgerAccount::date() const
+Date LedgerAccount::date() const
 {
-   Q_ASSERT(m_date.isValid());
+   assert(m_date.isValid());
    return m_date;
 }
 
-void LedgerAccount::setDate(QDate const& date)
+void LedgerAccount::setDate(Date const& date)
 {
-   Q_ASSERT(date.isValid());
+   assert(date.isValid());
    m_date = date;
 }
 
@@ -72,13 +74,13 @@ void LedgerAccount::setMode(Mode mode)
 
 Identifier LedgerAccount::name() const
 {
-   Q_ASSERT(m_name.type() == Identifier::Type::ACCOUNT);
+   assert(m_name.type() == Identifier::Type::ACCOUNT);
    return m_name;
 }
 
 void LedgerAccount::setName(Identifier const& name)
 {
-   Q_ASSERT(name.type() == Identifier::Type::ACCOUNT);
+   assert(name.type() == Identifier::Type::ACCOUNT);
    m_name = name;
 }
 

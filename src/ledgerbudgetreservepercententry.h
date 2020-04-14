@@ -5,13 +5,13 @@
 class LedgerBudgetReservePercentEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetReservePercentEntry(QString const& filename, uint lineNum);
+   LedgerBudgetReservePercentEntry(std::string const& filename, size_t lineNum);
 
-   uint percentage() const;
-   void setPercentage(uint percentage);
+   unsigned int percentage() const;
+   void setPercentage(unsigned int percentage);
 
    void processItem(ItemProcessor& processor) const;
 
 private:
-   uint m_percentage;
+   unsigned int m_percentage;
 };

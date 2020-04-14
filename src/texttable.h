@@ -1,9 +1,7 @@
-#ifndef TEXTTABLE_H
-#define TEXTTABLE_H
+#pragma once
 
-#include <QStringList>
-
-class QTextStream;
+#include <string>
+#include <vector>
 
 class TextTable
 {
@@ -15,23 +13,21 @@ public:
    };
 
 public:
-   void appendColumn(int index, QString const& item);
+   void appendColumn(size_t index, std::string const& item);
    void clear();
-   void print(QTextStream& out) const;
-   void setColumn(int index, QStringList const& content,
+   void print(std::ostream& out) const;
+   void setColumn(size_t index, std::vector<std::string> const& content,
                   Alignment align = Alignment::LeftAlign);
-   void setColumnAlignment(int index, Alignment align);
+   void setColumnAlignment(size_t index, Alignment align);
 
 private:
    struct ColumnData
    {
-      QStringList content;
+      std::vector<std::string> content;
       Alignment align;
-      int width;
+      size_t width;
    };
 
 private:
-   QList<ColumnData> m_columns;
+   std::vector<ColumnData> m_columns;
 };
-
-#endif

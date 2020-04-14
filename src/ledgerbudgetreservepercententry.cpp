@@ -3,17 +3,17 @@
 #include "itemprocessor.h"
 
 LedgerBudgetReservePercentEntry::LedgerBudgetReservePercentEntry(
-      QString const& filename, uint lineNum) :
+      std::string const& filename, size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }
 
-uint LedgerBudgetReservePercentEntry::percentage() const
+unsigned int LedgerBudgetReservePercentEntry::percentage() const
 {
    return m_percentage;
 }
 
-void LedgerBudgetReservePercentEntry::setPercentage(uint percentage)
+void LedgerBudgetReservePercentEntry::setPercentage(unsigned int percentage)
 {
    m_percentage = percentage;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QHash>
+#include <map>
 #include "identifier.h"
 #include "itemprocessor.h"
 
@@ -11,9 +11,9 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void checkCreateAccount(Identifier const& account, QString const& filename,
-                           uint linenum);
+   void checkCreateAccount(Identifier const& account,
+                           std::string const& filename, size_t linenum);
 
 private:
-   QHash<Identifier, bool> m_accounts;
+   std::map<Identifier, bool> m_accounts;
 };

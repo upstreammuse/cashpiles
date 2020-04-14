@@ -1,5 +1,6 @@
 #include "iptransactioncategorizer.h"
 
+#include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgertransaction.h"
@@ -9,7 +10,7 @@ void IPTransactionCategorizer::processItem(LedgerAccount const& account)
    switch (account.mode())
    {
       case LedgerAccount::Mode::CLOSED:
-         m_accounts.remove(account.name());
+         m_accounts.erase(account.name());
          break;
       case LedgerAccount::Mode::ON_BUDGET:
          m_accounts[account.name()] = true;
@@ -25,14 +26,15 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
    checkCreateAccount(transaction.account(), transaction.fileName(),
                       transaction.lineNum());
 
-   foreach (LedgerTransactionEntry const& entry, transaction.entries())
+   for (LedgerTransactionEntry const& entry : transaction.entries())
    {
       if (!m_accounts[transaction.account()] &&
           entry.category().type() != Identifier::Type::UNINITIALIZED)
       {
-         die(transaction.fileName().toStdString(), transaction.lineNum(),
-             QString("Budget category set for off-budget account '%1'")
-             .arg(transaction.account()).toStdString());
+         std::stringstream ss;
+         ss << "Budget category set for off-budget account '"
+            << transaction.account() << "'";
+         die(transaction.fileName(), transaction.lineNum(), ss.str());
       }
 
       switch (entry.payee().type())
@@ -44,30 +46,31 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
                 m_accounts[entry.payee()] &&
                 entry.category().type() != Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName().toStdString(), transaction.lineNum(),
-                   QString("Budget category set for transfer between on-budget "
-                           "accounts '%1' and '%2'")
-                   .arg(transaction.account())
-                   .arg(entry.payee()).toStdString());
+               std::stringstream ss;
+               ss << "Budget category set for transfer between on-budget "
+                     "accounts '" << transaction.account() << "' and '"
+                  << entry.payee() << "'";
+               die(transaction.fileName(), transaction.lineNum(), ss.str());
             }
             else if (m_accounts[transaction.account()] &&
                      !m_accounts[entry.payee()] &&
                      entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName().toStdString(), transaction.lineNum(),
-                   QString("Missing budget category for transfer between "
-                           "on-budget account '%1' and off-budget account '%2'")
-                   .arg(transaction.account())
-                   .arg(entry.payee()).toStdString());
+               std::stringstream ss;
+               ss << "Missing budget category for transfer between "
+                     "on-budget account '" << transaction.account()
+                  << "' and off-budget account '" << entry.payee() << "'";
+               die(transaction.fileName(), transaction.lineNum(), ss.str());
             }
             break;
          case Identifier::Type::GENERIC:
             if (m_accounts[transaction.account()] &&
                 entry.category().type() == Identifier::Type::UNINITIALIZED)
             {
-               die(transaction.fileName().toStdString(), transaction.lineNum(),
-                   QString("Missing budget category for on-budget account '%1'")
-                   .arg(transaction.account()).toStdString());
+               std::stringstream ss;
+               ss << "Missing budget category for on-budget account '"
+                  << transaction.account() << "'";
+               die(transaction.fileName(), transaction.lineNum(), ss.str());
             }
             break;
          case Identifier::Type::OWNER:
@@ -79,13 +82,13 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 }
 
 void IPTransactionCategorizer::checkCreateAccount(
-      Identifier const& account, QString const& filename, uint linenum)
+      Identifier const& account, std::string const& filename, size_t linenum)
 {
-   if (!m_accounts.contains(account))
+   if (!m_accounts.count(account))
    {
-      warn(filename.toStdString(), linenum,
-           QString("Automatically opening on-budget account '%1'")
-           .arg(account).toStdString());
+      std::stringstream ss;
+      ss << "Automatically opening on-budget account '" << account << "'";
+      warn(filename, linenum, ss.str());
       m_accounts[account] = true;
    }
 }

@@ -3,7 +3,7 @@
 #include "itemprocessor.h"
 
 LedgerBudgetWithholdingEntry::LedgerBudgetWithholdingEntry(
-      QString const& filename, uint lineNum) :
+      std::string const& filename, size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }

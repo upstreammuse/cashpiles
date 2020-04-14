@@ -1,5 +1,6 @@
 #include "ipdatevalidator.h"
 
+#include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
@@ -28,14 +29,14 @@ void IPDateValidator::processItem(LedgerTransaction const& transaction)
                transaction.lineNum());
 }
 
-void IPDateValidator::processDate(QDate const& date, QString const& fileName,
-                                uint lineNum)
+void IPDateValidator::processDate(Date const& date, std::string const& fileName,
+                                  size_t lineNum)
 {
    if (!m_latestDate.isNull() && date < m_latestDate)
    {
-      die(fileName.toStdString(), lineNum,
-          QString("Date %1 out of order")
-          .arg(date.toString()).toStdString());
+      std::stringstream ss;
+      ss << "Date " << date.toString() << " out of order";
+      die(fileName, lineNum, ss.str());
    }
    else
    {

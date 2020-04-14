@@ -2,12 +2,12 @@
 
 #include "itemprocessor.h"
 
-LedgerComment::LedgerComment(QString const& filename, uint lineNum) :
+LedgerComment::LedgerComment(std::string const& filename, size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
 
-QString LedgerComment::note() const
+std::string LedgerComment::note() const
 {
    return m_note;
 }
@@ -17,7 +17,7 @@ void LedgerComment::processItem(ItemProcessor& processor) const
    processor.processItem(*this);
 }
 
-void LedgerComment::setNote(QString const& note)
+void LedgerComment::setNote(std::string const& note)
 {
    m_note = note;
 }

@@ -1,7 +1,6 @@
 #include "filewriter.h"
 
-#include <QFile>
-#include <QTextStream>
+#include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
@@ -16,214 +15,152 @@
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
-FileWriter::FileWriter(QString const& fileName, QObject* parent) :
-   QObject(parent),
-   m_file(new QFile(fileName, this)),
+FileWriter::FileWriter(std::string const& fileName) :
    m_fileName(fileName)
 {
 }
 
 void FileWriter::finish()
 {
-   if (m_file)
+   if (!m_file)
    {
-      m_file->close();
+      std::stringstream ss;
+      ss << "Unable to write to output file '" << m_fileName << "'";
+      die(ss.str());
    }
+   m_file.close();
 }
 
 void FileWriter::processItem(LedgerAccount const& account)
 {
-   QTextStream out(m_file);
-   out << account.date().toString(m_dateFormat) << " "
-       << account.modeToString(account.mode()) << " " << account.name() << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << account.date().toString(m_dateFormat) << " "
+          << account.modeToString(account.mode()) << " " << account.name()
+          << std::endl;
 }
 
 void FileWriter::processItem(LedgerBlank const&)
 {
-   QTextStream out(m_file);
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudget const& budget)
 {
-   QTextStream out(m_file);
-   out << budget.date().toString(m_dateFormat) << " budget "
-       << budget.interval().toString() << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << budget.date().toString(m_dateFormat) << " budget "
+          << budget.interval().toString() << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  close   " << entry.category() << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << "  close   " << entry.category() << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  goal    " << entry.category();
-   if (entry.owner() != QString(""))
+   m_file << "  goal    " << entry.category();
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  income  " << entry.category();
-   if (entry.owner() != QString(""))
+   m_file << "  income  " << entry.category();
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  reserve " << entry.category() << "  " << QString::fromStdString(entry.amount().toString())
-       << " " << entry.interval().toString();
-   if (entry.owner() != QString(""))
+   m_file << "  reserve " << entry.category() << "  "
+          << entry.amount().toString() << " " << entry.interval().toString();
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  reserve " << entry.category() << "  " << entry.percentage() << "%";
-   if (entry.owner() != QString(""))
+   m_file << "  reserve " << entry.category() << "  " << entry.percentage()
+          << "%";
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  routine " << entry.category();
-   if (entry.owner() != QString(""))
+   m_file << "  routine " << entry.category();
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
 {
-   QTextStream out(m_file);
-   out << "  withholding " << entry.category();
-   if (entry.owner() != QString(""))
+   m_file << "  withholding " << entry.category();
+   if (entry.owner().isNotEmpty())
    {
-      out << "  " << entry.owner();
+      m_file << "  " << entry.owner();
    }
-   out << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerComment const& comment)
 {
-   QTextStream out(m_file);
-   out << ";" << comment.note() << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << ";" << comment.note() << std::endl;
 }
 
 void FileWriter::processItem(LedgerReserve const& reserve)
 {
-   QTextStream out(m_file);
-   out << reserve.date().toString(m_dateFormat) << " reserve";
+   m_file << reserve.date().toString(m_dateFormat) << " reserve";
    if (reserve.numEntries() > 1)
    {
       m_singleReserve = false;
-      out << endl;
+      m_file << std::endl;
    }
    else
    {
       m_singleReserve = true;
    }
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
 }
 
 void FileWriter::processItem(LedgerReserveEntry const& reserve)
 {
-   QTextStream out(m_file);
    if (m_singleReserve)
    {
-      out << " ";
+      m_file << " ";
       m_singleReserve = false;
    }
    else
    {
-      out << "  ";
+      m_file << "  ";
    }
    if (reserve.category().type() == Identifier::Type::OWNER)
    {
-      out << "@";
+      m_file << "@";
    }
-   out << reserve.category() << "  " << QString::fromStdString(reserve.amount().toString()) << endl;
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
-   }
+   m_file << reserve.category() << "  " << reserve.amount().toString()
+          << std::endl;
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
 {
-   QTextStream out(m_file);
-   out << transaction.date().toString(m_dateFormat);
-   out << " " << transaction.statusToString(transaction.status());
-   out << " " << transaction.account() << "  ";
-   uint numNotes = transaction.hasNote() ? 1 : 0;
-   foreach (LedgerTransactionEntry const& entry, transaction.entries())
+   m_file << transaction.date().toString(m_dateFormat);
+   m_file << " " << transaction.statusToString(transaction.status());
+   m_file << " " << transaction.account() << "  ";
+   size_t numNotes = transaction.hasNote() ? 1 : 0;
+   for (LedgerTransactionEntry const& entry : transaction.entries())
    {
       if (entry.hasNote())
       {
@@ -232,56 +169,56 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
    }
    if (transaction.entries().size() > 1 || numNotes > 1)
    {
-      out << QString::fromStdString(transaction.amount().toString());
+      m_file << transaction.amount().toString();
       if (transaction.hasBalance())
       {
-         out << " = " << QString::fromStdString(transaction.balance().toString());
+         m_file << " = " << transaction.balance().toString();
       }
       if (transaction.hasNote())
       {
-         out << " ;" << transaction.note();
+         m_file << " ;" << transaction.note();
       }
-      out << endl;
-      foreach (LedgerTransactionEntry const& entry, transaction.entries())
+      m_file << std::endl;
+      for (LedgerTransactionEntry const& entry : transaction.entries())
       {
-         out << "  ";
+         m_file << "  ";
          switch (entry.payee().type())
          {
             case Identifier::Type::GENERIC:
                break;
             case Identifier::Type::ACCOUNT:
-               out << "@";
+               m_file << "@";
                break;
             case Identifier::Type::OWNER:
             case Identifier::Type::CATEGORY:
             case Identifier::Type::UNINITIALIZED:
-               die(transaction.fileName().toStdString(), transaction.lineNum(),
+               die(transaction.fileName(), transaction.lineNum(),
                    "Internal logic error, payee has invalid type");
                // break is a warning here, die does not return
          }
-         out << entry.payee() << "  ";
+         m_file << entry.payee() << "  ";
          switch (entry.category().type())
          {
             case Identifier::Type::OWNER:
-               out << "@" << entry.category() << "  ";
+               m_file << "@" << entry.category() << "  ";
                break;
             case Identifier::Type::CATEGORY:
-               out << entry.category() << "  ";
+               m_file << entry.category() << "  ";
                break;
             case Identifier::Type::UNINITIALIZED:
                break;
             case Identifier::Type::GENERIC:
             case Identifier::Type::ACCOUNT:
-               die(transaction.fileName().toStdString(), transaction.lineNum(),
+               die(transaction.fileName(), transaction.lineNum(),
                    "Internal logic error, category has invalid type");
                // break is a warning here, die does not return
          }
-         out << QString::fromStdString(entry.amount().toString());
+         m_file << entry.amount().toString();
          if (entry.hasNote())
          {
-            out << " ;" << entry.note();
+            m_file << " ;" << entry.note();
          }
-         out << endl;
+         m_file << std::endl;
       }
    }
    else
@@ -292,62 +229,61 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
          case Identifier::Type::GENERIC:
             break;
          case Identifier::Type::ACCOUNT:
-            out << "@";
+            m_file << "@";
             break;
          case Identifier::Type::OWNER:
          case Identifier::Type::CATEGORY:
          case Identifier::Type::UNINITIALIZED:
-            die(transaction.fileName().toStdString(), transaction.lineNum(),
+            die(transaction.fileName(), transaction.lineNum(),
                 "Internal logic error, payee has invalid type");
             // break is a warning here because die does not return
       }
-      out << entry.payee();
+      m_file << entry.payee();
       switch (entry.category().type())
       {
          case Identifier::Type::OWNER:
-            out << "  @" << entry.category();
+            m_file << "  @" << entry.category();
             break;
          case Identifier::Type::CATEGORY:
-            out << "  " << entry.category();
+            m_file << "  " << entry.category();
             break;
          case Identifier::Type::UNINITIALIZED:
             break;
          case Identifier::Type::GENERIC:
          case Identifier::Type::ACCOUNT:
-            die(transaction.fileName().toStdString(), transaction.lineNum(),
+            die(transaction.fileName(), transaction.lineNum(),
                 "Internal logic error, category has invalid type");
             // break is a warning here because die does not return
       }
-      out << "  " << QString::fromStdString(transaction.amount().toString());
+      m_file << "  " << transaction.amount().toString();
       if (transaction.hasBalance())
       {
-         out << " = " << QString::fromStdString(transaction.balance().toString());
+         m_file << " = " << transaction.balance().toString();
       }
       if (transaction.hasNote())
       {
-         out << " ;" << transaction.note();
+         m_file << " ;" << transaction.note();
       }
       else if (entry.hasNote())
       {
-         out << " ;" << entry.note();
+         m_file << " ;" << entry.note();
       }
-      out << endl;
-   }
-   if (out.status() != QTextStream::Status::Ok)
-   {
-      die(QString("Unable to write to output file").arg(m_fileName).toStdString());
+      m_file << std::endl;
    }
 }
 
-void FileWriter::setDateFormat(QString const& dateFormat)
+void FileWriter::setDateFormat(std::string const& dateFormat)
 {
    m_dateFormat = dateFormat;
 }
 
 void FileWriter::start()
 {
-   if (!m_file || !m_file->open(QIODevice::WriteOnly | QIODevice::Text))
+   m_file.open(m_fileName);
+   if (!m_file)
    {
-      die(QString("Unable to open output file").arg(m_fileName).toStdString());
+      std::stringstream ss;
+      ss << "Unable to open output file '" << m_fileName << "'";
+      die(ss.str());
    }
 }

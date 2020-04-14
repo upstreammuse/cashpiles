@@ -1,8 +1,7 @@
 #ifndef IPACCOUNTBALANCER_H
 #define IPACCOUNTBALANCER_H
 
-#include <QDate>
-#include <QMap>
+#include <map>
 #include "currency.h"
 #include "date.h"
 #include "identifier.h"
@@ -28,8 +27,8 @@ private:
    };
 
 private:
-   QMap<Identifier, Account> m_accounts;
-   QDate const m_today;
+   std::map<Identifier, Account> m_accounts;
+   Date const m_today;
 };
 
 #endif

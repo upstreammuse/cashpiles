@@ -2,8 +2,8 @@
 
 #include "itemprocessor.h"
 
-LedgerBudgetCloseEntry::LedgerBudgetCloseEntry(QString const& filename,
-                                               uint lineNum) :
+LedgerBudgetCloseEntry::LedgerBudgetCloseEntry(std::string const& filename,
+                                               size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }

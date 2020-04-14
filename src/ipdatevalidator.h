@@ -1,7 +1,7 @@
 #ifndef IPDATEVALIDATOR_H
 #define IPDATEVALIDATOR_H
 
-#include <QDate>
+#include "date.h"
 #include "itemprocessor.h"
 
 class IPDateValidator : public ItemProcessor
@@ -13,10 +13,11 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void processDate(QDate const& date, QString const& fileName, uint lineNum);
+   void processDate(Date const& date, std::string const& fileName,
+                    size_t lineNum);
 
 private:
-   QDate m_latestDate;
+   Date m_latestDate;
 };
 
 #endif

@@ -1,9 +1,7 @@
-#ifndef IPBUDGETALLOCATOR_H
-#define IPBUDGETALLOCATOR_H
+#pragma once
 
-#include <QDate>
-#include <QHash>
-#include <QSet>
+#include <map>
+#include <set>
 #include "currency.h"
 #include "daterange.h"
 #include "identifier.h"
@@ -28,8 +26,8 @@ public:
    void processItem(LedgerTransaction const& transaction);
 
 private:
-   void advanceBudgetPeriod(QString const& filename, uint lineNum,
-                            QDate const& date);
+   void advanceBudgetPeriod(std::string const& filename, size_t lineNum,
+                            Date const& date);
    void syncReserve(Identifier const& category);
 
 private:
@@ -57,17 +55,15 @@ private:
    };
 
 private:
-   QHash<Identifier, Currency> m_availables;
+   std::map <Identifier, Currency> m_availables;
    DateRange m_currentPeriod;
-   QHash<Identifier, Goal> m_goals;
-   QSet<Identifier> m_incomes;
-   QHash<Identifier, Identifier> m_owners;
+   std::map<Identifier, Goal> m_goals;
+   std::set<Identifier> m_incomes;
+   std::map<Identifier, Identifier> m_owners;
    DateRange m_priorPeriod;
-   QHash<Identifier, Reserve> m_reserves;
-   QHash<Identifier, Routine> m_routines;
+   std::map<Identifier, Reserve> m_reserves;
+   std::map<Identifier, Routine> m_routines;
    bool m_singleReserve = false;
-   QDate m_today;
-   QSet<Identifier> m_withholdings;
+   Date m_today;
+   std::set<Identifier> m_withholdings;
 };
-
-#endif

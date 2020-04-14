@@ -1,9 +1,7 @@
-#ifndef LEDGERBUDGETENTRY_H
-#define LEDGERBUDGETENTRY_H
+#pragma once
 
-#include <QDate>
-#include <QString>
 #include "currency.h"
+#include "date.h"
 #include "identifier.h"
 #include "interval.h"
 #include "ledgeritem.h"
@@ -13,21 +11,19 @@ class ItemProcessor;
 class LedgerBudgetEntry : public LedgerItem
 {
 public:
-   LedgerBudgetEntry(QString const& filename, uint lineNum);
+   LedgerBudgetEntry(std::string const& filename, size_t lineNum);
 
    Identifier category() const;
    void setCategory(Identifier const& category);
 
-   QDate date() const;
-   void setDate(QDate const& date);
+   Date date() const;
+   void setDate(Date const& date);
 
    Identifier owner() const;
    void setOwner(Identifier const& owner);
 
 private:
    Identifier m_category;
-   QDate m_date;
+   Date m_date;
    Identifier m_owner;
 };
-
-#endif

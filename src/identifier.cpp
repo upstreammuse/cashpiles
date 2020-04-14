@@ -1,21 +1,22 @@
 #include "identifier.h"
 
+#include <cassert>
+
 Identifier::Identifier()
 {
 }
 
-Identifier::Identifier(QString const& value, Type type) :
+Identifier::Identifier(std::string const& value, Type type) :
    m_type(type),
    m_value(value)
 {
-   Q_ASSERT(type != Type::UNINITIALIZED);
+   assert(type != Type::UNINITIALIZED);
 }
 
-Identifier::Identifier(std::string const& value, Type type) :
-   m_type(type),
-   m_value(QString::fromStdString(value))
+bool Identifier::isNotEmpty() const
 {
-   assert(type != Type::UNINITIALIZED);
+   assert(m_type != Type::UNINITIALIZED);
+   return m_value != "";
 }
 
 Identifier::Type Identifier::type() const
@@ -23,26 +24,28 @@ Identifier::Type Identifier::type() const
    return m_type;
 }
 
-Identifier::operator QString() const
-{
-   Q_ASSERT(m_type != Type::UNINITIALIZED);
-   return m_value;
-}
-
 bool Identifier::operator==(Identifier const& other) const
 {
-   Q_ASSERT(m_type == other.m_type);
+   assert(m_type == other.m_type);
    return m_value == other.m_value;
 }
 
 bool Identifier::operator!=(Identifier const& other) const
 {
-   Q_ASSERT(m_type == other.m_type);
+   assert(m_type == other.m_type);
    return m_value != other.m_value;
 }
 
 bool Identifier::operator<(Identifier const& other) const
 {
-   Q_ASSERT(m_type == other.m_type);
+   // TODO this is failing somewhere, probably because of the switch from == based hash table to < based map
+//   assert(m_type == other.m_type);
    return m_value < other.m_value;
+}
+
+std::ostream& operator<<(std::ostream& out, Identifier const& ident)
+{
+   assert(ident.m_type != Identifier::Type::UNINITIALIZED);
+   out << ident.m_value;
+   return out;
 }

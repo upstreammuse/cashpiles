@@ -1,7 +1,6 @@
-#ifndef LEDGERTRANSACTIONENTRY_H
-#define LEDGERTRANSACTIONENTRY_H
+#pragma once
 
-#include <QString>
+#include <string>
 #include "currency.h"
 #include "identifier.h"
 
@@ -14,7 +13,7 @@ public:
    Identifier category() const;
    void setCategory(Identifier const& category);
 
-   QString note() const;
+   std::string note() const;
    bool hasNote() const;
    void setNote(std::string const& note);
 
@@ -24,9 +23,7 @@ public:
 private:
    Currency m_amount;
    Identifier m_category;
-   QString m_note;
+   std::string m_note;
    bool m_hasNote = false;
    Identifier m_payee;
 };
-
-#endif

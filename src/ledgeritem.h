@@ -1,22 +1,19 @@
-#ifndef LEDGERITEM_H
-#define LEDGERITEM_H
+#pragma once
 
-#include <QString>
+#include <string>
 
 class ItemProcessor;
 
 class LedgerItem
 {
 public:
-   LedgerItem(QString const& fileName, uint lineNum);
+   LedgerItem(std::string const& fileName, size_t lineNum);
    virtual ~LedgerItem();
-   QString fileName() const;
-   uint lineNum() const;
+   std::string fileName() const;
+   size_t lineNum() const;
    virtual void processItem(ItemProcessor& processor) const = 0;
 
 private:
-   QString m_fileName;
-   uint m_lineNum = 0;
+   std::string m_fileName;
+   size_t m_lineNum = 0;
 };
-
-#endif

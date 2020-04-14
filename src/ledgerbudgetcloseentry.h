@@ -5,6 +5,6 @@
 class LedgerBudgetCloseEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetCloseEntry(QString const& filename, uint lineNum);
+   LedgerBudgetCloseEntry(std::string const& filename, size_t lineNum);
    void processItem(ItemProcessor& processor) const;
 };
