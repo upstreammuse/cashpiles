@@ -1,6 +1,8 @@
 #include "currency.h"
 
+#include <cassert>
 #include <cmath>
+#include <cstring>
 #include "daterange.h"
 
 Currency Currency::fromString(std::string s, bool* ok_)
@@ -57,7 +59,7 @@ Currency Currency::fromString(std::string s, bool* ok_)
    }
 
    // make sure we either have no decimal, or the correct decimal digits
-   if (after.size() != 0 && after.size() != lc->frac_digits)
+   if (after.size() != 0 && after.size() != size_t(lc->frac_digits))
    {
       ok = false;
       return Currency();
@@ -80,6 +82,7 @@ Currency Currency::fromString(std::string s, bool* ok_)
    {
       retval.m_value = -retval.m_value;
    }
+   // TODO since we are forcing the decimals to be either 0 or system-defined, we really don't have to store them
    retval.m_decimalPlaces = after.size();
    return retval;
 }
@@ -114,7 +117,7 @@ Currency Currency::amortize(DateRange const& total,
    }
 
    // it's easier to work with positive values, reverse the sign later if needed
-   qint64 value = isNegative() ? -m_value : m_value;
+   long long int value = isNegative() ? -m_value : m_value;
 
    // amountA is the first (higher) daily amortization value, and amountB the
    // second (lower) value
@@ -125,14 +128,14 @@ Currency Currency::amortize(DateRange const& total,
 
    // numberA is the number of days at amountA, and numberB is the number of
    // days at amountB
-   qint64 numberA = 0;
-   qint64 numberB = total.days();
+   long long int numberA = 0;
+   long long int numberB = total.days();
 
    // try to evenly split the total value across the days, and if it doesn't
    // come out even, then determine how many days have to have a value 1 higher
    // to make up the remainder and give an exact answer
    amountB.m_value = value / numberB;
-   qint64 difference = value - amountB.m_value * numberB;
+   long long int difference = value - amountB.m_value * numberB;
    if (difference == 0)
    {
       amountA.m_value = amountB.m_value;
@@ -154,16 +157,16 @@ Currency Currency::amortize(DateRange const& total,
    }
 
    // make sure the splits add up to the original value
-   Q_ASSERT(amountA.m_value * numberA + amountB.m_value * numberB == m_value);
-   Q_ASSERT(amountA.m_decimalPlaces == m_decimalPlaces);
-   Q_ASSERT(amountB.m_decimalPlaces == m_decimalPlaces);
+   assert(amountA.m_value * numberA + amountB.m_value * numberB == m_value);
+   assert(amountA.m_decimalPlaces == m_decimalPlaces);
+   assert(amountB.m_decimalPlaces == m_decimalPlaces);
 
    // number of days between the start of the total period and the start of the
    // overlap period, which will be days we skip amountA
-   qint64 dayOffset = total.startDate().daysTo(overlap.startDate());
+   long long int dayOffset = total.startDate().daysTo(overlap.startDate());
 
    // number of days we will use amountA
-   long long int daysOfA = std::min(std::max(qint64(0), numberA - dayOffset),
+   long long int daysOfA = std::min(std::max(0LL, numberA - dayOffset),
                                     overlap.days());
 
    // the rest of the days we will use amountB
@@ -177,7 +180,7 @@ Currency Currency::amortize(DateRange const& total,
                      amountB * (numberB - daysOfB);
 
    // make sure the splits add up to the original value
-   Q_ASSERT(amortized.m_value + unused.m_value == m_value);
+   assert(amortized.m_value + unused.m_value == m_value);
 
    return amortized;
 }
@@ -204,7 +207,7 @@ std::string Currency::toString() const
    char buffer[100] = "";
    char temp[100] = "";
    long long int value = m_value;
-   unsigned int places = std::max(m_decimalPlaces, (unsigned int)lc->frac_digits);
+   size_t places = std::max(m_decimalPlaces, size_t(lc->frac_digits));
    bool negate = false;
    if (m_value < 0)
    {
@@ -212,9 +215,9 @@ std::string Currency::toString() const
       negate = true;
    }
 
-   for (unsigned int i = 0; i < places; ++i)
+   for (size_t i = 0; i < places; ++i)
    {
-      sprintf(temp, "%d%s", value % 10, buffer);
+      sprintf(temp, "%lld%s", value % 10, buffer);
       strcpy(buffer, temp);
       value /= 10;
    }
@@ -236,7 +239,7 @@ std::string Currency::toString() const
       lastGroupSize = *i;
       for (char j = 0; j < lastGroupSize && value > 0; ++j)
       {
-         sprintf(temp, "%d%s", value % 10, buffer);
+         sprintf(temp, "%lld%s", value % 10, buffer);
          strcpy(buffer, temp);
          value /= 10;
       }
@@ -250,7 +253,7 @@ std::string Currency::toString() const
    {
       for (char j = 0; j < lastGroupSize && value > 0; ++j)
       {
-         sprintf(temp, "%d%s", value % 10, buffer);
+         sprintf(temp, "%lld%s", value % 10, buffer);
          strcpy(buffer, temp);
          value /= 10;
       }
@@ -294,7 +297,7 @@ Currency Currency::operator-(Currency const& other) const
    return result;
 }
 
-Currency Currency::operator*(qint64 factor) const
+Currency Currency::operator*(long long int factor) const
 {
    Currency result(*this);
    result.m_value *= factor;
@@ -304,7 +307,7 @@ Currency Currency::operator*(qint64 factor) const
 Currency Currency::operator*(double factor) const
 {
    Currency result(*this);
-   result.m_value = qRound64(result.m_value * factor);
+   result.m_value = std::llround(result.m_value * factor);
    return result;
 }
 

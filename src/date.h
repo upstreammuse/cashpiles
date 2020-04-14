@@ -20,8 +20,10 @@ public:
    long long int daysTo(Date const& other) const;
    bool isNull() const;
    bool isValid() const;
+   int month() const;
    QDate toQDate() const;
    std::string toString(std::string const& format = "M/dd/yyyy") const;
+   int year() const;
    bool operator==(Date const& other) const;
    bool operator!=(Date const& other) const;
    bool operator<(Date const& other) const;

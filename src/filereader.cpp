@@ -206,8 +206,8 @@ void FileReader::setDateFormat(std::string const& dateFormat)
 void FileReader::processAccount(std::smatch const& match)
 {
    std::shared_ptr<LedgerAccount> account(
-            new LedgerAccount(QString::fromStdString(m_fileName), m_lineNum));
-   account->setDate(parseDate(match.str(1)).toQDate());
+            new LedgerAccount(m_fileName, m_lineNum));
+   account->setDate(parseDate(match.str(1)));
    account->setMode(parseMode(match.str(2)));
    account->setName(Identifier(match.str(3), Identifier::Type::ACCOUNT));
    m_ledger.appendItem(account);
@@ -215,14 +215,15 @@ void FileReader::processAccount(std::smatch const& match)
 
 void FileReader::processBlank()
 {
-   std::shared_ptr<LedgerBlank> blank(new LedgerBlank(QString::fromStdString(m_fileName), m_lineNum));
+   std::shared_ptr<LedgerBlank> blank(new LedgerBlank(m_fileName, m_lineNum));
    m_ledger.appendItem(blank);
 }
 
 void FileReader::processBudget(std::smatch& match)
 {
-   std::shared_ptr<LedgerBudget> budget(new LedgerBudget(QString::fromStdString(m_fileName), m_lineNum));
-   budget->setDate(parseDate(match.str(1)).toQDate());
+   std::shared_ptr<LedgerBudget> budget(
+            new LedgerBudget(m_fileName, m_lineNum));
+   budget->setDate(parseDate(match.str(1)));
    budget->setInterval(parseInterval(match.str(2)));
 
    while (true)
@@ -230,16 +231,16 @@ void FileReader::processBudget(std::smatch& match)
       std::string line(readLine());
       if (std::regex_match(line, match, regEx->budgetLineCloseRx))
       {
-         QSharedPointer<LedgerBudgetCloseEntry> entry(
-                  new LedgerBudgetCloseEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetCloseEntry> entry(
+                  new LedgerBudgetCloseEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineGoalRx))
       {
-         QSharedPointer<LedgerBudgetGoalEntry> entry(
-                  new LedgerBudgetGoalEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetGoalEntry> entry(
+                  new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(2),
@@ -248,8 +249,8 @@ void FileReader::processBudget(std::smatch& match)
       }
       else if (std::regex_match(line, match, regEx->budgetLineIncomeRx))
       {
-         QSharedPointer<LedgerBudgetIncomeEntry> entry(
-                  new LedgerBudgetIncomeEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetIncomeEntry> entry(
+                  new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(2),
@@ -258,8 +259,8 @@ void FileReader::processBudget(std::smatch& match)
       }
       else if (std::regex_match(line, match, regEx->budgetLineReserveAmountRx))
       {
-         QSharedPointer<LedgerBudgetReserveAmountEntry> entry(
-                  new LedgerBudgetReserveAmountEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetReserveAmountEntry> entry(
+                  new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(4),
@@ -270,19 +271,19 @@ void FileReader::processBudget(std::smatch& match)
       }
       else if (std::regex_match(line, match, regEx->budgetLineReservePercentRx))
       {
-         QSharedPointer<LedgerBudgetReservePercentEntry> entry(
-                  new LedgerBudgetReservePercentEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetReservePercentEntry> entry(
+                  new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(3),
                                     Identifier::Type::OWNER));
-         entry->setPercentage(atoi(match.str(2).c_str()));
+         entry->setPercentage(std::stoul(match.str(2), nullptr, 10));
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineRoutineRx))
       {
-         QSharedPointer<LedgerBudgetRoutineEntry> entry(
-                  new LedgerBudgetRoutineEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetRoutineEntry> entry(
+                  new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(2),
@@ -291,8 +292,8 @@ void FileReader::processBudget(std::smatch& match)
       }
       else if (std::regex_match(line, match, regEx->budgetLineWithholdingRx))
       {
-         QSharedPointer<LedgerBudgetWithholdingEntry> entry(
-                  new LedgerBudgetWithholdingEntry(QString::fromStdString(m_fileName), m_lineNum));
+         std::shared_ptr<LedgerBudgetWithholdingEntry> entry(
+                  new LedgerBudgetWithholdingEntry(m_fileName, m_lineNum));
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(2),
@@ -312,19 +313,19 @@ void FileReader::processBudget(std::smatch& match)
 void FileReader::processComment(std::smatch const& match)
 {
    std::shared_ptr<LedgerComment> comment(
-            new LedgerComment(QString::fromStdString(m_fileName), m_lineNum));
-   comment->setNote(QString::fromStdString(match.str(1)));
+            new LedgerComment(m_fileName, m_lineNum));
+   comment->setNote(match.str(1));
    m_ledger.appendItem(comment);
 }
 
 void FileReader::processCompactReserve(std::smatch const& match)
 {
    std::shared_ptr<LedgerReserve> reserve(
-            new LedgerReserve(QString::fromStdString(m_fileName), m_lineNum));
-   reserve->setDate(parseDate(match.str(1)).toQDate());
+            new LedgerReserve(m_fileName, m_lineNum));
+   reserve->setDate(parseDate(match.str(1)));
 
    std::shared_ptr<LedgerReserveEntry> entry(
-            new LedgerReserveEntry(QString::fromStdString(m_fileName), m_lineNum));
+            new LedgerReserveEntry(m_fileName, m_lineNum));
    entry->setCategory(Identifier(match.str(2),
                                  Identifier::Type::CATEGORY));
    entry->setAmount(parseCurrency(match.str(3)));
@@ -337,7 +338,7 @@ void FileReader::processCompactReserve(std::smatch const& match)
 void FileReader::processCompactTransaction(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
-            new LedgerTransaction(QString::fromStdString(m_fileName), m_lineNum));
+            new LedgerTransaction(m_fileName, m_lineNum));
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(7) != "")
@@ -355,7 +356,7 @@ void FileReader::processCompactTransaction(std::smatch const& match)
       die(m_fileName, m_lineNum, ss.str());
    }
 
-   transaction->setDate(parseDate(match.str(1)).toQDate());
+   transaction->setDate(parseDate(match.str(1)));
    if (match.str(8) != "")
    {
       transaction->setNote(match.str(8));
@@ -391,7 +392,7 @@ void FileReader::processCompactTransaction(std::smatch const& match)
 void FileReader::processCompactTransactionOff(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
-            new LedgerTransaction(QString::fromStdString(m_fileName), m_lineNum));
+            new LedgerTransaction(m_fileName, m_lineNum));
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(6) != "")
@@ -407,7 +408,7 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
       ss << "Could not read transaction status '" << match.str(2) << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
-   transaction->setDate(parseDate(match.str(1)).toQDate());
+   transaction->setDate(parseDate(match.str(1)));
    if (match.str(7) != "")
    {
       transaction->setNote(match.str(7));
@@ -480,8 +481,8 @@ void FileReader::processLine(std::string const& line)
 void FileReader::processReserve(std::smatch& match)
 {
    std::shared_ptr<LedgerReserve> reserve(
-            new LedgerReserve(QString::fromStdString(m_fileName), m_lineNum));
-   reserve->setDate(parseDate(match.str(1)).toQDate());
+            new LedgerReserve(m_fileName, m_lineNum));
+   reserve->setDate(parseDate(match.str(1)));
 
    while (true)
    {
@@ -489,7 +490,7 @@ void FileReader::processReserve(std::smatch& match)
       if (std::regex_match(line, match, regEx->reserveLineRx))
       {
          std::shared_ptr<LedgerReserveEntry> entry(
-                  new LedgerReserveEntry(QString::fromStdString(m_fileName), m_lineNum));
+                  new LedgerReserveEntry(m_fileName, m_lineNum));
          if (match.str(1)[0] == '@')
          {
             entry->setCategory(Identifier(match.str(1).substr(1),
@@ -518,7 +519,7 @@ void FileReader::processReserve(std::smatch& match)
 void FileReader::processTransaction(std::smatch& match)
 {
    std::shared_ptr<LedgerTransaction> xact(
-            new LedgerTransaction(QString::fromStdString(m_fileName), m_lineNum));
+            new LedgerTransaction(m_fileName, m_lineNum));
    xact->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(5) != "")
@@ -533,7 +534,7 @@ void FileReader::processTransaction(std::smatch& match)
       ss << "Could not read transaction status '" << match.str(2) << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
-   xact->setDate(parseDate(match.str(1)).toQDate());
+   xact->setDate(parseDate(match.str(1)));
    if (match.str(6) != "")
    {
       xact->setNote(match.str(6));
@@ -648,7 +649,7 @@ Date FileReader::parseDate(std::string const& date)
 Interval FileReader::parseInterval(std::string const& interval)
 {
    bool ok;
-   Interval i(Interval::fromString(QString::fromStdString(interval), &ok));
+   Interval i(Interval::fromString(interval, &ok));
    if (!ok)
    {
       std::stringstream ss;
@@ -661,7 +662,7 @@ Interval FileReader::parseInterval(std::string const& interval)
 LedgerAccount::Mode FileReader::parseMode(std::string const& mode)
 {
    bool ok;
-   LedgerAccount::Mode m(LedgerAccount::modeFromString(QString::fromStdString(mode), &ok));
+   LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
    if (!ok)
    {
       std::stringstream ss;

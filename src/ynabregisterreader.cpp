@@ -8,11 +8,10 @@
 #include "ledger.h"
 #include "ledgertransaction.h"
 
-YnabRegisterReader::YnabRegisterReader(QString const& fileName, Ledger& ledger,
-                                       QObject* parent) :
-   QObject(parent),
+YnabRegisterReader::YnabRegisterReader(std::string const& fileName,
+                                       Ledger& ledger) :
    m_ledger(ledger),
-   m_reader(fileName.toStdString())
+   m_reader(fileName)
 {
 }
 
@@ -32,13 +31,13 @@ void YnabRegisterReader::readAll()
    }
    for (auto it : m_items)
    {
-      m_ledger.appendItem(it);
+      m_ledger.appendItem(it.second);
    }
 }
 
-void YnabRegisterReader::setDateFormat(QString const& dateFormat)
+void YnabRegisterReader::setDateFormat(std::string const& dateFormat)
 {
-   m_dateFormat = dateFormat.toStdString();
+   m_dateFormat = dateFormat;
 }
 
 void YnabRegisterReader::processRecord(CsvReader::Record const& record)
@@ -46,7 +45,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    if (!m_transaction)
    {
       m_transaction.reset(
-               new LedgerTransaction(QString::fromStdString(record.fileName), record.lineNum));
+               new LedgerTransaction(record.fileName, record.lineNum));
    }
    bool inSplit = false;
 
@@ -59,7 +58,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       if (it.first == "Account")
       {
          m_transaction->setAccount(
-                  Identifier(QString::fromStdString(it.second), Identifier::Type::ACCOUNT));
+                  Identifier(it.second, Identifier::Type::ACCOUNT));
       }
       else if (it.first == "Category" || it.first == "Category Group" ||
                it.first == "Master Category" || it.first == "Sub Category")
@@ -70,7 +69,8 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          if (it.second != "")
          {
-            entry.setCategory(Identifier(QString::fromStdString(it.second), Identifier::Type::CATEGORY));
+            entry.setCategory(
+                     Identifier(it.second, Identifier::Type::CATEGORY));
          }
       }
       else if (it.first == "Check Number")
@@ -101,7 +101,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          m_transaction->setDate(
                   FileReader::parseDate(it.second, m_dateFormat, record.fileName,
-                                        record.lineNum).toQDate());
+                                        record.lineNum));
       }
       else if (it.first == "Flag")
       {
@@ -148,16 +148,16 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Payee")
       {
-         QRegularExpression const transferRx("^Transfer : (.*)$");
-         QRegularExpressionMatch match = transferRx.match(QString::fromStdString(it.second));
-         if (match.hasMatch())
+         std::regex const transferRx("^Transfer : (.*)$");
+         std::smatch match;
+         if (std::regex_match(it.second, match, transferRx))
          {
             entry.setPayee(
-                     Identifier(match.captured(1), Identifier::Type::ACCOUNT));
+                     Identifier(match.str(1), Identifier::Type::ACCOUNT));
          }
          else
          {
-            entry.setPayee(Identifier(QString::fromStdString(it.second), Identifier::Type::GENERIC));
+            entry.setPayee(Identifier(it.second, Identifier::Type::GENERIC));
          }
       }
       else if (it.first == "Running Balance")
@@ -179,7 +179,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
 
    if (!inSplit)
    {
-      m_items.insertMulti(m_transaction->date(), m_transaction);
+      m_items.insert(std::make_pair(m_transaction->date(), m_transaction));
       m_transaction.reset();
    }
 }

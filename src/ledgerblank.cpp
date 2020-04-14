@@ -2,7 +2,7 @@
 
 #include "itemprocessor.h"
 
-LedgerBlank::LedgerBlank(QString const& fileName, uint lineNum) :
+LedgerBlank::LedgerBlank(std::string const& fileName, size_t lineNum) :
    LedgerItem(fileName, lineNum)
 {
 

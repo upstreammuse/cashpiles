@@ -1,5 +1,6 @@
 #include "ledgertransaction.h"
 
+#include <cassert>
 #include "itemprocessor.h"
 
 LedgerTransaction::Status LedgerTransaction::statusFromString(
@@ -29,7 +30,7 @@ LedgerTransaction::Status LedgerTransaction::statusFromString(
 
 }
 
-QString LedgerTransaction::statusToString(Status status)
+std::string LedgerTransaction::statusToString(Status status)
 {
    switch (status)
    {
@@ -41,11 +42,12 @@ QString LedgerTransaction::statusToString(Status status)
          return "!";
    }
 
-   Q_ASSERT_X(false, "statusToString", "Status not handled");
+   assert("Status not handled" && false);
    return "";
 }
 
-LedgerTransaction::LedgerTransaction(QString const& filename, uint lineNum) :
+LedgerTransaction::LedgerTransaction(std::string const& filename,
+                                     size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
@@ -63,7 +65,7 @@ void LedgerTransaction::setAccount(Identifier const& account)
 Currency LedgerTransaction::amount() const
 {
    Currency amount;
-   foreach (LedgerTransactionEntry const& entry, m_entries)
+   for (LedgerTransactionEntry const& entry : m_entries)
    {
       amount += entry.amount();
    }
@@ -72,13 +74,13 @@ Currency LedgerTransaction::amount() const
 
 Currency LedgerTransaction::balance() const
 {
-   Q_ASSERT(m_balance);
+   assert(m_balance);
    return *m_balance;
 }
 
 bool LedgerTransaction::hasBalance() const
 {
-   return m_balance;
+   return bool(m_balance);
 }
 
 void LedgerTransaction::setBalance(Currency const& balance)
@@ -86,30 +88,30 @@ void LedgerTransaction::setBalance(Currency const& balance)
    m_balance.reset(new Currency(balance));
 }
 
-QDate LedgerTransaction::date() const
+Date LedgerTransaction::date() const
 {
    return m_date;
 }
 
-void LedgerTransaction::setDate(QDate const& date)
+void LedgerTransaction::setDate(Date const& date)
 {
    m_date = date;
 }
 
-QString LedgerTransaction::note() const
+std::string LedgerTransaction::note() const
 {
-   Q_ASSERT(m_note);
+   assert(m_note);
    return *m_note;
 }
 
 bool LedgerTransaction::hasNote() const
 {
-   return m_note;
+   return m_note.get();
 }
 
 void LedgerTransaction::setNote(std::string const& note)
 {
-   m_note.reset(new QString(QString::fromStdString(note)));
+   m_note.reset(new std::string(note));
 }
 
 LedgerTransaction::Status LedgerTransaction::status() const
@@ -124,10 +126,10 @@ void LedgerTransaction::setStatus(Status status)
 
 void LedgerTransaction::appendEntry(LedgerTransactionEntry const& entry)
 {
-   m_entries.append(entry);
+   m_entries.push_back(entry);
 }
 
-QList<LedgerTransactionEntry> const& LedgerTransaction::entries() const
+std::vector<LedgerTransactionEntry> const& LedgerTransaction::entries() const
 {
    return m_entries;
 }

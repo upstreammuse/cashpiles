@@ -1,18 +1,18 @@
 #include "texttable.h"
 
-#include <QTextStream>
+#include <iomanip>
 
-void TextTable::appendColumn(int index, QString const& item)
+void TextTable::appendColumn(size_t index, std::string const& item)
 {
    if (index < m_columns.size())
    {
       ColumnData& data = m_columns[index];
-      data.content.append(item);
+      data.content.push_back(item);
       data.width = std::max(item.size(), m_columns[index].width);
    }
    else
    {
-      setColumn(index, QStringList());
+      setColumn(index, std::vector<std::string>());
       appendColumn(index, item);
    }
 }
@@ -22,55 +22,56 @@ void TextTable::clear()
    m_columns.clear();
 }
 
-void TextTable::print(QTextStream& out) const
+void TextTable::print(std::ostream& out) const
 {
-   int height = 0;
-   foreach (ColumnData const& data, m_columns)
+   size_t height = 0;
+   for (ColumnData const& data : m_columns)
    {
       height = std::max(data.content.size(), height);
    }
 
-   for (int i = 0; i < height; ++i)
+   for (size_t i = 0; i < height; ++i)
    {
-      foreach (ColumnData const& data, m_columns)
+      for (ColumnData const& data : m_columns)
       {
          if (i < data.content.size())
          {
-            QString const& item = data.content[i];
+            std::string const& item = data.content[i];
             switch (data.align)
             {
                case Alignment::LeftAlign:
-                  out << item.leftJustified(data.width);
+                  out << std::left << std::setw(data.width) << item;
                   break;
                case Alignment::RightAlign:
-                  out << item.rightJustified(data.width);
+                  out << std::right << std::setw(data.width) << item;
                   break;
             }
          }
          else
          {
-            out << QString("").leftJustified(data.width);
+            out << std::left << std::setw(data.width) << "";
          }
       }
-      out << endl;
+      out << std::endl;
    }
 }
 
-void TextTable::setColumn(int index, QStringList const& content,
+void TextTable::setColumn(size_t index, std::vector<std::string> const& content,
                           Alignment align)
 {
    ColumnData data;
    data.content = content;
    data.align = align;
    data.width = 0;
-   foreach (QString const& s, content)
+   for (std::string const& s : content)
    {
       data.width = std::max(s.size(), data.width);
    }
-   m_columns.insert(index, data);
+   m_columns.resize(std::max(m_columns.size(), index + 1));
+   m_columns[index] = data;
 }
 
-void TextTable::setColumnAlignment(int index, Alignment align)
+void TextTable::setColumnAlignment(size_t index, Alignment align)
 {
    if (index < m_columns.size())
    {
@@ -78,6 +79,6 @@ void TextTable::setColumnAlignment(int index, Alignment align)
    }
    else
    {
-      setColumn(index, QStringList(), align);
+      setColumn(index, std::vector<std::string>(), align);
    }
 }

@@ -1,15 +1,13 @@
-#ifndef FILEWRITER_H
-#define FILEWRITER_H
+#pragma once
 
-#include <QObject>
+#include <fstream>
+#include <string>
 #include "itemprocessor.h"
 
-class QIODevice;
-
-class FileWriter : public QObject, public ItemProcessor
+class FileWriter : public ItemProcessor
 {
 public:
-   explicit FileWriter(QString const& fileName, QObject* parent = nullptr);
+   explicit FileWriter(std::string const& fileName);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBlank const& blank);
@@ -25,15 +23,13 @@ public:
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
-   void setDateFormat(QString const& dateFormat);
+   void setDateFormat(std::string const& dateFormat);
    void start();
 
 private:
-   QString m_dateFormat = "yyyy/MM/dd";
-   QIODevice* m_file = nullptr;
-   QString m_fileName;
+   std::string m_dateFormat = "yyyy/MM/dd";
+   std::ofstream m_file;
+   std::string m_fileName;
    // TODO there needs to be a cleaner way than this
    bool m_singleReserve = false;
 };
-
-#endif

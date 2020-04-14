@@ -2,8 +2,8 @@
 
 #include "itemprocessor.h"
 
-LedgerBudgetIncomeEntry::LedgerBudgetIncomeEntry(QString const& filename,
-                                                 uint lineNum) :
+LedgerBudgetIncomeEntry::LedgerBudgetIncomeEntry(std::string const& filename,
+                                                 size_t lineNum) :
    LedgerBudgetEntry(filename, lineNum)
 {
 }

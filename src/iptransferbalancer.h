@@ -1,10 +1,9 @@
-#ifndef IPTRANSFERBALANCER_H
-#define IPTRANSFERBALANCER_H
+#pragma once
 
-#include <QDate>
-#include <QHash>
-#include <QSet>
+#include <map>
+#include <set>
 #include "currency.h"
+#include "date.h"
 #include "identifier.h"
 #include "itemprocessor.h"
 
@@ -16,16 +15,14 @@ public:
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerTransaction const& transaction);
-   void setDateFormat(QString const& dateFormat);
+   void setDateFormat(std::string const& dateFormat);
 
 private:
-   void checkTransfers(QDate const& date);
+   void checkTransfers(Date const& date);
 
 private:
-   QSet<Identifier> m_accounts;
-   QString m_dateFormat = "yyyy/MM/dd";
-   QDate m_lastDate;
-   QHash<Identifier, QHash<Identifier, Currency>> m_transfers;
+   std::set<Identifier> m_accounts;
+   std::string m_dateFormat = "yyyy/MM/dd";
+   Date m_lastDate;
+   std::map<Identifier, std::map<Identifier, Currency>> m_transfers;
 };
-
-#endif

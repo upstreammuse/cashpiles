@@ -6,7 +6,7 @@
 class LedgerBlank : public LedgerItem
 {
 public:
-   LedgerBlank(QString const& fileName, uint lineNum);
+   LedgerBlank(std::string const& fileName, size_t lineNum);
    void processItem(ItemProcessor& processor) const;
 };
 

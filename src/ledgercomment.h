@@ -6,13 +6,13 @@
 class LedgerComment : public LedgerItem
 {
 public:
-   LedgerComment(QString const& filename, uint lineNum);
-   QString note() const;
+   LedgerComment(std::string const& filename, size_t lineNum);
+   std::string note() const;
    void processItem(ItemProcessor& processor) const;
-   void setNote(QString const& note);
+   void setNote(std::string const& note);
 
 private:
-   QString m_note;
+   std::string m_note;
 };
 
 #endif

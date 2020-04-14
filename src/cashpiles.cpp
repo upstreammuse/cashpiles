@@ -49,14 +49,16 @@ int main(int argc, char** argv)
    }
    if (!today.isValid())
    {
-      die(QString("Today's date invalid, expected '%1'").arg(QString::fromStdString(dateFormat)).toStdString());
+      std::stringstream ss;
+      ss << "Today's date invalid, expected '" << dateFormat << "'";
+      die(ss.str());
    }
 
    Ledger ledger;
    if (convertYnab)
    {
-      YnabRegisterReader reader(QString::fromStdString(inFileName), ledger);
-      reader.setDateFormat(QString::fromStdString(dateFormat));
+      YnabRegisterReader reader(inFileName, ledger);
+      reader.setDateFormat(dateFormat);
       reader.readAll();
    }
    else
@@ -90,8 +92,8 @@ int main(int argc, char** argv)
       {
          die("Refusing to overwrite original input file");
       }
-      FileWriter writer(QString::fromStdString(outFileName));
-      writer.setDateFormat(QString::fromStdString(dateFormat));
+      FileWriter writer(outFileName);
+      writer.setDateFormat(dateFormat);
       ledger.processItems(writer);
    }
 
@@ -133,7 +135,9 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       }
       else
       {
-         die(QString("Unrecognized option '%1'").arg(QString::fromStdString(arg)).toStdString());
+         std::stringstream ss;
+         ss << "Unrecognized option '" << arg << "'";
+         die(ss.str());
       }
    }
 }

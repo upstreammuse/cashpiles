@@ -1,5 +1,7 @@
 #include "ledgertransactionentry.h"
 
+#include <cassert>
+
 Currency LedgerTransactionEntry::amount() const
 {
    return m_amount;
@@ -20,9 +22,9 @@ void LedgerTransactionEntry::setCategory(Identifier const& category)
    m_category = category;
 }
 
-QString LedgerTransactionEntry::note() const
+std::string LedgerTransactionEntry::note() const
 {
-   Q_ASSERT(m_hasNote);
+   assert(m_hasNote);
    return m_note;
 }
 
@@ -34,7 +36,7 @@ bool LedgerTransactionEntry::hasNote() const
 void LedgerTransactionEntry::setNote(std::string const& note)
 {
    m_hasNote = true;
-   m_note = QString::fromStdString(note);
+   m_note = note;
 }
 
 Identifier LedgerTransactionEntry::payee() const

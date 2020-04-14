@@ -1,8 +1,8 @@
 #ifndef LEDGERACCOUNT_H
 #define LEDGERACCOUNT_H
 
-#include <QDate>
 #include "currency.h"
+#include "date.h"
 #include "identifier.h"
 #include "ledgeritem.h"
 
@@ -15,14 +15,14 @@ public:
       OFF_BUDGET,
       CLOSED
    };
-   static Mode modeFromString(QString const& mode, bool* ok);
-   static QString modeToString(Mode mode);
+   static Mode modeFromString(std::string const& mode, bool* ok);
+   static std::string modeToString(Mode mode);
 
 public:
-   LedgerAccount(QString const& filename, uint lineNum);
+   LedgerAccount(std::string const& filename, size_t lineNum);
 
-   QDate date() const;
-   void setDate(QDate const& date);
+   Date date() const;
+   void setDate(Date const& date);
 
    Mode mode() const;
    void setMode(Mode mode);
@@ -33,7 +33,7 @@ public:
    void processItem(ItemProcessor& processor) const;
 
 private:
-   QDate m_date;
+   Date m_date;
    Mode m_mode = Mode::CLOSED;
    Identifier m_name;
 };

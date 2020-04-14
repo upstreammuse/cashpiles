@@ -1,20 +1,23 @@
 #include "interval.h"
 
+#include <sstream>
 #include "date.h"
 
-Interval Interval::fromString(QString const& interval, bool* ok)
+Interval Interval::fromString(std::string const& interval, bool* ok)
 {
    bool dummy;
    bool* success = ok ? ok : &dummy;
-   uint number = interval.mid(1, interval.size() - 2).toUInt(success);
+   *success = true;
+   size_t number = std::stoull(interval.substr(1, interval.size() - 2),
+                               nullptr, 10);
 
-   QString start = interval.left(1);
+   std::string start = interval.substr(0, 1);
    if (start != "+")
    {
       *success = false;
    }
 
-   QString periodStr = interval.right(1);
+   std::string periodStr = interval.substr(interval.size() - 1);
    Period period;
    if (periodStr == "d")
    {
@@ -46,19 +49,19 @@ Interval::Interval()
 {
 }
 
-Interval::Interval(uint number, Period period) :
+Interval::Interval(size_t number, Period period) :
    m_number(number),
    m_period(period)
 {
 }
 
 Interval::Interval(Date const& start, Date const& end) :
-   m_number(start.daysTo(end) + 1),
+   m_number(size_t(start.daysTo(end) + 1)),
    m_period(Period::DAYS)
 {
 }
 
-uint Interval::number() const
+size_t Interval::number() const
 {
    return m_number;
 }
@@ -68,29 +71,30 @@ Interval::Period Interval::period() const
    return m_period;
 }
 
-QString Interval::toString() const
+std::string Interval::toString() const
 {
-   QString result = "+";
+   std::stringstream result;
+   result << "+";
    switch (m_period)
    {
       case Interval::Period::DAYS:
          if (m_number % 7 == 0)
          {
-            result += QString::number(m_number / 7) + "w";
+            result << m_number / 7 << "w";
          }
          else
          {
-            result += QString::number(m_number) + "d";
+            result << m_number << "d";
          }
          break;
       case Interval::Period::MONTHS:
-         result += QString::number(m_number) + "m";
+         result << m_number << "m";
          break;
       case Interval::Period::YEARS:
-         result += QString::number(m_number) + "y";
+         result << m_number << "y";
          break;
    }
-   return result;
+   return result.str();
 }
 
 bool Interval::operator==(Interval const& other) const

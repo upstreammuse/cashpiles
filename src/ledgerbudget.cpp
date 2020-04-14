@@ -3,21 +3,21 @@
 #include <QSharedPointer>
 #include "itemprocessor.h"
 
-LedgerBudget::LedgerBudget(QString const& fileName, uint lineNum) :
+LedgerBudget::LedgerBudget(std::string const& fileName, size_t lineNum) :
    LedgerItem(fileName, lineNum)
 {
 }
 
-QDate LedgerBudget::date() const
+Date LedgerBudget::date() const
 {
    return m_date;
 }
 
-void LedgerBudget::setDate(QDate const& date)
+void LedgerBudget::setDate(Date const& date)
 {
-   Q_ASSERT(date.isValid());
+   assert(date.isValid());
    m_date = date;
-   foreach (QSharedPointer<LedgerBudgetEntry> entry, m_entries)
+   for (auto entry : m_entries)
    {
       entry->setDate(m_date);
    }
@@ -33,16 +33,16 @@ void LedgerBudget::setInterval(Interval interval)
    m_interval = interval;
 }
 
-void LedgerBudget::appendEntry(QSharedPointer<LedgerBudgetEntry> entry)
+void LedgerBudget::appendEntry(std::shared_ptr<LedgerBudgetEntry> entry)
 {
    entry->setDate(m_date);
-   m_entries.append(entry);
+   m_entries.push_back(entry);
 }
 
 void LedgerBudget::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
-   foreach (QSharedPointer<LedgerBudgetEntry> entry, m_entries)
+   for (auto entry : m_entries)
    {
       entry->processItem(processor);
    }

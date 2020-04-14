@@ -1,5 +1,7 @@
 #include "ipaccountbalancer.h"
 
+#include <iostream>
+#include <sstream>
 #include <QTextStream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
@@ -8,14 +10,14 @@
 #include "texttable.h"
 
 IPAccountBalancer::IPAccountBalancer(Date const& today) :
-   m_today(today.toQDate())
+   m_today(today)
 {
 }
 
 void IPAccountBalancer::finish()
 {
    QTextStream out(stdout);
-   out << "Account balance date: " << m_today.toString() << endl;
+   std::cout << "Account balance date: " << m_today.toString() << std::endl;
 
    TextTable table;
    table.appendColumn(0, "== ON-BUDGET ACCOUNT ==  ");
@@ -27,28 +29,30 @@ void IPAccountBalancer::finish()
    Currency totalOnFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      if (it->onBudget &&
-          (!it->isClosed || !it->cleared.isZero() || !it->balance.isZero() ||
-           !it->future.isZero()))
+      if (it->second.onBudget &&
+          (!it->second.isClosed || !it->second.cleared.isZero() ||
+           !it->second.balance.isZero() || !it->second.future.isZero()))
       {
-         table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, QString::fromStdString(it->cleared.toString()) + "  ");
-         table.appendColumn(2, QString::fromStdString(it->balance.toString()) + "  ");
-         table.appendColumn(3, QString::fromStdString(it->future.toString()));
-         totalOnCleared += it->cleared;
-         totalOn += it->balance;
-         totalOnFuture += it->future;
+         std::stringstream ss;
+         ss << it->first << "  ";
+         table.appendColumn(0, ss.str());
+         table.appendColumn(1, it->second.cleared.toString() + "  ");
+         table.appendColumn(2, it->second.balance.toString() + "  ");
+         table.appendColumn(3, it->second.future.toString());
+         totalOnCleared += it->second.cleared;
+         totalOn += it->second.balance;
+         totalOnFuture += it->second.future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, QString::fromStdString(totalOnCleared.toString()) + "  ");
-   table.appendColumn(2, QString::fromStdString(totalOn.toString()) + "  ");
-   table.appendColumn(3, QString::fromStdString(totalOnFuture.toString()));
+   table.appendColumn(1, totalOnCleared.toString() + "  ");
+   table.appendColumn(2, totalOn.toString() + "  ");
+   table.appendColumn(3, totalOnFuture.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
-   table.print(out);
-   out << endl;
+   table.print(std::cout);
+   std::cout << std::endl;
 
    table.clear();
    table.appendColumn(0, "== OFF-BUDGET ACCOUNT ==  ");
@@ -60,34 +64,37 @@ void IPAccountBalancer::finish()
    Currency totalOffFuture;
    for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
    {
-      if (!it->onBudget &&
-          (!it->isClosed || !it->cleared.isZero() || !it->balance.isZero() ||
-           !it->future.isZero()))
+      if (!it->second.onBudget &&
+          (!it->second.isClosed || !it->second.cleared.isZero() ||
+           !it->second.balance.isZero() || !it->second.future.isZero()))
       {
-         table.appendColumn(0, it.key() + "  ");
-         table.appendColumn(1, QString::fromStdString(it->cleared.toString()) + "  ");
-         table.appendColumn(2, QString::fromStdString(it->balance.toString()) + "  ");
-         table.appendColumn(3, QString::fromStdString(it->future.toString()));
-         totalOffCleared += it->cleared;
-         totalOff += it->balance;
-         totalOffFuture += it->future;
+         std::stringstream ss;
+         ss << it->first << "  ";
+         table.appendColumn(0, ss.str());
+         table.appendColumn(1, it->second.cleared.toString() + "  ");
+         table.appendColumn(2, it->second.balance.toString() + "  ");
+         table.appendColumn(3, it->second.future.toString());
+         totalOffCleared += it->second.cleared;
+         totalOff += it->second.balance;
+         totalOffFuture += it->second.future;
       }
    }
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(1, QString::fromStdString(totalOffCleared.toString()) + "  ");
-   table.appendColumn(2, QString::fromStdString(totalOff.toString()) + "  ");
-   table.appendColumn(3, QString::fromStdString(totalOffFuture.toString()));
+   table.appendColumn(1, totalOffCleared.toString() + "  ");
+   table.appendColumn(2, totalOff.toString() + "  ");
+   table.appendColumn(3, totalOffFuture.toString());
    table.appendColumn(0, "== NET WORTH ==  ");
-   table.appendColumn(1, QString::fromStdString((totalOnCleared + totalOffCleared).toString()) + "  ");
-   table.appendColumn(2, QString::fromStdString((totalOn + totalOff).toString()) + "  ");
-   table.appendColumn(3, QString::fromStdString((totalOnFuture + totalOffFuture).toString()));
+   table.appendColumn(1, (totalOnCleared + totalOffCleared).toString() + "  ");
+   table.appendColumn(2, (totalOn + totalOff).toString() + "  ");
+   table.appendColumn(3, (totalOnFuture + totalOffFuture).toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
-   table.print(out);
-   out << endl;
+   table.print(std::cout);
+   std::cout << std::endl;
 
-   out << "Available for budgeting: " << QString::fromStdString(totalOn.toString()) << endl << endl;
+   std::cout << "Available for budgeting: " << totalOn.toString() << std::endl
+             << std::endl;
 }
 
 void IPAccountBalancer::processItem(LedgerAccount const& account)
@@ -97,16 +104,18 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
       case LedgerAccount::Mode::CLOSED:
          if (m_accounts[account.name()].isClosed)
          {
-            warn(account.fileName().toStdString(), account.lineNum(),
-                 QString("Cannot close account '%1' that was not open")
-                 .arg(account.name()).toStdString());
+            std::stringstream ss;
+            ss << "Cannot close account '" << account.name()
+               << "' that was not open";
+            warn(account.fileName(), account.lineNum(), ss.str());
          }
          else if (!m_accounts[account.name()].future.isZero())
          {
-            warn(account.fileName().toStdString(), account.lineNum(),
-                 QString("Cannot close account '%1' with non-zero balance %2")
-                 .arg(account.name())
-                 .arg(QString::fromStdString(m_accounts[account.name()].balance.toString())).toStdString());
+            std::stringstream ss;
+            ss << "Cannot close account '" << account.name()
+               << "' with non-zero balance "
+               << m_accounts[account.name()].balance.toString();
+            warn(account.fileName(), account.lineNum(), ss.str());
          }
          else
          {
@@ -117,9 +126,10 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
       case LedgerAccount::Mode::ON_BUDGET:
          if (!m_accounts[account.name()].isClosed)
          {
-            warn(account.fileName().toStdString(), account.lineNum(),
-                 QString("Cannot open account '%1' that was already open")
-                 .arg(account.name()).toStdString());
+            std::stringstream ss;
+            ss << "Cannot open account '" << account.name()
+               << "' that was already open";
+            warn(account.fileName(), account.lineNum(), ss.str());
          }
          else
          {
@@ -154,16 +164,16 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
    {
       if (transaction.balance() != m_accounts[transaction.account()].future)
       {
-         warn(transaction.fileName().toStdString(), transaction.lineNum(),
-              QString("Account '%1' stated balance %2 does not match "
-                      "calculated balance %3")
-              .arg(transaction.account())
-              .arg(QString::fromStdString(transaction.balance().toString()))
-              .arg(QString::fromStdString(m_accounts[transaction.account()].balance.toString())).toStdString());
+         std::stringstream ss;
+         ss << "Account '" << transaction.account() << "' stated balance "
+            << transaction.balance().toString() << " does not match calculated "
+            << "balance "
+            << m_accounts[transaction.account()].balance.toString();
+         warn(transaction.fileName(), transaction.lineNum(), ss.str());
       }
       if (m_accounts[transaction.account()].hasPending)
       {
-         warn(transaction.fileName().toStdString(), transaction.lineNum(),
+         warn(transaction.fileName(), transaction.lineNum(),
               "Pending transactions included in balance statement");
          m_accounts[transaction.account()].hasPending = false;
       }

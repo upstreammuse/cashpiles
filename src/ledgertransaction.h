@@ -1,9 +1,8 @@
-#ifndef LEDGERTRANSACTION_H
-#define LEDGERTRANSACTION_H
+#pragma once
 
-#include <QDate>
-#include <QList>
-#include <QSharedPointer>
+#include <memory>
+#include <vector>
+#include "date.h"
 #include "identifier.h"
 #include "ledgertransactionentry.h"
 #include "ledgeritem.h"
@@ -18,10 +17,10 @@ public:
       DISPUTED
    };
    static Status statusFromString(std::string const& status, bool* ok);
-   static QString statusToString(Status status);
+   static std::string statusToString(Status status);
 
 public:
-   LedgerTransaction(QString const& filename, uint lineNum);
+   LedgerTransaction(std::string const& filename, size_t lineNum);
 
    Identifier account() const;
    void setAccount(Identifier const& account);
@@ -32,10 +31,10 @@ public:
    bool hasBalance() const;
    void setBalance(Currency const& balance);
 
-   QDate date() const;
-   void setDate(QDate const& date);
+   Date date() const;
+   void setDate(Date const& date);
 
-   QString note() const;
+   std::string note() const;
    bool hasNote() const;
    void setNote(std::string const& note);
 
@@ -43,17 +42,15 @@ public:
    void setStatus(Status status);
 
    void appendEntry(LedgerTransactionEntry const& entry);
-   QList<LedgerTransactionEntry> const& entries() const;
+   std::vector<LedgerTransactionEntry> const& entries() const;
 
    void processItem(ItemProcessor& processor) const;
 
 private:
    Identifier m_account;
-   QSharedPointer<Currency> m_balance;
-   QDate m_date;
-   QList<LedgerTransactionEntry> m_entries;
-   QSharedPointer<QString> m_note;
+   std::shared_ptr<Currency> m_balance;
+   Date m_date;
+   std::vector<LedgerTransactionEntry> m_entries;
+   std::shared_ptr<std::string> m_note;
    Status m_status = PENDING;
 };
-
-#endif
