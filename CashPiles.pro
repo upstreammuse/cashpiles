@@ -1,7 +1,6 @@
 TEMPLATE = app
+CONFIG -= qt
 CONFIG += console
-#QT += widgets
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 HEADERS += \
    src/cashpiles.h \
    src/csvreader.h \
