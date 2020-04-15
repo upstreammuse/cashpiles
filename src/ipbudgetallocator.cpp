@@ -84,6 +84,7 @@ void IPBudgetAllocator::finish()
       table.appendColumn(2, it->second.period.startDate().toString() + "-" +
                          it->second.period.endDate().toString() + "  ");
       ss.clear();
+      ss.str("");
       ss << it->second.percentage << "  ";
       table.appendColumn(3, ss.str());
       table.appendColumn(4, it->second.reserved.toString());
