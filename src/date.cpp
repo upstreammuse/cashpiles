@@ -262,6 +262,10 @@ int Date::month() const
 
 std::string Date::toString(std::string const& format) const
 {
+   if (isNull())
+   {
+      return "";
+   }
    std::string retval = format;
 
    size_t monthLeading = retval.find("MM");
