@@ -2,8 +2,6 @@
 
 #include <regex>
 #include <sstream>
-#include <QLocale>
-#include <QRegularExpression>
 #include "cashpiles.h"
 #include "date.h"
 #include "ledger.h"
@@ -55,6 +53,74 @@ struct FileReaderRegEx
    std::regex const txnLineRx;
    std::regex const txnLineOffRx;
 
+   std::string currencyRx()
+   {
+      std::stringstream retval;
+      struct lconv* lc = localeconv();
+      retval << "((?:";
+
+      std::string symbol(lc->currency_symbol);
+      // make sure ascii currency symbols don't interfere with regex
+      for (char c : symbol)
+      {
+         if (c & 0x80)
+         {
+            retval << c;
+         }
+         else
+         {
+            retval << '\\' << c;
+         }
+      }
+      retval << '|';
+
+      std::string sep(lc->mon_thousands_sep);
+      // make sure ascii separator symbols don't interfere with regex
+      for (char c : sep)
+      {
+         if (c & 0x80)
+         {
+            retval << c;
+         }
+         else
+         {
+            retval << '\\' << c;
+         }
+      }
+      retval << '|';
+
+      std::string decimal(lc->mon_decimal_point);
+      for (char c : decimal)
+      {
+         if (c & 0x80)
+         {
+            retval << c;
+         }
+         else
+         {
+            retval << '\\' << c;
+         }
+      }
+      retval << '|';
+
+      std::string negative(lc->negative_sign);
+      for (char c : negative)
+      {
+         if (c & 0x80)
+         {
+            retval << c;
+         }
+         else
+         {
+            retval << '\\' << c;
+         }
+      }
+      retval << '|';
+
+      retval << "\\d)+)";
+      return retval.str();
+   }
+
    std::string optional(std::string const& item)
    {
       std::stringstream ss;
@@ -64,11 +130,7 @@ struct FileReaderRegEx
 
    FileReaderRegEx() :
       CLEAR_RX("(\\*|\\!|\\?)"),
-      CURR_RX(QString("((?:\\%1|\\%2|\\%3|\\%4|\\d)+)")
-              .arg(QLocale::system().currencySymbol())
-              .arg(QLocale::system().negativeSign())
-              .arg(QLocale::system().groupSeparator())
-              .arg(QLocale::system().decimalPoint()).toStdString()),
+      CURR_RX(currencyRx()),
       DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
       END_RX("\\s*$"),
       IDENT_RX("(\\S(?:\\S| (?! ))*)"),
