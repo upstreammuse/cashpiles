@@ -2,13 +2,10 @@
 
 #include <string>
 
-class QDate;
-
 class Date
 {
 public:
    static Date currentDate();
-   static Date fromQDate(QDate const& date);
    static Date fromString(std::string const& date, std::string const& format);
 
 public:
@@ -21,7 +18,6 @@ public:
    bool isNull() const;
    bool isValid() const;
    int month() const;
-   QDate toQDate() const;
    std::string toString(std::string const& format = "M/dd/yyyy") const;
    int year() const;
    bool operator==(Date const& other) const;
