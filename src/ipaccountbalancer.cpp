@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <sstream>
-#include <QTextStream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
@@ -16,7 +15,6 @@ IPAccountBalancer::IPAccountBalancer(Date const& today) :
 
 void IPAccountBalancer::finish()
 {
-   QTextStream out(stdout);
    std::cout << "Account balance date: " << m_today.toString() << std::endl;
 
    TextTable table;
