@@ -1,6 +1,6 @@
 #include "ledgerbudget.h"
 
-#include <QSharedPointer>
+#include <cassert>
 #include "itemprocessor.h"
 
 LedgerBudget::LedgerBudget(std::string const& fileName, size_t lineNum) :

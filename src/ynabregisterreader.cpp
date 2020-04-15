@@ -1,6 +1,5 @@
 #include "ynabregisterreader.h"
 
-#include <QRegularExpression>
 #include "cashpiles.h"
 #include "csvreader.h"
 #include "date.h"
@@ -52,7 +51,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    LedgerTransactionEntry entry;
    Currency inflow;
    Currency outflow;
-   QString note;
+   std::string note;
    for (auto it : record.data)
    {
       if (it.first == "Account")
@@ -77,7 +76,9 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          if (it.second != "" )
          {
-            note += QString("[checkNumber=%1]").arg(QString::fromStdString(it.second));
+            std::stringstream ss;
+            ss << "[checkNumber=" << it.second << "]";
+            note += ss.str();
          }
       }
       else if (it.first == "Cleared")
@@ -92,9 +93,9 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
          }
          else
          {
-            die(record.fileName, record.lineNum,
-                QString("Unknown cleared status '%1'")
-                .arg(QString::fromStdString(it.second)).toStdString());
+            std::stringstream ss;
+            ss << "Unknown cleared status '" << it.second << "'";
+            die(record.fileName, record.lineNum, ss.str());
          }
       }
       else if (it.first == "Date")
@@ -107,7 +108,9 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          if (it.second != "")
          {
-            note += QString("[flag=%1]").arg(QString::fromStdString(it.second));
+            std::stringstream ss;
+            ss << "[flag=" << it.second << "]";
+            note += ss.str();
          }
       }
       else if (it.first == "Inflow")
@@ -117,29 +120,29 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Memo")
       {
-         QRegularExpression const splitV4Rx(
-                  "^\\(Split ([0-9]*)/([0-9]*)\\) (.*)$");
-         QRegularExpression const splitV5Rx(
-                  "^Split \\(([0-9]*)/([0-9]*)\\) (.*)$");
-         QRegularExpressionMatch match;
-         QString memo;
-         if ((match = splitV4Rx.match(QString::fromStdString(it.second))).hasMatch())
+         std::regex const splitV4Rx("^\\(Split ([0-9]*)/([0-9]*)\\) (.*)$");
+         std::regex const splitV5Rx("^Split \\(([0-9]*)/([0-9]*)\\) (.*)$");
+         std::smatch match;
+         std::string memo;
+         if (std::regex_match(it.second, match, splitV4Rx))
          {
-            memo = match.captured(3);
-            inSplit = match.captured(1).toInt() != match.captured(2).toInt();
+            memo = match.str(3);
+            inSplit = match.str(1) != match.str(2);
          }
-         else if ((match = splitV5Rx.match(QString::fromStdString(it.second))).hasMatch())
+         else if (std::regex_match(it.second, match, splitV4Rx))
          {
-            memo = match.captured(3);
-            inSplit = match.captured(1).toInt() != match.captured(2).toInt();
+            memo = match.str(3);
+            inSplit = match.str(1) != match.str(2);
          }
          else
          {
-            memo = QString::fromStdString(it.second);
+            memo = it.second;
          }
          if (memo != "")
          {
-            note += QString("[memo=%1]").arg(memo);
+            std::stringstream ss;
+            ss << "[memo=" << memo << "]";
+            note += ss.str();
          }
       }
       else if (it.first == "Outflow")
@@ -166,14 +169,15 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else
       {
-         die(QString("YNAB file has unknown column header '%1'")
-             .arg(QString::fromStdString(it.first)).toStdString());
+         std::stringstream ss;
+         ss << "YNAB file has unknown column header '" << it.first << "'";
+         die(ss.str());
       }
    }
    entry.setAmount(inflow - outflow);
    if (note != "")
    {
-      entry.setNote(note.toStdString());
+      entry.setNote(note);
    }
    m_transaction->appendEntry(entry);
 

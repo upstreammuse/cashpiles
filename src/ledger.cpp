@@ -1,6 +1,5 @@
 #include "ledger.h"
 
-#include <QSharedPointer>
 #include "itemprocessor.h"
 #include "ledgeritem.h"
 
