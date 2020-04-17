@@ -252,6 +252,7 @@ void FileReader::readAll()
       ss << "Unable to open input file '" << m_fileName << "'";
       die(ss.str());
    }
+   m_ledger.clear();
    while (hasLines())
    {
       std::string line(readLine());

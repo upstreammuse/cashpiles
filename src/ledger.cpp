@@ -3,6 +3,11 @@
 #include "itemprocessor.h"
 #include "ledgeritem.h"
 
+void Ledger::clear()
+{
+   m_items.clear();
+}
+
 void Ledger::processItems(ItemProcessor& processor)
 {
    processor.start();

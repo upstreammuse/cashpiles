@@ -17,6 +17,7 @@ YnabRegisterReader::YnabRegisterReader(std::string const& fileName,
 void YnabRegisterReader::readAll()
 {
    m_reader.openFile();
+   m_ledger.clear();
    while (m_reader.hasContent())
    {
       CsvReader::Record record(m_reader.readRecord());

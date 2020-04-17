@@ -10,6 +10,7 @@ class LedgerItem;
 class Ledger
 {
 public:
+   void clear();
    void processItems(ItemProcessor& processor);
 
 public:
