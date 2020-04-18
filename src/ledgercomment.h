@@ -1,5 +1,4 @@
-#ifndef LEDGERCOMMENT_H
-#define LEDGERCOMMENT_H
+#pragma once
 
 #include "ledgeritem.h"
 
@@ -14,5 +13,3 @@ public:
 private:
    std::string m_note;
 };
-
-#endif
