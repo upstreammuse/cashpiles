@@ -20,9 +20,11 @@ public:
    void processItem(LedgerBudgetRoutineEntry const& entry);
    void processItem(LedgerBudgetWithholdingEntry const& entry);
    void processItem(LedgerComment const& comment);
+   void processItem(LedgerError const& error);
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
+   void processItem(LedgerWarning const& warning);
    void setDateFormat(std::string const& dateFormat);
    void start();
 

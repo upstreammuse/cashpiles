@@ -12,6 +12,7 @@
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
+#include "ledgererror.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
@@ -119,6 +120,13 @@ void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
 void FileWriter::processItem(LedgerComment const& comment)
 {
    m_file << ";" << comment.note() << std::endl;
+}
+
+void FileWriter::processItem(LedgerError const& error)
+{
+   m_file << "ERROR " << error.message() << std::endl;
+   error.item()->processItem(*this);
+   m_file << "ERROR END" << std::endl;
 }
 
 void FileWriter::processItem(LedgerReserve const& reserve)
@@ -270,6 +278,11 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       }
       m_file << std::endl;
    }
+}
+
+void FileWriter::processItem(LedgerWarning const& warning)
+{
+   m_file << "WARNING" << std::endl;
 }
 
 void FileWriter::setDateFormat(std::string const& dateFormat)

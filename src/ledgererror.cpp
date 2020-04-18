@@ -7,9 +7,9 @@ LedgerError::LedgerError(std::string const& filename, size_t linenum) :
 {
 }
 
-void LedgerError::processItem(ItemProcessor& processor) const
+std::shared_ptr<LedgerItem const> LedgerError::item() const
 {
-   processor.processItem(*this);
+   return m_item;
 }
 
 void LedgerError::setItem(std::shared_ptr<LedgerItem const> item)
@@ -17,7 +17,17 @@ void LedgerError::setItem(std::shared_ptr<LedgerItem const> item)
    m_item = item;
 }
 
+std::string LedgerError::message() const
+{
+   return m_message;
+}
+
 void LedgerError::setMessage(std::string const& message)
 {
    m_message = message;
+}
+
+void LedgerError::processItem(ItemProcessor& processor) const
+{
+   processor.processItem(*this);
 }

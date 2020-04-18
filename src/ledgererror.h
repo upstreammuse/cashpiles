@@ -6,9 +6,14 @@ class LedgerError : public LedgerItem
 {
 public:
    LedgerError(std::string const& filename, size_t linenum);
-   void processItem(ItemProcessor& processor) const;
+
+   std::shared_ptr<LedgerItem const> item() const;
    void setItem(std::shared_ptr<LedgerItem const> item);
+
+   std::string message() const;
    void setMessage(std::string const& message);
+
+   void processItem(ItemProcessor& processor) const;
 
 private:
    std::shared_ptr<LedgerItem const> m_item;
