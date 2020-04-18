@@ -30,10 +30,12 @@ HEADERS += \
    src/ledgerbudgetroutineentry.h \
    src/ledgerbudgetwithholdingentry.h \
    src/ledgercomment.h \
+   src/ledgererror.h \
    src/ledgeritem.h \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
+   src/ledgerwarning.h \
    src/texttable.h \
    src/ynabregisterreader.h
 SOURCES += \
@@ -65,10 +67,12 @@ SOURCES += \
    src/ledgerbudgetroutineentry.cpp \
    src/ledgerbudgetwithholdingentry.cpp \
    src/ledgercomment.cpp \
+   src/ledgererror.cpp \
    src/ledgeritem.cpp \
    src/ledgerreserve.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
+   src/ledgerwarning.cpp \
    src/texttable.cpp \
    src/ynabregisterreader.cpp
 TARGET = cashpiles

@@ -52,6 +52,10 @@ void ItemProcessor::processItem(LedgerComment const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerError const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerReserve const&)
 {
 }
@@ -61,6 +65,10 @@ void ItemProcessor::processItem(LedgerReserveEntry const&)
 }
 
 void ItemProcessor::processItem(LedgerTransaction const&)
+{
+}
+
+void ItemProcessor::processItem(LedgerWarning const&)
 {
 }
 
