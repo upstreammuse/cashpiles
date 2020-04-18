@@ -19,7 +19,7 @@ public:
    explicit CsvReader(std::string const& fileName);
    void closeFile();
    bool hasContent();
-   void openFile();
+   bool openFile();
    Record readRecord();
 
 private:

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "cashpiles.h"
+#include "ledger.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetcloseentry.h"
@@ -13,20 +14,18 @@
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
+#include "ledgererror.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
+#include "ledgerwarning.h"
 #include "texttable.h"
 
-IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
+IPBudgetAllocator::IPBudgetAllocator(Date const& today, Ledger& ledger) :
+   m_ledger(ledger),
    m_today(today)
 {
-   if (!m_today.isValid())
-   {
-      std::stringstream ss;
-      ss << "Today's date '" << m_today.toString() << "' is invalid";
-      die(ss.str());
-   }
+   assert(m_today.isValid());
 }
 
 void IPBudgetAllocator::finish()
@@ -153,8 +152,8 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > m_today)
    {
-      warn(budget.fileName(), budget.lineNum(),
-           "Ignoring future budget configuration");
+      m_ledger.replaceItem(
+               makeWarning(budget, "Ignoring future budget configuration"));
       return;
    }
 
@@ -167,17 +166,21 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (budget.date() <= m_currentPeriod.endDate())
       {
-         die(budget.fileName(), budget.lineNum(),
-             "Budget can only be reconfigured as the first item in a new "
-             "budget period.");
+         m_ledger.replaceItem(
+                  makeError(budget,
+                            "Budget can only be reconfigured as the first "
+                            "item in a new budget period."));
+         return;
       }
       advanceBudgetPeriod(budget.fileName(), budget.lineNum(),
                           budget.date().addDays(-1));
       if (m_currentPeriod.endDate().addDays(1) != budget.date())
       {
-         die(budget.fileName(), budget.lineNum(),
-             "Budget can only be reconfigured as the first item in a new "
-             "budget period.");
+         m_ledger.replaceItem(
+                  makeError(budget,
+                            "Budget can only be reconfigured as the first "
+                            "item in a new budget period."));
+         return;
       }
    }
 
@@ -206,7 +209,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
          std::stringstream ss;
          ss << "Returning " << m_goals[budget.category()].reserved.toString()
             << " from category '" << budget.category() << "' to available";
-         warn(budget.fileName(), budget.lineNum(), ss.str());
+         m_ledger.replaceItem(makeWarning(budget, ss.str()));
       }
       m_availables[m_owners[budget.category()]] +=
             m_goals[budget.category()].reserved;

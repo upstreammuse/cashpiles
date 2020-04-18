@@ -18,15 +18,10 @@ bool CsvReader::hasContent()
    return !m_file.eof();
 }
 
-void CsvReader::openFile()
+bool CsvReader::openFile()
 {
    m_file.open(m_record.fileName);
-   if (!m_file)
-   {
-      std::stringstream ss;
-      ss << "Unable to open input file '" << m_record.fileName << "'";
-      die(ss.str());
-   }
+   return bool(m_file);
 }
 
 CsvReader::Record CsvReader::readRecord()
@@ -51,10 +46,6 @@ CsvReader::Record CsvReader::readRecord()
       }
    }
 
-   if (m_waitingForHeader)
-   {
-      die("Unable to read complete CSV header");
-   }
    if (m_record.data.size() != 0 && m_record.data.size() != m_header.size())
    {
       die(m_record.fileName, m_record.lineNum,

@@ -21,6 +21,7 @@ private:
 
 private:
    std::string m_dateFormat = "MM/dd/yyyy";
+   std::string m_fileName;
    std::multimap<Date, std::shared_ptr<LedgerItem>> m_items;
    Ledger& m_ledger;
    CsvReader m_reader;

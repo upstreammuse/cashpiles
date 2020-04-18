@@ -5,10 +5,12 @@
 #include "date.h"
 #include "filereader.h"
 #include "ledger.h"
+#include "ledgererror.h"
 #include "ledgertransaction.h"
 
 YnabRegisterReader::YnabRegisterReader(std::string const& fileName,
                                        Ledger& ledger) :
+   m_fileName(fileName),
    m_ledger(ledger),
    m_reader(fileName)
 {
@@ -16,8 +18,15 @@ YnabRegisterReader::YnabRegisterReader(std::string const& fileName,
 
 void YnabRegisterReader::readAll()
 {
-   m_reader.openFile();
    m_ledger.clear();
+   if (!m_reader.openFile())
+   {
+      std::stringstream ss;
+      ss << "Unable to open input file '" << m_fileName << "'";
+      auto error = std::make_shared<LedgerError>(m_fileName, 0);
+      error->setMessage(ss.str());
+      m_ledger.appendItem(error);
+   }
    while (m_reader.hasContent())
    {
       CsvReader::Record record(m_reader.readRecord());

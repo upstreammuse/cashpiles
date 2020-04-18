@@ -17,6 +17,7 @@
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
+#include "ledgererror.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
@@ -245,14 +246,16 @@ FileReader::FileReader(std::string const& fileName, Ledger& ledger) :
 
 void FileReader::readAll()
 {
+   m_ledger.clear();
    m_file.open(m_fileName);
    if (!m_file)
    {
       std::stringstream ss;
       ss << "Unable to open input file '" << m_fileName << "'";
-      die(ss.str());
+      auto error = std::make_shared<LedgerError>(m_fileName, 0);
+      error->setMessage(ss.str());
+      m_ledger.appendItem(error);
    }
-   m_ledger.clear();
    while (hasLines())
    {
       std::string line(readLine());

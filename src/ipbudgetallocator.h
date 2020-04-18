@@ -7,10 +7,12 @@
 #include "identifier.h"
 #include "itemprocessor.h"
 
+class Ledger;
+
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator(Date const& today);
+   IPBudgetAllocator(Date const& today, Ledger& ledger);
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
@@ -59,6 +61,7 @@ private:
    DateRange m_currentPeriod;
    std::map<Identifier, Goal> m_goals;
    std::set<Identifier> m_incomes;
+   Ledger& m_ledger;
    std::map<Identifier, Identifier> m_owners;
    DateRange m_priorPeriod;
    std::map<Identifier, Reserve> m_reserves;
