@@ -3,6 +3,7 @@
 #include <clocale>
 #include <iostream>
 #include <regex>
+#include <conio.h>
 #include "currency.h"
 #include "filereader.h"
 #include "filewriter.h"
@@ -33,9 +34,43 @@
    die(fileName, lineNum, std::string(message));
 }
 
+enum class Option
+{
+   NO_ACTION,
+   QUIT,
+   REFRESH
+};
+
+Option menu()
+{
+   std::cout << "Welcome to Cashpiles" << std::endl;
+   std::cout << "(R)efresh | (Q)uit" << std::endl;
+   Option option;
+   do
+   {
+      int c = getch();
+      switch (c)
+      {
+         case 'r':
+         case 'R':
+            option = Option::REFRESH;
+            break;
+         case 'Q':
+            option = Option::QUIT;
+            break;
+         default:
+            option = Option::NO_ACTION;
+            break;
+      }
+   }
+   while (option == Option::NO_ACTION);
+   return option;
+}
+
 int main(int argc, char** argv)
 {
-   setlocale(LC_ALL,"");
+   setlocale(LC_ALL, "");
+
    bool convertYnab = false;
    std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
@@ -43,59 +78,73 @@ int main(int argc, char** argv)
    Date today = Date::currentDate();
    processArguments(convertYnab, dateFormat, inFileName, outFileName, today,
                     argc, argv);
-   if (inFileName == "")
-   {
-      die("No input file specified");
-   }
    if (!today.isValid())
    {
+      today = Date::currentDate();
       std::stringstream ss;
-      ss << "Today's date invalid, expected '" << dateFormat << "'";
-      die(ss.str());
+      ss << "Today's date invalid, expected '" << dateFormat
+         << "', using today's date " << today.toString(dateFormat);
+      warn(ss.str());
    }
 
    Ledger ledger;
-   if (convertYnab)
+   Option option;
+   do
    {
-      YnabRegisterReader reader(inFileName, ledger);
-      reader.setDateFormat(dateFormat);
-      reader.readAll();
-   }
-   else
-   {
-      FileReader reader(inFileName, ledger);
-      reader.setDateFormat(dateFormat);
-      reader.readAll();
-   }
-
-   IPDateValidator dv;
-   ledger.processItems(dv);
-
-   IPTransferBalancer tb;
-   ledger.processItems(tb);
-
-   if (!convertYnab)
-   {
-      IPTransactionCategorizer tc;
-      ledger.processItems(tc);
-
-      IPAccountBalancer ab(today);
-      ledger.processItems(ab);
-
-      IPBudgetAllocator budAlloc(today);
-      ledger.processItems(budAlloc);
-   }
-
-   if (outFileName != "")
-   {
-      if (outFileName == inFileName)
+      if (convertYnab)
       {
-         die("Refusing to overwrite original input file");
+         YnabRegisterReader reader(inFileName, ledger);
+         reader.setDateFormat(dateFormat);
+         reader.readAll();
       }
-      FileWriter writer(outFileName);
-      writer.setDateFormat(dateFormat);
-      ledger.processItems(writer);
+      else
+      {
+         FileReader reader(inFileName, ledger);
+         reader.setDateFormat(dateFormat);
+         reader.readAll();
+      }
+
+      IPDateValidator dv;
+      ledger.processItems(dv);
+
+      IPTransferBalancer tb;
+      ledger.processItems(tb);
+
+      if (!convertYnab)
+      {
+         IPTransactionCategorizer tc;
+         ledger.processItems(tc);
+
+         IPAccountBalancer ab(today);
+         ledger.processItems(ab);
+
+         IPBudgetAllocator budAlloc(today, ledger);
+         ledger.processItems(budAlloc);
+      }
+
+      if (outFileName != "")
+      {
+         if (outFileName == inFileName)
+         {
+            warn("Refusing to overwrite original input file");
+         }
+         else
+         {
+            FileWriter writer(outFileName);
+            writer.setDateFormat(dateFormat);
+            ledger.processItems(writer);
+         }
+      }
+
+      do
+      {
+         option = menu();
+         // TODO
+//         std::cout << *ledger.display(option); << std::endl;
+      }
+      while (option != Option::REFRESH && option != Option::QUIT);
    }
+   while (option != Option::QUIT);
 
    return EXIT_SUCCESS;
 }
@@ -135,9 +184,8 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       }
       else
       {
-         std::stringstream ss;
-         ss << "Unrecognized option '" << arg << "'";
-         die(ss.str());
+         std::cerr << "Unrecognized option '" << arg << "'" << std::endl;
+         exit(EXIT_FAILURE);
       }
    }
 }
