@@ -46,11 +46,6 @@ CsvReader::Record CsvReader::readRecord()
       }
    }
 
-   if (m_record.data.size() != 0 && m_record.data.size() != m_header.size())
-   {
-      die(m_record.fileName, m_record.lineNum,
-          "Unable to read complete CSV record");
-   }
    CsvReader::Record record(m_record);
    m_record.data.clear();
    return record;
@@ -76,12 +71,6 @@ void CsvReader::commitRecord()
    {
       m_waitingForHeader = false;
    }
-   else if (m_record.data.size() != 0 &&
-            m_record.data.size() != m_header.size())
-   {
-      die(m_record.fileName, m_record.lineNum,
-          "The end of a line was found when more text was expected");
-   }
    m_fieldIndex = 0;
 }
 
@@ -105,8 +94,9 @@ void CsvReader::parseBackslash()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName, m_record.lineNum,
-             "An extra backslash was found when a comma was expected");
+         m_fieldValue += '"';
+         m_fieldMode = FieldMode::NORMAL_ESCAPED;
+         break;
    }
 }
 
@@ -128,8 +118,10 @@ void CsvReader::parseChar(char c)
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName, m_record.lineNum,
-             "Extra text was found when a comma was expected");
+         m_fieldValue += '"';
+         m_fieldValue += c;
+         m_fieldMode = FieldMode::NORMAL;
+         break;
    }
 }
 
@@ -204,7 +196,8 @@ void CsvReader::parseQuote()
          m_fieldMode = FieldMode::QUOTED;
          break;
       case FieldMode::CLOSED:
-         die(m_record.fileName, m_record.lineNum,
-             "An extra quote was found when a comma was expected");
+         m_fieldValue += '"';
+         m_fieldMode = FieldMode::QUOTED;
+         break;
    }
 }
