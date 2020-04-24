@@ -2,42 +2,50 @@
 
 #include <sstream>
 #include "cashpiles.h"
+#include "ledger.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
+#include "ledgerwarning.h"
+
+using std::make_shared;
+
+IPDateValidator::IPDateValidator(Ledger& ledger) :
+   m_ledger{ledger}
+{
+}
 
 void IPDateValidator::processItem(LedgerAccount const& account)
 {
-   processDate(account.date(), account.fileName(), account.lineNum());
+   processDate(account.date(), account.id);
 }
 
 bool IPDateValidator::processItem(LedgerBudget const& budget)
 {
-   processDate(budget.date(), budget.fileName(), budget.lineNum());
+   processDate(budget.date(), budget.id);
    return false;
 }
 
 void IPDateValidator::processItem(LedgerReserve const& reserve)
 {
-   processDate(reserve.date(), reserve.fileName(), reserve.lineNum());
+   processDate(reserve.date(), reserve.id);
 }
 
 void IPDateValidator::processItem(LedgerTransaction const& transaction)
 {
-   processDate(transaction.date(), transaction.fileName(),
-               transaction.lineNum());
+   processDate(transaction.date(), transaction.id);
 }
 
-void IPDateValidator::processDate(Date const& date, std::string const& fileName,
-                                  size_t lineNum)
+void IPDateValidator::processDate(Date const& date, int id)
 {
    if (!m_latestDate.isNull() && date < m_latestDate)
    {
-      std::stringstream ss;
-      ss << "Date " << date.toString() << " out of order";
-      die(fileName, lineNum, ss.str());
+      auto warning = make_shared<LedgerWarning>();
+      warning->setMessage("Date '" + date.toString() + "' out of order, " +
+                          "other problems expected", id);
+      m_ledger.appendAfterCurrent(warning);
    }
    else
    {

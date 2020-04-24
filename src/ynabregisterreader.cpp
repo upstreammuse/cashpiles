@@ -110,9 +110,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Date")
       {
-         m_transaction->setDate(
-                  FileReader::parseDate(it.second, m_dateFormat, record.fileName,
-                                        record.lineNum));
+         m_transaction->setDate(Date::fromString(it.second, m_dateFormat));
       }
       else if (it.first == "Flag")
       {

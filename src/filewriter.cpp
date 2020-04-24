@@ -1,5 +1,6 @@
 #include "filewriter.h"
 
+#include <cassert>
 #include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
@@ -24,12 +25,6 @@ FileWriter::FileWriter(std::string const& fileName) :
 
 void FileWriter::finish()
 {
-   if (!m_file)
-   {
-      std::stringstream ss;
-      ss << "Unable to write to output file '" << m_fileName << "'";
-      die(ss.str());
-   }
    m_file.close();
 }
 
@@ -205,9 +200,8 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
             case Identifier::Type::OWNER:
             case Identifier::Type::CATEGORY:
             case Identifier::Type::UNINITIALIZED:
-               die(transaction.fileName(), transaction.lineNum(),
-                   "Internal logic error, payee has invalid type");
-               // break is a warning here, die does not return
+               assert(false && "Internal logic error, invalid payee type");
+               break;
          }
          m_file << entry.payee() << "  ";
          switch (entry.category().type())
@@ -222,9 +216,8 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
                break;
             case Identifier::Type::GENERIC:
             case Identifier::Type::ACCOUNT:
-               die(transaction.fileName(), transaction.lineNum(),
-                   "Internal logic error, category has invalid type");
-               // break is a warning here, die does not return
+               assert(false && "Internal logic error, invalid category type");
+               break;
          }
          m_file << entry.amount().toString();
          if (entry.hasNote())
@@ -247,9 +240,8 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
          case Identifier::Type::OWNER:
          case Identifier::Type::CATEGORY:
          case Identifier::Type::UNINITIALIZED:
-            die(transaction.fileName(), transaction.lineNum(),
-                "Internal logic error, payee has invalid type");
-            // break is a warning here because die does not return
+            assert(false && "Internal logic error, payee has invalid type");
+            break;
       }
       m_file << entry.payee();
       switch (entry.category().type())
@@ -264,9 +256,8 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
             break;
          case Identifier::Type::GENERIC:
          case Identifier::Type::ACCOUNT:
-            die(transaction.fileName(), transaction.lineNum(),
-                "Internal logic error, category has invalid type");
-            // break is a warning here because die does not return
+            assert(false && "Internal logic error, category has invalid type");
+            break;
       }
       m_file << "  " << transaction.amount().toString();
       if (transaction.hasBalance())
@@ -298,10 +289,4 @@ void FileWriter::setDateFormat(std::string const& dateFormat)
 void FileWriter::start()
 {
    m_file.open(m_fileName);
-   if (!m_file)
-   {
-      std::stringstream ss;
-      ss << "Unable to open output file '" << m_fileName << "'";
-      die(ss.str());
-   }
 }

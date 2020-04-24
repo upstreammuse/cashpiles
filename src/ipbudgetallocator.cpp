@@ -277,8 +277,11 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
+      auto warning = std::make_shared<LedgerWarning>();
+      warning->setMessage("Budget category listed multiple times, "
+                          "ignoring this one", budget.id);
+      m_ledger.appendAfterCurrent(warning);
+      return;
    }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];

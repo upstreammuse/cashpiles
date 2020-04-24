@@ -6,9 +6,9 @@
 
 struct Location
 {
-   std::string filename;
-   size_t linenum;
-   size_t pos;
+   std::string const filename;
+   size_t const linenum;
+   size_t const pos;
 
    bool operator<(Location const& other) const
    {

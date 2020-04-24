@@ -10,13 +10,10 @@ class Currency;
 class Date;
 class Interval;
 class Ledger;
+class LedgerError;
 
 class FileReader
 {
-public:
-   static Date parseDate(std::string const& date, std::string const& dateFormat,
-                         std::string const& fileName, size_t lineNum);
-
 public:
    FileReader(std::string const& fileName, Ledger& ledger);
    void readAll();
@@ -39,9 +36,14 @@ private:
    void unReadLine(std::string const& line);
 
 private:
-   Date parseDate(std::string const& date);
-   Interval parseInterval(std::string const& interval);
-   LedgerAccount::Mode parseMode(std::string const& mode);
+   Date parseDate(std::smatch const& match, size_t index,
+                  std::shared_ptr<LedgerError> error);
+   Interval parseInterval(std::smatch const& match, size_t index,
+                          std::shared_ptr<LedgerError> error);
+   auto parseMode(std::smatch const& match, size_t index,
+                  std::shared_ptr<LedgerError> error);
+   auto parseTxnStatus(std::smatch const& match, size_t index,
+                       std::shared_ptr<LedgerError> error);
 
 private:
    std::string m_dateFormat = "yyyy/MM/dd";

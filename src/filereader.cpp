@@ -209,18 +209,34 @@ struct FileReaderRegEx
 
 static FileReaderRegEx* regEx = nullptr;
 
-Date FileReader::parseDate(std::string const& date, std::string const& dateFormat,
-                           std::string const& fileName, size_t lineNum)
+auto FileReader::parseMode(std::smatch const& match, size_t index,
+                           std::shared_ptr<LedgerError> error)
 {
-   Date d(Date::fromString(date, dateFormat));
-   if (!d.isValid())
+   bool ok;
+   auto mode = LedgerAccount::modeFromString(match[index], &ok);
+   if (!ok)
    {
-      std::stringstream ss;
-      ss << "Unable to parse date '" << date << "', expected something like '"
-         << dateFormat << "'";
-      die(fileName, lineNum, ss.str());
+      error->insertMessage("Unknown account command '" + match.str(index) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(index))});
    }
-   return d;
+   return mode;
+}
+
+// TODO not sure how I feel about putting this up here
+auto FileReader::parseTxnStatus(
+      std::smatch const& match,
+      size_t index,
+      std::shared_ptr<LedgerError> error)
+{
+   bool ok;
+   auto status = LedgerTransaction::statusFromString(match[index], &ok);
+   if (!ok)
+   {
+      error->insertMessage("Unexpected transaction status '" +
+                           match.str(index) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(index))});
+   }
+   return status;
 }
 
 FileReader::FileReader(std::string const& fileName, Ledger& ledger) :
@@ -257,12 +273,22 @@ void FileReader::setDateFormat(std::string const& dateFormat)
 
 void FileReader::processAccount(std::smatch const& match)
 {
-   std::shared_ptr<LedgerAccount> account(
-            new LedgerAccount(m_fileName, m_lineNum));
-   account->setDate(parseDate(match.str(1)));
-   account->setMode(parseMode(match.str(2)));
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+
+   auto account = std::make_shared<LedgerAccount>(m_fileName, m_lineNum);
+   account->setDate(parseDate(match, 1, error));
+   account->setMode(parseMode(match, 2, error));
    account->setName(Identifier(match.str(3), Identifier::Type::ACCOUNT));
-   m_ledger.appendItem(account);
+
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(account);
+   }
 }
 
 void FileReader::processBlank()
@@ -273,15 +299,14 @@ void FileReader::processBlank()
 
 void FileReader::processBudget(std::smatch& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
    bool ok;
 
    std::shared_ptr<LedgerBudget> budget(
             new LedgerBudget(m_fileName, m_lineNum));
-   budget->setDate(parseDate(match.str(1)));
-   budget->setInterval(parseInterval(match.str(2)));
-
-   auto error = std::make_shared<LedgerError>();
-   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   budget->setDate(parseDate(match, 1, error));
+   budget->setInterval(parseInterval(match, 2, error));
 
    while (true)
    {
@@ -331,7 +356,7 @@ void FileReader::processBudget(std::smatch& match)
             error->insertMessage("Error in currency '" + match.str(2) + "'",
             {m_fileName, m_lineNum, size_t(match.position(2))});
          }
-         entry->setInterval(parseInterval(match.str(3)));
+         entry->setInterval(parseInterval(match, 3, error));
          budget->appendEntry(entry);
          error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
@@ -402,7 +427,7 @@ void FileReader::processCompactReserve(std::smatch const& match)
 
    std::shared_ptr<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.str(1)));
+   reserve->setDate(parseDate(match, 1, error));
 
    std::shared_ptr<LedgerReserveEntry> entry(
             new LedgerReserveEntry(m_fileName, m_lineNum));
@@ -454,7 +479,7 @@ void FileReader::processCompactTransaction(std::smatch const& match)
       {m_fileName, m_lineNum, size_t(match.position(2))});
    }
 
-   transaction->setDate(parseDate(match.str(1)));
+   transaction->setDate(parseDate(match, 1, error));
    if (match.str(8) != "")
    {
       transaction->setNote(match.str(8));
@@ -525,7 +550,7 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
       error->insertMessage("Error in transaction status '" + match.str(2) + "'",
       {m_fileName, m_lineNum, size_t(match.position(2))});
    }
-   transaction->setDate(parseDate(match.str(1)));
+   transaction->setDate(parseDate(match, 1, error));
    if (match.str(7) != "")
    {
       transaction->setNote(match.str(7));
@@ -652,7 +677,7 @@ void FileReader::processReserve(std::smatch& match)
 
    std::shared_ptr<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.str(1)));
+   reserve->setDate(parseDate(match, 1, error));
 
    while (true)
    {
@@ -718,14 +743,8 @@ void FileReader::processTransaction(std::smatch& match)
          {m_fileName, m_lineNum, size_t(match.position(5))});
       }
    }
-   xact->setStatus(xact->statusFromString(match.str(2), &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-   xact->setDate(parseDate(match.str(1)));
+   xact->setStatus(parseTxnStatus(match, 2, error));
+   xact->setDate(parseDate(match, 1, error));
    if (match.str(6) != "")
    {
       xact->setNote(match.str(6));
@@ -839,33 +858,29 @@ void FileReader::unReadLine(std::string const& line)
    m_lines.push(line);
 }
 
-Date FileReader::parseDate(std::string const& date)
+Date FileReader::parseDate(std::smatch const& match, size_t index,
+                           std::shared_ptr<LedgerError> error)
 {
-   return parseDate(date, m_dateFormat, m_fileName, m_lineNum);
+   Date d(Date::fromString(match[index], m_dateFormat));
+   if (!d.isValid())
+   {
+      error->insertMessage("Unable to process date '" + match.str(index) +
+                           "', expected something like '" + m_dateFormat + "'",
+      {m_fileName, m_lineNum, size_t(match.position(index))});
+   }
+   return d;
 }
 
-Interval FileReader::parseInterval(std::string const& interval)
+Interval FileReader::parseInterval(std::smatch const& match, size_t index,
+                                   std::shared_ptr<LedgerError> error)
 {
    bool ok;
-   Interval i(Interval::fromString(interval, &ok));
+   Interval i(Interval::fromString(match[index], &ok));
    if (!ok)
    {
-      std::stringstream ss;
-      ss << "Unable to parse interval '" << interval << "'";
-      die(m_fileName, m_lineNum, ss.str());
+      error->insertMessage("Unable to process interval '" + match.str(index) +
+                           "'",
+      {m_fileName, m_lineNum, size_t(match.position(index))});
    }
    return i;
-}
-
-LedgerAccount::Mode FileReader::parseMode(std::string const& mode)
-{
-   bool ok;
-   LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Unknown account command '" << mode << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-   return m;
 }

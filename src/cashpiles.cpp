@@ -104,7 +104,7 @@ int main(int argc, char** argv)
          reader.readAll();
       }
 
-      IPDateValidator dv;
+      IPDateValidator dv(ledger);
       ledger.processItems(dv);
 
       IPTransferBalancer tb;
