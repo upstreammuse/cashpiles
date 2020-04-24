@@ -4,6 +4,11 @@
 #include "itemprocessor.h"
 #include "ledgeritem.h"
 
+void Ledger::appendAfterCurrent(std::shared_ptr<LedgerItem> item)
+{
+   m_currentItem = m_items.insert(m_currentItem + 1, item) - 1;
+}
+
 void Ledger::appendItem(std::shared_ptr<LedgerItem> item)
 {
    m_items.push_back(item);
@@ -28,7 +33,7 @@ void Ledger::processItems(ItemProcessor& processor)
    processor.finish();
 }
 
-void Ledger::replaceItem(std::shared_ptr<LedgerItem> item)
-{
-   *m_currentItem = item;
-}
+//void Ledger::replaceItem(std::shared_ptr<LedgerItem> item)
+//{
+//   *m_currentItem = item;
+//}

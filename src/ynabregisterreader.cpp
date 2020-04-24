@@ -23,8 +23,8 @@ void YnabRegisterReader::readAll()
    {
       std::stringstream ss;
       ss << "Unable to open input file '" << m_fileName << "'";
-      auto error = std::make_shared<LedgerError>(m_fileName, 0);
-      error->setMessage(ss.str());
+      auto error = std::make_shared<LedgerError>();
+      error->insertMessage(ss.str(), {m_fileName, 0, 0});
       m_ledger.appendItem(error);
    }
    while (m_reader.hasContent())
@@ -125,8 +125,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Inflow")
       {
-         inflow = FileReader::parseCurrency(it.second, record.fileName,
-                                            record.lineNum);
+         inflow = Currency::fromString(it.second);
       }
       else if (it.first == "Memo")
       {
@@ -157,7 +156,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Outflow")
       {
-         outflow = FileReader::parseCurrency(it.second, record.fileName, record.lineNum);
+         outflow = Currency::fromString(it.second);
       }
       else if (it.first == "Payee")
       {

@@ -209,20 +209,6 @@ struct FileReaderRegEx
 
 static FileReaderRegEx* regEx = nullptr;
 
-Currency FileReader::parseCurrency(std::string const& currency,
-                                   std::string const& fileName, size_t lineNum)
-{
-   bool ok;
-   Currency c(Currency::fromString(currency, &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Unable to parse currency '" << currency << "'";
-      die(fileName, lineNum, ss.str());
-   }
-   return c;
-}
-
 Date FileReader::parseDate(std::string const& date, std::string const& dateFormat,
                            std::string const& fileName, size_t lineNum)
 {
@@ -252,8 +238,8 @@ void FileReader::readAll()
    {
       std::stringstream ss;
       ss << "Unable to open input file '" << m_fileName << "'";
-      auto error = std::make_shared<LedgerError>(m_fileName, 0);
-      error->setMessage(ss.str());
+      auto error = std::make_shared<LedgerError>();
+      error->insertMessage(ss.str(), {m_fileName, 0, 0});
       m_ledger.appendItem(error);
    }
    while (hasLines())
@@ -287,10 +273,15 @@ void FileReader::processBlank()
 
 void FileReader::processBudget(std::smatch& match)
 {
+   bool ok;
+
    std::shared_ptr<LedgerBudget> budget(
             new LedgerBudget(m_fileName, m_lineNum));
    budget->setDate(parseDate(match.str(1)));
    budget->setInterval(parseInterval(match.str(2)));
+
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
 
    while (true)
    {
@@ -302,6 +293,7 @@ void FileReader::processBudget(std::smatch& match)
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineGoalRx))
       {
@@ -312,6 +304,7 @@ void FileReader::processBudget(std::smatch& match)
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineIncomeRx))
       {
@@ -322,6 +315,7 @@ void FileReader::processBudget(std::smatch& match)
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineReserveAmountRx))
       {
@@ -331,9 +325,15 @@ void FileReader::processBudget(std::smatch& match)
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(4),
                                     Identifier::Type::OWNER));
-         entry->setAmount(parseCurrency(match.str(2)));
+         entry->setAmount(Currency::fromString(match.str(2), &ok));
+         if (!ok)
+         {
+            error->insertMessage("Error in currency '" + match.str(2) + "'",
+            {m_fileName, m_lineNum, size_t(match.position(2))});
+         }
          entry->setInterval(parseInterval(match.str(3)));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineReservePercentRx))
       {
@@ -345,6 +345,7 @@ void FileReader::processBudget(std::smatch& match)
                                     Identifier::Type::OWNER));
          entry->setPercentage(std::stoul(match.str(2), nullptr, 10));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineRoutineRx))
       {
@@ -355,6 +356,7 @@ void FileReader::processBudget(std::smatch& match)
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->budgetLineWithholdingRx))
       {
@@ -365,6 +367,7 @@ void FileReader::processBudget(std::smatch& match)
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else
       {
@@ -373,7 +376,14 @@ void FileReader::processBudget(std::smatch& match)
       }
    }
 
-   m_ledger.appendItem(budget);
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(budget);
+   }
 }
 
 void FileReader::processComment(std::smatch const& match)
@@ -386,6 +396,10 @@ void FileReader::processComment(std::smatch const& match)
 
 void FileReader::processCompactReserve(std::smatch const& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   bool ok;
+
    std::shared_ptr<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
    reserve->setDate(parseDate(match.str(1)));
@@ -394,32 +408,50 @@ void FileReader::processCompactReserve(std::smatch const& match)
             new LedgerReserveEntry(m_fileName, m_lineNum));
    entry->setCategory(Identifier(match.str(2),
                                  Identifier::Type::CATEGORY));
-   entry->setAmount(parseCurrency(match.str(3)));
-
+   entry->setAmount(Currency::fromString(match.str(3), &ok));
+   if (!ok)
+   {
+      error->insertMessage("Error in currency '" + match.str(3) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(3))});
+   }
    reserve->appendEntry(entry);
 
-   m_ledger.appendItem(reserve);
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(reserve);
+   }
 }
 
 void FileReader::processCompactTransaction(std::smatch const& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   bool ok;
+
    std::shared_ptr<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
+
    if (match.str(7) != "")
    {
-      transaction->setBalance(parseCurrency(match.str(7)));
+      transaction->setBalance(Currency::fromString(match.str(7), &ok));
+      if (!ok)
+      {
+         error->insertMessage("Error in currency '" + match.str(7) + "'",
+         {m_fileName, m_lineNum, size_t(match.position(7))});
+      }
    }
 
-   bool ok;
-   transaction->setStatus(
-            transaction->statusFromString(match.str(2), &ok));
+   transaction->setStatus(transaction->statusFromString(match.str(2), &ok));
    if (!ok)
    {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
+      error->insertMessage("Error in transaction status '" + match.str(2) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(2))});
    }
 
    transaction->setDate(parseDate(match.str(1)));
@@ -429,7 +461,12 @@ void FileReader::processCompactTransaction(std::smatch const& match)
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.str(6)));
+   entry.setAmount(Currency::fromString(match.str(6), &ok));
+   if (!ok)
+   {
+      error->insertMessage("Error in currency '" + match.str(6) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(6))});
+   }
    if (match.str(5)[0] == '@')
    {
       entry.setCategory(Identifier(match.str(5).substr(1),
@@ -452,27 +489,41 @@ void FileReader::processCompactTransaction(std::smatch const& match)
    }
    transaction->appendEntry(entry);
 
-   m_ledger.appendItem(transaction);
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(transaction);
+   }
 }
 
 void FileReader::processCompactTransactionOff(std::smatch const& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   bool ok;
+
    std::shared_ptr<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(6) != "")
    {
-      transaction->setBalance(parseCurrency(match.str(6)));
+      transaction->setBalance(Currency::fromString(match.str(6), &ok));
+      if (!ok)
+      {
+         error->insertMessage("Error in currency '" + match.str(6) + "'",
+         {m_fileName, m_lineNum, size_t(match.position(6))});
+      }
    }
-   bool ok;
    transaction->setStatus(
             transaction->statusFromString(match.str(2), &ok));
    if (!ok)
    {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
+      error->insertMessage("Error in transaction status '" + match.str(2) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(2))});
    }
    transaction->setDate(parseDate(match.str(1)));
    if (match.str(7) != "")
@@ -481,7 +532,12 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
    }
 
    LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.str(5)));
+   entry.setAmount(Currency::fromString(match.str(5), &ok));
+   if (!ok)
+   {
+      error->insertMessage("Error in currency '" + match.str(5) + "'",
+      {m_fileName, m_lineNum, size_t(match.position(5))});
+   }
    if (match.str(4)[0] == '@')
    {
       entry.setPayee(Identifier(match.str(4).substr(1),
@@ -494,8 +550,33 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
    }
    transaction->appendEntry(entry);
 
-   m_ledger.appendItem(transaction);
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(transaction);
+   }
 }
+
+// TODO - imagine that the line is passed into the parsing code so that when an
+// error occurrs the original text can be placed into the error item rather than
+// the already-parsed content that might be collapsed somehow, and also the
+// parsing code could return 'segments' of the line, which would be
+// substr()-compatible offsets into the line, and those could be used for error
+// reconstruction as well as for pulling the values needed for the data classes.
+// looking for a natural way to embed the errors back into the ledger without
+// losing any data, in the case you are running with dangerous overwrite mode,
+// so that dates, currency, etc. are not lost if they are mis-processed.
+// Thinking that if all is processed correctly, then the item is returned, but
+// if something/anything goes wrong, then you return the original line along
+// with the error, rather than attempting to wrap up a failed item which
+// probably has lost data in its construction.  So makeError might not be
+// needed (whatever), and the LedgerError would be a text-based output item that
+// matches literal input to the errors that were generated.  And this could also
+// be used for console output so that running in input-only mode can give the
+// user context with their 'file x line y column z' error messages as well
 
 void FileReader::processLine(std::string const& line)
 {
@@ -536,16 +617,39 @@ void FileReader::processLine(std::string const& line)
    {
       processBlank();
    }
+   else if (line == "ERROR")
+   {
+      auto error = std::make_shared<LedgerError>();
+      while (true)
+      {
+         std::string line = readLine();
+         if (line != "ERROR END")
+         {
+            error->insertContent(line, {m_fileName, m_lineNum, 0});
+         }
+         else
+         {
+            break;
+         }
+      }
+      m_ledger.appendItem(error);
+   }
    else
    {
-      std::stringstream ss;
-      ss << "Invalid contents '" << line << "'";
-      die(m_fileName, m_lineNum, ss.str());
+      auto error = std::make_shared<LedgerError>();
+      error->insertContent(line, {m_fileName, m_lineNum, 0});
+      error->insertMessage("Invalid contents '" + line + "'",
+      {m_fileName, m_lineNum, 0});
+      m_ledger.appendItem(error);
    }
 }
 
 void FileReader::processReserve(std::smatch& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   bool ok;
+
    std::shared_ptr<LedgerReserve> reserve(
             new LedgerReserve(m_fileName, m_lineNum));
    reserve->setDate(parseDate(match.str(1)));
@@ -568,8 +672,14 @@ void FileReader::processReserve(std::smatch& match)
                                           Identifier::Type::CATEGORY));
          }
 
-         entry->setAmount(parseCurrency(match.str(2)));
+         entry->setAmount(Currency::fromString(match.str(2), &ok));
+         if (!ok)
+         {
+            error->insertMessage("Error in currency '" + match.str(2) + "'",
+            {m_fileName, m_lineNum, size_t(match.position(2))});
+         }
 
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
          reserve->appendEntry(entry);
       }
       else
@@ -579,20 +689,35 @@ void FileReader::processReserve(std::smatch& match)
       }
    }
 
-   m_ledger.appendItem(reserve);
+   if (error->hasMessages())
+   {
+      m_ledger.appendItem(error);
+   }
+   else
+   {
+      m_ledger.appendItem(reserve);
+   }
 }
 
 void FileReader::processTransaction(std::smatch& match)
 {
+   auto error = std::make_shared<LedgerError>();
+   error->insertContent(match[0], {m_fileName, m_lineNum, 0});
+   bool ok;
+
    std::shared_ptr<LedgerTransaction> xact(
             new LedgerTransaction(m_fileName, m_lineNum));
    xact->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(5) != "")
    {
-      xact->setBalance(parseCurrency(match.str(5)));
+      xact->setBalance(Currency::fromString(match.str(5), &ok));
+      if (!ok)
+      {
+         error->insertMessage("Error in currency '" + match.str(5) + "'",
+         {m_fileName, m_lineNum, size_t(match.position(5))});
+      }
    }
-   bool ok;
    xact->setStatus(xact->statusFromString(match.str(2), &ok));
    if (!ok)
    {
@@ -612,7 +737,12 @@ void FileReader::processTransaction(std::smatch& match)
       if (std::regex_match(line, match, regEx->txnLineRx))
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.str(3)));
+         entry.setAmount(Currency::fromString(match.str(3), &ok));
+         if (!ok)
+         {
+            error->insertMessage("Error in currency '" + match.str(3) + "'",
+            {m_fileName, m_lineNum, size_t(match.position(3))});
+         }
          if (match.str(2)[0] == '@')
          {
             entry.setCategory(Identifier(match.str(2).substr(1),
@@ -638,11 +768,17 @@ void FileReader::processTransaction(std::smatch& match)
                                       Identifier::Type::GENERIC));
          }
          xact->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else if (std::regex_match(line, match, regEx->txnLineOffRx))
       {
          LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.str(2)));
+         entry.setAmount(Currency::fromString(match.str(2), &ok));
+         if (!ok)
+         {
+            error->insertMessage("Error in currency '" + match.str(2) + "'",
+            {m_fileName, m_lineNum, size_t(match.position(2))});
+         }
          if (match.str(3) != "")
          {
             entry.setNote(match.str(3));
@@ -658,6 +794,7 @@ void FileReader::processTransaction(std::smatch& match)
                                       Identifier::Type::GENERIC));
          }
          xact->appendEntry(entry);
+         error->insertContent(line, {m_fileName, m_lineNum, 0});
       }
       else
       {
@@ -700,11 +837,6 @@ void FileReader::unReadLine(std::string const& line)
 {
    --m_lineNum;
    m_lines.push(line);
-}
-
-Currency FileReader::parseCurrency(std::string const& currency)
-{
-   return parseCurrency(currency, m_fileName, m_lineNum);
 }
 
 Date FileReader::parseDate(std::string const& date)

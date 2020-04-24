@@ -13,9 +13,10 @@ void IPDateValidator::processItem(LedgerAccount const& account)
    processDate(account.date(), account.fileName(), account.lineNum());
 }
 
-void IPDateValidator::processItem(LedgerBudget const& budget)
+bool IPDateValidator::processItem(LedgerBudget const& budget)
 {
    processDate(budget.date(), budget.fileName(), budget.lineNum());
+   return false;
 }
 
 void IPDateValidator::processItem(LedgerReserve const& reserve)

@@ -1,32 +1,35 @@
 #pragma once
 
+#include <map>
+#include <vector>
 #include "ledgeritem.h"
+
+struct Location
+{
+   std::string filename;
+   size_t linenum;
+   size_t pos;
+
+   bool operator<(Location const& other) const
+   {
+      return filename < other.filename ||
+            (filename == other.filename && linenum < other.linenum) ||
+            (filename == other.filename && linenum == other.linenum &&
+             pos < other.pos);
+   }
+};
 
 class LedgerError : public LedgerItem
 {
 public:
-   LedgerError(std::string const& filename, size_t linenum);
-
-   std::shared_ptr<LedgerItem const> item() const;
-   void setItem(std::shared_ptr<LedgerItem const> item);
-
-   std::string message() const;
-   void setMessage(std::string const& message);
+   bool hasMessages() const;
+   void insertContent(std::string const& line, Location const& loc);
+   void insertMessage(std::string const& message, Location const& loc);
+   std::vector<std::string> lines() const;
 
    void processItem(ItemProcessor& processor) const;
 
 private:
-   std::shared_ptr<LedgerItem const> m_item;
-   std::string m_message;
+   std::multimap<Location, std::string> m_content;
+   std::multimap<Location, std::string> m_messages;
 };
-
-template<typename T>
-std::unique_ptr<LedgerError> makeError(T const& item,
-                                       std::string const& message)
-{
-   std::unique_ptr<LedgerError> retval(
-            std::make_unique<LedgerError>(item.fileName(), item.lineNum()));
-   retval->setItem(std::make_unique<T>(item));
-   retval->setMessage(message);
-   return retval;
-}

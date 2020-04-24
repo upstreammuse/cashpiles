@@ -2,22 +2,18 @@
 
 #include "itemprocessor.h"
 
-LedgerWarning::LedgerWarning(std::string const& filename, size_t linenum) :
-   LedgerItem(filename, linenum)
+std::string LedgerWarning::message() const
 {
+   return m_message;
+}
+
+void LedgerWarning::setMessage(std::string const& message, int itemId)
+{
+   m_itemId = itemId;
+   m_message = message;
 }
 
 void LedgerWarning::processItem(ItemProcessor& processor) const
 {
    processor.processItem(*this);
-}
-
-void LedgerWarning::setItem(std::shared_ptr<LedgerItem const> item)
-{
-   m_item = item;
-}
-
-void LedgerWarning::setMessage(std::string const& message)
-{
-   m_message = message;
 }

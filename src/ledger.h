@@ -10,10 +10,10 @@ class LedgerItem;
 class Ledger
 {
 public:
+   void appendAfterCurrent(std::shared_ptr<LedgerItem> item);
    void appendItem(std::shared_ptr<LedgerItem> item);
    void clear();
    void processItems(ItemProcessor& processor);
-   void replaceItem(std::shared_ptr<LedgerItem> item);
 
 private:
    std::vector<std::shared_ptr<LedgerItem>>::iterator m_currentItem;

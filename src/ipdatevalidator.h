@@ -8,7 +8,7 @@ class IPDateValidator : public ItemProcessor
 {
 public:
    void processItem(LedgerAccount const& account);
-   void processItem(LedgerBudget const& budget);
+   bool processItem(LedgerBudget const& budget);
    void processItem(LedgerReserve const& reserve);
    void processItem(LedgerTransaction const& transaction);
 

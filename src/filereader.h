@@ -14,8 +14,6 @@ class Ledger;
 class FileReader
 {
 public:
-   static Currency parseCurrency(std::string const& currency,
-                                 std::string const& fileName, size_t lineNum);
    static Date parseDate(std::string const& date, std::string const& dateFormat,
                          std::string const& fileName, size_t lineNum);
 
@@ -41,7 +39,6 @@ private:
    void unReadLine(std::string const& line);
 
 private:
-   Currency parseCurrency(std::string const& currency);
    Date parseDate(std::string const& date);
    Interval parseInterval(std::string const& interval);
    LedgerAccount::Mode parseMode(std::string const& mode);

@@ -2,6 +2,11 @@
 
 int LedgerItem::sm_nextId = 1;
 
+LedgerItem::LedgerItem() :
+   id(sm_nextId++)
+{
+}
+
 LedgerItem::LedgerItem(std::string const& fileName, size_t lineNum) :
    id(sm_nextId++),
    m_fileName(fileName),

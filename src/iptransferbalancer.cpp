@@ -18,9 +18,10 @@ void IPTransferBalancer::processItem(LedgerAccount const& account)
    m_accounts.insert(account.name());
 }
 
-void IPTransferBalancer::processItem(LedgerBudget const& budget)
+bool IPTransferBalancer::processItem(LedgerBudget const& budget)
 {
    checkTransfers(budget.date());
+   return false;
 }
 
 void IPTransferBalancer::processItem(LedgerReserve const& reserve)

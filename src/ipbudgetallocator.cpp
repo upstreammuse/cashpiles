@@ -148,13 +148,11 @@ void IPBudgetAllocator::processItem(LedgerAccount const& account)
    advanceBudgetPeriod(account.fileName(), account.lineNum(), account.date());
 }
 
-void IPBudgetAllocator::processItem(LedgerBudget const& budget)
+bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > m_today)
    {
-      m_ledger.replaceItem(
-               makeWarning(budget, "Ignoring future budget configuration"));
-      return;
+      return false;
    }
 
    // make sure that the budget period is advanced to include yesterday, and
@@ -166,21 +164,24 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    {
       if (budget.date() <= m_currentPeriod.endDate())
       {
-         m_ledger.replaceItem(
-                  makeError(budget,
-                            "Budget can only be reconfigured as the first "
-                            "item in a new budget period."));
-         return;
+         auto warning = std::make_shared<LedgerWarning>();
+         warning->setMessage("Budget can only be reconfigured as the first "
+                             "item in a new budget period.  Ignoring this "
+                             "budget.", budget.id);
+         m_ledger.appendAfterCurrent(warning);
+         return false;
       }
       advanceBudgetPeriod(budget.fileName(), budget.lineNum(),
                           budget.date().addDays(-1));
       if (m_currentPeriod.endDate().addDays(1) != budget.date())
       {
-         m_ledger.replaceItem(
-                  makeError(budget,
-                            "Budget can only be reconfigured as the first "
-                            "item in a new budget period."));
-         return;
+         // TODO deduplicate this
+         auto warning = std::make_shared<LedgerWarning>();
+         warning->setMessage("Budget can only be reconfigured as the first "
+                             "item in a new budget period.  Ignoring this "
+                             "budget.", budget.id);
+         m_ledger.appendAfterCurrent(warning);
+         return false;
       }
    }
 
@@ -192,6 +193,7 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // period's date, and there is nothing more to do, because categories that
    // automatically fund themselves in each period will do that when they are
    // first created
+   return true;
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
@@ -206,10 +208,12 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    {
       if (!m_goals[budget.category()].reserved.isZero())
       {
+         auto warning = std::make_shared<LedgerWarning>();
          std::stringstream ss;
          ss << "Returning " << m_goals[budget.category()].reserved.toString()
             << " from category '" << budget.category() << "' to available";
-         m_ledger.replaceItem(makeWarning(budget, ss.str()));
+         warning->setMessage(ss.str(), budget.id);
+         m_ledger.appendAfterCurrent(warning);
       }
       m_availables[m_owners[budget.category()]] +=
             m_goals[budget.category()].reserved;
@@ -225,10 +229,12 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    {
       if (!m_reserves[budget.category()].reserved.isZero())
       {
+         auto warning = std::make_shared<LedgerWarning>();
          std::stringstream ss;
          ss << "Returning " << m_reserves[budget.category()].reserved.toString()
             << " from category '" << budget.category() << "' to available";
-         warn(budget.fileName(), budget.lineNum(), ss.str());
+         warning->setMessage(ss.str(), budget.id);
+         m_ledger.appendAfterCurrent(warning);
       }
       m_availables[m_owners[budget.category()]] +=
             m_reserves[budget.category()].reserved;

@@ -15,6 +15,7 @@
 #include "ledgererror.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
+#include "ledgerwarning.h"
 
 FileWriter::FileWriter(std::string const& fileName) :
    m_fileName(fileName)
@@ -44,10 +45,11 @@ void FileWriter::processItem(LedgerBlank const&)
    m_file << std::endl;
 }
 
-void FileWriter::processItem(LedgerBudget const& budget)
+bool FileWriter::processItem(LedgerBudget const& budget)
 {
    m_file << budget.date().toString(m_dateFormat) << " budget "
           << budget.interval().toString() << std::endl;
+   return true;
 }
 
 void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)
@@ -124,8 +126,11 @@ void FileWriter::processItem(LedgerComment const& comment)
 
 void FileWriter::processItem(LedgerError const& error)
 {
-   m_file << "ERROR " << error.message() << std::endl;
-   error.item()->processItem(*this);
+   m_file << "ERROR" << std::endl;
+   for (auto line : error.lines())
+   {
+      m_file << line << std::endl;
+   }
    m_file << "ERROR END" << std::endl;
 }
 
@@ -282,7 +287,7 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
 
 void FileWriter::processItem(LedgerWarning const& warning)
 {
-   m_file << "WARNING" << std::endl;
+   m_file << "WARNING " << warning.message() << std::endl;
 }
 
 void FileWriter::setDateFormat(std::string const& dateFormat)

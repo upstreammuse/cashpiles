@@ -11,6 +11,8 @@ public:
    int const id;
 
 public:
+   LedgerItem();
+   // TODO this ctor will go away in preference to the in-situ error system
    LedgerItem(std::string const& fileName, size_t lineNum);
    virtual ~LedgerItem();
    std::string fileName() const;
