@@ -57,8 +57,9 @@ void ItemProcessor::processItem(LedgerError const&)
 {
 }
 
-void ItemProcessor::processItem(LedgerReserve const&)
+bool ItemProcessor::processItem(LedgerReserve const&)
 {
+   return true;
 }
 
 void ItemProcessor::processItem(LedgerReserveEntry const&)

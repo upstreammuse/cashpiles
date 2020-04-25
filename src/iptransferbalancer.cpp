@@ -24,9 +24,10 @@ bool IPTransferBalancer::processItem(LedgerBudget const& budget)
    return false;
 }
 
-void IPTransferBalancer::processItem(LedgerReserve const& reserve)
+bool IPTransferBalancer::processItem(LedgerReserve const& reserve)
 {
    checkTransfers(reserve.date());
+   return false;
 }
 
 void IPTransferBalancer::processItem(LedgerTransaction const& transaction)

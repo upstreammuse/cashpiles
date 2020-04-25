@@ -35,6 +35,7 @@ HEADERS += \
    src/ledgerreserve.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
+   src/ledgertransactionv2.h \
    src/ledgerwarning.h \
    src/texttable.h \
    src/ynabregisterreader.h

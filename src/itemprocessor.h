@@ -35,7 +35,7 @@ public:
    virtual void processItem(LedgerBudgetWithholdingEntry const& budget);
    virtual void processItem(LedgerComment const& comment);
    virtual void processItem(LedgerError const& error);
-   virtual void processItem(LedgerReserve const& reserve);
+   virtual bool processItem(LedgerReserve const& reserve);
    virtual void processItem(LedgerReserveEntry const& reserve);
    virtual void processItem(LedgerTransaction const& transaction);
    virtual void processItem(LedgerWarning const& warning);

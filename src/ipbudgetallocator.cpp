@@ -21,6 +21,8 @@
 #include "ledgerwarning.h"
 #include "texttable.h"
 
+using std::make_shared;
+
 IPBudgetAllocator::IPBudgetAllocator(Date const& today, Ledger& ledger) :
    m_ledger(ledger),
    m_today(today)
@@ -271,18 +273,9 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      auto warning = std::make_shared<LedgerWarning>();
-      warning->setMessage("Budget category listed multiple times, "
-                          "ignoring this one", budget.id);
-      m_ledger.appendAfterCurrent(warning);
-      return;
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_goals[budget.category()];
@@ -291,15 +284,9 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_incomes.insert(budget.category());
@@ -309,15 +296,9 @@ void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 void IPBudgetAllocator::processItem(
       LedgerBudgetReserveAmountEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_availables[budget.owner()];
@@ -331,15 +312,9 @@ void IPBudgetAllocator::processItem(
 void IPBudgetAllocator::processItem(
       LedgerBudgetReservePercentEntry const &budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
@@ -348,15 +323,9 @@ void IPBudgetAllocator::processItem(
 
 void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
@@ -365,41 +334,45 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
+   if (budget.date() > m_today) return;
+   if (!verifyUniqueCategory(budget)) return;
+
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
    m_withholdings.insert(budget.category());
 }
 
-void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
+bool IPBudgetAllocator::processItem(LedgerReserve const& reserve)
 {
+   // TODO why do we ignore future reserves?  We track the categories into the
+   // future based on transactions, so why not the categories?
+   //  - because only goals are tracked into the future, and reserve could be
+   //    able to deal with all category types
    if (reserve.date() > m_today)
    {
-      warn(reserve.fileName(), reserve.lineNum(),
-           "Ignoring future category reservation");
-      return;
+      // TODO this means we can remove this check from the individual entries
+      //  and it also means we can do similar with the budget entries
+      return false;
    }
    advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
 
    if (reserve.numEntries() > 1 && !reserve.amount().isZero())
    {
-      die(reserve.fileName(), reserve.lineNum(),
-          "Multi-line reserve commands must balance to zero");
+      // TODO errors don't support use once we get past the filereader, but to decouple processors from each eother it is useful to remuove items from the ledger stream from one processor to the next, and the only way to do this is with the error class. warnings aren't strong enough.
+      auto warning = make_shared<LedgerWarning>();
+      warning->setMessage("Multi-line reserve commands must balance to zero",
+                          reserve.id);
+      m_ledger.appendAfterCurrent(warning);
+      return false;
    }
 
    if (reserve.numEntries() < 2)
    {
       m_singleReserve = true;
    }
+
+   return true;
 }
 
 void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
@@ -706,4 +679,18 @@ void IPBudgetAllocator::syncReserve(Identifier const& category)
          ++m_reserves[category].period;
       }
    }
+}
+
+bool IPBudgetAllocator::verifyUniqueCategory(LedgerBudgetEntry const& entry)
+{
+   if (m_owners.count(entry.category()))
+   {
+      auto warning = std::make_shared<LedgerWarning>();
+      warning->setMessage(
+               "Budget category listed multiple times, ignoring this one",
+               entry.id);
+      m_ledger.appendAfterCurrent(warning);
+      return false;
+   }
+   return true;
 }

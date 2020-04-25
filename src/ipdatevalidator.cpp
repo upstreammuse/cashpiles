@@ -28,9 +28,10 @@ bool IPDateValidator::processItem(LedgerBudget const& budget)
    return false;
 }
 
-void IPDateValidator::processItem(LedgerReserve const& reserve)
+bool IPDateValidator::processItem(LedgerReserve const& reserve)
 {
    processDate(reserve.date(), reserve.id);
+   return false;
 }
 
 void IPDateValidator::processItem(LedgerTransaction const& transaction)

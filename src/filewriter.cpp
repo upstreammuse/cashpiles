@@ -129,7 +129,7 @@ void FileWriter::processItem(LedgerError const& error)
    m_file << "ERROR END" << std::endl;
 }
 
-void FileWriter::processItem(LedgerReserve const& reserve)
+bool FileWriter::processItem(LedgerReserve const& reserve)
 {
    m_file << reserve.date().toString(m_dateFormat) << " reserve";
    if (reserve.numEntries() > 1)
@@ -141,6 +141,7 @@ void FileWriter::processItem(LedgerReserve const& reserve)
    {
       m_singleReserve = true;
    }
+   return true;
 }
 
 void FileWriter::processItem(LedgerReserveEntry const& reserve)

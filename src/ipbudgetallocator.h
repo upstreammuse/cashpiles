@@ -8,6 +8,7 @@
 #include "itemprocessor.h"
 
 class Ledger;
+class LedgerBudgetEntry;
 
 class IPBudgetAllocator : public ItemProcessor
 {
@@ -23,7 +24,7 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
    void processItem(LedgerBudgetWithholdingEntry const& budget);
-   void processItem(LedgerReserve const& reserve);
+   bool processItem(LedgerReserve const& reserve);
    void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
 
@@ -31,6 +32,7 @@ private:
    void advanceBudgetPeriod(std::string const& filename, size_t lineNum,
                             Date const& date);
    void syncReserve(Identifier const& category);
+   bool verifyUniqueCategory(LedgerBudgetEntry const& entry);
 
 private:
    struct Goal

@@ -90,9 +90,11 @@ size_t LedgerReserve::numEntries() const
 
 void LedgerReserve::processItem(ItemProcessor& processor) const
 {
-   processor.processItem(*this);
-   for (auto entry : m_entries)
+   if (processor.processItem(*this))
    {
-      entry->processItem(processor);
+      for (auto entry : m_entries)
+      {
+         entry->processItem(processor);
+      }
    }
 }
