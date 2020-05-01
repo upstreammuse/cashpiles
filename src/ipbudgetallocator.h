@@ -15,6 +15,7 @@ public:
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetCloseEntry const& budget);
+   void processItem(LedgerBudgetGoalEntry const& budget);
    void processItem(LedgerBudgetGoalsEntry const& budget);
    void processItem(LedgerBudgetIncomeEntry const& budget);
    void processItem(LedgerBudgetReserveAmountEntry const& budget);
@@ -28,15 +29,21 @@ public:
 private:
    void advanceBudgetPeriod(std::string const& filename, size_t lineNum,
                             Date const& date);
+   void syncGoal(std::string const& category, std::string const& goal);
    void syncReserve(Identifier const& category);
 
 private:
    struct Goal
    {
-      Currency future;
-      Currency neededThisPeriod;
+      Currency amount;
+      DateRange period;
       Currency reserved;
-      Currency reservedThisPeriod;
+   };
+
+   struct Goals
+   {
+      std::map<std::string, Goal> goals;
+      Currency spent;
    };
 
    struct Reserve
@@ -57,7 +64,7 @@ private:
 private:
    std::map <Identifier, Currency> m_availables;
    DateRange m_currentPeriod;
-   std::map<Identifier, Goal> m_goals;
+   std::map<std::string, Goals> m_goals;
    std::set<Identifier> m_incomes;
    std::map<Identifier, Identifier> m_owners;
    DateRange m_priorPeriod;
