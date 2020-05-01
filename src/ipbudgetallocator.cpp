@@ -42,7 +42,6 @@ void IPBudgetAllocator::finish()
    table.appendColumn(4, "== RESERVED ==  ");
    for (auto it1 : m_goals)
    {
-      Currency subtotal;
       for (auto it2 : it1.second.goals)
       {
          table.appendColumn(0, it1.first + "  ");
@@ -50,14 +49,14 @@ void IPBudgetAllocator::finish()
          table.appendColumn(2, it2.second.amount.toString() + "  ");
          table.appendColumn(3, it2.second.period.endDate().toString() + "  ");
          table.appendColumn(4, it2.second.reserved.toString() + "  ");
-         subtotal += it2.second.reserved;
+         total += it2.second.reserved;
       }
       table.appendColumn(0, it1.first + "  ");
       table.appendColumn(1, "  ");
       table.appendColumn(2, "  ");
       table.appendColumn(3, "  ");
-      table.appendColumn(4, (subtotal + it1.second.spent).toString() + "  ");
-      total += subtotal + it1.second.spent;
+      table.appendColumn(4, it1.second.spent.toString() + "  ");
+      total += it1.second.spent;
    }
    totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
