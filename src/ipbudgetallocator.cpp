@@ -6,6 +6,7 @@
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
+#include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetgoalentry.h"
 #include "ledgerbudgetgoalsentry.h"
@@ -188,6 +189,29 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // period's date, and there is nothing more to do, because categories that
    // automatically fund themselves in each period will do that when they are
    // first created
+}
+
+void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
+{
+   if (entry.date() > m_today) return;
+
+   // TODO remove this
+   std::stringstream ss;
+   ss << entry.category();
+   auto category = ss.str();
+   auto goal = entry.goal();
+
+   if (!m_goals.count(category))
+   {
+      die(entry.fileName(), entry.lineNum(), "Cannot cancel unknown category");
+   }
+   if (!m_goals[category].goals.count(goal))
+   {
+      die(entry.fileName(), entry.lineNum(), "Cannot cancel unknown goal");
+   }
+
+   m_goals[category].spent += m_goals[category].goals[goal].reserved;
+   m_goals[category].goals.erase(goal);
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
