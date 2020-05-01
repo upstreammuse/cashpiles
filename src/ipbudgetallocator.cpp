@@ -37,33 +37,31 @@ void IPBudgetAllocator::finish()
    Currency totalAll;
    table.appendColumn(0, "== CATEGORY ==  ");
    table.appendColumn(1, "== GOAL ==  ");
-   table.appendColumn(2, "== RESERVED ==  ");
-   table.appendColumn(3, "== AMOUNT ==  ");
-   table.appendColumn(4, "== DATE ==");
-   for (auto it1 = m_goals.begin(); it1 != m_goals.end(); ++it1)
+   table.appendColumn(2, "== AMOUNT ==  ");
+   table.appendColumn(3, "== DATE ==");
+   table.appendColumn(4, "== RESERVED ==  ");
+   for (auto it1 : m_goals)
    {
       Currency subtotal;
-      for (auto it2 = it1->second.goals.begin(); it2 != it1->second.goals.end();
-           ++it2)
+      for (auto it2 : it1.second.goals)
       {
-         table.appendColumn(0, it1->first + "  ");
-         table.appendColumn(1, it2->first + "  ");
-         table.appendColumn(2, it2->second.reserved.toString() + "  ");
-         table.appendColumn(3, it2->second.amount.toString() + "  ");
-         table.appendColumn(4, it2->second.period.endDate().toString());
-         subtotal += it2->second.reserved;
+         table.appendColumn(0, it1.first + "  ");
+         table.appendColumn(1, it2.first + "  ");
+         table.appendColumn(2, it2.second.amount.toString() + "  ");
+         table.appendColumn(3, it2.second.period.endDate().toString() + "  ");
+         table.appendColumn(4, it2.second.reserved.toString() + "  ");
+         subtotal += it2.second.reserved;
       }
-      table.appendColumn(0, it1->first + "  ");
-      table.appendColumn(1, "AVAILABLE  ");
-      table.appendColumn(2, (subtotal + it1->second.spent).toString() + "  ");
+      table.appendColumn(0, it1.first + "  ");
+      table.appendColumn(1, "  ");
+      table.appendColumn(2, "  ");
       table.appendColumn(3, "  ");
-      table.appendColumn(4, "");
-      total += subtotal + it1->second.spent;
+      table.appendColumn(4, (subtotal + it1.second.spent).toString() + "  ");
+      total += subtotal + it1.second.spent;
    }
    totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
-   table.appendColumn(3, total.toString() + "  ");
-   table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
+   table.appendColumn(4, total.toString() + "  ");
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.setColumnAlignment(4, TextTable::Alignment::RightAlign);
