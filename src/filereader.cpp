@@ -11,6 +11,7 @@
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetentry.h"
 #include "ledgerbudgetgoalentry.h"
+#include "ledgerbudgetgoalsentry.h"
 #include "ledgerbudgetincomeentry.h"
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
@@ -19,6 +20,8 @@
 #include "ledgercomment.h"
 #include "ledgerreserve.h"
 #include "ledgertransaction.h"
+
+using std::make_shared;
 
 struct FileReaderRegEx
 {
@@ -38,6 +41,7 @@ struct FileReaderRegEx
    std::regex const budgetRx;
    std::regex const budgetLineCloseRx;
    std::regex const budgetLineGoalRx;
+   std::regex const budgetLineGoalsRx;
    std::regex const budgetLineIncomeRx;
    std::regex const budgetLineReserveAmountRx;
    std::regex const budgetLineReservePercentRx;
@@ -149,7 +153,11 @@ struct FileReaderRegEx
       budgetLineCloseRx(
          START_RX + SEP_RX + "close" + SPACE_RX + IDENT_RX + END_RX),
       budgetLineGoalRx(
-         START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX +
+         START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX + SEP_RX + IDENT_RX +
+         SEP_RX + CURR_RX + SPACE_RX + DATE_RX + optional(SPACE_RX + NOTE_RX) +
+         END_RX),
+      budgetLineGoalsRx(
+         START_RX + SEP_RX + "goals" + SPACE_RX + IDENT_RX +
          optional(SEP_RX + IDENT_RX) + END_RX),
       budgetLineIncomeRx(
          START_RX + SEP_RX + "income" + SPACE_RX + IDENT_RX +
@@ -301,8 +309,22 @@ void FileReader::processBudget(std::smatch& match)
       }
       else if (std::regex_match(line, match, regEx->budgetLineGoalRx))
       {
-         std::shared_ptr<LedgerBudgetGoalEntry> entry(
-                  new LedgerBudgetGoalEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetGoalEntry>(m_fileName, m_lineNum);
+
+         entry->setCategory(Identifier(match[1], Identifier::Type::CATEGORY));
+         entry->setGoal(match[2]);
+         entry->setAmount(parseCurrency(match[3]));
+         entry->setGoalDate(parseDate(match[4]));
+         // TODO these do not have owners since they reference via their parent
+         //   categories, but they inherit from something that provides them
+         //  - then again, so does LedgerBudgetCloseEntry
+
+         budget->appendEntry(entry);
+      }
+      else if (std::regex_match(line, match, regEx->budgetLineGoalsRx))
+      {
+         auto entry = make_shared<LedgerBudgetGoalsEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
          entry->setOwner(Identifier(match.str(2),
