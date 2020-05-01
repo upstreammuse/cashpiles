@@ -690,7 +690,9 @@ void IPBudgetAllocator::syncGoal(
       std::string const& category, std::string const& goal)
 {
    auto& theGoal = m_goals[category].goals[goal];
-   theGoal.reserved += theGoal.amount.amortize(theGoal.period, m_currentPeriod);
+   auto amount = theGoal.amount.amortize(theGoal.period, m_currentPeriod);
+   theGoal.reserved += amount;
+   m_availables[m_owners[Identifier(category, Identifier::Type::OWNER)]] -= amount;
    if (theGoal.period.endDate() <= m_currentPeriod.endDate())
    {
       assert(theGoal.reserved == theGoal.amount);
