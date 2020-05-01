@@ -28,6 +28,10 @@ void ItemProcessor::processItem(LedgerBudgetGoalEntry const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerBudgetGoalsEntry const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerBudgetIncomeEntry const&)
 {
 }

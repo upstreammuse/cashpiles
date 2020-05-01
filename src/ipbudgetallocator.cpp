@@ -8,6 +8,7 @@
 #include "ledgerbudget.h"
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetgoalentry.h"
+#include "ledgerbudgetgoalsentry.h"
 #include "ledgerbudgetincomeentry.h"
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
@@ -260,7 +261,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
    }
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& budget)
 {
    if (budget.date() > m_today)
    {

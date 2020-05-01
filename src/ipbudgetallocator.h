@@ -15,7 +15,7 @@ public:
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetCloseEntry const& budget);
-   void processItem(LedgerBudgetGoalEntry const& budget);
+   void processItem(LedgerBudgetGoalsEntry const& budget);
    void processItem(LedgerBudgetIncomeEntry const& budget);
    void processItem(LedgerBudgetReserveAmountEntry const& budget);
    void processItem(LedgerBudgetReservePercentEntry const& budget);

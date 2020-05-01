@@ -6,6 +6,7 @@
 #include "ledgerbudget.h"
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetgoalentry.h"
+#include "ledgerbudgetgoalsentry.h"
 #include "ledgerbudgetincomeentry.h"
 #include "ledgerbudgetreserveamountentry.h"
 #include "ledgerbudgetreservepercententry.h"
@@ -56,7 +57,14 @@ void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)
 
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
-   m_file << "  goal    " << entry.category();
+   m_file << "  goal    " << entry.category() << "  " << entry.goal() << "  "
+          << entry.amount().toString() << " " << entry.goalDate().toString()
+          << std::endl;
+}
+
+void FileWriter::processItem(LedgerBudgetGoalsEntry const& entry)
+{
+   m_file << "  goals   " << entry.category();
    if (entry.owner().isNotEmpty())
    {
       m_file << "  " << entry.owner();
