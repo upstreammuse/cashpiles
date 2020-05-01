@@ -537,12 +537,11 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
       else if (m_goals.count(category))
       {
          m_goals[category].spent += entry.amount();
-         Currency total;
+         auto total = m_goals[category].spent;
          for (auto goal : m_goals[category].goals)
          {
             total += goal.second.reserved;
          }
-         total += m_goals[category].spent;
          if (total.isNegative())
          {
             std::stringstream ss;
