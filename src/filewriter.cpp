@@ -4,6 +4,7 @@
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
+#include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetgoalentry.h"
 #include "ledgerbudgetgoalsentry.h"
@@ -48,6 +49,12 @@ void FileWriter::processItem(LedgerBudget const& budget)
 {
    m_file << budget.date().toString(m_dateFormat) << " budget "
           << budget.interval().toString() << std::endl;
+}
+
+void FileWriter::processItem(LedgerBudgetCancelEntry const& entry)
+{
+   m_file << "  cancel  " << entry.category() << "  " << entry.goal()
+          << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)

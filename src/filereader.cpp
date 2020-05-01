@@ -8,6 +8,7 @@
 #include "ledgeraccount.h"
 #include "ledgerblank.h"
 #include "ledgerbudget.h"
+#include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
 #include "ledgerbudgetentry.h"
 #include "ledgerbudgetgoalentry.h"
@@ -39,6 +40,7 @@ struct FileReaderRegEx
 
    std::regex const accountRx;
    std::regex const budgetRx;
+   std::regex const budgetLineCancelRx;
    std::regex const budgetLineCloseRx;
    std::regex const budgetLineGoalRx;
    std::regex const budgetLineGoalsRx;
@@ -150,6 +152,9 @@ struct FileReaderRegEx
       budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX),
+      budgetLineCancelRx(
+         START_RX + SEP_RX + "cancel" + SPACE_RX + IDENT_RX + SEP_RX +
+         IDENT_RX + END_RX),
       budgetLineCloseRx(
          START_RX + SEP_RX + "close" + SPACE_RX + IDENT_RX + END_RX),
       budgetLineGoalRx(
@@ -299,7 +304,16 @@ void FileReader::processBudget(std::smatch& match)
    while (true)
    {
       std::string line(readLine());
-      if (std::regex_match(line, match, regEx->budgetLineCloseRx))
+      if (std::regex_match(line, match, regEx->budgetLineCancelRx))
+      {
+         auto entry = make_shared<LedgerBudgetCancelEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(Identifier(match.str(1),
+                                       Identifier::Type::CATEGORY));
+         entry->setGoal(match[2]);
+         budget->appendEntry(entry);
+      }
+      else if (std::regex_match(line, match, regEx->budgetLineCloseRx))
       {
          std::shared_ptr<LedgerBudgetCloseEntry> entry(
                   new LedgerBudgetCloseEntry(m_fileName, m_lineNum));

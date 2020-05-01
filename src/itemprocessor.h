@@ -4,6 +4,7 @@
 class LedgerAccount;
 class LedgerBlank;
 class LedgerBudget;
+class LedgerBudgetCancelEntry;
 class LedgerBudgetCloseEntry;
 class LedgerBudgetGoalEntry;
 class LedgerBudgetGoalsEntry;
@@ -25,6 +26,7 @@ public:
    virtual void processItem(LedgerAccount const& account);
    virtual void processItem(LedgerBlank const& blank);
    virtual void processItem(LedgerBudget const& budget);
+   virtual void processItem(LedgerBudgetCancelEntry const& budget);
    virtual void processItem(LedgerBudgetCloseEntry const& budget);
    virtual void processItem(LedgerBudgetGoalEntry const& budget);
    virtual void processItem(LedgerBudgetGoalsEntry const& budget);
