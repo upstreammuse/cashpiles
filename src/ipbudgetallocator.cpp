@@ -208,10 +208,9 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 
    if (m_goals.count(category))
    {
-      for (auto it = m_goals[category].goals.begin();
-           it != m_goals[category].goals.end(); ++it)
+      for (auto it : m_goals[category].goals)
       {
-         m_goals[category].spent += it->second.reserved;
+         m_goals[category].spent += it.second.reserved;
       }
 
       if (!m_goals[category].spent.isZero())
