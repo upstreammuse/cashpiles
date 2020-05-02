@@ -15,7 +15,6 @@
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
-#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
 #include "texttable.h"
@@ -430,72 +429,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
    m_withholdings.insert(budget.category());
-}
-
-void IPBudgetAllocator::processItem(LedgerReserve const& reserve)
-{
-   if (reserve.date() > m_today)
-   {
-      warn(reserve.fileName(), reserve.lineNum(),
-           "Ignoring future category reservation");
-      return;
-   }
-   advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
-
-   if (reserve.numEntries() > 1 && !reserve.amount().isZero())
-   {
-      die(reserve.fileName(), reserve.lineNum(),
-          "Multi-line reserve commands must balance to zero");
-   }
-
-   if (reserve.numEntries() < 2)
-   {
-      m_singleReserve = true;
-   }
-}
-
-void IPBudgetAllocator::processItem(LedgerReserveEntry const& reserve)
-{
-   if (reserve.date() > m_today)
-   {
-      return;
-   }
-   advanceBudgetPeriod(reserve.fileName(), reserve.lineNum(), reserve.date());
-
-   // TODO remove this
-   std::stringstream ss;
-   ss << reserve.category();
-   auto category = ss.str();
-
-   if (reserve.category().type() == Identifier::Type::OWNER)
-   {
-      if (m_singleReserve)
-      {
-         die(reserve.fileName(), reserve.lineNum(),
-             "Single-line reserve statements cannot contain owners");
-
-      }
-      m_availables[reserve.category()] += reserve.amount();
-   }
-   else
-   {
-      if (!m_goals.count(category))
-      {
-         die(reserve.fileName(), reserve.lineNum(),
-             "reserve command only for goals right now, sorry");
-      }
-
-      // reserve the amount for the overall category
-      m_goals[category].spent += reserve.amount();
-
-      // if doing a single line reserve, there is an implicit counter reserve
-      // that applies to the category owner
-      if (m_singleReserve)
-      {
-         m_availables[m_owners[reserve.category()]] -= reserve.amount();
-         m_singleReserve = false;
-      }
-   }
 }
 
 void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)

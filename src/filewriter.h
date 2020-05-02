@@ -22,8 +22,6 @@ public:
    void processItem(LedgerBudgetRoutineEntry const& entry);
    void processItem(LedgerBudgetWithholdingEntry const& entry);
    void processItem(LedgerComment const& comment);
-   void processItem(LedgerReserve const& reserve);
-   void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(std::string const& dateFormat);
    void start();

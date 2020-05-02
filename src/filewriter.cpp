@@ -14,7 +14,6 @@
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
-#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 FileWriter::FileWriter(std::string const& fileName) :
@@ -134,39 +133,6 @@ void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
 void FileWriter::processItem(LedgerComment const& comment)
 {
    m_file << ";" << comment.note() << std::endl;
-}
-
-void FileWriter::processItem(LedgerReserve const& reserve)
-{
-   m_file << reserve.date().toString(m_dateFormat) << " reserve";
-   if (reserve.numEntries() > 1)
-   {
-      m_singleReserve = false;
-      m_file << std::endl;
-   }
-   else
-   {
-      m_singleReserve = true;
-   }
-}
-
-void FileWriter::processItem(LedgerReserveEntry const& reserve)
-{
-   if (m_singleReserve)
-   {
-      m_file << " ";
-      m_singleReserve = false;
-   }
-   else
-   {
-      m_file << "  ";
-   }
-   if (reserve.category().type() == Identifier::Type::OWNER)
-   {
-      m_file << "@";
-   }
-   m_file << reserve.category() << "  " << reserve.amount().toString()
-          << std::endl;
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)

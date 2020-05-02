@@ -19,7 +19,6 @@
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
-#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 using std::make_shared;
@@ -50,9 +49,6 @@ struct FileReaderRegEx
    std::regex const budgetLineRoutineRx;
    std::regex const budgetLineWithholdingRx;
    std::regex const commentRx;
-   std::regex const reserveCompactRx;
-   std::regex const reserveRx;
-   std::regex const reserveLineRx;
    std::regex const txnCompactRx;
    std::regex const txnCompactOffRx;
    std::regex const txnRx;
@@ -183,14 +179,6 @@ struct FileReaderRegEx
          IDENT_RX +
          optional(SEP_RX + IDENT_RX) + END_RX),
       commentRx(START_RX + NOTE_RX + END_RX),
-      reserveCompactRx(
-         START_RX + DATE_RX + SPACE_RX + "reserve" + SPACE_RX +
-         IDENT_RX + SEP_RX + CURR_RX + END_RX),
-      reserveRx(
-         START_RX + DATE_RX + SPACE_RX + "reserve" + END_RX),
-      reserveLineRx(
-         START_RX + SEP_RX + IDENT_RX + SEP_RX +
-         CURR_RX + optional(SPACE_RX + NOTE_RX) + END_RX),
       txnCompactRx(
          START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
          IDENT_RX + SEP_RX + IDENT_RX + SEP_RX +
@@ -416,23 +404,6 @@ void FileReader::processComment(std::smatch const& match)
    m_ledger.appendItem(comment);
 }
 
-void FileReader::processCompactReserve(std::smatch const& match)
-{
-   std::shared_ptr<LedgerReserve> reserve(
-            new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.str(1)));
-
-   std::shared_ptr<LedgerReserveEntry> entry(
-            new LedgerReserveEntry(m_fileName, m_lineNum));
-   entry->setCategory(Identifier(match.str(2),
-                                 Identifier::Type::CATEGORY));
-   entry->setAmount(parseCurrency(match.str(3)));
-
-   reserve->appendEntry(entry);
-
-   m_ledger.appendItem(reserve);
-}
-
 void FileReader::processCompactTransaction(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
@@ -544,10 +515,6 @@ void FileReader::processLine(std::string const& line)
    {
       processComment(match);
    }
-   else if (std::regex_match(line, match, regEx->reserveCompactRx))
-   {
-      processCompactReserve(match);
-   }
    else if (std::regex_match(line, match, regEx->txnCompactRx))
    {
       processCompactTransaction(match);
@@ -555,10 +522,6 @@ void FileReader::processLine(std::string const& line)
    else if (std::regex_match(line, match, regEx->txnCompactOffRx))
    {
       processCompactTransactionOff(match);
-   }
-   else if (std::regex_match(line, match, regEx->reserveRx))
-   {
-      processReserve(match);
    }
    else if (std::regex_match(line, match, regEx->txnRx))
    {
@@ -574,44 +537,6 @@ void FileReader::processLine(std::string const& line)
       ss << "Invalid contents '" << line << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
-}
-
-void FileReader::processReserve(std::smatch& match)
-{
-   std::shared_ptr<LedgerReserve> reserve(
-            new LedgerReserve(m_fileName, m_lineNum));
-   reserve->setDate(parseDate(match.str(1)));
-
-   while (true)
-   {
-      std::string line(readLine());
-      if (std::regex_match(line, match, regEx->reserveLineRx))
-      {
-         std::shared_ptr<LedgerReserveEntry> entry(
-                  new LedgerReserveEntry(m_fileName, m_lineNum));
-         if (match.str(1)[0] == '@')
-         {
-            entry->setCategory(Identifier(match.str(1).substr(1),
-                                          Identifier::Type::OWNER));
-         }
-         else
-         {
-            entry->setCategory(Identifier(match.str(1),
-                                          Identifier::Type::CATEGORY));
-         }
-
-         entry->setAmount(parseCurrency(match.str(2)));
-
-         reserve->appendEntry(entry);
-      }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-
-   m_ledger.appendItem(reserve);
 }
 
 void FileReader::processTransaction(std::smatch& match)

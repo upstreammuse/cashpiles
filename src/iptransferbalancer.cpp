@@ -4,7 +4,6 @@
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
-#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 void IPTransferBalancer::finish()
@@ -21,11 +20,6 @@ void IPTransferBalancer::processItem(LedgerAccount const& account)
 void IPTransferBalancer::processItem(LedgerBudget const& budget)
 {
    checkTransfers(budget.date());
-}
-
-void IPTransferBalancer::processItem(LedgerReserve const& reserve)
-{
-   checkTransfers(reserve.date());
 }
 
 void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
