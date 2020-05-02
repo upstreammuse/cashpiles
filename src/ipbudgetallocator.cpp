@@ -308,6 +308,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
       die(budget.fileName(), budget.lineNum(),
           "Budget goal uses unknown category");
    }
+   if (m_goals[category].goals.count(budget.goal()))
+   {
+      die(budget.fileName(), budget.lineNum(), "Budget goal already in use");
+   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_goals[category].goals[budget.goal()].amount = budget.amount();
