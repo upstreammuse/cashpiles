@@ -39,15 +39,27 @@ private:
    void unReadLine(std::string const& line);
 
 private:
+   enum class IdentifierType
+   {
+      ACCOUNT,
+      CATEGORY,
+      OWNER
+   };
+
+private:
+   IdentifierType identifierType(std::string const& identifier);
    Currency parseCurrency(std::string const& currency);
    Date parseDate(std::string const& date);
    Interval parseInterval(std::string const& interval);
    LedgerAccount::Mode parseMode(std::string const& mode);
+   void verifyIdentifier(std::string const& identifier, IdentifierType type);
+   void verifySetIdentifier(std::string const& identifier, IdentifierType type);
 
 private:
    std::string m_dateFormat = "yyyy/MM/dd";
    std::ifstream m_file;
    std::string m_fileName;
+   std::map<std::string, IdentifierType> m_identifiers;
    Ledger& m_ledger;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
