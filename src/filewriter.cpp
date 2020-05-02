@@ -44,10 +44,11 @@ void FileWriter::processItem(LedgerBlank const&)
    m_file << std::endl;
 }
 
-void FileWriter::processItem(LedgerBudget const& budget)
+bool FileWriter::processItem(LedgerBudget const& budget)
 {
    m_file << budget.date().toString(m_dateFormat) << " budget "
           << budget.interval().toString() << std::endl;
+   return true;
 }
 
 void FileWriter::processItem(LedgerBudgetCancelEntry const& entry)

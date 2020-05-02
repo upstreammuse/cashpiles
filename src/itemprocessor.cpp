@@ -16,8 +16,9 @@ void ItemProcessor::processItem(LedgerBlank const&)
 {
 }
 
-void ItemProcessor::processItem(LedgerBudget const&)
+bool ItemProcessor::processItem(LedgerBudget const&)
 {
+   return true;
 }
 
 void ItemProcessor::processItem(LedgerBudgetCancelEntry const&)

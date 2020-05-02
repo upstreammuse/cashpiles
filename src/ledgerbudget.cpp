@@ -41,9 +41,11 @@ void LedgerBudget::appendEntry(std::shared_ptr<LedgerBudgetEntry> entry)
 
 void LedgerBudget::processItem(ItemProcessor& processor) const
 {
-   processor.processItem(*this);
-   for (auto entry : m_entries)
+   if (processor.processItem(*this))
    {
-      entry->processItem(processor);
+      for (auto entry : m_entries)
+      {
+         entry->processItem(processor);
+      }
    }
 }

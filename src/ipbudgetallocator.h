@@ -13,7 +13,7 @@ public:
    IPBudgetAllocator(Date const& today);
    void finish();
    void processItem(LedgerAccount const& account);
-   void processItem(LedgerBudget const& budget);
+   bool processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetCancelEntry const& budget);
    void processItem(LedgerBudgetCloseEntry const& budget);
    void processItem(LedgerBudgetGoalEntry const& budget);

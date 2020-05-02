@@ -22,7 +22,7 @@ public:
    virtual void finish();
    virtual void processItem(LedgerAccount const& account);
    virtual void processItem(LedgerBlank const& blank);
-   virtual void processItem(LedgerBudget const& budget);
+   virtual bool processItem(LedgerBudget const& budget);
    virtual void processItem(LedgerBudgetCancelEntry const& budget);
    virtual void processItem(LedgerBudgetCloseEntry const& budget);
    virtual void processItem(LedgerBudgetGoalEntry const& budget);

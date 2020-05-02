@@ -12,7 +12,7 @@ class IPTransferBalancer : public ItemProcessor
 public:
    void finish();
    void processItem(LedgerAccount const& account);
-   void processItem(LedgerBudget const& budget);
+   bool processItem(LedgerBudget const& budget);
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(std::string const& dateFormat);
 

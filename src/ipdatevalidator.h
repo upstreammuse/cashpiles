@@ -7,7 +7,7 @@ class IPDateValidator : public ItemProcessor
 {
 public:
    void processItem(LedgerAccount const& account);
-   void processItem(LedgerBudget const& budget);
+   bool processItem(LedgerBudget const& budget);
    void processItem(LedgerTransaction const& transaction);
 
 private:

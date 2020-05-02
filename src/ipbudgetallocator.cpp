@@ -148,13 +148,13 @@ void IPBudgetAllocator::processItem(LedgerAccount const& account)
    advanceBudgetPeriod(account.fileName(), account.lineNum(), account.date());
 }
 
-void IPBudgetAllocator::processItem(LedgerBudget const& budget)
+bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
    if (budget.date() > m_today)
    {
       warn(budget.fileName(), budget.lineNum(),
            "Ignoring future budget configuration");
-      return;
+      return false;
    }
 
    // make sure that the budget period is advanced to include yesterday, and
@@ -188,12 +188,11 @@ void IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // period's date, and there is nothing more to do, because categories that
    // automatically fund themselves in each period will do that when they are
    // first created
+   return true;
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 {
-   if (entry.date() > m_today) return;
-
    // TODO remove this
    std::stringstream ss;
    ss << entry.category();
@@ -215,10 +214,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 
 void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    // TODO remove this
@@ -293,11 +288,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-
    // TODO remove this
    std::stringstream ss;
    ss << budget.category();
@@ -323,11 +313,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
-
    // TODO remove this
    std::stringstream ss;
    ss << budget.category();
@@ -346,10 +331,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
       die(budget.fileName(), budget.lineNum(),
@@ -364,10 +345,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
 void IPBudgetAllocator::processItem(
       LedgerBudgetReserveAmountEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
       die(budget.fileName(), budget.lineNum(),
@@ -386,10 +363,6 @@ void IPBudgetAllocator::processItem(
 void IPBudgetAllocator::processItem(
       LedgerBudgetReservePercentEntry const &budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
       die(budget.fileName(), budget.lineNum(),
@@ -403,10 +376,6 @@ void IPBudgetAllocator::processItem(
 
 void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
       die(budget.fileName(), budget.lineNum(),
@@ -420,10 +389,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      return;
-   }
    if (m_owners.find(budget.category()) != m_owners.end())
    {
       die(budget.fileName(), budget.lineNum(),
