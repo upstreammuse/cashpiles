@@ -272,7 +272,8 @@ void FileReader::processAccount(std::smatch const& match)
             new LedgerAccount(m_fileName, m_lineNum));
    account->setDate(parseDate(match.str(1)));
    account->setMode(parseMode(match.str(2)));
-   account->setName(Identifier(match.str(3), Identifier::Type::ACCOUNT));
+   verifySetIdentifier(match[3], IdentifierType::ACCOUNT);
+   account->setName(Identifier(match[3], Identifier::Type::ACCOUNT));
    m_ledger.appendItem(account);
 }
 
@@ -296,7 +297,8 @@ void FileReader::processBudget(std::smatch& match)
       {
          auto entry = make_shared<LedgerBudgetCancelEntry>(
                          m_fileName, m_lineNum);
-         entry->setCategory(Identifier(match.str(1),
+         verifyIdentifier(match[1], IdentifierType::CATEGORY);
+         entry->setCategory(Identifier(match[1],
                                        Identifier::Type::CATEGORY));
          entry->setGoal(match[2]);
          budget->appendEntry(entry);
@@ -305,7 +307,8 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetCloseEntry> entry(
                   new LedgerBudgetCloseEntry(m_fileName, m_lineNum));
-         entry->setCategory(Identifier(match.str(1),
+         verifyIdentifier(match[1], IdentifierType::CATEGORY);
+         entry->setCategory(Identifier(match[1],
                                        Identifier::Type::CATEGORY));
          budget->appendEntry(entry);
       }
@@ -313,6 +316,7 @@ void FileReader::processBudget(std::smatch& match)
       {
          auto entry = make_shared<LedgerBudgetGoalEntry>(m_fileName, m_lineNum);
 
+         verifyIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match[1], Identifier::Type::CATEGORY));
          entry->setGoal(match[2]);
          entry->setAmount(parseCurrency(match[3]));
@@ -327,8 +331,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          auto entry = make_shared<LedgerBudgetGoalsEntry>(
                          m_fileName, m_lineNum);
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[2], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
@@ -337,8 +343,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetIncomeEntry> entry(
                   new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[2], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
@@ -347,8 +355,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetReserveAmountEntry> entry(
                   new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[4], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(4),
                                     Identifier::Type::OWNER));
          entry->setAmount(parseCurrency(match.str(2)));
@@ -359,8 +369,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetReservePercentEntry> entry(
                   new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[3], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(3),
                                     Identifier::Type::OWNER));
          entry->setPercentage(std::stoul(match.str(2), nullptr, 10));
@@ -370,8 +382,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetRoutineEntry> entry(
                   new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[2], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
@@ -380,8 +394,10 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetWithholdingEntry> entry(
                   new LedgerBudgetWithholdingEntry(m_fileName, m_lineNum));
+         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
          entry->setCategory(Identifier(match.str(1),
                                        Identifier::Type::CATEGORY));
+         verifySetIdentifier(match[2], IdentifierType::OWNER);
          entry->setOwner(Identifier(match.str(2),
                                     Identifier::Type::OWNER));
          budget->appendEntry(entry);
@@ -408,6 +424,7 @@ void FileReader::processCompactTransaction(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
+   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(7) != "")
@@ -435,16 +452,19 @@ void FileReader::processCompactTransaction(std::smatch const& match)
    entry.setAmount(parseCurrency(match.str(6)));
    if (match.str(5)[0] == '@')
    {
+      verifyIdentifier(match.str(5).substr(1), IdentifierType::OWNER);
       entry.setCategory(Identifier(match.str(5).substr(1),
                                    Identifier::Type::OWNER));
    }
    else
    {
+      verifyIdentifier(match[5], IdentifierType::CATEGORY);
       entry.setCategory(Identifier(match.str(5),
                                    Identifier::Type::CATEGORY));
    }
    if (match.str(4)[0] == '@')
    {
+      verifyIdentifier(match.str(4).substr(1), IdentifierType::ACCOUNT);
       entry.setPayee(Identifier(match.str(4).substr(1),
                                 Identifier::Type::ACCOUNT));
    }
@@ -462,6 +482,7 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
+   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
    transaction->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(6) != "")
@@ -487,6 +508,7 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
    entry.setAmount(parseCurrency(match.str(5)));
    if (match.str(4)[0] == '@')
    {
+      verifyIdentifier(match.str(4).substr(1), IdentifierType::ACCOUNT);
       entry.setPayee(Identifier(match.str(4).substr(1),
                                 Identifier::Type::ACCOUNT));
    }
@@ -543,6 +565,7 @@ void FileReader::processTransaction(std::smatch& match)
 {
    std::shared_ptr<LedgerTransaction> xact(
             new LedgerTransaction(m_fileName, m_lineNum));
+   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
    xact->setAccount(
             Identifier(match.str(3), Identifier::Type::ACCOUNT));
    if (match.str(5) != "")
@@ -572,11 +595,13 @@ void FileReader::processTransaction(std::smatch& match)
          entry.setAmount(parseCurrency(match.str(3)));
          if (match.str(2)[0] == '@')
          {
+            verifyIdentifier(match.str(2).substr(1), IdentifierType::OWNER);
             entry.setCategory(Identifier(match.str(2).substr(1),
                                          Identifier::Type::OWNER));
          }
          else
          {
+            verifyIdentifier(match[2], IdentifierType::CATEGORY);
             entry.setCategory(Identifier(match.str(2),
                                          Identifier::Type::CATEGORY));
          }
@@ -586,6 +611,7 @@ void FileReader::processTransaction(std::smatch& match)
          }
          if (match.str(1)[0] == '@')
          {
+            verifyIdentifier(match.str(1).substr(1), IdentifierType::ACCOUNT);
             entry.setPayee(Identifier(match.str(1).substr(1),
                                       Identifier::Type::ACCOUNT));
          }
@@ -606,6 +632,7 @@ void FileReader::processTransaction(std::smatch& match)
          }
          if (match.str(1)[0] == '@')
          {
+            verifyIdentifier(match.str(1).substr(1), IdentifierType::ACCOUNT);
             entry.setPayee(Identifier(match.str(1).substr(1),
                                       Identifier::Type::ACCOUNT));
          }
@@ -659,6 +686,16 @@ void FileReader::unReadLine(std::string const& line)
    m_lines.push(line);
 }
 
+FileReader::IdentifierType FileReader::identifierType(
+      std::string const& identifier)
+{
+   if (!m_identifiers.count(identifier))
+   {
+      die(m_fileName, m_lineNum, "Unknown identifier '" + identifier + "'");
+   }
+   return m_identifiers[identifier];
+}
+
 Currency FileReader::parseCurrency(std::string const& currency)
 {
    return parseCurrency(currency, m_fileName, m_lineNum);
@@ -693,4 +730,49 @@ LedgerAccount::Mode FileReader::parseMode(std::string const& mode)
       die(m_fileName, m_lineNum, ss.str());
    }
    return m;
+}
+
+void FileReader::verifyIdentifier(
+      std::string const& identifier, IdentifierType type)
+{
+   if (identifierType(identifier) != type)
+   {
+      std::stringstream ss;
+      switch (identifierType(identifier))
+      {
+         case IdentifierType::ACCOUNT:
+            ss << "Account";
+            break;
+         case IdentifierType::CATEGORY:
+            ss << "Budget category";
+            break;
+         case IdentifierType::OWNER:
+            ss << "Budget category owner";
+            break;
+      }
+      ss << " '" << identifier << "' now used as ";
+      switch (type)
+      {
+         case IdentifierType::ACCOUNT:
+            ss << "account";
+            break;
+         case IdentifierType::CATEGORY:
+            ss << "budget category";
+            break;
+         case IdentifierType::OWNER:
+            ss << "budget category owner";
+            break;
+      }
+      die(m_fileName, m_lineNum, ss.str());
+   }
+}
+
+void FileReader::verifySetIdentifier(
+      std::string const& identifier, IdentifierType type)
+{
+   if (!m_identifiers.count(identifier))
+   {
+      m_identifiers[identifier] = type;
+   }
+   verifyIdentifier(identifier, type);
 }
