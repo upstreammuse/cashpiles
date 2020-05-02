@@ -1,5 +1,4 @@
-#ifndef LEDGER_H
-#define LEDGER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -18,5 +17,3 @@ public:
 protected:
    std::vector<std::shared_ptr<LedgerItem>> m_items;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef IPACCOUNTBALANCER_H
-#define IPACCOUNTBALANCER_H
+#pragma once
 
 #include <map>
 #include "currency.h"
@@ -30,5 +29,3 @@ private:
    std::map<Identifier, Account> m_accounts;
    Date const m_today;
 };
-
-#endif

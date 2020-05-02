@@ -1,5 +1,4 @@
-#ifndef DATERANGE_H
-#define DATERANGE_H
+#pragma once
 
 #include "date.h"
 #include "interval.h"
@@ -23,5 +22,3 @@ private:
    Interval m_interval;
    Date m_startDate;
 };
-
-#endif

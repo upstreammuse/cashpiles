@@ -1,5 +1,4 @@
-#ifndef LEDGERACCOUNT_H
-#define LEDGERACCOUNT_H
+#pragma once
 
 #include "currency.h"
 #include "date.h"
@@ -37,5 +36,3 @@ private:
    Mode m_mode = Mode::CLOSED;
    Identifier m_name;
 };
-
-#endif

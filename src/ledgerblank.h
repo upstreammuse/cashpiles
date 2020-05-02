@@ -1,5 +1,4 @@
-#ifndef LEDGERBLANK_H
-#define LEDGERBLANK_H
+#pragma once
 
 #include "ledgeritem.h"
 
@@ -9,5 +8,3 @@ public:
    LedgerBlank(std::string const& fileName, size_t lineNum);
    void processItem(ItemProcessor& processor) const;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ITEMPROCESSOR_H
-#define ITEMPROCESSOR_H
+#pragma once
 
 class LedgerAccount;
 class LedgerBlank;
@@ -37,5 +36,3 @@ public:
    virtual void processItem(LedgerTransaction const& transaction);
    virtual void start();
 };
-
-#endif

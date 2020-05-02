@@ -1,5 +1,4 @@
-#ifndef IPDATEVALIDATOR_H
-#define IPDATEVALIDATOR_H
+#pragma once
 
 #include "date.h"
 #include "itemprocessor.h"
@@ -18,5 +17,3 @@ private:
 private:
    Date m_latestDate;
 };
-
-#endif
