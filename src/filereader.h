@@ -29,11 +29,9 @@ private:
    void processBlank();
    void processBudget(std::smatch& match);
    void processComment(std::smatch const& match);
-   void processCompactReserve(std::smatch const& match);
    void processCompactTransaction(std::smatch const& match);
    void processCompactTransactionOff(std::smatch const& match);
    void processLine(std::string const& line);
-   void processReserve(std::smatch& match);
    void processTransaction(std::smatch& match);
 
    bool hasLines();

@@ -13,7 +13,6 @@ public:
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerBudget const& budget);
-   void processItem(LedgerReserve const& reserve);
    void processItem(LedgerTransaction const& transaction);
    void setDateFormat(std::string const& dateFormat);
 

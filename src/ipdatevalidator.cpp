@@ -5,7 +5,6 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
-#include "ledgerreserve.h"
 #include "ledgertransaction.h"
 
 void IPDateValidator::processItem(LedgerAccount const& account)
@@ -16,11 +15,6 @@ void IPDateValidator::processItem(LedgerAccount const& account)
 void IPDateValidator::processItem(LedgerBudget const& budget)
 {
    processDate(budget.date(), budget.fileName(), budget.lineNum());
-}
-
-void IPDateValidator::processItem(LedgerReserve const& reserve)
-{
-   processDate(reserve.date(), reserve.fileName(), reserve.lineNum());
 }
 
 void IPDateValidator::processItem(LedgerTransaction const& transaction)

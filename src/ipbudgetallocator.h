@@ -23,8 +23,6 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
    void processItem(LedgerBudgetWithholdingEntry const& budget);
-   void processItem(LedgerReserve const& reserve);
-   void processItem(LedgerReserveEntry const& reserve);
    void processItem(LedgerTransaction const& transaction);
 
 private:
@@ -71,7 +69,6 @@ private:
    DateRange m_priorPeriod;
    std::map<Identifier, Reserve> m_reserves;
    std::map<Identifier, Routine> m_routines;
-   bool m_singleReserve = false;
    Date m_today;
    std::set<Identifier> m_withholdings;
 };
