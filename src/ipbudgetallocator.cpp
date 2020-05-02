@@ -183,6 +183,7 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // reconfigure the budget period
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_priorPeriod = DateRange();
+   m_workingDate = budget.date();
 
    // at this point we have reset the budget period to start with the new
    // period's date, and there is nothing more to do, because categories that
@@ -214,8 +215,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 
 void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 {
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
-
    // TODO remove this
    std::stringstream ss;
    ss << budget.category();
@@ -302,11 +301,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
    {
       die(budget.fileName(), budget.lineNum(), "Budget goal already in use");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_goals[category].goals[budget.goal()].amount = budget.amount();
    m_goals[category].goals[budget.goal()].period =
-         DateRange(budget.date(), budget.goalDate());
+         DateRange(m_workingDate, budget.goalDate());
 
    syncGoal(category, budget.goal());
 }
@@ -323,7 +321,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& budget)
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_goals[category];
    m_owners[budget.category()] = budget.owner();
@@ -336,7 +333,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_incomes.insert(budget.category());
    m_owners[budget.category()] = budget.owner();
@@ -350,7 +346,6 @@ void IPBudgetAllocator::processItem(
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
 
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
@@ -368,7 +363,6 @@ void IPBudgetAllocator::processItem(
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
    m_reserves[budget.category()].percentage = budget.percentage() / 100.0;
@@ -381,7 +375,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
    m_routines[budget.category()];
@@ -394,7 +387,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
       die(budget.fileName(), budget.lineNum(),
           "Budget category listed multiple times");
    }
-   advanceBudgetPeriod(budget.fileName(), budget.lineNum(), budget.date());
    m_availables[budget.owner()];
    m_owners[budget.category()] = budget.owner();
    m_withholdings.insert(budget.category());

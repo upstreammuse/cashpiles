@@ -16,14 +16,10 @@ public:
    Identifier category() const;
    void setCategory(Identifier const& category);
 
-   Date date() const;
-   void setDate(Date const& date);
-
    Identifier owner() const;
    void setOwner(Identifier const& owner);
 
 private:
    Identifier m_category;
-   Date m_date;
    Identifier m_owner;
 };

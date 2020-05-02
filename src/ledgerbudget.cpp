@@ -17,10 +17,6 @@ void LedgerBudget::setDate(Date const& date)
 {
    assert(date.isValid());
    m_date = date;
-   for (auto entry : m_entries)
-   {
-      entry->setDate(m_date);
-   }
 }
 
 Interval LedgerBudget::interval() const
@@ -35,7 +31,6 @@ void LedgerBudget::setInterval(Interval interval)
 
 void LedgerBudget::appendEntry(std::shared_ptr<LedgerBudgetEntry> entry)
 {
-   entry->setDate(m_date);
    m_entries.push_back(entry);
 }
 

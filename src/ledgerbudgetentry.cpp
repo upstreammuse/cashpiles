@@ -20,17 +20,6 @@ void LedgerBudgetEntry::setCategory(Identifier const& category)
    m_category = category;
 }
 
-Date LedgerBudgetEntry::date() const
-{
-   return m_date;
-}
-
-void LedgerBudgetEntry::setDate(Date const& date)
-{
-   assert(date.isValid());
-   m_date = date;
-}
-
 Identifier LedgerBudgetEntry::owner() const
 {
    return m_owner;

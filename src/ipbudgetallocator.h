@@ -71,4 +71,5 @@ private:
    std::map<Identifier, Routine> m_routines;
    Date m_today;
    std::set<Identifier> m_withholdings;
+   Date m_workingDate;
 };
