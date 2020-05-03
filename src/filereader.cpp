@@ -20,12 +20,15 @@
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 using std::make_shared;
+using std::smatch;
 
 struct FileReaderRegEx
 {
-   std::string const CLEAR_RX;
+   std::string const CLEAR1_RX;
+   std::string const CLEAR2_RX;
    std::string const CURR_RX;
    std::string const DATE_RX;
    std::string const END_RX;
@@ -54,6 +57,9 @@ struct FileReaderRegEx
    std::regex const txnRx;
    std::regex const txnLineRx;
    std::regex const txnLineOffRx;
+   std::regex const txn2Rx;
+   std::regex const txn2LineRx;
+   std::regex const txn2TrackingLineRx;
 
    std::string currencyRx()
    {
@@ -131,7 +137,8 @@ struct FileReaderRegEx
    }
 
    FileReaderRegEx() :
-      CLEAR_RX("(\\*|\\!|\\?)"),
+      CLEAR1_RX("(\\*|\\!|\\?)"),
+      CLEAR2_RX("(\\*\\*|\\!\\!|\\?\\?)"),
       CURR_RX(currencyRx()),
       DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
       END_RX("\\s*$"),
@@ -180,19 +187,19 @@ struct FileReaderRegEx
          optional(SEP_RX + IDENT_RX) + END_RX),
       commentRx(START_RX + NOTE_RX + END_RX),
       txnCompactRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
+         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
          IDENT_RX + SEP_RX + IDENT_RX + SEP_RX +
          IDENT_RX + SEP_RX + CURR_RX +
          optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
          optional(SPACE_RX + NOTE_RX) + END_RX),
       txnCompactOffRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
+         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
          IDENT_RX + SEP_RX + IDENT_RX + SEP_RX +
          CURR_RX +
          optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
          optional(SPACE_RX + NOTE_RX) + END_RX),
       txnRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX +
+         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
          IDENT_RX + SEP_RX + CURR_RX +
          optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
          optional(SPACE_RX + NOTE_RX) + END_RX),
@@ -202,7 +209,16 @@ struct FileReaderRegEx
          optional(SPACE_RX + NOTE_RX) + END_RX),
       txnLineOffRx(
          START_RX + SEP_RX + IDENT_RX + SEP_RX +
-         CURR_RX + optional(SPACE_RX + NOTE_RX) + END_RX)
+         CURR_RX + optional(SPACE_RX + NOTE_RX) + END_RX),
+      txn2Rx(
+         START_RX + DATE_RX + SPACE_RX + CLEAR2_RX + SPACE_RX + IDENT_RX +
+         optional(SEP_RX + CURR_RX) + optional(SPACE_RX + NOTE_RX)),
+      txn2LineRx(
+         START_RX + SEP_RX + IDENT_RX + optional(SEP_RX + CURR_RX) +
+         optional(SPACE_RX + NOTE_RX)),
+      txn2TrackingLineRx(
+         START_RX + SEP_RX + IDENT_RX + SEP_RX + IDENT_RX +
+         optional(SEP_RX + CURR_RX) + optional(SPACE_RX + NOTE_RX))
    {
    }
 };
@@ -549,6 +565,10 @@ void FileReader::processLine(std::string const& line)
    {
       processTransaction(match);
    }
+   else if (std::regex_match(line, match, regEx->txn2Rx))
+   {
+      processTransactionV2(match);
+   }
    else if (line == "")
    {
       processBlank();
@@ -651,6 +671,147 @@ void FileReader::processTransaction(std::smatch& match)
    }
 
    m_ledger.appendItem(xact);
+}
+
+void FileReader::processTransactionV2(smatch& match)
+{
+   auto txn = make_shared<LedgerTransactionV2>(m_fileName, m_lineNum);
+   txn->setDate(parseDate(match[1]));
+   auto status = match.str(2)[0];
+   switch (status)
+   {
+      case '*':
+         txn->setStatus(LedgerTransactionV2::Status::CLEARED);
+         break;
+      case '!':
+         txn->setStatus(LedgerTransactionV2::Status::DISPUTED);
+         break;
+      case '?':
+         txn->setStatus(LedgerTransactionV2::Status::PENDING);
+         break;
+   }
+   txn->setPayee(match[3]);
+   if (match[5] != "")
+   {
+      txn->setNote(match[5]);
+   }
+
+   while (true)
+   {
+      auto line = readLine();
+      if (regex_match(line, match, regEx->txn2LineRx))
+      {
+         switch (identifierType(match[1]))
+         {
+            case IdentifierType::ACCOUNT:
+            {
+               auto entry = make_shared<LedgerTransactionV2AccountEntry>(
+                               m_fileName, m_lineNum);
+               entry->setAccount(match[1]);
+               if (match[2] != "")
+               {
+                  entry->setAmount(parseCurrency(match[2]));
+               }
+               if (match[3] != "")
+               {
+                  entry->setNote(match[3]);
+               }
+               txn->appendEntry(entry);
+               break;
+            }
+            case IdentifierType::CATEGORY:
+            {
+               auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
+                               m_fileName, m_lineNum);
+               entry->setCategory(match[1]);
+               if (match[2] != "")
+               {
+                  entry->setAmount(parseCurrency(match[2]));
+               }
+               if (match[3] != "")
+               {
+                  entry->setNote(match[3]);
+               }
+               txn->appendEntry(entry);
+               break;
+            }
+            case IdentifierType::OWNER:
+            {
+               auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
+                               m_fileName, m_lineNum);
+               entry->setOwner(match[1]);
+               if (match[2] != "")
+               {
+                  entry->setAmount(parseCurrency(match[2]));
+               }
+               if (match[3] != "")
+               {
+                  entry->setNote(match[3]);
+               }
+               txn->appendEntry(entry);
+               break;
+            }
+         }
+      }
+      else if (regex_match(line, match, regEx->txn2TrackingLineRx))
+      {
+         switch (identifierType(match[1]))
+         {
+            case IdentifierType::ACCOUNT:
+            {
+               die(m_fileName, m_lineNum,
+                   "Cannot use tracking account with account");
+               // TODO put a break here when die() is removed
+            }
+            case IdentifierType::CATEGORY:
+            {
+               auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
+                               m_fileName, m_lineNum);
+               entry->setCategory(match[1]);
+               entry->setTrackingAccount(match[2]);
+               verifyIdentifier(entry->trackingAccount().first,
+                                IdentifierType::ACCOUNT);
+               if (match[3] != "")
+               {
+                  entry->setAmount(parseCurrency(match[3]));
+               }
+               if (match[4] != "")
+               {
+                  entry->setNote(match[4]);
+               }
+               txn->appendEntry(entry);
+               break;
+            }
+            case IdentifierType::OWNER:
+            {
+               auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
+                               m_fileName, m_lineNum);
+               entry->setOwner(match[1]);
+               entry->setTrackingAccount(match[2]);
+               verifyIdentifier(entry->trackingAccount().first,
+                                IdentifierType::ACCOUNT);
+               if (match[3] != "")
+               {
+                  entry->setAmount(parseCurrency(match[3]));
+               }
+               if (match[4] != "")
+               {
+                  entry->setNote(match[4]);
+               }
+               txn->appendEntry(entry);
+               break;
+            }
+         }
+      }
+      else
+      {
+         unReadLine(line);
+         break;
+      }
+   }
+
+   txn->finalize();
+   m_ledger.appendItem(txn);
 }
 
 bool FileReader::hasLines()

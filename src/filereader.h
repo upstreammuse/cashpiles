@@ -33,6 +33,7 @@ private:
    void processCompactTransactionOff(std::smatch const& match);
    void processLine(std::string const& line);
    void processTransaction(std::smatch& match);
+   void processTransactionV2(std::smatch& match);
 
    bool hasLines();
    std::string readLine();
