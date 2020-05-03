@@ -43,6 +43,11 @@ bool Identifier::operator<(Identifier const& other) const
    return m_value < other.m_value;
 }
 
+Identifier::operator std::string() const
+{
+   return m_value;
+}
+
 std::ostream& operator<<(std::ostream& out, Identifier const& ident)
 {
    assert(ident.m_type != Identifier::Type::UNINITIALIZED);

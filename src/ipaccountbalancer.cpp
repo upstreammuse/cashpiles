@@ -6,6 +6,7 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 #include "texttable.h"
 
 IPAccountBalancer::IPAccountBalancer(Date const& today) :
@@ -174,6 +175,83 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
          warn(transaction.fileName(), transaction.lineNum(),
               "Pending transactions included in balance statement");
          m_accounts[transaction.account()].hasPending = false;
+      }
+   }
+}
+
+bool IPAccountBalancer::processItem(LedgerTransactionV2 const& transaction)
+{
+   m_workingDate = transaction.date();
+   m_workingStatus = transaction.status();
+   return true;
+}
+
+void IPAccountBalancer::processItem(
+      LedgerTransactionV2AccountEntry const& entry)
+{
+   auto& account = m_accounts[entry.account()];
+   auto amount = entry.amount().first;
+
+   account.future += amount;
+   if (m_workingDate <= m_today)
+   {
+      account.balance += amount;
+      switch (m_workingStatus)
+      {
+         case LedgerTransactionV2::Status::CLEARED:
+         case LedgerTransactionV2::Status::DISPUTED:
+            account.cleared += amount;
+            break;
+         case LedgerTransactionV2::Status::PENDING:
+            account.hasPending = true;
+            break;
+      }
+   }
+}
+
+void IPAccountBalancer::processItem(
+      LedgerTransactionV2CategoryEntry const& entry)
+{
+   if (!entry.trackingAccount().second) return;
+   auto& account = m_accounts[entry.trackingAccount().first];
+   auto amount = entry.amount().first;
+
+   account.future -= amount;
+   if (m_workingDate <= m_today)
+   {
+      account.balance -= amount;
+      switch (m_workingStatus)
+      {
+         case LedgerTransactionV2::Status::CLEARED:
+         case LedgerTransactionV2::Status::DISPUTED:
+            account.cleared -= amount;
+            break;
+         case LedgerTransactionV2::Status::PENDING:
+            account.hasPending = true;
+            break;
+      }
+   }
+}
+
+void IPAccountBalancer::processItem(LedgerTransactionV2OwnerEntry const& entry)
+{
+   if (!entry.trackingAccount().second) return;
+   auto& account = m_accounts[entry.trackingAccount().first];
+   auto amount = entry.amount().first;
+
+   account.future -= amount;
+   if (m_workingDate <= m_today)
+   {
+      account.balance -= amount;
+      switch (m_workingStatus)
+      {
+         case LedgerTransactionV2::Status::CLEARED:
+         case LedgerTransactionV2::Status::DISPUTED:
+            account.cleared -= amount;
+            break;
+         case LedgerTransactionV2::Status::PENDING:
+            account.hasPending = true;
+            break;
       }
    }
 }
