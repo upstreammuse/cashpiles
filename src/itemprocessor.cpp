@@ -65,6 +65,23 @@ void ItemProcessor::processItem(LedgerTransaction const&)
 {
 }
 
+bool ItemProcessor::processItem(LedgerTransactionV2 const&)
+{
+   return true;
+}
+
+void ItemProcessor::processItem(LedgerTransactionV2AccountEntry const&)
+{
+}
+
+void ItemProcessor::processItem(LedgerTransactionV2CategoryEntry const&)
+{
+}
+
+void ItemProcessor::processItem(LedgerTransactionV2OwnerEntry const&)
+{
+}
+
 void ItemProcessor::start()
 {
 }
