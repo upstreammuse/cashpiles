@@ -3,8 +3,8 @@
 #include <map>
 #include "currency.h"
 #include "date.h"
-#include "identifier.h"
 #include "itemprocessor.h"
+#include "ledgertransactionv2.h"
 
 class IPAccountBalancer : public ItemProcessor
 {
@@ -13,6 +13,10 @@ public:
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerTransaction const& transaction);
+   bool processItem(LedgerTransactionV2 const& transaction);
+   void processItem(LedgerTransactionV2AccountEntry const& entry);
+   void processItem(LedgerTransactionV2CategoryEntry const& entry);
+   void processItem(LedgerTransactionV2OwnerEntry const& entry);
 
 private:
    struct Account
@@ -26,6 +30,8 @@ private:
    };
 
 private:
-   std::map<Identifier, Account> m_accounts;
+   std::map<std::string, Account> m_accounts;
    Date const m_today;
+   Date m_workingDate;
+   LedgerTransactionV2::Status m_workingStatus;
 };

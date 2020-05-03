@@ -25,6 +25,8 @@ public:
    bool operator!=(Identifier const& other) const;
    bool operator<(Identifier const& other) const;
 
+   operator std::string() const;
+
    friend std::ostream& operator<<(std::ostream& out, Identifier const& ident);
 
 private:
