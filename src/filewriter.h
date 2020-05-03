@@ -34,6 +34,4 @@ private:
    std::string m_dateFormat = "yyyy/MM/dd";
    std::ofstream m_file;
    std::string m_fileName;
-   // TODO there needs to be a cleaner way than this
-   bool m_singleReserve = false;
 };
