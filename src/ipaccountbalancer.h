@@ -12,6 +12,7 @@ public:
    IPAccountBalancer(Date const& today);
    void finish();
    void processItem(LedgerAccount const& account);
+   void processItem(LedgerAccountBalance const& balance);
    void processItem(LedgerTransaction const& transaction);
    bool processItem(LedgerTransactionV2 const& transaction);
    void processItem(LedgerTransactionV2AccountEntry const& entry);

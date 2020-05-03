@@ -6,6 +6,7 @@
 #include "date.h"
 #include "ledger.h"
 #include "ledgeraccount.h"
+#include "ledgeraccountbalance.h"
 #include "ledgerblank.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetcancelentry.h"
@@ -41,6 +42,7 @@ struct FileReaderRegEx
    std::string const START_RX;
 
    std::regex const accountRx;
+   std::regex const accountBalanceRx;
    std::regex const budgetRx;
    std::regex const budgetLineCancelRx;
    std::regex const budgetLineCloseRx;
@@ -136,6 +138,7 @@ struct FileReaderRegEx
       return ss.str();
    }
 
+   // TODO proposal for ledgeritem to contain the note, since the data model aligns to the file such that each line is its own item, and the file reader can play 'find the semicolon' to split the note away from the rest of the content for regex parsing.  way better than each item child having to deal with note processing on its own
    FileReaderRegEx() :
       CLEAR1_RX("(\\*|\\!|\\?)"),
       CLEAR2_RX("(\\*\\*|\\!\\!|\\?\\?)"),
@@ -152,6 +155,9 @@ struct FileReaderRegEx
       accountRx(
          START_RX + DATE_RX + SPACE_RX + "(on-budget|off-budget|close)" +
          SPACE_RX + IDENT_RX + END_RX),
+      accountBalanceRx(
+         START_RX + DATE_RX + SPACE_RX + "balance" + SPACE_RX + IDENT_RX +
+         SEP_RX + CURR_RX + END_RX),
       budgetRx(
          START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
          END_RX),
@@ -291,6 +297,16 @@ void FileReader::processAccount(std::smatch const& match)
    verifySetIdentifier(match[3], IdentifierType::ACCOUNT);
    account->setName(Identifier(match[3], Identifier::Type::ACCOUNT));
    m_ledger.appendItem(account);
+}
+
+void FileReader::processAccountBalance(std::smatch const& match)
+{
+   auto balance = make_shared<LedgerAccountBalance>(m_fileName, m_lineNum);
+   balance->setDate(parseDate(match[1]));
+   balance->setAccount(match[2]);
+   verifySetIdentifier(balance->account(), IdentifierType::ACCOUNT);
+   balance->setAmount(parseCurrency(match[3]));
+   m_ledger.appendItem(balance);
 }
 
 void FileReader::processBlank()
@@ -544,6 +560,10 @@ void FileReader::processLine(std::string const& line)
    if (std::regex_match(line, match, regEx->accountRx))
    {
       processAccount(match);
+   }
+   else if (std::regex_match(line, match, regEx->accountBalanceRx))
+   {
+      processAccountBalance(match);
    }
    else if (std::regex_match(line, match, regEx->budgetRx))
    {

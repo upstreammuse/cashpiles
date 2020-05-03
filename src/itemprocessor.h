@@ -1,6 +1,7 @@
 #pragma once
 
 class LedgerAccount;
+class LedgerAccountBalance;
 class LedgerBlank;
 class LedgerBudget;
 class LedgerBudgetCancelEntry;
@@ -25,6 +26,7 @@ public:
    virtual ~ItemProcessor();
    virtual void finish();
    virtual void processItem(LedgerAccount const& account);
+   virtual void processItem(LedgerAccountBalance const& balance);
    virtual void processItem(LedgerBlank const& blank);
    virtual bool processItem(LedgerBudget const& budget);
    virtual void processItem(LedgerBudgetCancelEntry const& budget);
