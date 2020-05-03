@@ -96,46 +96,46 @@ void IPAccountBalancer::finish()
              << std::endl;
 }
 
-void IPAccountBalancer::processItem(LedgerAccount const& account)
+void IPAccountBalancer::processItem(LedgerAccount const& account_)
 {
-   switch (account.mode())
+   auto name = account_.name();
+   auto& account = m_accounts[name];
+   auto mode = account_.mode();
+
+   switch (mode)
    {
       case LedgerAccount::Mode::CLOSED:
-         if (m_accounts[account.name()].isClosed)
+         if (account.isClosed)
          {
             std::stringstream ss;
-            ss << "Cannot close account '" << account.name()
-               << "' that was not open";
-            warn(account.fileName(), account.lineNum(), ss.str());
+            ss << "Cannot close account '" << name << "' that was not open";
+            warn(account_.fileName(), account_.lineNum(), ss.str());
          }
-         else if (!m_accounts[account.name()].future.isZero())
+         else if (!account.future.isZero())
          {
             std::stringstream ss;
-            ss << "Cannot close account '" << account.name()
-               << "' with non-zero balance "
-               << m_accounts[account.name()].balance.toString();
-            warn(account.fileName(), account.lineNum(), ss.str());
+            ss << "Cannot close account '" << name << "' with non-zero balance "
+               << account.future.toString();
+            warn(account_.fileName(), account_.lineNum(), ss.str());
          }
          else
          {
-            m_accounts[account.name()].isClosed = true;
+            account.isClosed = true;
          }
          break;
       case LedgerAccount::Mode::OFF_BUDGET:
       case LedgerAccount::Mode::ON_BUDGET:
-         if (!m_accounts[account.name()].isClosed)
+         if (!account.isClosed)
          {
             std::stringstream ss;
-            ss << "Cannot open account '" << account.name()
-               << "' that was already open";
-            warn(account.fileName(), account.lineNum(), ss.str());
+            ss << "Cannot open account '" << name << "' that was already open";
+            warn(account_.fileName(), account_.lineNum(), ss.str());
          }
          else
          {
-            m_accounts[account.name()].hasPending = false;
-            m_accounts[account.name()].isClosed = false;
-            m_accounts[account.name()].onBudget =
-                  (account.mode() == LedgerAccount::Mode::ON_BUDGET);
+            account.hasPending = false;
+            account.isClosed = false;
+            account.onBudget = (mode == LedgerAccount::Mode::ON_BUDGET);
          }
          break;
    }
