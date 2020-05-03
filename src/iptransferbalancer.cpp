@@ -5,6 +5,7 @@
 #include "ledgeraccount.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 void IPTransferBalancer::finish()
 {
@@ -43,6 +44,12 @@ void IPTransferBalancer::processItem(LedgerTransaction const& transaction)
             die("Internal logic error, entry has wrong type");
       }
    }
+}
+
+bool IPTransferBalancer::processItem(LedgerTransactionV2 const& transaction)
+{
+   checkTransfers(transaction.date());
+   return false;
 }
 
 void IPTransferBalancer::checkTransfers(Date const& date)
