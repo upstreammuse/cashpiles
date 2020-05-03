@@ -26,6 +26,7 @@ public:
 
 private:
    void processAccount(std::smatch const& match);
+   void processAccountBalance(std::smatch const& match);
    void processBlank();
    void processBudget(std::smatch& match);
    void processComment(std::smatch const& match);

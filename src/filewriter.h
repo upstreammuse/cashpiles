@@ -10,6 +10,7 @@ public:
    explicit FileWriter(std::string const& fileName);
    void finish();
    void processItem(LedgerAccount const& account);
+   void processItem(LedgerAccountBalance const& balance);
    void processItem(LedgerBlank const& blank);
    bool processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetCancelEntry const& entry);

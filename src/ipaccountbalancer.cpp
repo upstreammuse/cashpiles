@@ -4,6 +4,7 @@
 #include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
+#include "ledgeraccountbalance.h"
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
@@ -141,17 +142,14 @@ void IPAccountBalancer::processItem(LedgerAccount const& account_)
    }
 }
 
-// TODO
-#if 0
-void IPAccountBalancer::processItem(LedgerBalance const& balance)
+void IPAccountBalancer::processItem(LedgerAccountBalance const& balance)
 {
    if (balance.amount() != m_accounts[balance.account()].future)
    {
       std::stringstream ss;
       ss << "Account '" << balance.account() << "' stated balance "
          << balance.amount().toString() << " does not match calculated "
-         << "balance "
-         << m_accounts[balance.account()].future.toString();
+         << "balance " << m_accounts[balance.account()].future.toString();
       warn(balance.fileName(), balance.lineNum(), ss.str());
    }
    if (m_accounts[balance.account()].hasPending)
@@ -161,7 +159,6 @@ void IPAccountBalancer::processItem(LedgerBalance const& balance)
       m_accounts[balance.account()].hasPending = false;
    }
 }
-#endif
 
 void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 {

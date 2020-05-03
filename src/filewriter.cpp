@@ -3,6 +3,7 @@
 #include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
+#include "ledgeraccountbalance.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
@@ -37,6 +38,13 @@ void FileWriter::processItem(LedgerAccount const& account)
 {
    m_file << account.date().toString(m_dateFormat) << " "
           << account.modeToString(account.mode()) << " " << account.name()
+          << std::endl;
+}
+
+void FileWriter::processItem(LedgerAccountBalance const& balance)
+{
+   m_file << balance.date().toString(m_dateFormat) << " balance "
+          << balance.account() << "  " << balance.amount().toString()
           << std::endl;
 }
 
