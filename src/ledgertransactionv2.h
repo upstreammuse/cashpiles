@@ -121,5 +121,5 @@ private:
    std::vector<std::shared_ptr<LedgerTransactionV2Entry>> m_entries;
    std::pair<std::string, bool> m_note = std::make_pair("", false);
    std::string m_payee;
-   Status m_status;
+   Status m_status = Status::PENDING;
 };
