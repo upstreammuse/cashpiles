@@ -35,6 +35,7 @@ HEADERS += \
    src/ledgeritem.h \
    src/ledgertransaction.h \
    src/ledgertransactionentry.h \
+   src/ledgertransactionv2.h \
    src/texttable.h \
    src/ynabregisterreader.h
 SOURCES += \
@@ -71,6 +72,7 @@ SOURCES += \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionentry.cpp \
+   src/ledgertransactionv2.cpp \
    src/texttable.cpp \
    src/ynabregisterreader.cpp
 TARGET = cashpiles

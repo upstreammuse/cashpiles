@@ -14,6 +14,10 @@ class LedgerBudgetRoutineEntry;
 class LedgerBudgetWithholdingEntry;
 class LedgerComment;
 class LedgerTransaction;
+class LedgerTransactionV2;
+class LedgerTransactionV2AccountEntry;
+class LedgerTransactionV2CategoryEntry;
+class LedgerTransactionV2OwnerEntry;
 
 class ItemProcessor
 {
@@ -34,5 +38,9 @@ public:
    virtual void processItem(LedgerBudgetWithholdingEntry const& budget);
    virtual void processItem(LedgerComment const& comment);
    virtual void processItem(LedgerTransaction const& transaction);
+   virtual bool processItem(LedgerTransactionV2 const& transaction);
+   virtual void processItem(LedgerTransactionV2AccountEntry const& entry);
+   virtual void processItem(LedgerTransactionV2CategoryEntry const& entry);
+   virtual void processItem(LedgerTransactionV2OwnerEntry const& entry);
    virtual void start();
 };
