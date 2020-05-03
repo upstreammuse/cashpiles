@@ -17,6 +17,7 @@
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionentry.h"
+#include "ledgertransactionv2.h"
 #include "texttable.h"
 
 IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
@@ -181,9 +182,11 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
    }
 
    // reconfigure the budget period
+   // TODO this looks like it resets the routine calculations
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_priorPeriod = DateRange();
    m_workingDate = budget.date();
+   // TODO maybe better to track the routine calculation dates per category
 
    // at this point we have reset the budget period to start with the new
    // period's date, and there is nothing more to do, because categories that
@@ -513,6 +516,106 @@ void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
    }
 }
 
+bool IPBudgetAllocator::processItem(LedgerTransactionV2 const& transaction)
+{
+   advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
+                       transaction.date());
+   // TODO should probably allow as long as it's within the budget period
+   if (transaction.date() > m_today) return false;
+   m_workingDate = transaction.date();
+   return true;
+}
+
+void IPBudgetAllocator::processItem(
+      LedgerTransactionV2CategoryEntry const& entry)
+{
+   auto amount = entry.amount().first;
+   auto category = entry.category();
+
+   if (m_goals.count(category))
+   {
+      m_goals[category].spent += amount;
+      auto total = m_goals[category].spent;
+      for (auto goal : m_goals[category].goals)
+      {
+         total += goal.second.reserved;
+      }
+      if (total.isNegative())
+      {
+         std::stringstream ss;
+         ss << "Goal category '" << category << "' overspent";
+         warn(entry.fileName(), entry.lineNum(), ss.str());
+         m_availables[m_owners[category]] += total;
+         m_goals[category].spent -= total;
+      }
+   }
+   else if (m_incomes.count(category))
+   {
+      m_availables[m_owners[category]] += amount;
+      for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
+      {
+         // skip reserves that are not percentage based
+         // TODO make separate lists to avoid this crap?
+         if (!it->second.period.isNull()) continue;
+
+         // skip reserves with a different owner
+         if (m_owners[it->first] != m_owners[category]) continue;
+
+         Currency partial = amount * it->second.percentage;
+         it->second.reserved += partial;
+         m_availables[m_owners[it->first]] -= partial;
+      }
+   }
+   else if (m_reserves.count(category))
+   {
+      m_reserves[category].reserved += amount;
+      if (m_reserves[category].reserved.isNegative())
+      {
+         std::stringstream ss;
+         ss << "Reserve category '" << category << "' overspent";
+         warn(entry.fileName(), entry.lineNum(), ss.str());
+         m_availables[m_owners[category]] += m_reserves[category].reserved;
+         m_reserves[category].reserved.clear();
+      }
+   }
+   else if (m_routines.count(category))
+   {
+      m_routines[category].currentAmount += amount;
+      m_routines[category].reserved += amount;
+      if (m_routines[category].reserved.isNegative())
+      {
+         // TODO instead of reporting the overspend, this should feed into a
+         //   report that says "0 days of routine expenses planned for" or some
+         //   such
+         m_availables[m_owners[category]] += m_routines[category].reserved;
+         m_routines[category].reserved.clear();
+      }
+   }
+   else if (m_withholdings.count(category))
+   {
+      m_availables[m_owners[category]] += amount;
+   }
+   else
+   {
+      std::stringstream ss;
+      ss << "Category '" << category << "' not recognized";
+      die(entry.fileName(), entry.lineNum(), ss.str());
+   }
+}
+
+void IPBudgetAllocator::processItem(LedgerTransactionV2OwnerEntry const& entry)
+{
+   // if the category is an owner, make sure we recognize it
+   if (!m_availables.count(entry.owner()))
+   {
+      std::stringstream ss;
+      ss << "Unknown category owner '" << entry.owner() << "'";
+      die(entry.fileName(), entry.lineNum(), ss.str());
+   }
+
+   m_availables[entry.owner()] += entry.amount().first;
+}
+
 void IPBudgetAllocator::advanceBudgetPeriod(std::string const& filename,
                                             size_t lineNum, Date const& date)
 {
@@ -614,7 +717,7 @@ void IPBudgetAllocator::syncGoal(
    }
 }
 
-void IPBudgetAllocator::syncReserve(Identifier const& category)
+void IPBudgetAllocator::syncReserve(std::string const& category)
 {
    // fund all reserve periods that start before this budget period ends,
    // considering that the current reserve period might have started
