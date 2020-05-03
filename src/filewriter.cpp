@@ -15,6 +15,7 @@
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 FileWriter::FileWriter(std::string const& fileName) :
    m_fileName(fileName)
@@ -252,6 +253,71 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
       }
       m_file << std::endl;
    }
+}
+
+bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
+{
+   m_file << transaction.date().toString(m_dateFormat) << ' ';
+   switch (transaction.status())
+   {
+      case LedgerTransactionV2::Status::CLEARED:
+         m_file << "**";
+         break;
+      case LedgerTransactionV2::Status::DISPUTED:
+         m_file << "!!";
+         break;
+      case LedgerTransactionV2::Status::PENDING:
+         m_file << "??";
+         break;
+   }
+   m_file << ' ' << transaction.payee() << "  "
+          << transaction.amount().toString();
+   if (transaction.note().second)
+   {
+      m_file << " ;" << transaction.note().first;
+   }
+   m_file << std::endl;
+   return true;
+}
+
+void FileWriter::processItem(LedgerTransactionV2AccountEntry const& entry)
+{
+   m_file << "  " << entry.account() << "  " << entry.amount().first.toString();
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
+}
+
+void FileWriter::processItem(LedgerTransactionV2CategoryEntry const& entry)
+{
+   m_file << "  " << entry.category();
+   if (entry.trackingAccount().second)
+   {
+      m_file << "  " << entry.trackingAccount().first;
+   }
+   m_file << "  " << entry.amount().first.toString();
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
+}
+
+void FileWriter::processItem(LedgerTransactionV2OwnerEntry const& entry)
+{
+   m_file << "  " << entry.owner();
+   if (entry.trackingAccount().second)
+   {
+      m_file << "  " << entry.trackingAccount().first;
+   }
+   m_file << "  " << entry.amount().first.toString();
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
 }
 
 void FileWriter::setDateFormat(std::string const& dateFormat)
