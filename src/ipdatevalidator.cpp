@@ -6,6 +6,7 @@
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 void IPDateValidator::processItem(LedgerAccount const& account)
 {
@@ -22,6 +23,13 @@ void IPDateValidator::processItem(LedgerTransaction const& transaction)
 {
    processDate(transaction.date(), transaction.fileName(),
                transaction.lineNum());
+}
+
+bool IPDateValidator::processItem(LedgerTransactionV2 const& transaction)
+{
+   processDate(transaction.date(), transaction.fileName(),
+               transaction.lineNum());
+   return false;
 }
 
 void IPDateValidator::processDate(Date const& date, std::string const& fileName,

@@ -9,6 +9,7 @@ public:
    void processItem(LedgerAccount const& account);
    bool processItem(LedgerBudget const& budget);
    void processItem(LedgerTransaction const& transaction);
+   bool processItem(LedgerTransactionV2 const& transaction);
 
 private:
    void processDate(Date const& date, std::string const& fileName,
