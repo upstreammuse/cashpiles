@@ -4,6 +4,9 @@
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
+
+using std::stringstream;
 
 void IPTransactionCategorizer::processItem(LedgerAccount const& account)
 {
@@ -23,8 +26,8 @@ void IPTransactionCategorizer::processItem(LedgerAccount const& account)
 
 void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 {
-   checkCreateAccount(transaction.account(), transaction.fileName(),
-                      transaction.lineNum());
+   checkCreateOn(transaction.account(), transaction.fileName(),
+                 transaction.lineNum());
 
    for (LedgerTransactionEntry const& entry : transaction.entries())
    {
@@ -40,8 +43,8 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
       switch (entry.payee().type())
       {
          case Identifier::Type::ACCOUNT:
-            checkCreateAccount(entry.payee(), transaction.fileName(),
-                               transaction.lineNum());
+            checkCreateOn(entry.payee(), transaction.fileName(),
+                          transaction.lineNum());
             if (m_accounts[transaction.account()] &&
                 m_accounts[entry.payee()] &&
                 entry.category().type() != Identifier::Type::UNINITIALIZED)
@@ -81,8 +84,67 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
    }
 }
 
-void IPTransactionCategorizer::checkCreateAccount(
-      Identifier const& account, std::string const& filename, size_t linenum)
+void IPTransactionCategorizer::processItem(
+      LedgerTransactionV2AccountEntry const& entry)
+{
+   checkCreateOn(entry.account(), entry.fileName(), entry.lineNum());
+   if (!m_accounts[entry.account()])
+   {
+      stringstream ss;
+      ss << "Cannot use off-budget account '" << entry.account()
+         << "'as transaction entry";
+      die(entry.fileName(), entry.lineNum(), ss.str());
+   }
+}
+
+void IPTransactionCategorizer::processItem(
+      LedgerTransactionV2CategoryEntry const& entry)
+{
+   if (entry.trackingAccount().second)
+   {
+      checkCreateOff(entry.trackingAccount().first, entry.fileName(),
+                     entry.lineNum());
+   }
+   if (m_accounts[entry.trackingAccount().first])
+   {
+      stringstream ss;
+      ss << "Cannot use on-budget account '" << entry.trackingAccount().first
+         << "'as tracking account for transaction entry";
+      die(entry.fileName(), entry.lineNum(), ss.str());
+   }
+}
+
+void IPTransactionCategorizer::processItem(
+      LedgerTransactionV2OwnerEntry const& entry)
+{
+   if (entry.trackingAccount().second)
+   {
+      checkCreateOff(entry.trackingAccount().first, entry.fileName(),
+                     entry.lineNum());
+   }
+   if (m_accounts[entry.trackingAccount().first])
+   {
+      stringstream ss;
+      ss << "Cannot use on-budget account '" << entry.trackingAccount().first
+         << "'as tracking account for transaction entry";
+      die(entry.fileName(), entry.lineNum(), ss.str());
+   }
+}
+
+void IPTransactionCategorizer::checkCreateOff(
+      std::string const& account, std::string const& filename, size_t linenum)
+{
+   if (!m_accounts.count(account))
+   {
+      std::stringstream ss;
+      ss << "Automatically opening off-budget account '" << account << "'";
+      warn(filename, linenum, ss.str());
+      m_accounts[account] = false;
+   }
+}
+
+void IPTransactionCategorizer::checkCreateOn(
+      std::string const& account, std::string const& filename, size_t linenum)
 {
    if (!m_accounts.count(account))
    {
