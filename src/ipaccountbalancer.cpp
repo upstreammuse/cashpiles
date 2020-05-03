@@ -141,6 +141,28 @@ void IPAccountBalancer::processItem(LedgerAccount const& account)
    }
 }
 
+// TODO
+#if 0
+void IPAccountBalancer::processItem(LedgerBalance const& balance)
+{
+   if (balance.amount() != m_accounts[balance.account()].future)
+   {
+      std::stringstream ss;
+      ss << "Account '" << balance.account() << "' stated balance "
+         << balance.amount().toString() << " does not match calculated "
+         << "balance "
+         << m_accounts[balance.account()].future.toString();
+      warn(balance.fileName(), balance.lineNum(), ss.str());
+   }
+   if (m_accounts[balance.account()].hasPending)
+   {
+      warn(balance.fileName(), balance.lineNum(),
+           "Pending transactions included in balance statement");
+      m_accounts[balance.account()].hasPending = false;
+   }
+}
+#endif
+
 void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
 {
    m_accounts[transaction.account()].future += transaction.amount();
