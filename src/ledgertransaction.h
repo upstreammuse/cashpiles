@@ -2,55 +2,49 @@
 
 #include <memory>
 #include <vector>
+#include "currency.h"
 #include "date.h"
-#include "identifier.h"
-#include "ledgertransactionentry.h"
 #include "ledgeritem.h"
 
+// TODO rename "LedgerExternalTransaction" or similar
 class LedgerTransaction : public LedgerItem
 {
 public:
-   enum Status
+   enum class Status
    {
       CLEARED,
-      PENDING,
-      DISPUTED
+      DISPUTED,
+      PENDING
    };
-   static Status statusFromString(std::string const& status, bool* ok);
-   static std::string statusToString(Status status);
 
 public:
    LedgerTransaction(std::string const& filename, size_t lineNum);
 
-   Identifier account() const;
-   void setAccount(Identifier const& account);
+   std::string account() const;
+   void setAccount(std::string const& account);
 
    Currency amount() const;
-
-   Currency balance() const;
-   bool hasBalance() const;
-   void setBalance(Currency const& balance);
+   void setAmount(Currency const& amount);
 
    Date date() const;
    void setDate(Date const& date);
 
-   std::string note() const;
-   bool hasNote() const;
+   std::pair<std::string, bool> note() const;
    void setNote(std::string const& note);
+
+   std::string payee() const;
+   void setPayee(std::string const& payee);
 
    Status status() const;
    void setStatus(Status status);
 
-   void appendEntry(LedgerTransactionEntry const& entry);
-   std::vector<LedgerTransactionEntry> const& entries() const;
-
    void processItem(ItemProcessor& processor) const;
 
 private:
-   Identifier m_account;
-   std::shared_ptr<Currency> m_balance;
+   std::string m_account;
+   Currency m_amount;
    Date m_date;
-   std::vector<LedgerTransactionEntry> m_entries;
-   std::shared_ptr<std::string> m_note;
-   Status m_status = PENDING;
+   std::pair<std::string, bool> m_note = std::make_pair("", false);
+   std::string m_payee;
+   Status m_status = Status::PENDING;
 };

@@ -6,6 +6,7 @@
 #include "filereader.h"
 #include "ledger.h"
 #include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 YnabRegisterReader::YnabRegisterReader(std::string const& fileName,
                                        Ledger& ledger) :
@@ -41,23 +42,26 @@ void YnabRegisterReader::setDateFormat(std::string const& dateFormat)
 
 void YnabRegisterReader::processRecord(CsvReader::Record const& record)
 {
+   bool addAccountLine = false;
+   bool inSplit = false;
    if (!m_transaction)
    {
-      m_transaction.reset(
-               new LedgerTransaction(record.fileName, record.lineNum));
+      m_transaction = std::make_shared<LedgerTransactionV2>(record.fileName, record.lineNum);
+      addAccountLine = true;
    }
-   bool inSplit = false;
 
-   LedgerTransactionEntry entry;
+   std::string account;
+   std::string category;
    Currency inflow;
-   Currency outflow;
    std::string note;
+   Currency outflow;
+   std::string trackingAccount;
+
    for (auto it : record.data)
    {
       if (it.first == "Account")
       {
-         m_transaction->setAccount(
-                  Identifier(it.second, Identifier::Type::ACCOUNT));
+         account = it.second;
       }
       else if (it.first == "Category" || it.first == "Category Group" ||
                it.first == "Master Category" || it.first == "Sub Category")
@@ -68,8 +72,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          if (it.second != "")
          {
-            entry.setCategory(
-                     Identifier(it.second, Identifier::Type::CATEGORY));
+            category = it.second;
          }
       }
       else if (it.first == "Check Number")
@@ -85,11 +88,12 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       {
          if (it.second == "U" || it.second == "Uncleared")
          {
-            m_transaction->setStatus(LedgerTransaction::Status::PENDING);
+            m_transaction->setStatus(LedgerTransactionV2::Status::PENDING);
          }
-         else if (it.second == "C" || it.second == "Cleared" || it.second == "Reconciled")
+         else if (it.second == "C" || it.second == "Cleared" ||
+                  it.second == "Reconciled")
          {
-            m_transaction->setStatus(LedgerTransaction::Status::CLEARED);
+            m_transaction->setStatus(LedgerTransactionV2::Status::CLEARED);
          }
          else
          {
@@ -129,7 +133,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
             memo = match.str(3);
             inSplit = match.str(1) != match.str(2);
          }
-         else if (std::regex_match(it.second, match, splitV4Rx))
+         else if (std::regex_match(it.second, match, splitV5Rx))
          {
             memo = match.str(3);
             inSplit = match.str(1) != match.str(2);
@@ -155,12 +159,20 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
          std::smatch match;
          if (std::regex_match(it.second, match, transferRx))
          {
-            entry.setPayee(
-                     Identifier(match.str(1), Identifier::Type::ACCOUNT));
+            trackingAccount = match[1];
          }
-         else
+         else if (it.second != "")
          {
-            entry.setPayee(Identifier(it.second, Identifier::Type::GENERIC));
+            if (m_transaction->payee() == "")
+            {
+               m_transaction->setPayee(it.second);
+            }
+            else if (m_transaction->payee() != it.second)
+            {
+               std::stringstream ss;
+               ss << "[payee=" << it.second << "]";
+               note += ss.str();
+            }
          }
       }
       else if (it.first == "Running Balance")
@@ -174,15 +186,78 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
          die(ss.str());
       }
    }
-   entry.setAmount(inflow - outflow);
-   if (note != "")
+
+   // if this is the first line of the transaction, add a line for the YNAB primary transaction account
+   if (addAccountLine)
    {
-      entry.setNote(note);
+      auto entry = std::make_shared<LedgerTransactionV2AccountEntry>(record.fileName, record.lineNum);
+      entry->setAccount(account);
+      m_transaction->appendEntry(entry);
    }
-   m_transaction->appendEntry(entry);
+
+   // expense from on-budget (category) -or-
+   // transfer from on-budget to off-budget (category)
+   if (category != "")
+   {
+      auto entry = std::make_shared<LedgerTransactionV2CategoryEntry>(record.fileName, record.lineNum);
+      entry->setAmount(inflow - outflow);
+      entry->setCategory(category);
+      if (note != "")
+      {
+         entry->setNote(note);
+      }
+      if (trackingAccount != "")
+      {
+         entry->setTrackingAccount(trackingAccount);
+      }
+      m_transaction->appendEntry(entry);
+   }
+   // transfer from off-budget (no category) -or-
+   // transfer from on-budget to on-budget (no category)  <- assuming this
+   else if (trackingAccount != "")
+   {
+      auto entry = std::make_shared<LedgerTransactionV2AccountEntry>(record.fileName, record.lineNum);
+      entry->setAccount(trackingAccount);
+      // invert amount because we are entering the other side of the transfer
+      entry->setAmount(outflow - inflow);
+      note = "WARNING this transfer will be duplicated in another transaction " + note;
+      entry->setNote(note);
+      m_transaction->appendEntry(entry);
+   }
+   // expense from off-budget (no category)
+   else
+   {
+      auto txnOB = std::make_shared<LedgerTransaction>(record.fileName, record.lineNum);
+      txnOB->setDate(m_transaction->date());
+      if (note != "")
+      {
+         txnOB->setNote(note);
+      }
+      txnOB->setPayee(m_transaction->payee());
+      txnOB->setAmount(inflow - outflow);
+      switch (m_transaction->status())
+      {
+         case LedgerTransactionV2::Status::CLEARED:
+            txnOB->setStatus(LedgerTransaction::Status::CLEARED);
+            break;
+         case LedgerTransactionV2::Status::DISPUTED:
+            txnOB->setStatus(LedgerTransaction::Status::DISPUTED);
+            break;
+         case LedgerTransactionV2::Status::PENDING:
+            txnOB->setStatus(LedgerTransaction::Status::PENDING);
+            break;
+      }
+      txnOB->setAccount(account);
+      m_items.insert(std::make_pair(txnOB->date(), txnOB));
+
+      // TODO this is a hack to make sure we don't try to use the V2 transaction below
+      inSplit = true;
+      m_transaction.reset();
+   }
 
    if (!inSplit)
    {
+      m_transaction->finalize();
       m_items.insert(std::make_pair(m_transaction->date(), m_transaction));
       m_transaction.reset();
    }

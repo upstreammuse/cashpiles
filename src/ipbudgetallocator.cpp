@@ -16,7 +16,6 @@
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgertransaction.h"
-#include "ledgertransactionentry.h"
 #include "ledgertransactionv2.h"
 #include "texttable.h"
 
@@ -395,127 +394,6 @@ void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
    m_withholdings.insert(budget.category());
 }
 
-void IPBudgetAllocator::processItem(LedgerTransaction const& transaction)
-{
-   advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
-                       transaction.date());
-
-   // ignore transactions after today
-   if (transaction.date() > m_today)
-   {
-      return;
-   }
-
-   for (LedgerTransactionEntry const& entry : transaction.entries())
-   {
-      // ignore off-budget transaction entries, the account balancer will error
-      // if a category was set or not set incorrectly
-      if (entry.category().type() == Identifier::Type::UNINITIALIZED)
-      {
-         continue;
-      }
-
-      // TODO remove this
-      std::stringstream ss;
-      ss << entry.category();
-      auto category = ss.str();
-
-      // if the category is an owner, make sure we recognize it
-      if (entry.category().type() == Identifier::Type::OWNER &&
-          !m_availables.count(entry.category()))
-      {
-         std::stringstream ss;
-         ss << "Unknown category owner '" << entry.category() << "'";
-         die(transaction.fileName(), transaction.lineNum(), ss.str());
-      }
-
-      // create a new routine category if we haven't seen it before, since this
-      // is the safest thing to do without a complete error out
-      if (entry.category().type() != Identifier::Type::OWNER &&
-          !m_goals.count(category) &&
-          !m_incomes.count(entry.category()) &&
-          !m_reserves.count(entry.category()) &&
-          !m_routines.count(entry.category()) &&
-          !m_withholdings.count(entry.category()))
-      {
-         std::stringstream ss;
-         ss << "Automatically creating routine expense category '"
-            << entry.category() << "'";
-         warn(transaction.fileName(), transaction.lineNum(), ss.str());
-         m_routines[entry.category()];
-         m_owners[entry.category()] = Identifier(std::string(""), Identifier::Type::OWNER);
-      }
-
-      // process the transaction entry based on its budget category type
-      if (entry.category().type() == Identifier::Type::OWNER)
-      {
-         m_availables[entry.category()] += entry.amount();
-      }
-      else if (m_goals.count(category))
-      {
-         m_goals[category].spent += entry.amount();
-         auto total = m_goals[category].spent;
-         for (auto goal : m_goals[category].goals)
-         {
-            total += goal.second.reserved;
-         }
-         if (total.isNegative())
-         {
-            std::stringstream ss;
-            ss << "Goal category '" << category << "' overspent";
-            warn(transaction.fileName(), transaction.lineNum(), ss.str());
-            m_availables[m_owners[entry.category()]] += total;
-            m_goals[category].spent -= total;
-         }
-      }
-      else if (m_incomes.count(entry.category()))
-      {
-         m_availables[m_owners[entry.category()]] += entry.amount();
-         for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
-         {
-            // skip reserves that are not percentage based
-            if (!it->second.period.isNull()) continue;
-
-            // skip reserves with a different owner
-            if (m_owners[it->first] != m_owners[entry.category()]) continue;
-
-            Currency amount = entry.amount() * it->second.percentage;
-            it->second.reserved += amount;
-            m_availables[m_owners[it->first]] -= amount;
-         }
-      }
-      else if (m_reserves.count(entry.category()))
-      {
-         m_reserves[entry.category()].reserved += entry.amount();
-         if (m_reserves[entry.category()].reserved.isNegative())
-         {
-            m_availables[m_owners[entry.category()]] +=
-                  m_reserves[entry.category()].reserved;
-            m_reserves[entry.category()].reserved.clear();
-         }
-      }
-      else if (m_routines.count(entry.category()))
-      {
-         m_routines[entry.category()].currentAmount += entry.amount();
-         m_routines[entry.category()].reserved += entry.amount();
-         if (m_routines[entry.category()].reserved.isNegative())
-         {
-            m_availables[m_owners[entry.category()]] +=
-                  m_routines[entry.category()].reserved;
-            m_routines[entry.category()].reserved.clear();
-         }
-      }
-      else if (m_withholdings.count(entry.category()))
-      {
-         m_availables[m_owners[entry.category()]] += entry.amount();
-      }
-      else
-      {
-         assert("Category type not handled" && false);
-      }
-   }
-}
-
 bool IPBudgetAllocator::processItem(LedgerTransactionV2 const& transaction)
 {
    advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
@@ -708,7 +586,7 @@ void IPBudgetAllocator::syncGoal(
    auto& theGoal = m_goals[category].goals[goal];
    auto amount = theGoal.amount.amortize(theGoal.period, m_currentPeriod);
    theGoal.reserved += amount;
-   m_availables[m_owners[Identifier(category, Identifier::Type::OWNER)]] -= amount;
+   m_availables[m_owners[category]] -= amount;
    if (theGoal.period.endDate() <= m_currentPeriod.endDate())
    {
       assert(theGoal.reserved == theGoal.amount);

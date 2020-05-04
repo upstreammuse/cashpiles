@@ -9,13 +9,11 @@ HEADERS += \
    src/daterange.h \
    src/filereader.h \
    src/filewriter.h \
-   src/identifier.h \
    src/interval.h \
    src/ipaccountbalancer.h \
    src/ipbudgetallocator.h \
    src/ipdatevalidator.h \
    src/iptransactioncategorizer.h \
-   src/iptransferbalancer.h \
    src/itemprocessor.h \
    src/ledger.h \
    src/ledgeraccount.h \
@@ -35,7 +33,6 @@ HEADERS += \
    src/ledgercomment.h \
    src/ledgeritem.h \
    src/ledgertransaction.h \
-   src/ledgertransactionentry.h \
    src/ledgertransactionv2.h \
    src/texttable.h \
    src/ynabregisterreader.h
@@ -47,13 +44,11 @@ SOURCES += \
    src/daterange.cpp \
    src/filereader.cpp \
    src/filewriter.cpp \
-   src/identifier.cpp \
    src/interval.cpp \
    src/ipaccountbalancer.cpp \
    src/ipbudgetallocator.cpp \
    src/ipdatevalidator.cpp \
    src/iptransactioncategorizer.cpp \
-   src/iptransferbalancer.cpp \
    src/itemprocessor.cpp \
    src/ledger.cpp \
    src/ledgeraccount.cpp \
@@ -73,7 +68,6 @@ SOURCES += \
    src/ledgercomment.cpp \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
-   src/ledgertransactionentry.cpp \
    src/ledgertransactionv2.cpp \
    src/texttable.cpp \
    src/ynabregisterreader.cpp
