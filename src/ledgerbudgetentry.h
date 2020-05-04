@@ -2,7 +2,6 @@
 
 #include "currency.h"
 #include "date.h"
-#include "identifier.h"
 #include "interval.h"
 #include "ledgeritem.h"
 
@@ -13,13 +12,13 @@ class LedgerBudgetEntry : public LedgerItem
 public:
    LedgerBudgetEntry(std::string const& filename, size_t lineNum);
 
-   Identifier category() const;
-   void setCategory(Identifier const& category);
+   std::string category() const;
+   void setCategory(std::string const& category);
 
-   Identifier owner() const;
-   void setOwner(Identifier const& owner);
+   std::string owner() const;
+   void setOwner(std::string const& owner);
 
 private:
-   Identifier m_category;
-   Identifier m_owner;
+   std::string m_category;
+   std::string m_owner;
 };

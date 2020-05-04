@@ -81,7 +81,7 @@ void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 void FileWriter::processItem(LedgerBudgetGoalsEntry const& entry)
 {
    m_file << "  goals   " << entry.category();
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -91,7 +91,7 @@ void FileWriter::processItem(LedgerBudgetGoalsEntry const& entry)
 void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
 {
    m_file << "  income  " << entry.category();
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -102,7 +102,7 @@ void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
 {
    m_file << "  reserve " << entry.category() << "  "
           << entry.amount().toString() << " " << entry.interval().toString();
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -113,7 +113,7 @@ void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 {
    m_file << "  reserve " << entry.category() << "  " << entry.percentage()
           << "%";
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -123,7 +123,7 @@ void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
 void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 {
    m_file << "  routine " << entry.category();
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -133,7 +133,7 @@ void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
 void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
 {
    m_file << "  withholding " << entry.category();
-   if (entry.owner().isNotEmpty())
+   if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
    }
@@ -147,120 +147,26 @@ void FileWriter::processItem(LedgerComment const& comment)
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
 {
-   m_file << transaction.date().toString(m_dateFormat);
-   m_file << " " << transaction.statusToString(transaction.status());
-   m_file << " " << transaction.account() << "  ";
-   size_t numNotes = transaction.hasNote() ? 1 : 0;
-   for (LedgerTransactionEntry const& entry : transaction.entries())
+   m_file << transaction.date().toString(m_dateFormat) << " ";
+   switch (transaction.status())
    {
-      if (entry.hasNote())
-      {
-         numNotes++;
-      }
+      case LedgerTransaction::Status::CLEARED:
+         m_file << "*";
+         break;
+      case LedgerTransaction::Status::DISPUTED:
+         m_file << "!";
+         break;
+      case LedgerTransaction::Status::PENDING:
+         m_file << "?";
+         break;
    }
-   if (transaction.entries().size() > 1 || numNotes > 1)
+   m_file << " " << transaction.account() << "  " << transaction.payee() << "  "
+          << transaction.amount().toString();
+   if (transaction.note().second)
    {
-      m_file << transaction.amount().toString();
-      if (transaction.hasBalance())
-      {
-         m_file << " = " << transaction.balance().toString();
-      }
-      if (transaction.hasNote())
-      {
-         m_file << " ;" << transaction.note();
-      }
-      m_file << std::endl;
-      for (LedgerTransactionEntry const& entry : transaction.entries())
-      {
-         m_file << "  ";
-         switch (entry.payee().type())
-         {
-            case Identifier::Type::GENERIC:
-               break;
-            case Identifier::Type::ACCOUNT:
-               m_file << "@";
-               break;
-            case Identifier::Type::OWNER:
-            case Identifier::Type::CATEGORY:
-            case Identifier::Type::UNINITIALIZED:
-               die(transaction.fileName(), transaction.lineNum(),
-                   "Internal logic error, payee has invalid type");
-               // break is a warning here, die does not return
-         }
-         m_file << entry.payee() << "  ";
-         switch (entry.category().type())
-         {
-            case Identifier::Type::OWNER:
-               m_file << "@" << entry.category() << "  ";
-               break;
-            case Identifier::Type::CATEGORY:
-               m_file << entry.category() << "  ";
-               break;
-            case Identifier::Type::UNINITIALIZED:
-               break;
-            case Identifier::Type::GENERIC:
-            case Identifier::Type::ACCOUNT:
-               die(transaction.fileName(), transaction.lineNum(),
-                   "Internal logic error, category has invalid type");
-               // break is a warning here, die does not return
-         }
-         m_file << entry.amount().toString();
-         if (entry.hasNote())
-         {
-            m_file << " ;" << entry.note();
-         }
-         m_file << std::endl;
-      }
+      m_file << " ;" << transaction.note().first;
    }
-   else
-   {
-      LedgerTransactionEntry entry(transaction.entries()[0]);
-      switch (entry.payee().type())
-      {
-         case Identifier::Type::GENERIC:
-            break;
-         case Identifier::Type::ACCOUNT:
-            m_file << "@";
-            break;
-         case Identifier::Type::OWNER:
-         case Identifier::Type::CATEGORY:
-         case Identifier::Type::UNINITIALIZED:
-            die(transaction.fileName(), transaction.lineNum(),
-                "Internal logic error, payee has invalid type");
-            // break is a warning here because die does not return
-      }
-      m_file << entry.payee();
-      switch (entry.category().type())
-      {
-         case Identifier::Type::OWNER:
-            m_file << "  @" << entry.category();
-            break;
-         case Identifier::Type::CATEGORY:
-            m_file << "  " << entry.category();
-            break;
-         case Identifier::Type::UNINITIALIZED:
-            break;
-         case Identifier::Type::GENERIC:
-         case Identifier::Type::ACCOUNT:
-            die(transaction.fileName(), transaction.lineNum(),
-                "Internal logic error, category has invalid type");
-            // break is a warning here because die does not return
-      }
-      m_file << "  " << transaction.amount().toString();
-      if (transaction.hasBalance())
-      {
-         m_file << " = " << transaction.balance().toString();
-      }
-      if (transaction.hasNote())
-      {
-         m_file << " ;" << transaction.note();
-      }
-      else if (entry.hasNote())
-      {
-         m_file << " ;" << entry.note();
-      }
-      m_file << std::endl;
-   }
+   m_file << std::endl;
 }
 
 bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
@@ -269,13 +175,13 @@ bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
    switch (transaction.status())
    {
       case LedgerTransactionV2::Status::CLEARED:
-         m_file << "**";
+         m_file << "*";
          break;
       case LedgerTransactionV2::Status::DISPUTED:
-         m_file << "!!";
+         m_file << "!";
          break;
       case LedgerTransactionV2::Status::PENDING:
-         m_file << "??";
+         m_file << "?";
          break;
    }
    m_file << ' ' << transaction.payee() << "  "

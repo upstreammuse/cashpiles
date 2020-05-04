@@ -72,15 +72,13 @@ void LedgerAccount::setMode(Mode mode)
    m_mode = mode;
 }
 
-Identifier LedgerAccount::name() const
+std::string LedgerAccount::name() const
 {
-   assert(m_name.type() == Identifier::Type::ACCOUNT);
    return m_name;
 }
 
-void LedgerAccount::setName(Identifier const& name)
+void LedgerAccount::setName(std::string const& name)
 {
-   assert(name.type() == Identifier::Type::ACCOUNT);
    m_name = name;
 }
 

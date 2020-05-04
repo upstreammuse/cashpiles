@@ -10,7 +10,6 @@
 #include "ipbudgetallocator.h"
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
-#include "iptransferbalancer.h"
 #include "ledger.h"
 #include "ynabregisterreader.h"
 
@@ -70,9 +69,6 @@ int main(int argc, char** argv)
 
    IPDateValidator dv;
    ledger.processItems(dv);
-
-   IPTransferBalancer tb;
-   ledger.processItems(tb);
 
    if (!convertYnab)
    {

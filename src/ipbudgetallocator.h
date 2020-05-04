@@ -22,7 +22,6 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& budget);
    void processItem(LedgerBudgetRoutineEntry const& budget);
    void processItem(LedgerBudgetWithholdingEntry const& budget);
-   void processItem(LedgerTransaction const& transaction);
    bool processItem(LedgerTransactionV2 const& transaction);
    void processItem(LedgerTransactionV2CategoryEntry const& entry);
    void processItem(LedgerTransactionV2OwnerEntry const& entry);

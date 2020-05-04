@@ -28,8 +28,7 @@ using std::smatch;
 
 struct FileReaderRegEx
 {
-   std::string const CLEAR1_RX;
-   std::string const CLEAR2_RX;
+   std::string const CLEAR_RX;
    std::string const CURR_RX;
    std::string const DATE_RX;
    std::string const END_RX;
@@ -54,11 +53,7 @@ struct FileReaderRegEx
    std::regex const budgetLineRoutineRx;
    std::regex const budgetLineWithholdingRx;
    std::regex const commentRx;
-   std::regex const txnCompactRx;
    std::regex const txnCompactOffRx;
-   std::regex const txnRx;
-   std::regex const txnLineRx;
-   std::regex const txnLineOffRx;
    std::regex const txn2Rx;
    std::regex const txn2LineRx;
    std::regex const txn2TrackingLineRx;
@@ -140,8 +135,7 @@ struct FileReaderRegEx
 
    // TODO proposal for ledgeritem to contain the note, since the data model aligns to the file such that each line is its own item, and the file reader can play 'find the semicolon' to split the note away from the rest of the content for regex parsing.  way better than each item child having to deal with note processing on its own
    FileReaderRegEx() :
-      CLEAR1_RX("(\\*|\\!|\\?)"),
-      CLEAR2_RX("(\\*\\*|\\!\\!|\\?\\?)"),
+      CLEAR_RX("(\\*|\\!|\\?)"),
       CURR_RX(currencyRx()),
       DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
       END_RX("\\s*$"),
@@ -192,32 +186,12 @@ struct FileReaderRegEx
          IDENT_RX +
          optional(SEP_RX + IDENT_RX) + END_RX),
       commentRx(START_RX + NOTE_RX + END_RX),
-      txnCompactRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
-         IDENT_RX + SEP_RX + IDENT_RX + SEP_RX +
-         IDENT_RX + SEP_RX + CURR_RX +
-         optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
-         optional(SPACE_RX + NOTE_RX) + END_RX),
       txnCompactOffRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
-         IDENT_RX + SEP_RX + IDENT_RX + SEP_RX +
-         CURR_RX +
-         optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
-         optional(SPACE_RX + NOTE_RX) + END_RX),
-      txnRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR1_RX + SPACE_RX +
-         IDENT_RX + SEP_RX + CURR_RX +
-         optional(SPACE_RX + "=" + SPACE_RX + CURR_RX) +
-         optional(SPACE_RX + NOTE_RX) + END_RX),
-      txnLineRx(
-         START_RX + SEP_RX + IDENT_RX + SEP_RX +
-         IDENT_RX + SEP_RX + CURR_RX +
-         optional(SPACE_RX + NOTE_RX) + END_RX),
-      txnLineOffRx(
-         START_RX + SEP_RX + IDENT_RX + SEP_RX +
-         CURR_RX + optional(SPACE_RX + NOTE_RX) + END_RX),
+         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX + IDENT_RX +
+         SEP_RX + IDENT_RX + SEP_RX + CURR_RX + optional(SPACE_RX + NOTE_RX) +
+         END_RX),
       txn2Rx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR2_RX + SPACE_RX + IDENT_RX +
+         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX + IDENT_RX +
          optional(SEP_RX + CURR_RX) + optional(SPACE_RX + NOTE_RX)),
       txn2LineRx(
          START_RX + SEP_RX + IDENT_RX + optional(SEP_RX + CURR_RX) +
@@ -294,8 +268,8 @@ void FileReader::processAccount(std::smatch const& match)
             new LedgerAccount(m_fileName, m_lineNum));
    account->setDate(parseDate(match.str(1)));
    account->setMode(parseMode(match.str(2)));
-   verifySetIdentifier(match[3], IdentifierType::ACCOUNT);
-   account->setName(Identifier(match[3], Identifier::Type::ACCOUNT));
+   account->setName(match[3]);
+   verifySetIdentifier(account->name(), IdentifierType::ACCOUNT);
    m_ledger.appendItem(account);
 }
 
@@ -329,9 +303,8 @@ void FileReader::processBudget(std::smatch& match)
       {
          auto entry = make_shared<LedgerBudgetCancelEntry>(
                          m_fileName, m_lineNum);
-         verifyIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match[1],
-                                       Identifier::Type::CATEGORY));
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setGoal(match[2]);
          budget->appendEntry(entry);
       }
@@ -339,99 +312,85 @@ void FileReader::processBudget(std::smatch& match)
       {
          std::shared_ptr<LedgerBudgetCloseEntry> entry(
                   new LedgerBudgetCloseEntry(m_fileName, m_lineNum));
-         verifyIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match[1],
-                                       Identifier::Type::CATEGORY));
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineGoalRx))
       {
          auto entry = make_shared<LedgerBudgetGoalEntry>(m_fileName, m_lineNum);
 
-         verifyIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match[1], Identifier::Type::CATEGORY));
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setGoal(match[2]);
          entry->setAmount(parseCurrency(match[3]));
          entry->setGoalDate(parseDate(match[4]));
          // TODO these do not have owners since they reference via their parent
          //   categories, but they inherit from something that provides them
          //  - then again, so does LedgerBudgetCloseEntry
-
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineGoalsRx))
       {
          auto entry = make_shared<LedgerBudgetGoalsEntry>(
                          m_fileName, m_lineNum);
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[2], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(2),
-                                    Identifier::Type::OWNER));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineIncomeRx))
       {
          std::shared_ptr<LedgerBudgetIncomeEntry> entry(
                   new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[2], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(2),
-                                    Identifier::Type::OWNER));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineReserveAmountRx))
       {
          std::shared_ptr<LedgerBudgetReserveAmountEntry> entry(
                   new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[4], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(4),
-                                    Identifier::Type::OWNER));
-         entry->setAmount(parseCurrency(match.str(2)));
-         entry->setInterval(parseInterval(match.str(3)));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setAmount(parseCurrency(match[2]));
+         entry->setInterval(parseInterval(match[3]));
+         entry->setOwner(match[4]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineReservePercentRx))
       {
          std::shared_ptr<LedgerBudgetReservePercentEntry> entry(
                   new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[3], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(3),
-                                    Identifier::Type::OWNER));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setPercentage(std::stoul(match.str(2), nullptr, 10));
+         entry->setOwner(match[3]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineRoutineRx))
       {
          std::shared_ptr<LedgerBudgetRoutineEntry> entry(
                   new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[2], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(2),
-                                    Identifier::Type::OWNER));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else if (std::regex_match(line, match, regEx->budgetLineWithholdingRx))
       {
          std::shared_ptr<LedgerBudgetWithholdingEntry> entry(
                   new LedgerBudgetWithholdingEntry(m_fileName, m_lineNum));
-         verifySetIdentifier(match[1], IdentifierType::CATEGORY);
-         entry->setCategory(Identifier(match.str(1),
-                                       Identifier::Type::CATEGORY));
-         verifySetIdentifier(match[2], IdentifierType::OWNER);
-         entry->setOwner(Identifier(match.str(2),
-                                    Identifier::Type::OWNER));
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
       else
@@ -452,105 +411,31 @@ void FileReader::processComment(std::smatch const& match)
    m_ledger.appendItem(comment);
 }
 
-void FileReader::processCompactTransaction(std::smatch const& match)
-{
-   std::shared_ptr<LedgerTransaction> transaction(
-            new LedgerTransaction(m_fileName, m_lineNum));
-   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
-   transaction->setAccount(
-            Identifier(match.str(3), Identifier::Type::ACCOUNT));
-   if (match.str(7) != "")
-   {
-      transaction->setBalance(parseCurrency(match.str(7)));
-   }
-
-   bool ok;
-   transaction->setStatus(
-            transaction->statusFromString(match.str(2), &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-
-   transaction->setDate(parseDate(match.str(1)));
-   if (match.str(8) != "")
-   {
-      transaction->setNote(match.str(8));
-   }
-
-   LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.str(6)));
-   if (match.str(5)[0] == '@')
-   {
-      verifyIdentifier(match.str(5).substr(1), IdentifierType::OWNER);
-      entry.setCategory(Identifier(match.str(5).substr(1),
-                                   Identifier::Type::OWNER));
-   }
-   else
-   {
-      verifyIdentifier(match[5], IdentifierType::CATEGORY);
-      entry.setCategory(Identifier(match.str(5),
-                                   Identifier::Type::CATEGORY));
-   }
-   if (match.str(4)[0] == '@')
-   {
-      verifyIdentifier(match.str(4).substr(1), IdentifierType::ACCOUNT);
-      entry.setPayee(Identifier(match.str(4).substr(1),
-                                Identifier::Type::ACCOUNT));
-   }
-   else
-   {
-      entry.setPayee(Identifier(match.str(4),
-                                Identifier::Type::GENERIC));
-   }
-   transaction->appendEntry(entry);
-
-   m_ledger.appendItem(transaction);
-}
-
 void FileReader::processCompactTransactionOff(std::smatch const& match)
 {
    std::shared_ptr<LedgerTransaction> transaction(
             new LedgerTransaction(m_fileName, m_lineNum));
-   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
-   transaction->setAccount(
-            Identifier(match.str(3), Identifier::Type::ACCOUNT));
-   if (match.str(6) != "")
-   {
-      transaction->setBalance(parseCurrency(match.str(6)));
-   }
-   bool ok;
-   transaction->setStatus(
-            transaction->statusFromString(match.str(2), &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
    transaction->setDate(parseDate(match.str(1)));
-   if (match.str(7) != "")
+   switch (match.str(2)[0])
    {
-      transaction->setNote(match.str(7));
+      case '*':
+         transaction->setStatus(LedgerTransaction::Status::CLEARED);
+         break;
+      case '!':
+         transaction->setStatus(LedgerTransaction::Status::DISPUTED);
+         break;
+      case '?':
+         transaction->setStatus(LedgerTransaction::Status::PENDING);
+         break;
    }
-
-   LedgerTransactionEntry entry;
-   entry.setAmount(parseCurrency(match.str(5)));
-   if (match.str(4)[0] == '@')
+   transaction->setAccount(match[3]);
+   verifyIdentifier(transaction->account(), IdentifierType::ACCOUNT);
+   transaction->setPayee(match[4]);
+   transaction->setAmount(parseCurrency(match[5]));
+   if (match[6] != "")
    {
-      verifyIdentifier(match.str(4).substr(1), IdentifierType::ACCOUNT);
-      entry.setPayee(Identifier(match.str(4).substr(1),
-                                Identifier::Type::ACCOUNT));
+      transaction->setNote(match.str(6));
    }
-   else
-   {
-      entry.setPayee(Identifier(match.str(4),
-                                Identifier::Type::GENERIC));
-   }
-   transaction->appendEntry(entry);
-
    m_ledger.appendItem(transaction);
 }
 
@@ -573,17 +458,9 @@ void FileReader::processLine(std::string const& line)
    {
       processComment(match);
    }
-   else if (std::regex_match(line, match, regEx->txnCompactRx))
-   {
-      processCompactTransaction(match);
-   }
    else if (std::regex_match(line, match, regEx->txnCompactOffRx))
    {
       processCompactTransactionOff(match);
-   }
-   else if (std::regex_match(line, match, regEx->txnRx))
-   {
-      processTransaction(match);
    }
    else if (std::regex_match(line, match, regEx->txn2Rx))
    {
@@ -599,98 +476,6 @@ void FileReader::processLine(std::string const& line)
       ss << "Invalid contents '" << line << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
-}
-
-void FileReader::processTransaction(std::smatch& match)
-{
-   std::shared_ptr<LedgerTransaction> xact(
-            new LedgerTransaction(m_fileName, m_lineNum));
-   verifyIdentifier(match[3], IdentifierType::ACCOUNT);
-   xact->setAccount(
-            Identifier(match.str(3), Identifier::Type::ACCOUNT));
-   if (match.str(5) != "")
-   {
-      xact->setBalance(parseCurrency(match.str(5)));
-   }
-   bool ok;
-   xact->setStatus(xact->statusFromString(match.str(2), &ok));
-   if (!ok)
-   {
-      std::stringstream ss;
-      ss << "Could not read transaction status '" << match.str(2) << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-   xact->setDate(parseDate(match.str(1)));
-   if (match.str(6) != "")
-   {
-      xact->setNote(match.str(6));
-   }
-
-   while (true)
-   {
-      std::string line(readLine());
-      if (std::regex_match(line, match, regEx->txnLineRx))
-      {
-         LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.str(3)));
-         if (match.str(2)[0] == '@')
-         {
-            verifyIdentifier(match.str(2).substr(1), IdentifierType::OWNER);
-            entry.setCategory(Identifier(match.str(2).substr(1),
-                                         Identifier::Type::OWNER));
-         }
-         else
-         {
-            verifyIdentifier(match[2], IdentifierType::CATEGORY);
-            entry.setCategory(Identifier(match.str(2),
-                                         Identifier::Type::CATEGORY));
-         }
-         if (match.str(4) != "")
-         {
-            entry.setNote(match.str(4));
-         }
-         if (match.str(1)[0] == '@')
-         {
-            verifyIdentifier(match.str(1).substr(1), IdentifierType::ACCOUNT);
-            entry.setPayee(Identifier(match.str(1).substr(1),
-                                      Identifier::Type::ACCOUNT));
-         }
-         else
-         {
-            entry.setPayee(Identifier(match.str(1),
-                                      Identifier::Type::GENERIC));
-         }
-         xact->appendEntry(entry);
-      }
-      else if (std::regex_match(line, match, regEx->txnLineOffRx))
-      {
-         LedgerTransactionEntry entry;
-         entry.setAmount(parseCurrency(match.str(2)));
-         if (match.str(3) != "")
-         {
-            entry.setNote(match.str(3));
-         }
-         if (match.str(1)[0] == '@')
-         {
-            verifyIdentifier(match.str(1).substr(1), IdentifierType::ACCOUNT);
-            entry.setPayee(Identifier(match.str(1).substr(1),
-                                      Identifier::Type::ACCOUNT));
-         }
-         else
-         {
-            entry.setPayee(Identifier(match.str(1),
-                                      Identifier::Type::GENERIC));
-         }
-         xact->appendEntry(entry);
-      }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-
-   m_ledger.appendItem(xact);
 }
 
 void FileReader::processTransactionV2(smatch& match)

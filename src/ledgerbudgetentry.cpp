@@ -9,24 +9,22 @@ LedgerBudgetEntry::LedgerBudgetEntry(std::string const& filename,
 {
 }
 
-Identifier LedgerBudgetEntry::category() const
+std::string LedgerBudgetEntry::category() const
 {
    return m_category;
 }
 
-void LedgerBudgetEntry::setCategory(Identifier const& category)
+void LedgerBudgetEntry::setCategory(std::string const& category)
 {
-   assert(category.type() == Identifier::Type::CATEGORY);
    m_category = category;
 }
 
-Identifier LedgerBudgetEntry::owner() const
+std::string LedgerBudgetEntry::owner() const
 {
    return m_owner;
 }
 
-void LedgerBudgetEntry::setOwner(Identifier const& owner)
+void LedgerBudgetEntry::setOwner(std::string const& owner)
 {
-   assert(owner.type() == Identifier::Type::OWNER);
    m_owner = owner;
 }

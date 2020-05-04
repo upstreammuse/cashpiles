@@ -3,89 +3,30 @@
 #include <cassert>
 #include "itemprocessor.h"
 
-LedgerTransaction::Status LedgerTransaction::statusFromString(
-      std::string const& status, bool* ok)
-{
-   bool dummy;
-   bool* success = ok ? ok : &dummy;
-   *success = true;
-
-   if (status == "*")
-   {
-      return Status::CLEARED;
-   }
-   else if (status == "?")
-   {
-      return Status::PENDING;
-   }
-   else if (status == "!")
-   {
-      return Status::DISPUTED;
-   }
-   else
-   {
-      *success = false;
-      return Status::PENDING;
-   }
-
-}
-
-std::string LedgerTransaction::statusToString(Status status)
-{
-   switch (status)
-   {
-      case Status::CLEARED:
-         return "*";
-      case Status::PENDING:
-         return "?";
-      case Status::DISPUTED:
-         return "!";
-   }
-
-   assert("Status not handled" && false);
-   return "";
-}
-
 LedgerTransaction::LedgerTransaction(std::string const& filename,
                                      size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
 
-Identifier LedgerTransaction::account() const
+std::string LedgerTransaction::account() const
 {
    return m_account;
 }
 
-void LedgerTransaction::setAccount(Identifier const& account)
+void LedgerTransaction::setAccount(std::string const& account)
 {
    m_account = account;
 }
 
 Currency LedgerTransaction::amount() const
 {
-   Currency amount;
-   for (LedgerTransactionEntry const& entry : m_entries)
-   {
-      amount += entry.amount();
-   }
-   return amount;
+   return m_amount;
 }
 
-Currency LedgerTransaction::balance() const
+void LedgerTransaction::setAmount(Currency const& amount)
 {
-   assert(m_balance);
-   return *m_balance;
-}
-
-bool LedgerTransaction::hasBalance() const
-{
-   return bool(m_balance);
-}
-
-void LedgerTransaction::setBalance(Currency const& balance)
-{
-   m_balance.reset(new Currency(balance));
+   m_amount = amount;
 }
 
 Date LedgerTransaction::date() const
@@ -98,20 +39,24 @@ void LedgerTransaction::setDate(Date const& date)
    m_date = date;
 }
 
-std::string LedgerTransaction::note() const
+std::pair<std::string, bool> LedgerTransaction::note() const
 {
-   assert(m_note);
-   return *m_note;
-}
-
-bool LedgerTransaction::hasNote() const
-{
-   return m_note.get();
+   return m_note;
 }
 
 void LedgerTransaction::setNote(std::string const& note)
 {
-   m_note.reset(new std::string(note));
+   m_note = make_pair(note, true);
+}
+
+std::string LedgerTransaction::payee() const
+{
+   return m_payee;
+}
+
+void LedgerTransaction::setPayee(std::string const& payee)
+{
+   m_payee = payee;
 }
 
 LedgerTransaction::Status LedgerTransaction::status() const
@@ -122,16 +67,6 @@ LedgerTransaction::Status LedgerTransaction::status() const
 void LedgerTransaction::setStatus(Status status)
 {
    m_status = status;
-}
-
-void LedgerTransaction::appendEntry(LedgerTransactionEntry const& entry)
-{
-   m_entries.push_back(entry);
-}
-
-std::vector<LedgerTransactionEntry> const& LedgerTransaction::entries() const
-{
-   return m_entries;
 }
 
 void LedgerTransaction::processItem(ItemProcessor& processor) const

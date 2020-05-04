@@ -2,7 +2,6 @@
 
 #include "currency.h"
 #include "date.h"
-#include "identifier.h"
 #include "ledgeritem.h"
 
 class LedgerAccount : public LedgerItem
@@ -26,13 +25,13 @@ public:
    Mode mode() const;
    void setMode(Mode mode);
 
-   Identifier name() const;
-   void setName(Identifier const& name);
+   std::string name() const;
+   void setName(std::string const& name);
 
    void processItem(ItemProcessor& processor) const;
 
 private:
    Date m_date;
    Mode m_mode = Mode::CLOSED;
-   Identifier m_name;
+   std::string m_name;
 };
