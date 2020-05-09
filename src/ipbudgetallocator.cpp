@@ -76,16 +76,22 @@ void IPBudgetAllocator::finish()
    table.appendColumn(4, "== AVAILABLE ==");
    for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
    {
-      std::stringstream ss;
-      ss << it->first << "  ";
-      table.appendColumn(0, ss.str());
-      table.appendColumn(1, it->second.amount.toString() + "  ");
-      table.appendColumn(2, it->second.period.startDate().toString() + "-" +
-                         it->second.period.endDate().toString() + "  ");
-      ss.clear();
-      ss.str("");
-      ss << it->second.percentage << "  ";
-      table.appendColumn(3, ss.str());
+      table.appendColumn(0, it->first + "  ");
+      if (it->second.period.isNull())
+      {
+         table.appendColumn(1, "  ");
+         table.appendColumn(2, "  ");
+         std::stringstream ss;
+         ss << it->second.percentage << "  ";
+         table.appendColumn(3, ss.str());
+      }
+      else
+      {
+         table.appendColumn(1, it->second.amount.toString() + "  ");
+         table.appendColumn(2, it->second.period.startDate().toString() + "-" +
+                            it->second.period.endDate().toString() + "  ");
+         table.appendColumn(3, "  ");
+      }
       table.appendColumn(4, it->second.reserved.toString());
       total += it->second.reserved;
    }
