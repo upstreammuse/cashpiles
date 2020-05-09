@@ -297,10 +297,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
 {
-   // TODO remove this
-   std::stringstream ss;
-   ss << budget.category();
-   auto category = ss.str();
+   auto category = budget.category();
 
    if (!m_goals.count(category))
    {
