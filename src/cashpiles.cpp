@@ -1,5 +1,6 @@
 #include "cashpiles.h"
 
+#include <cassert>
 #include <clocale>
 #include <iostream>
 #include <regex>
@@ -80,6 +81,8 @@ int main(int argc, char** argv)
 
       IPBudgetAllocator budAlloc(today);
       ledger.processItems(budAlloc);
+
+      assert(ab.budgetable() == budAlloc.budgetable());
    }
 
    if (outFileName != "")

@@ -15,6 +15,19 @@ IPAccountBalancer::IPAccountBalancer(Date const& today) :
 {
 }
 
+Currency IPAccountBalancer::budgetable() const
+{
+   Currency total;
+   for (auto it(m_accounts.cbegin()); it != m_accounts.cend(); ++it)
+   {
+      if (it->second.onBudget && !it->second.balance.isZero())
+      {
+         total += it->second.balance;
+      }
+   }
+   return total;
+}
+
 void IPAccountBalancer::finish()
 {
    std::cout << "Account balance date: " << m_today.toString() << std::endl;
@@ -92,9 +105,6 @@ void IPAccountBalancer::finish()
    table.setColumnAlignment(3, TextTable::Alignment::RightAlign);
    table.print(std::cout);
    std::cout << std::endl;
-
-   std::cout << "Available for budgeting: " << totalOn.toString() << std::endl
-             << std::endl;
 }
 
 void IPAccountBalancer::processItem(LedgerAccount const& account_)

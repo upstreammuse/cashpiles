@@ -10,6 +10,7 @@ class IPAccountBalancer : public ItemProcessor
 {
 public:
    IPAccountBalancer(Date const& today);
+   Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerAccountBalance const& balance);
