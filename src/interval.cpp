@@ -1,5 +1,6 @@
 #include "interval.h"
 
+#include <cassert>
 #include <sstream>
 #include "date.h"
 
@@ -47,6 +48,7 @@ Interval Interval::fromString(std::string const& interval, bool* ok)
 
 Interval::Interval()
 {
+   // TODO this constructor is evil
 }
 
 Interval::Interval(size_t number, Period period) :
@@ -121,5 +123,6 @@ Date operator+(Date const& left, Interval const& right)
          result = left.addYears(right.number());
          break;
    }
+   assert(result.isValid());
    return result;
 }
