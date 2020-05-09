@@ -578,9 +578,8 @@ void IPBudgetAllocator::advanceBudgetPeriod(std::string const& filename,
                              DateRange(m_priorPeriod.startDate(),
                                        m_priorPeriod.startDate())) *
                           m_currentPeriod.days();
-         daily = Currency() - daily;
-         m_availables[m_owners[it->first]] -= daily;
-         it->second.reserved += daily;
+         m_availables[m_owners[it->first]] += daily;
+         it->second.reserved -= daily;
       }
    }
 }
