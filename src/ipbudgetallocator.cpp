@@ -163,6 +163,9 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
       return false;
    }
 
+   // update the current processing date for entries
+   m_workingDate = budget.date();
+
    // make sure that the budget period is advanced to include yesterday, and
    // that yesterday is the end of the last period
    // in other words make sure that we ended a period yesterday, and that
@@ -190,7 +193,6 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
    // TODO this looks like it resets the routine calculations
    m_currentPeriod = DateRange(budget.date(), budget.interval());
    m_priorPeriod = DateRange();
-   m_workingDate = budget.date();
    // TODO maybe better to track the routine calculation dates per category
 
    // at this point we have reset the budget period to start with the new
