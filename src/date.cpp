@@ -19,6 +19,7 @@ Date Date::currentDate()
    retval.m_day = dateTime.tm_mday;
    retval.m_month = dateTime.tm_mon + 1;
    retval.m_year = dateTime.tm_year + 1900;
+   assert(retval.isValid());
    return retval;
 }
 
@@ -118,11 +119,13 @@ Date Date::fromString(std::string const& date, std::string const& format)
    d.m_month = strtol(monthS.c_str(), nullptr, 10);
    d.m_day = strtol(dayS.c_str(), nullptr, 10);
    d.m_year = strtol(yearS.c_str(), nullptr, 10);
+   assert(d.isValid());
    return d;
 }
 
 Date::Date()
 {
+   // TODO this constructor is evil
 }
 
 Date::Date(int year, int month, int day) :
@@ -130,6 +133,7 @@ Date::Date(int year, int month, int day) :
    m_month(month),
    m_year(year)
 {
+   assert(isValid());
 }
 
 Date Date::addDays(int days) const
@@ -161,6 +165,7 @@ Date Date::addDays(int days) const
          ++d.m_year;
       }
    }
+   assert(d.isValid());
 
    // handle negative movement
    for (/*already set*/; days < 0; ++days)
@@ -186,6 +191,7 @@ Date Date::addDays(int days) const
          --d.m_year;
       }
    }
+   assert(d.isValid());
 
    return d;
 }
@@ -210,6 +216,7 @@ Date Date::addMonths(int months) const
    {
       d.m_day = daysInMonth[d.m_month];
    }
+   assert(d.isValid());
    return d;
 }
 
@@ -226,6 +233,7 @@ Date Date::addYears(int years) const
    {
       d.m_day = daysInMonth[d.m_month];
    }
+   assert(d.isValid());
    return d;
 }
 
@@ -262,10 +270,7 @@ int Date::month() const
 
 std::string Date::toString(std::string const& format) const
 {
-   if (isNull())
-   {
-      return "";
-   }
+   assert(isValid());
    std::string retval = format;
 
    size_t monthLeading = retval.find("MM");
