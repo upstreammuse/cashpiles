@@ -10,6 +10,7 @@ class IPBudgetAllocator : public ItemProcessor
 {
 public:
    IPBudgetAllocator(Date const& today);
+   Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
    bool processItem(LedgerBudget const& budget);

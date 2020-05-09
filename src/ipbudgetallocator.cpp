@@ -30,11 +30,36 @@ IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
    }
 }
 
+Currency IPBudgetAllocator::budgetable() const
+{
+   Currency total;
+   for (auto it = m_availables.begin(); it != m_availables.end(); ++it)
+   {
+      total += it->second;
+   }
+   for (auto it1 : m_goals)
+   {
+      for (auto it2 : it1.second.goals)
+      {
+         total += it2.second.reserved;
+      }
+      total += it1.second.spent;
+   }
+   for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
+   {
+      total += it->second.reserved;
+   }
+   for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
+   {
+      total += it->second.reserved;
+   }
+   return total;
+}
+
 void IPBudgetAllocator::finish()
 {
    TextTable table;
    Currency total;
-   Currency totalAll;
    table.appendColumn(0, "== CATEGORY ==  ");
    table.appendColumn(1, "== GOAL ==  ");
    table.appendColumn(2, "== AMOUNT ==  ");
@@ -58,7 +83,6 @@ void IPBudgetAllocator::finish()
       table.appendColumn(4, it1.second.spent.toString() + "  ");
       total += it1.second.spent;
    }
-   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(4, total.toString() + "  ");
    table.setColumnAlignment(2, TextTable::Alignment::RightAlign);
@@ -95,7 +119,6 @@ void IPBudgetAllocator::finish()
       table.appendColumn(4, it->second.reserved.toString());
       total += it->second.reserved;
    }
-   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(4, total.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
@@ -127,7 +150,6 @@ void IPBudgetAllocator::finish()
       table.appendColumn(3, it->second.reserved.toString());
       total += it->second.reserved;
    }
-   totalAll += total;
    table.appendColumn(0, "== TOTAL ==  ");
    table.appendColumn(3, total.toString());
    table.setColumnAlignment(1, TextTable::Alignment::RightAlign);
@@ -139,14 +161,12 @@ void IPBudgetAllocator::finish()
    std::cout << "Available to budget: " << std::endl;
    for (auto it = m_availables.begin(); it != m_availables.end(); ++it)
    {
-      totalAll += it->second;
       std::cout << it->first << ": " << it->second.toString() << std::endl;
       if (it->second.isNegative())
       {
          std::cout << "WARNING: over budget!" << std::endl;
       }
    }
-   std::cout << "Total budgetable money: " << totalAll.toString() << std::endl;
 }
 
 void IPBudgetAllocator::processItem(LedgerAccount const& account)
