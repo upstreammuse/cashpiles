@@ -190,10 +190,8 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
    }
 
    // reconfigure the budget period
-   // TODO this looks like it resets the routine calculations
-   m_currentPeriod = DateRange(budget.date(), budget.interval());
-   m_priorPeriod = DateRange();
    // TODO maybe better to track the routine calculation dates per category
+   advanceBudgetPeriod(DateRange(budget.date(), budget.interval()));
 
    // at this point we have reset the budget period to start with the new
    // period's date, and there is nothing more to do, because categories that
@@ -506,8 +504,8 @@ void IPBudgetAllocator::advanceBudgetPeriod(std::string const& filename,
    if (m_currentPeriod.isNull())
    {
       warn(filename, lineNum, "Creating a default monthly budget period");
-      m_currentPeriod = DateRange(Date(date.year(), date.month(), 1),
-                                  Interval(1, Interval::Period::MONTHS));
+      advanceBudgetPeriod(DateRange(Date(date.year(), date.month(), 1),
+                                    Interval(1, Interval::Period::MONTHS)));
    }
 
    if (date < m_currentPeriod.startDate())
@@ -521,52 +519,62 @@ void IPBudgetAllocator::advanceBudgetPeriod(std::string const& filename,
    while (m_currentPeriod.endDate() < date &&
           m_currentPeriod.endDate() < m_today)
    {
-      // merge routine info and reset for the new budget period
-      if (m_priorPeriod.isNull())
-      {
-         m_priorPeriod = m_currentPeriod;
-      }
-      else
-      {
-         m_priorPeriod = DateRange(m_priorPeriod.startDate(),
-                                   m_currentPeriod.endDate());
-      }
-      for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
-      {
-         it->second.priorAmount += it->second.currentAmount;
-         it->second.currentAmount.clear();
-      }
+      DateRange nextPeriod = m_currentPeriod;
+      ++nextPeriod;
+      advanceBudgetPeriod(nextPeriod);
+   }
+}
 
-      // advance the budget period to the new dates
-      ++m_currentPeriod;
+void IPBudgetAllocator::advanceBudgetPeriod(DateRange const& period)
+{
+   // merge routine info and reset for the new budget period
+   if (m_priorPeriod.isNull())
+   {
+      m_priorPeriod = m_currentPeriod;
+   }
+   else
+   {
+      m_priorPeriod = DateRange(m_priorPeriod.startDate(),
+                                m_currentPeriod.endDate());
+   }
+   for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
+   {
+      it->second.priorAmount += it->second.currentAmount;
+      it->second.currentAmount.clear();
+   }
 
-      // fund each goals category based on its goals
-      // the wonky double-pass is due to possible iterator invalidation when
-      // syncGoal completes a goal and removes it from the list
-      // TODO there should be a better way to do this that doesn't invalidate
-      //   the data as you go
-      std::vector<std::pair<std::string, std::string>> goals;
-      for (auto it1 : m_goals)
+   // advance the budget period to the new dates
+   m_currentPeriod = period;
+
+   // fund each goals category based on its goals
+   // the wonky double-pass is due to possible iterator invalidation when
+   // syncGoal completes a goal and removes it from the list
+   // TODO there should be a better way to do this that doesn't invalidate
+   //   the data as you go
+   std::vector<std::pair<std::string, std::string>> goals;
+   for (auto it1 : m_goals)
+   {
+      for (auto it2 : it1.second.goals)
       {
-         for (auto it2 : it1.second.goals)
-         {
-            goals.push_back(make_pair(it1.first, it2.first));
-         }
+         goals.push_back(make_pair(it1.first, it2.first));
       }
-      for (auto goal : goals)
-      {
-         syncGoal(goal.first, goal.second);
-      }
+   }
+   for (auto goal : goals)
+   {
+      syncGoal(goal.first, goal.second);
+   }
 
-      // fund each category that allocates amounts per budget period
-      for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
-      {
-         // skip reserves that are not amount/period based
-         if (it->second.period.isNull()) continue;
+   // fund each category that allocates amounts per budget period
+   for (auto it = m_reserves.begin(); it != m_reserves.end(); ++it)
+   {
+      // skip reserves that are not amount/period based
+      if (it->second.period.isNull()) continue;
 
-         syncReserve(it->first);
-      }
+      syncReserve(it->first);
+   }
 
+   if (!m_priorPeriod.isNull())
+   {
       // fund the routine categories based on prior daily routine expenses and
       // the duration of the current budget period
       for (auto it = m_routines.begin(); it != m_routines.end(); ++it)

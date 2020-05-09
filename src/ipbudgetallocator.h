@@ -29,6 +29,7 @@ public:
 private:
    void advanceBudgetPeriod(std::string const& filename, size_t lineNum,
                             Date const& date);
+   void advanceBudgetPeriod(DateRange const& period);
    void syncGoal(std::string const& category, std::string const& goal);
    void syncReserve(std::string const& category);
 
