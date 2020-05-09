@@ -611,9 +611,7 @@ void IPBudgetAllocator::syncReserve(std::string const& category)
       // we only want to allocate the amount that represents the overlap
       // between the savings period and the budget period
       Currency amount = m_reserves[category].amount.amortize(
-                           m_reserves[category].period,
-                           m_reserves[category].period.intersect(
-                              m_currentPeriod));
+                           m_reserves[category].period, m_currentPeriod);
 
       // move funds from available to savings goal
       m_reserves[category].reserved += amount;
