@@ -2,6 +2,7 @@
 
 DateRange::DateRange()
 {
+   // TODO this constructor is evil
 }
 
 DateRange::DateRange(Date const& start, Date const& end) :
