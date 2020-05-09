@@ -183,12 +183,12 @@ Date Date::addDays(int days) const
       if (d.m_day < 1)
       {
          --d.m_month;
+         if (d.m_month < 1)
+         {
+            d.m_month = 12;
+            --d.m_year;
+         }
          d.m_day = daysInMonth[d.m_month];
-      }
-      if (d.m_month < 1)
-      {
-         d.m_month = 12;
-         --d.m_year;
       }
    }
    assert(d.isValid());
