@@ -24,47 +24,51 @@
 #include "ledgertransactionv2.h"
 
 using std::make_shared;
+using std::regex;
+using std::regex_match;
 using std::smatch;
+using std::string;
+using std::stringstream;
 
 struct FileReaderRegEx
 {
-   std::string const CLEAR_RX;
-   std::string const CURR_RX;
-   std::string const DATE_RX;
-   std::string const END_RX;
-   std::string const IDENT_RX;
-   std::string const INTERVAL_RX;
-   std::string const NOTE_RX;
-   std::string const PERCENT_RX;
-   std::string const SEP_RX;
-   std::string const SPACE_RX;
-   std::string const START_RX;
+   string const CLEAR_RX;
+   string const CURR_RX;
+   string const DATE_RX;
+   string const END_RX;
+   string const IDENT_RX;
+   string const INTERVAL_RX;
+   string const NOTE_RX;
+   string const PERCENT_RX;
+   string const SEP_RX;
+   string const SPACE_RX;
+   string const START_RX;
 
-   std::regex const accountRx;
-   std::regex const accountBalanceRx;
-   std::regex const budgetRx;
-   std::regex const budgetLineCancelRx;
-   std::regex const budgetLineCloseRx;
-   std::regex const budgetLineGoalRx;
-   std::regex const budgetLineGoalsRx;
-   std::regex const budgetLineIncomeRx;
-   std::regex const budgetLineReserveAmountRx;
-   std::regex const budgetLineReservePercentRx;
-   std::regex const budgetLineRoutineRx;
-   std::regex const budgetLineWithholdingRx;
-   std::regex const commentRx;
-   std::regex const txnCompactOffRx;
-   std::regex const txn2Rx;
-   std::regex const txn2LineRx;
-   std::regex const txn2TrackingLineRx;
+   regex const accountRx;
+   regex const accountBalanceRx;
+   regex const budgetRx;
+   regex const budgetLineCancelRx;
+   regex const budgetLineCloseRx;
+   regex const budgetLineGoalRx;
+   regex const budgetLineGoalsRx;
+   regex const budgetLineIncomeRx;
+   regex const budgetLineReserveAmountRx;
+   regex const budgetLineReservePercentRx;
+   regex const budgetLineRoutineRx;
+   regex const budgetLineWithholdingRx;
+   regex const commentRx;
+   regex const txnCompactOffRx;
+   regex const txn2Rx;
+   regex const txn2LineRx;
+   regex const txn2TrackingLineRx;
 
-   std::string currencyRx()
+   string currencyRx()
    {
-      std::stringstream retval;
+      stringstream retval;
       struct lconv* lc = localeconv();
       retval << "((?:";
 
-      std::string symbol(lc->currency_symbol);
+      string symbol(lc->currency_symbol);
       // make sure ascii currency symbols don't interfere with regex
       for (char c : symbol)
       {
@@ -79,7 +83,7 @@ struct FileReaderRegEx
       }
       retval << '|';
 
-      std::string sep(lc->mon_thousands_sep);
+      string sep(lc->mon_thousands_sep);
       // make sure ascii separator symbols don't interfere with regex
       for (char c : sep)
       {
@@ -94,7 +98,7 @@ struct FileReaderRegEx
       }
       retval << '|';
 
-      std::string decimal(lc->mon_decimal_point);
+      string decimal(lc->mon_decimal_point);
       for (char c : decimal)
       {
          if (c & 0x80)
@@ -108,7 +112,7 @@ struct FileReaderRegEx
       }
       retval << '|';
 
-      std::string negative(lc->negative_sign);
+      string negative(lc->negative_sign);
       for (char c : negative)
       {
          if (c & 0x80)
@@ -126,9 +130,9 @@ struct FileReaderRegEx
       return retval.str();
    }
 
-   std::string optional(std::string const& item)
+   string optional(string const& item)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "(?:" << item << ")?";
       return ss.str();
    }
@@ -205,27 +209,28 @@ struct FileReaderRegEx
 
 static FileReaderRegEx* regEx = nullptr;
 
-Currency FileReader::parseCurrency(std::string const& currency,
-                                   std::string const& fileName, size_t lineNum)
+Currency FileReader::parseCurrency(
+      string const& currency, string const& fileName, size_t lineNum)
 {
    bool ok;
    Currency c(Currency::fromString(currency, &ok));
    if (!ok)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unable to parse currency '" << currency << "'";
       die(fileName, lineNum, ss.str());
    }
    return c;
 }
 
-Date FileReader::parseDate(std::string const& date, std::string const& dateFormat,
-                           std::string const& fileName, size_t lineNum)
+Date FileReader::parseDate(
+      string const& date, string const& dateFormat, string const& fileName,
+      size_t lineNum)
 {
    Date d(Date::fromString(date, dateFormat));
    if (!d.isValid())
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unable to parse date '" << date << "', expected something like '"
          << dateFormat << "'";
       die(fileName, lineNum, ss.str());
@@ -233,7 +238,7 @@ Date FileReader::parseDate(std::string const& date, std::string const& dateForma
    return d;
 }
 
-FileReader::FileReader(std::string const& fileName, Ledger& ledger) :
+FileReader::FileReader(string const& fileName, Ledger& ledger) :
    m_fileName(fileName),
    m_ledger(ledger)
 {
@@ -245,35 +250,34 @@ void FileReader::readAll()
    m_file.open(m_fileName);
    if (!m_file)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unable to open input file '" << m_fileName << "'";
       die(ss.str());
    }
    while (hasLines())
    {
-      std::string line(readLine());
+      string line(readLine());
       processLine(line);
    }
    m_file.close();
 }
 
-void FileReader::setDateFormat(std::string const& dateFormat)
+void FileReader::setDateFormat(string const& dateFormat)
 {
    m_dateFormat = dateFormat;
 }
 
-void FileReader::processAccount(std::smatch const& match)
+void FileReader::processAccount(smatch const& match)
 {
-   std::shared_ptr<LedgerAccount> account(
-            new LedgerAccount(m_fileName, m_lineNum));
-   account->setDate(parseDate(match.str(1)));
-   account->setMode(parseMode(match.str(2)));
+   auto account = make_shared<LedgerAccount>(m_fileName, m_lineNum);
+   account->setDate(parseDate(match[1]));
+   account->setMode(parseMode(match[2]));
    account->setName(match[3]);
    verifySetIdentifier(account->name(), IdentifierType::ACCOUNT);
    m_ledger.appendItem(account);
 }
 
-void FileReader::processAccountBalance(std::smatch const& match)
+void FileReader::processAccountBalance(smatch const& match)
 {
    auto balance = make_shared<LedgerAccountBalance>(m_fileName, m_lineNum);
    balance->setDate(parseDate(match[1]));
@@ -285,21 +289,20 @@ void FileReader::processAccountBalance(std::smatch const& match)
 
 void FileReader::processBlank()
 {
-   std::shared_ptr<LedgerBlank> blank(new LedgerBlank(m_fileName, m_lineNum));
+   auto blank = make_shared<LedgerBlank>(m_fileName, m_lineNum);
    m_ledger.appendItem(blank);
 }
 
-void FileReader::processBudget(std::smatch& match)
+void FileReader::processBudget(smatch& match)
 {
-   std::shared_ptr<LedgerBudget> budget(
-            new LedgerBudget(m_fileName, m_lineNum));
-   budget->setDate(parseDate(match.str(1)));
-   budget->setInterval(parseInterval(match.str(2)));
+   auto budget = make_shared<LedgerBudget>(m_fileName, m_lineNum);
+   budget->setDate(parseDate(match[1]));
+   budget->setInterval(parseInterval(match[2]));
 
    while (true)
    {
-      std::string line(readLine());
-      if (std::regex_match(line, match, regEx->budgetLineCancelRx))
+      auto line = readLine();
+      if (regex_match(line, match, regEx->budgetLineCancelRx))
       {
          auto entry = make_shared<LedgerBudgetCancelEntry>(
                          m_fileName, m_lineNum);
@@ -308,18 +311,17 @@ void FileReader::processBudget(std::smatch& match)
          entry->setGoal(match[2]);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineCloseRx))
+      else if (regex_match(line, match, regEx->budgetLineCloseRx))
       {
-         std::shared_ptr<LedgerBudgetCloseEntry> entry(
-                  new LedgerBudgetCloseEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetCloseEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineGoalRx))
+      else if (regex_match(line, match, regEx->budgetLineGoalRx))
       {
          auto entry = make_shared<LedgerBudgetGoalEntry>(m_fileName, m_lineNum);
-
          entry->setCategory(match[1]);
          verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setGoal(match[2]);
@@ -330,7 +332,7 @@ void FileReader::processBudget(std::smatch& match)
          //  - then again, so does LedgerBudgetCloseEntry
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineGoalsRx))
+      else if (regex_match(line, match, regEx->budgetLineGoalsRx))
       {
          auto entry = make_shared<LedgerBudgetGoalsEntry>(
                          m_fileName, m_lineNum);
@@ -340,20 +342,20 @@ void FileReader::processBudget(std::smatch& match)
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineIncomeRx))
+      else if (regex_match(line, match, regEx->budgetLineIncomeRx))
       {
-         std::shared_ptr<LedgerBudgetIncomeEntry> entry(
-                  new LedgerBudgetIncomeEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetIncomeEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setOwner(match[2]);
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineReserveAmountRx))
+      else if (regex_match(line, match, regEx->budgetLineReserveAmountRx))
       {
-         std::shared_ptr<LedgerBudgetReserveAmountEntry> entry(
-                  new LedgerBudgetReserveAmountEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetReserveAmountEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setAmount(parseCurrency(match[2]));
@@ -362,31 +364,31 @@ void FileReader::processBudget(std::smatch& match)
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineReservePercentRx))
+      else if (regex_match(line, match, regEx->budgetLineReservePercentRx))
       {
-         std::shared_ptr<LedgerBudgetReservePercentEntry> entry(
-                  new LedgerBudgetReservePercentEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetReservePercentEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setPercentage(std::stoul(match.str(2), nullptr, 10));
+         entry->setPercentage(stoul(match.str(2), nullptr, 10));
          entry->setOwner(match[3]);
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineRoutineRx))
+      else if (regex_match(line, match, regEx->budgetLineRoutineRx))
       {
-         std::shared_ptr<LedgerBudgetRoutineEntry> entry(
-                  new LedgerBudgetRoutineEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetRoutineEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setOwner(match[2]);
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else if (std::regex_match(line, match, regEx->budgetLineWithholdingRx))
+      else if (regex_match(line, match, regEx->budgetLineWithholdingRx))
       {
-         std::shared_ptr<LedgerBudgetWithholdingEntry> entry(
-                  new LedgerBudgetWithholdingEntry(m_fileName, m_lineNum));
+         auto entry = make_shared<LedgerBudgetWithholdingEntry>(
+                         m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setOwner(match[2]);
@@ -403,19 +405,17 @@ void FileReader::processBudget(std::smatch& match)
    m_ledger.appendItem(budget);
 }
 
-void FileReader::processComment(std::smatch const& match)
+void FileReader::processComment(smatch const& match)
 {
-   std::shared_ptr<LedgerComment> comment(
-            new LedgerComment(m_fileName, m_lineNum));
+   auto comment = make_shared<LedgerComment>(m_fileName, m_lineNum);
    comment->setNote(match.str(1));
    m_ledger.appendItem(comment);
 }
 
-void FileReader::processCompactTransactionOff(std::smatch const& match)
+void FileReader::processCompactTransactionOff(smatch const& match)
 {
-   std::shared_ptr<LedgerTransaction> transaction(
-            new LedgerTransaction(m_fileName, m_lineNum));
-   transaction->setDate(parseDate(match.str(1)));
+   auto transaction = make_shared<LedgerTransaction>(m_fileName, m_lineNum);
+   transaction->setDate(parseDate(match[1]));
    switch (match.str(2)[0])
    {
       case '*':
@@ -434,35 +434,35 @@ void FileReader::processCompactTransactionOff(std::smatch const& match)
    transaction->setAmount(parseCurrency(match[5]));
    if (match[6] != "")
    {
-      transaction->setNote(match.str(6));
+      transaction->setNote(match[6]);
    }
    m_ledger.appendItem(transaction);
 }
 
-void FileReader::processLine(std::string const& line)
+void FileReader::processLine(string const& line)
 {
-   std::smatch match;
-   if (std::regex_match(line, match, regEx->accountRx))
+   smatch match;
+   if (regex_match(line, match, regEx->accountRx))
    {
       processAccount(match);
    }
-   else if (std::regex_match(line, match, regEx->accountBalanceRx))
+   else if (regex_match(line, match, regEx->accountBalanceRx))
    {
       processAccountBalance(match);
    }
-   else if (std::regex_match(line, match, regEx->budgetRx))
+   else if (regex_match(line, match, regEx->budgetRx))
    {
       processBudget(match);
    }
-   else if (std::regex_match(line, match, regEx->commentRx))
+   else if (regex_match(line, match, regEx->commentRx))
    {
       processComment(match);
    }
-   else if (std::regex_match(line, match, regEx->txnCompactOffRx))
+   else if (regex_match(line, match, regEx->txnCompactOffRx))
    {
       processCompactTransactionOff(match);
    }
-   else if (std::regex_match(line, match, regEx->txn2Rx))
+   else if (regex_match(line, match, regEx->txn2Rx))
    {
       processTransactionV2(match);
    }
@@ -472,7 +472,7 @@ void FileReader::processLine(std::string const& line)
    }
    else
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Invalid contents '" << line << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
@@ -624,11 +624,11 @@ bool FileReader::hasLines()
    return !m_lines.empty() || !m_file.eof();
 }
 
-std::string FileReader::readLine()
+string FileReader::readLine()
 {
    if (!m_lines.empty())
    {
-      std::string line(m_lines.top());
+      string line(m_lines.top());
       m_lines.pop();
       ++m_lineNum;
       return line;
@@ -636,7 +636,7 @@ std::string FileReader::readLine()
    else if (m_file)
    {
       ++m_lineNum;
-      std::string line;
+      string line;
       getline(m_file, line);
       return line;
    }
@@ -646,14 +646,13 @@ std::string FileReader::readLine()
    }
 }
 
-void FileReader::unReadLine(std::string const& line)
+void FileReader::unReadLine(string const& line)
 {
    --m_lineNum;
    m_lines.push(line);
 }
 
-FileReader::IdentifierType FileReader::identifierType(
-      std::string const& identifier)
+FileReader::IdentifierType FileReader::identifierType(string const& identifier)
 {
    if (!m_identifiers.count(identifier))
    {
@@ -662,48 +661,47 @@ FileReader::IdentifierType FileReader::identifierType(
    return m_identifiers[identifier];
 }
 
-Currency FileReader::parseCurrency(std::string const& currency)
+Currency FileReader::parseCurrency(string const& currency)
 {
    return parseCurrency(currency, m_fileName, m_lineNum);
 }
 
-Date FileReader::parseDate(std::string const& date)
+Date FileReader::parseDate(string const& date)
 {
    return parseDate(date, m_dateFormat, m_fileName, m_lineNum);
 }
 
-Interval FileReader::parseInterval(std::string const& interval)
+Interval FileReader::parseInterval(string const& interval)
 {
    bool ok;
    Interval i(Interval::fromString(interval, &ok));
    if (!ok)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unable to parse interval '" << interval << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
    return i;
 }
 
-LedgerAccount::Mode FileReader::parseMode(std::string const& mode)
+LedgerAccount::Mode FileReader::parseMode(string const& mode)
 {
    bool ok;
    LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
    if (!ok)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unknown account command '" << mode << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
    return m;
 }
 
-void FileReader::verifyIdentifier(
-      std::string const& identifier, IdentifierType type)
+void FileReader::verifyIdentifier(string const& identifier, IdentifierType type)
 {
    if (identifierType(identifier) != type)
    {
-      std::stringstream ss;
+      stringstream ss;
       switch (identifierType(identifier))
       {
          case IdentifierType::ACCOUNT:
@@ -734,7 +732,7 @@ void FileReader::verifyIdentifier(
 }
 
 void FileReader::verifySetIdentifier(
-      std::string const& identifier, IdentifierType type)
+      string const& identifier, IdentifierType type)
 {
    if (!m_identifiers.count(identifier))
    {

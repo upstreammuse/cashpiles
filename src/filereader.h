@@ -3,7 +3,6 @@
 #include <fstream>
 #include <regex>
 #include <stack>
-
 #include "ledgeraccount.h"
 
 class Currency;

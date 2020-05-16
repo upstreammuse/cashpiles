@@ -6,6 +6,7 @@
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 
+using std::string;
 using std::stringstream;
 
 void IPTransactionCategorizer::processItem(LedgerAccount const& account)
@@ -31,7 +32,7 @@ void IPTransactionCategorizer::processItem(LedgerTransaction const& transaction)
 
    if (m_accounts[transaction.account()])
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Cannot use off-budget transaction with on-budget account '"
          << transaction.account() << "'";
       die(transaction.fileName(), transaction.lineNum(), ss.str());
@@ -86,11 +87,11 @@ void IPTransactionCategorizer::processItem(
 }
 
 void IPTransactionCategorizer::checkCreateOff(
-      std::string const& account, std::string const& filename, size_t linenum)
+      string const& account, string const& filename, size_t linenum)
 {
    if (!m_accounts.count(account))
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Automatically opening off-budget account '" << account << "'";
       warn(filename, linenum, ss.str());
       m_accounts[account] = false;
@@ -98,11 +99,11 @@ void IPTransactionCategorizer::checkCreateOff(
 }
 
 void IPTransactionCategorizer::checkCreateOn(
-      std::string const& account, std::string const& filename, size_t linenum)
+      string const& account, string const& filename, size_t linenum)
 {
    if (!m_accounts.count(account))
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Automatically opening on-budget account '" << account << "'";
       warn(filename, linenum, ss.str());
       m_accounts[account] = true;

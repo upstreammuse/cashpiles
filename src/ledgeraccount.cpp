@@ -3,8 +3,9 @@
 #include <cassert>
 #include "itemprocessor.h"
 
-LedgerAccount::Mode LedgerAccount::modeFromString(std::string const& mode,
-                                                  bool* ok)
+using std::string;
+
+LedgerAccount::Mode LedgerAccount::modeFromString(string const& mode, bool* ok)
 {
    bool dummy;
    bool* success = ok ? ok : &dummy;
@@ -29,7 +30,7 @@ LedgerAccount::Mode LedgerAccount::modeFromString(std::string const& mode,
    }
 }
 
-std::string LedgerAccount::modeToString(Mode mode)
+string LedgerAccount::modeToString(Mode mode)
 {
    switch (mode)
    {
@@ -45,7 +46,7 @@ std::string LedgerAccount::modeToString(Mode mode)
    return "";
 }
 
-LedgerAccount::LedgerAccount(std::string const& filename, size_t lineNum) :
+LedgerAccount::LedgerAccount(string const& filename, size_t lineNum) :
    LedgerItem(filename, lineNum)
 {
 }
@@ -72,12 +73,12 @@ void LedgerAccount::setMode(Mode mode)
    m_mode = mode;
 }
 
-std::string LedgerAccount::name() const
+string LedgerAccount::name() const
 {
    return m_name;
 }
 
-void LedgerAccount::setName(std::string const& name)
+void LedgerAccount::setName(string const& name)
 {
    m_name = name;
 }

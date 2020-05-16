@@ -175,13 +175,13 @@ bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
    switch (transaction.status())
    {
       case LedgerTransactionV2::Status::CLEARED:
-         m_file << "*";
+         m_file << '*';
          break;
       case LedgerTransactionV2::Status::DISPUTED:
-         m_file << "!";
+         m_file << '!';
          break;
       case LedgerTransactionV2::Status::PENDING:
-         m_file << "?";
+         m_file << '?';
          break;
    }
    m_file << ' ' << transaction.payee() << "  "

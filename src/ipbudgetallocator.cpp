@@ -19,12 +19,15 @@
 #include "ledgertransactionv2.h"
 #include "texttable.h"
 
+using std::string;
+using std::stringstream;
+
 IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
    m_today(today)
 {
    if (!m_today.isValid())
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Today's date '" << m_today.toString() << "' is invalid";
       die(ss.str());
    }
@@ -105,7 +108,7 @@ void IPBudgetAllocator::finish()
       {
          table.appendColumn(1, "  ");
          table.appendColumn(2, "  ");
-         std::stringstream ss;
+         stringstream ss;
          ss << it->second.percentage << "  ";
          table.appendColumn(3, ss.str());
       }
@@ -138,7 +141,7 @@ void IPBudgetAllocator::finish()
              << " - " << m_priorPeriod.endDate().toString() << std::endl;
    for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << it->first << "  ";
       table.appendColumn(0, ss.str());
       table.appendColumn(1, it->second.priorAmount.toString() + "  ");
@@ -223,7 +226,7 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
 void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 {
    // TODO remove this
-   std::stringstream ss;
+   stringstream ss;
    ss << entry.category();
    auto category = ss.str();
    auto goal = entry.goal();
@@ -241,12 +244,9 @@ void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
    m_goals[category].goals.erase(goal);
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& entry)
 {
-   // TODO remove this
-   std::stringstream ss;
-   ss << budget.category();
-   auto category = ss.str();
+   auto category = entry.category();
 
    if (m_goals.count(category))
    {
@@ -257,164 +257,175 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& budget)
 
       if (!m_goals[category].spent.isZero())
       {
-         std::stringstream ss;
+         stringstream ss;
          ss << "Returning " << m_goals[category].spent.toString()
             << " from category '" << category << "' to available";
-         warn(budget.fileName(), budget.lineNum(), ss.str());
+         warn(entry.fileName(), entry.lineNum(), ss.str());
       }
-      m_availables[m_owners[budget.category()]] += m_goals[category].spent;
+      m_availables[m_owners[category]] += m_goals[category].spent;
       m_goals.erase(category);
-      m_owners.erase(budget.category());
+      m_owners.erase(category);
    }
-   else if (m_incomes.find(budget.category()) != m_incomes.end())
+   else if (m_incomes.count(category))
    {
-      m_incomes.erase(budget.category());
-      m_owners.erase(budget.category());
+      m_incomes.erase(category);
+      m_owners.erase(category);
    }
-   else if (m_reserves.find(budget.category()) != m_reserves.end())
+   else if (m_reserves.count(category))
    {
-      if (!m_reserves[budget.category()].reserved.isZero())
+      if (!m_reserves[category].reserved.isZero())
       {
-         std::stringstream ss;
-         ss << "Returning " << m_reserves[budget.category()].reserved.toString()
-            << " from category '" << budget.category() << "' to available";
-         warn(budget.fileName(), budget.lineNum(), ss.str());
+         stringstream ss;
+         ss << "Returning " << m_reserves[category].reserved.toString()
+            << " from category '" << category << "' to available";
+         warn(entry.fileName(), entry.lineNum(), ss.str());
       }
-      m_availables[m_owners[budget.category()]] +=
-            m_reserves[budget.category()].reserved;
-      m_reserves.erase(budget.category());
-      m_owners.erase(budget.category());
+      m_availables[m_owners[category]] += m_reserves[category].reserved;
+      m_reserves.erase(category);
+      m_owners.erase(category);
    }
-   else if (m_routines.find(budget.category()) != m_routines.end())
+   else if (m_routines.count(category))
    {
-      if (!m_routines[budget.category()].reserved.isZero())
+      if (!m_routines[category].reserved.isZero())
       {
-         std::stringstream ss;
-         ss << "Returning " << m_routines[budget.category()].reserved.toString()
-            << " from category '" << budget.category() << "' to available";
-         warn(budget.fileName(), budget.lineNum(), ss.str());
+         stringstream ss;
+         ss << "Returning " << m_routines[category].reserved.toString()
+            << " from category '" << category << "' to available";
+         warn(entry.fileName(), entry.lineNum(), ss.str());
       }
-      m_availables[m_owners[budget.category()]] +=
-            m_routines[budget.category()].reserved;
-      m_routines.erase(budget.category());
-      m_owners.erase(budget.category());
+      m_availables[m_owners[category]] += m_routines[category].reserved;
+      m_routines.erase(category);
+      m_owners.erase(category);
    }
-   else if (m_withholdings.find(budget.category()) != m_withholdings.end())
+   else if (m_withholdings.count(category))
    {
-      m_withholdings.erase(budget.category());
-      m_owners.erase(budget.category());
+      m_withholdings.erase(category);
+      m_owners.erase(category);
    }
    else
    {
-      std::stringstream ss;
-      ss << "Cannot close budget category '" << budget.category()
+      stringstream ss;
+      ss << "Cannot close budget category '" << category
          << "' that did not already exist";
-      warn(budget.fileName(), budget.lineNum(), ss.str());
+      warn(entry.fileName(), entry.lineNum(), ss.str());
    }
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& entry)
 {
-   auto category = budget.category();
+   auto category = entry.category();
 
    if (!m_goals.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget goal uses unknown category");
    }
-   if (m_goals[category].goals.count(budget.goal()))
+   if (m_goals[category].goals.count(entry.goal()))
    {
-      die(budget.fileName(), budget.lineNum(), "Budget goal already in use");
+      die(entry.fileName(), entry.lineNum(), "Budget goal already in use");
    }
 
-   m_goals[category].goals[budget.goal()].amount = budget.amount();
-   m_goals[category].goals[budget.goal()].period =
-         DateRange(m_workingDate, budget.goalDate());
+   m_goals[category].goals[entry.goal()].amount = entry.amount();
+   m_goals[category].goals[entry.goal()].period =
+         DateRange(m_workingDate, entry.goalDate());
 
-   syncGoal(category, budget.goal());
+   syncGoal(category, entry.goal());
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& entry)
 {
-   // TODO remove this
-   std::stringstream ss;
-   ss << budget.category();
-   auto category = ss.str();
+   auto category = entry.category();
+   auto owner = entry.owner();
 
-   if (m_owners.find(budget.category()) != m_owners.end())
+   if (m_owners.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget category listed multiple times");
    }
-   m_availables[budget.owner()];
+   m_availables[owner];
    m_goals[category];
-   m_owners[budget.category()] = budget.owner();
+   m_owners[category] = owner;
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetIncomeEntry const& entry)
 {
-   if (m_owners.find(budget.category()) != m_owners.end())
+   auto category = entry.category();
+   auto owner = entry.owner();
+
+   if (m_owners.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget category listed multiple times");
    }
-   m_availables[budget.owner()];
-   m_incomes.insert(budget.category());
-   m_owners[budget.category()] = budget.owner();
-}
-
-void IPBudgetAllocator::processItem(
-      LedgerBudgetReserveAmountEntry const& budget)
-{
-   if (m_owners.find(budget.category()) != m_owners.end())
-   {
-      die(budget.fileName(), budget.lineNum(),
-          "Budget category listed multiple times");
-   }
-
-   m_availables[budget.owner()];
-   m_owners[budget.category()] = budget.owner();
-   m_reserves[budget.category()].amount = budget.amount();
-   m_reserves[budget.category()].period = DateRange(m_currentPeriod.startDate(),
-                                                    budget.interval());
-   syncReserve(budget.category());
+   m_availables[owner];
+   m_incomes.insert(category);
+   m_owners[category] = owner;
 }
 
 void IPBudgetAllocator::processItem(
-      LedgerBudgetReservePercentEntry const &budget)
+      LedgerBudgetReserveAmountEntry const& entry)
 {
-   if (m_owners.find(budget.category()) != m_owners.end())
+   auto category = entry.category();
+   auto owner = entry.owner();
+
+   if (m_owners.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget category listed multiple times");
    }
-   m_availables[budget.owner()];
-   m_owners[budget.category()] = budget.owner();
-   m_reserves[budget.category()].percentage = budget.percentage() / 100.0;
+
+   m_availables[owner];
+   m_owners[category] = owner;
+   m_reserves[category].amount = entry.amount();
+   m_reserves[category].period = DateRange(m_currentPeriod.startDate(),
+                                           entry.interval());
+   syncReserve(category);
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& budget)
+void IPBudgetAllocator::processItem(
+      LedgerBudgetReservePercentEntry const &entry)
 {
-   if (m_owners.find(budget.category()) != m_owners.end())
+   auto category = entry.category();
+   auto owner = entry.owner();
+
+   if (m_owners.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget category listed multiple times");
    }
-   m_availables[budget.owner()];
-   m_owners[budget.category()] = budget.owner();
-   m_routines[budget.category()];
+   m_availables[owner];
+   m_owners[category] = owner;
+   m_reserves[category].percentage = entry.percentage() / 100.0;
 }
 
-void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& budget)
+void IPBudgetAllocator::processItem(LedgerBudgetRoutineEntry const& entry)
 {
-   if (m_owners.find(budget.category()) != m_owners.end())
+   auto category = entry.category();
+   auto owner = entry.owner();
+
+   if (m_owners.count(category))
    {
-      die(budget.fileName(), budget.lineNum(),
+      die(entry.fileName(), entry.lineNum(),
           "Budget category listed multiple times");
    }
-   m_availables[budget.owner()];
-   m_owners[budget.category()] = budget.owner();
-   m_withholdings.insert(budget.category());
+   m_availables[owner];
+   m_owners[category] = owner;
+   m_routines[category];
+}
+
+void IPBudgetAllocator::processItem(LedgerBudgetWithholdingEntry const& entry)
+{
+   auto category = entry.category();
+   auto owner = entry.owner();
+
+   if (m_owners.count(category))
+   {
+      die(entry.fileName(), entry.lineNum(),
+          "Budget category listed multiple times");
+   }
+   m_availables[owner];
+   m_owners[category] = owner;
+   m_withholdings.insert(category);
 }
 
 bool IPBudgetAllocator::processItem(LedgerTransactionV2 const& transaction)
@@ -443,7 +454,7 @@ void IPBudgetAllocator::processItem(
       }
       if (total.isNegative())
       {
-         std::stringstream ss;
+         stringstream ss;
          ss << "Goal category '" << category << "' overspent";
          warn(entry.fileName(), entry.lineNum(), ss.str());
          m_availables[m_owners[category]] += total;
@@ -472,7 +483,7 @@ void IPBudgetAllocator::processItem(
       m_reserves[category].reserved += amount;
       if (m_reserves[category].reserved.isNegative())
       {
-         std::stringstream ss;
+         stringstream ss;
          ss << "Reserve category '" << category << "' overspent";
          warn(entry.fileName(), entry.lineNum(), ss.str());
          m_availables[m_owners[category]] += m_reserves[category].reserved;
@@ -498,7 +509,7 @@ void IPBudgetAllocator::processItem(
    }
    else
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Category '" << category << "' not recognized";
       die(entry.fileName(), entry.lineNum(), ss.str());
    }
@@ -509,7 +520,7 @@ void IPBudgetAllocator::processItem(LedgerTransactionV2OwnerEntry const& entry)
    // if the category is an owner, make sure we recognize it
    if (!m_availables.count(entry.owner()))
    {
-      std::stringstream ss;
+      stringstream ss;
       ss << "Unknown category owner '" << entry.owner() << "'";
       die(entry.fileName(), entry.lineNum(), ss.str());
    }
@@ -517,7 +528,7 @@ void IPBudgetAllocator::processItem(LedgerTransactionV2OwnerEntry const& entry)
    m_availables[entry.owner()] += entry.amount().first;
 }
 
-void IPBudgetAllocator::advanceBudgetPeriod(std::string const& filename,
+void IPBudgetAllocator::advanceBudgetPeriod(string const& filename,
                                             size_t lineNum, Date const& date)
 {
    // use a monthly period by default if not initialized otherwise
@@ -571,7 +582,7 @@ void IPBudgetAllocator::advanceBudgetPeriod(DateRange const& period)
    // syncGoal completes a goal and removes it from the list
    // TODO there should be a better way to do this that doesn't invalidate
    //   the data as you go
-   std::vector<std::pair<std::string, std::string>> goals;
+   std::vector<std::pair<string, string>> goals;
    for (auto it1 : m_goals)
    {
       for (auto it2 : it1.second.goals)
@@ -613,7 +624,7 @@ void IPBudgetAllocator::advanceBudgetPeriod(DateRange const& period)
 }
 
 void IPBudgetAllocator::syncGoal(
-      std::string const& category, std::string const& goal)
+      string const& category, string const& goal)
 {
    auto& theGoal = m_goals[category].goals[goal];
    auto amount = theGoal.amount.amortize(theGoal.period, m_currentPeriod);
@@ -627,7 +638,7 @@ void IPBudgetAllocator::syncGoal(
    }
 }
 
-void IPBudgetAllocator::syncReserve(std::string const& category)
+void IPBudgetAllocator::syncReserve(string const& category)
 {
    // fund all reserve periods that start before this budget period ends,
    // considering that the current reserve period might have started
