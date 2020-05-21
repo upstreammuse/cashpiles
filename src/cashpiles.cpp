@@ -4,6 +4,7 @@
 #include <clocale>
 #include <iostream>
 #include <regex>
+#include <sys/stat.h>
 #include "currency.h"
 #include "filereader.h"
 #include "filewriter.h"
@@ -40,9 +41,10 @@ int main(int argc, char** argv)
    std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
    std::string outFileName;
+   std::string reportDir;
    Date today = Date::currentDate();
-   processArguments(convertYnab, dateFormat, inFileName, outFileName, today,
-                    argc, argv);
+   processArguments(convertYnab, dateFormat, inFileName, outFileName, reportDir,
+                    today, argc, argv);
    if (inFileName == "")
    {
       die("No input file specified");
@@ -52,6 +54,14 @@ int main(int argc, char** argv)
       std::stringstream ss;
       ss << "Today's date invalid, expected '" << dateFormat << "'";
       die(ss.str());
+   }
+   if (reportDir != "")
+   {
+      struct stat status;
+      if (stat(reportDir.c_str(), &status) != 0)
+      {
+         die("Report directory does not exist");
+      }
    }
 
    Ledger ledger;
@@ -101,11 +111,13 @@ int main(int argc, char** argv)
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& outFileName,
-                      Date& today, int argc, char** argv)
+                      std::string& reportDir, Date& today,
+                      int argc, char** argv)
 {
    static std::regex const dateFormatRx("^--dateformat=(.*)$");
    static std::regex const inFileNameRx("^--file=(.*)$");
    static std::regex const outFileNameRx("^--rewrite=(.*)$");
+   static std::regex const reportDirRx("^--reports=(.*)$");
    static std::regex const todayRx("^--today=(.*)$");
    static std::regex const ynabRx("^--ynab$");
    std::smatch match;
@@ -123,6 +135,10 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       else if (std::regex_match(arg, match, outFileNameRx))
       {
          outFileName = match.str(1);
+      }
+      else if (std::regex_match(arg, match, reportDirRx))
+      {
+         reportDir = match[1];
       }
       else if (std::regex_match(arg, match, todayRx))
       {

@@ -14,7 +14,8 @@ class Date;
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& outFileName,
-                      Date& today, int argc, char** argv);
+                      std::string& reportDir, Date& today,
+                      int argc, char** argv);
 
 void warn(std::string const& message);
 
