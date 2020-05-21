@@ -89,7 +89,7 @@ int main(int argc, char** argv)
       IPTransactionCategorizer tc;
       ledger.processItems(tc);
 
-      IPAccountBalancer ab(today);
+      IPAccountBalancer ab(reporter);
       ledger.processItems(ab);
 
       IPBudgetAllocator budAlloc(today);
