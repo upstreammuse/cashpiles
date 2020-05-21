@@ -13,6 +13,7 @@
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
+#include "reporter.h"
 #include "ynabregisterreader.h"
 
 [[noreturn]] void die(std::string const& message)
@@ -77,6 +78,8 @@ int main(int argc, char** argv)
       reader.setDateFormat(dateFormat);
       reader.readAll();
    }
+
+   Reporter reporter;
 
    IPDateValidator dv;
    ledger.processItems(dv);
