@@ -38,6 +38,7 @@ HEADERS += \
    src/reportaccount.h \
    src/reporter.h \
    src/reportprocessor.h \
+   src/rphtmlreporter.h \
    src/texttable.h \
    src/ynabregisterreader.h
 SOURCES += \
@@ -77,6 +78,7 @@ SOURCES += \
    src/reportaccount.cpp \
    src/reporter.cpp \
    src/reportprocessor.cpp \
+   src/rphtmlreporter.cpp \
    src/texttable.cpp \
    src/ynabregisterreader.cpp
 TARGET = cashpiles

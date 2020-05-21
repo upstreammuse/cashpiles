@@ -14,6 +14,7 @@
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
 #include "reporter.h"
+#include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
 
 [[noreturn]] void die(std::string const& message)
@@ -97,6 +98,9 @@ int main(int argc, char** argv)
 
       assert(ab.budgetable() == budAlloc.budgetable());
    }
+
+   RPHtmlReporter hr(reportDir, dateFormat);
+   reporter.processReports(hr);
 
    if (outFileName != "")
    {
