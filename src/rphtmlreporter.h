@@ -20,6 +20,9 @@ private:
    std::string idStr(Report const& report);
    void removeById(Report const& report);
 
+   std::string td(std::string const& s);
+   std::string tr(std::string const& s);
+
 private:
    Currency m_balance;
    std::string m_dateFormat;

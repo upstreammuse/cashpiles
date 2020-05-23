@@ -52,14 +52,13 @@ bool RPHtmlReporter::processReport(ReportAccount const& account)
 void RPHtmlReporter::processReport(ReportAccountEntry const& entry)
 {
    removeById(entry);
-   m_outFile << "<tr>";
-   m_outFile << "<td>" << entry.date().toString(m_dateFormat) << "</td>";
-   m_outFile << "<td>" << (entry.cleared() ? "*" : "?") << "</td>";
-   m_outFile << "<td>" << entry.text() << "</td>";
-   m_outFile << "<td>" << entry.amount().toString() << "</td>";
    m_balance += entry.amount();
-   m_outFile << "<td>" << m_balance.toString() << "</td>";
-   m_outFile << "</tr>" << endl;
+
+   m_outFile << tr(td(entry.date().toString(m_dateFormat)) +
+                   td(entry.cleared() ? "*" : "?") +
+                   td(entry.text()) +
+                   td(entry.amount().toString()) +
+                   td(m_balance.toString())) << endl;
 }
 
 string RPHtmlReporter::idStr(Report const& report)
@@ -84,4 +83,14 @@ void RPHtmlReporter::removeById(Report const& report)
       }
    }
    closedir(dir);
+}
+
+string RPHtmlReporter::td(string const& s)
+{
+   return "<td>" + s + "</td>";
+}
+
+string RPHtmlReporter::tr(string const& s)
+{
+   return "<tr>" + s + "</tr>";
 }
