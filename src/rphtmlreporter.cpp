@@ -30,7 +30,7 @@ bool RPHtmlReporter::processReport(ReportAccount const& account)
    // TODO this is bad file handling
    m_outFile = ofstream {m_reportsDir + "/Account Report [" +
                account.account() + "] -- " +
-               account.dateRange().endDate().toString("yyyy-MM-dd") +
+               account.dateRange().endDate().toString("yyyy-MM-dd") + " " +
                idStr(account) + ".html"};
 
    m_outFile << "<html><head><title>Account Report</title></head>" << endl;
