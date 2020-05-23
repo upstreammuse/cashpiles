@@ -24,6 +24,10 @@ public:
    void processItem(LedgerTransactionV2OwnerEntry const& entry);
 
 private:
+   std::shared_ptr<ReportAccount> report(
+         Date const& date, std::string const& account);
+
+private:
    struct Account
    {
       Currency balance;
