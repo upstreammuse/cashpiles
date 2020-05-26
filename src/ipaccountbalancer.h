@@ -24,6 +24,7 @@ public:
    void processItem(LedgerTransactionV2OwnerEntry const& entry);
 
 private:
+   void ensureOpen(Date const& date, std::string const& account, bool onBudget);
    std::shared_ptr<ReportAccount> report(
          Date const& date, std::string const& account);
 

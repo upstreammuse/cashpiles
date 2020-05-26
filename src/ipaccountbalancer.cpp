@@ -73,6 +73,14 @@ void IPAccountBalancer::processItem(LedgerAccount const& accountCommand)
             entry->setText("Attempted to close account with non-zero balance");
             report->appendEntry(entry);
          }
+         else if (account.hasPending)
+         {
+            auto entry = make_shared<ReportAccountEntry>();
+            entry->setDate(date);
+            entry->setText(
+                     "Attempted to close account with pending transactions");
+            report->appendEntry(entry);
+         }
          else
          {
             auto entry = make_shared<ReportAccountEntry>();
@@ -151,8 +159,10 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
    auto accountName = transaction.account();
    auto& account = m_accounts[accountName];
    auto amount = transaction.amount();
+   auto date = transaction.date();
    auto report = this->report(transaction.date(), accountName);
 
+   ensureOpen(date, accountName, false);
    account.balance += amount;
    if (transaction.status() == LedgerTransaction::Status::PENDING)
    {
@@ -163,7 +173,7 @@ void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
    entry->setAmount(amount);
    entry->setCleared(
             transaction.status() == LedgerTransaction::Status::CLEARED);
-   entry->setDate(transaction.date());
+   entry->setDate(date);
    entry->setText(transaction.payee());
    report->appendEntry(entry);
 }
@@ -184,6 +194,7 @@ void IPAccountBalancer::processItem(
    auto amount = entry.amount().first;
    auto report = this->report(m_workingDate, accountName);
 
+   ensureOpen(m_workingDate, accountName, true);
    account.balance += amount;
    if (m_workingStatus == LedgerTransactionV2::Status::PENDING)
    {
@@ -207,6 +218,7 @@ void IPAccountBalancer::processItem(
    auto amount = entry.amount().first;
    auto report = this->report(m_workingDate, accountName);
 
+   ensureOpen(m_workingDate, accountName, false);
    account.balance -= amount;
    if (m_workingStatus == LedgerTransactionV2::Status::PENDING)
    {
@@ -229,6 +241,7 @@ void IPAccountBalancer::processItem(LedgerTransactionV2OwnerEntry const& entry)
    auto amount = entry.amount().first;
    auto report = this->report(m_workingDate, accountName);
 
+   ensureOpen(m_workingDate, accountName, false);
    account.balance -= amount;
    if (m_workingStatus == LedgerTransactionV2::Status::PENDING)
    {
@@ -241,6 +254,23 @@ void IPAccountBalancer::processItem(LedgerTransactionV2OwnerEntry const& entry)
    entryR->setDate(m_workingDate);
    entryR->setText(m_workingPayee);
    report->appendEntry(entryR);
+}
+
+void IPAccountBalancer::ensureOpen(Date const& date, string const& accountName,
+                                   bool onBudget)
+{
+   auto& account = m_accounts[accountName];
+   auto report = this->report(date, accountName);
+   if (account.isClosed)
+   {
+      auto entry = make_shared<ReportAccountEntry>();
+      entry->setDate(date);
+      entry->setText("Automatically opening account");
+      report->appendEntry(entry);
+      account.isClosed = false;
+      account.onBudget = onBudget;
+      account.hasPending = false;
+   }
 }
 
 shared_ptr<ReportAccount> IPAccountBalancer::report(
