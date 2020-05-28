@@ -3,6 +3,7 @@
 #include <sstream>
 #include "cashpiles.h"
 #include "ledgeraccount.h"
+#include "ledgeraccountbalance.h"
 #include "ledgerbudget.h"
 #include "ledgercomment.h"
 #include "ledgertransaction.h"
@@ -11,6 +12,11 @@
 void IPDateValidator::processItem(LedgerAccount const& account)
 {
    processDate(account.date(), account.fileName(), account.lineNum());
+}
+
+void IPDateValidator::processItem(LedgerAccountBalance const& balance)
+{
+   processDate(balance.date(), balance.fileName(), balance.lineNum());
 }
 
 bool IPDateValidator::processItem(LedgerBudget const& budget)
