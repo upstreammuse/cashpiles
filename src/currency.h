@@ -9,6 +9,7 @@ class Currency
 public:
    static Currency fromString(std::string s, bool* ok = nullptr);
    static void normalize(Currency& a, Currency& b);
+   static void normalize(Currency& curr, size_t decimalPlaces);
 
 public:
    Currency();

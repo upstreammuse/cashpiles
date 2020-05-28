@@ -82,22 +82,22 @@ Currency Currency::fromString(std::string s, bool* ok_)
    {
       retval.m_value = -retval.m_value;
    }
-   // TODO since we are forcing the decimals to be either 0 or system-defined, we really don't have to store them
    retval.m_decimalPlaces = after.size();
    return retval;
 }
 
 void Currency::normalize(Currency& a, Currency& b)
 {
-   while (a.m_decimalPlaces < b.m_decimalPlaces)
+   normalize(a, b.m_decimalPlaces);
+   normalize(b, a.m_decimalPlaces);
+}
+
+void Currency::normalize(Currency& curr, size_t decimalPlaces)
+{
+   while (curr.m_decimalPlaces < decimalPlaces)
    {
-      a.m_value *= 10;
-      a.m_decimalPlaces++;
-   }
-   while (b.m_decimalPlaces < a.m_decimalPlaces)
-   {
-      b.m_value *= 10;
-      b.m_decimalPlaces++;
+      curr.m_value *= 10;
+      curr.m_decimalPlaces++;
    }
 }
 
@@ -204,10 +204,15 @@ bool Currency::isZero() const
 std::string Currency::toString() const
 {
    struct lconv* lc = localeconv();
+   size_t places = size_t(lc->frac_digits);
+
+   auto curr = *this;
+   normalize(curr, places);
+   long long int value = curr.m_value;
+   places = curr.m_decimalPlaces;
+
    char buffer[100] = "";
    char temp[100] = "";
-   long long int value = m_value;
-   size_t places = std::max(m_decimalPlaces, size_t(lc->frac_digits));
    bool negate = false;
    if (m_value < 0)
    {
@@ -215,25 +220,29 @@ std::string Currency::toString() const
       negate = true;
    }
 
+   // prepend digits until we hit the decimal point
    for (size_t i = 0; i < places; ++i)
    {
       sprintf(temp, "%lld%s", value % 10, buffer);
       strcpy(buffer, temp);
       value /= 10;
    }
-   if (lc->frac_digits != 0)
+   // add the decimal if it should be displayed
+   if (places != 0)
    {
       sprintf(temp, "%s%s", lc->mon_decimal_point, buffer);
       strcpy(buffer, temp);
    }
-   if (value <= 0)
+   // add a leading zero if we don't have any more digits to print and we had to
+   // print a decimal point
+   if (value <= 0 && places != 0)
    {
       sprintf(temp, "0%s", buffer);
       strcpy(buffer, temp);
    }
 
-
    char lastGroupSize = CHAR_MAX;
+   // as long as we have specified digit groupings, print according to them
    for (char *i = lc->mon_grouping; *i != 0; ++i)
    {
       lastGroupSize = *i;
@@ -249,6 +258,7 @@ std::string Currency::toString() const
          strcpy(buffer, temp);
       }
    }
+   // then continue on with the last specified group size
    while (value > 0)
    {
       for (char j = 0; j < lastGroupSize && value > 0; ++j)
