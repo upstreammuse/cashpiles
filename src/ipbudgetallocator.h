@@ -9,7 +9,7 @@
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator(Date const& today);
+   IPBudgetAllocator();
    Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
@@ -74,7 +74,6 @@ private:
    DateRange m_priorPeriod;
    std::map<std::string, Reserve> m_reserves;
    std::map<std::string, Routine> m_routines;
-   Date m_today;
    std::set<std::string> m_withholdings;
    Date m_workingDate;
 };

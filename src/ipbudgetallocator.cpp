@@ -22,15 +22,8 @@
 using std::string;
 using std::stringstream;
 
-IPBudgetAllocator::IPBudgetAllocator(Date const& today) :
-   m_today(today)
+IPBudgetAllocator::IPBudgetAllocator()
 {
-   if (!m_today.isValid())
-   {
-      stringstream ss;
-      ss << "Today's date '" << m_today.toString() << "' is invalid";
-      die(ss.str());
-   }
 }
 
 Currency IPBudgetAllocator::budgetable() const
@@ -179,13 +172,6 @@ void IPBudgetAllocator::processItem(LedgerAccount const& account)
 
 bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
 {
-   if (budget.date() > m_today)
-   {
-      warn(budget.fileName(), budget.lineNum(),
-           "Ignoring future budget configuration");
-      return false;
-   }
-
    // update the current processing date for entries
    m_workingDate = budget.date();
 
@@ -432,8 +418,6 @@ bool IPBudgetAllocator::processItem(LedgerTransactionV2 const& transaction)
 {
    advanceBudgetPeriod(transaction.fileName(), transaction.lineNum(),
                        transaction.date());
-   // TODO should probably allow as long as it's within the budget period
-   if (transaction.date() > m_today) return false;
    m_workingDate = transaction.date();
    return true;
 }
@@ -545,10 +529,8 @@ void IPBudgetAllocator::advanceBudgetPeriod(string const& filename,
           "Cannot rewind budget period for earlier dated item");
    }
 
-   // stop advancing once the budget period covers either the requested date or
-   // the current date, whichever comes first
-   while (m_currentPeriod.endDate() < date &&
-          m_currentPeriod.endDate() < m_today)
+   // stop advancing once the budget period covers the requested date
+   while (m_currentPeriod.endDate() < date)
    {
       DateRange nextPeriod = m_currentPeriod;
       ++nextPeriod;
