@@ -44,18 +44,11 @@ int main(int argc, char** argv)
    std::string inFileName;
    std::string outFileName;
    std::string reportDir;
-   Date today = Date::currentDate();
    processArguments(convertYnab, dateFormat, inFileName, outFileName, reportDir,
-                    today, argc, argv);
+                    argc, argv);
    if (inFileName == "")
    {
       die("No input file specified");
-   }
-   if (!today.isValid())
-   {
-      std::stringstream ss;
-      ss << "Today's date invalid, expected '" << dateFormat << "'";
-      die(ss.str());
    }
    if (reportDir != "")
    {
@@ -118,14 +111,12 @@ int main(int argc, char** argv)
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& outFileName,
-                      std::string& reportDir, Date& today,
-                      int argc, char** argv)
+                      std::string& reportDir, int argc, char** argv)
 {
    static std::regex const dateFormatRx("^--dateformat=(.*)$");
    static std::regex const inFileNameRx("^--file=(.*)$");
    static std::regex const outFileNameRx("^--rewrite=(.*)$");
    static std::regex const reportDirRx("^--reports=(.*)$");
-   static std::regex const todayRx("^--today=(.*)$");
    static std::regex const ynabRx("^--ynab$");
    std::smatch match;
    for (int i = 1; i < argc; ++i)
@@ -146,10 +137,6 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       else if (std::regex_match(arg, match, reportDirRx))
       {
          reportDir = match[1];
-      }
-      else if (std::regex_match(arg, match, todayRx))
-      {
-         today = Date::fromString(match.str(1), dateFormat);
       }
       else if (std::regex_match(arg, match, ynabRx))
       {
