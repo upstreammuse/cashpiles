@@ -17,6 +17,10 @@ void ReportProcessor::processReport(ReportAccountEntry const&)
 {
 }
 
+void ReportProcessor::processReport(ReportBudget const&)
+{
+}
+
 void ReportProcessor::start()
 {
 }

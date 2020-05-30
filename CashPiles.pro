@@ -36,6 +36,7 @@ HEADERS += \
    src/ledgertransactionv2.h \
    src/report.h \
    src/reportaccount.h \
+   src/reportbudget.h \
    src/reporter.h \
    src/reportprocessor.h \
    src/rphtmlreporter.h \
@@ -76,6 +77,7 @@ SOURCES += \
    src/ledgertransactionv2.cpp \
    src/report.cpp \
    src/reportaccount.cpp \
+   src/reportbudget.cpp \
    src/reporter.cpp \
    src/reportprocessor.cpp \
    src/rphtmlreporter.cpp \

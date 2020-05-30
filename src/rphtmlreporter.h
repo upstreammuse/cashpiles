@@ -15,6 +15,7 @@ public:
    void finish();
    bool processReport(ReportAccount const& account);
    void processReport(ReportAccountEntry const& entry);
+   void processReport(ReportBudget const& budget);
 
 private:
    std::string idStr(Report const& report);
@@ -24,8 +25,9 @@ private:
    std::string tr(std::string const& s);
 
 private:
+   std::ofstream m_accountFile;
    Currency m_balance;
+   std::ofstream m_budgetFile;
    std::string m_dateFormat;
-   std::ofstream m_outFile;
    std::string m_reportsDir;
 };
