@@ -3,6 +3,8 @@
 class ReportAccount;
 class ReportAccountEntry;
 class ReportBudget;
+class ReportBudgetCancelEntry;
+class ReportBudgetWarningEntry;
 
 class ReportProcessor
 {
@@ -11,6 +13,8 @@ public:
    virtual void finish();
    virtual bool processReport(ReportAccount const& account);
    virtual void processReport(ReportAccountEntry const& entry);
-   virtual void processReport(ReportBudget const& budget);
+   virtual bool processReport(ReportBudget const& budget);
+   virtual void processReport(ReportBudgetCancelEntry const& entry);
+   virtual void processReport(ReportBudgetWarningEntry const& entry);
    virtual void start();
 };

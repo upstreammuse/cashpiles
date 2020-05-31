@@ -17,7 +17,16 @@ void ReportProcessor::processReport(ReportAccountEntry const&)
 {
 }
 
-void ReportProcessor::processReport(ReportBudget const&)
+bool ReportProcessor::processReport(ReportBudget const&)
+{
+   return true;
+}
+
+void ReportProcessor::processReport(ReportBudgetCancelEntry const&)
+{
+}
+
+void ReportProcessor::processReport(ReportBudgetWarningEntry const&)
 {
 }
 

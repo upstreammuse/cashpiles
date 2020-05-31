@@ -63,7 +63,7 @@ void RPHtmlReporter::processReport(ReportAccountEntry const& entry)
                    td(m_balance.toString())) << endl;
 }
 
-void RPHtmlReporter::processReport(ReportBudget const& budget)
+bool RPHtmlReporter::processReport(ReportBudget const& budget)
 {
    m_budgetFile.close();
    removeById(budget);
@@ -78,6 +78,23 @@ void RPHtmlReporter::processReport(ReportBudget const& budget)
                 << budget.dateRange().startDate().toString(m_dateFormat)
                 << " - " << budget.dateRange().endDate().toString(m_dateFormat)
                 << "</p>" << endl;
+   return true;
+}
+
+void RPHtmlReporter::processReport(ReportBudgetCancelEntry const& entry)
+{
+   m_budgetFile << "<p>Cancelled goal '" << entry.goal() << "' in category '"
+                << entry.category() << "'.  Adding "
+                << entry.goalBalance().toString() << " to category balance "
+                << entry.categoryStartBalance().toString()
+                << " for total balance of "
+                << entry.categoryEndBalance().toString() << "</p>" << endl;
+}
+
+void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
+{
+   m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "
+                << entry.lineNumber() << ", " << entry.text() << "</p>" << endl;
 }
 
 string RPHtmlReporter::idStr(Report const& report)

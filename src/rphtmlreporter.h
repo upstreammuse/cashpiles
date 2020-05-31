@@ -15,7 +15,9 @@ public:
    void finish();
    bool processReport(ReportAccount const& account);
    void processReport(ReportAccountEntry const& entry);
-   void processReport(ReportBudget const& budget);
+   bool processReport(ReportBudget const& budget);
+   void processReport(ReportBudgetCancelEntry const& entry);
+   void processReport(ReportBudgetWarningEntry const& entry);
 
 private:
    std::string idStr(Report const& report);

@@ -221,20 +221,35 @@ bool IPBudgetAllocator::processItem(LedgerBudget const& budget)
 
 void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 {
-   // TODO remove this
-   stringstream ss;
-   ss << entry.category();
-   auto category = ss.str();
+   auto category = entry.category();
    auto goal = entry.goal();
+   auto report = this->report();
 
    if (!m_goals.count(category))
    {
-      die(entry.fileName(), entry.lineNum(), "Cannot cancel unknown category");
+      auto reportEntry = make_shared<ReportBudgetWarningEntry>();
+      reportEntry->setFileName(entry.fileName());
+      reportEntry->setLineNumber(entry.lineNum());
+      reportEntry->setText("Cannot cancel unknown category '" + category + "'");
+      report->appendEntry(reportEntry);
+      return;
    }
    if (!m_goals[category].goals.count(goal))
    {
-      die(entry.fileName(), entry.lineNum(), "Cannot cancel unknown goal");
+      auto reportEntry = make_shared<ReportBudgetWarningEntry>();
+      reportEntry->setFileName(entry.fileName());
+      reportEntry->setLineNumber(entry.lineNum());
+      reportEntry->setText("Cannot cancel unknown goal '" + goal + "'");
+      report->appendEntry(reportEntry);
+      return;
    }
+
+   auto reportEntry = make_shared<ReportBudgetCancelEntry>();
+   reportEntry->setCategory(category);
+   reportEntry->setCategoryStartBalance(m_goals[category].spent);
+   reportEntry->setGoal(goal);
+   reportEntry->setGoalBalance(m_goals[category].goals[goal].reserved);
+   report->appendEntry(reportEntry);
 
    m_goals[category].spent += m_goals[category].goals[goal].reserved;
    m_goals[category].goals.erase(goal);
