@@ -86,7 +86,7 @@ int main(int argc, char** argv)
       IPAccountBalancer ab(reporter);
       ledger.processItems(ab);
 
-      IPBudgetAllocator budAlloc;
+      IPBudgetAllocator budAlloc(reporter);
       ledger.processItems(budAlloc);
 
       assert(ab.budgetable() == budAlloc.budgetable());

@@ -1,15 +1,19 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
 #include "currency.h"
 #include "daterange.h"
 #include "itemprocessor.h"
 
+class ReportBudget;
+class Reporter;
+
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator();
+   IPBudgetAllocator(Reporter& reporter);
    Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
@@ -31,6 +35,8 @@ private:
    void advanceBudgetPeriod(std::string const& filename, size_t lineNum,
                             Date const& date);
    void advanceBudgetPeriod(DateRange const& period);
+   void generateReport();
+   std::shared_ptr<ReportBudget> report();
    void syncGoal(std::string const& category, std::string const& goal);
    void syncReserve(std::string const& category);
 
@@ -72,6 +78,8 @@ private:
    std::set<std::string> m_incomes;
    std::map<std::string, std::string> m_owners;
    DateRange m_priorPeriod;
+   std::shared_ptr<ReportBudget> m_report;
+   Reporter& m_reporter;
    std::map<std::string, Reserve> m_reserves;
    std::map<std::string, Routine> m_routines;
    std::set<std::string> m_withholdings;

@@ -69,11 +69,15 @@ void RPHtmlReporter::processReport(ReportBudget const& budget)
    removeById(budget);
    // TODO this is bad file handling
    m_budgetFile = ofstream {m_reportsDir + "/Budget Report -- " +
-               idStr(budget) + ".html"};
+                  budget.dateRange().endDate().toString("yyyy-MM-dd") +
+                  " " + idStr(budget) + ".html"};
 
    m_budgetFile << "<html><head><title>Budget Report</title></head>" << endl;
    m_budgetFile << "<body><h1>Budget Report</h1>" << endl;
-   m_budgetFile << "<table><tr><th>Date</th><th>Cleared</th><th>Text</th><th>Amount</th><th>Balance</th></tr>" << endl;
+   m_budgetFile << "<p>Budget Period: "
+                << budget.dateRange().startDate().toString(m_dateFormat)
+                << " - " << budget.dateRange().endDate().toString(m_dateFormat)
+                << "</p>" << endl;
 }
 
 string RPHtmlReporter::idStr(Report const& report)

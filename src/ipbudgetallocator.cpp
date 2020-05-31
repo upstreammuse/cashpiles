@@ -17,12 +17,17 @@
 #include "ledgerbudgetwithholdingentry.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
+#include "reportbudget.h"
+#include "reporter.h"
 #include "texttable.h"
 
+using std::make_shared;
+using std::shared_ptr;
 using std::string;
 using std::stringstream;
 
-IPBudgetAllocator::IPBudgetAllocator()
+IPBudgetAllocator::IPBudgetAllocator(Reporter& reporter) :
+   m_reporter(reporter)
 {
 }
 
@@ -162,6 +167,11 @@ void IPBudgetAllocator::finish()
       {
          std::cout << "WARNING: over budget!" << std::endl;
       }
+   }
+
+   if (m_report)
+   {
+      generateReport();
    }
 }
 
@@ -603,6 +613,25 @@ void IPBudgetAllocator::advanceBudgetPeriod(DateRange const& period)
          it->second.reserved -= daily;
       }
    }
+
+   generateReport();
+}
+
+void IPBudgetAllocator::generateReport()
+{
+   auto report = this->report();
+   m_reporter.appendReport(report);
+   m_report.reset();
+}
+
+shared_ptr<ReportBudget> IPBudgetAllocator::report()
+{
+   if (!m_report)
+   {
+      m_report = make_shared<ReportBudget>();
+      m_report->setDateRange(m_currentPeriod);
+   }
+   return m_report;
 }
 
 void IPBudgetAllocator::syncGoal(
