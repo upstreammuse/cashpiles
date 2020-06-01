@@ -26,6 +26,10 @@ void ReportProcessor::processReport(ReportBudgetCancelEntry const&)
 {
 }
 
+void ReportProcessor::processReport(ReportBudgetCloseEntry const&)
+{
+}
+
 void ReportProcessor::processReport(ReportBudgetWarningEntry const&)
 {
 }

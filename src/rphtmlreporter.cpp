@@ -91,6 +91,20 @@ void RPHtmlReporter::processReport(ReportBudgetCancelEntry const& entry)
                 << entry.categoryEndBalance().toString() << "</p>" << endl;
 }
 
+void RPHtmlReporter::processReport(ReportBudgetCloseEntry const& entry)
+{
+   m_budgetFile << "<p>Closed category '" << entry.category() << "'";
+   if (entry.owner() != "")
+   {
+      m_budgetFile << " owned by '" << entry.owner() << "'";
+   }
+   m_budgetFile << ".  Adding " << entry.categoryBalance().toString()
+                << " to available balance "
+                << entry.availableStartBalance().toString()
+                << " for total balance of "
+                << entry.availableEndBalance().toString() << "</p>" << endl;
+}
+
 void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
 {
    m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "

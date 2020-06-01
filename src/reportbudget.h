@@ -36,6 +36,31 @@ private:
    Currency m_goalBalance;
 };
 
+class ReportBudgetCloseEntry : public ReportBudgetEntry
+{
+public:
+   Currency availableStartBalance() const;
+   Currency availableEndBalance() const;
+   void setAvailableStartBalance(Currency const& balance);
+
+   std::string category() const;
+   void setCategory(std::string const& category);
+
+   Currency categoryBalance() const;
+   void setCategoryBalance(Currency const& balance);
+
+   std::string owner() const;
+   void setOwner(std::string const& owner);
+
+   void processReport(ReportProcessor& processor) const;
+
+private:
+   Currency m_availableStartBalance;
+   std::string m_category;
+   Currency m_categoryBalance;
+   std::string m_owner;
+};
+
 class ReportBudgetWarningEntry : public ReportBudgetEntry
 {
 public:

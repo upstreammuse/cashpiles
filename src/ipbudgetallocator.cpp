@@ -258,6 +258,7 @@ void IPBudgetAllocator::processItem(LedgerBudgetCancelEntry const& entry)
 void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& entry)
 {
    auto category = entry.category();
+   auto report = this->report();
 
    if (m_goals.count(category))
    {
@@ -266,59 +267,71 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& entry)
          m_goals[category].spent += it.second.reserved;
       }
 
-      if (!m_goals[category].spent.isZero())
-      {
-         stringstream ss;
-         ss << "Returning " << m_goals[category].spent.toString()
-            << " from category '" << category << "' to available";
-         warn(entry.fileName(), entry.lineNum(), ss.str());
-      }
+      auto reportEntry = make_shared<ReportBudgetCloseEntry>();
+      reportEntry->setAvailableStartBalance(m_availables[m_owners[category]]);
+      reportEntry->setCategory(category);
+      reportEntry->setCategoryBalance(m_goals[category].spent);
+      reportEntry->setOwner(m_owners[category]);
+      report->appendEntry(reportEntry);
+
       m_availables[m_owners[category]] += m_goals[category].spent;
       m_goals.erase(category);
       m_owners.erase(category);
    }
    else if (m_incomes.count(category))
    {
+      auto reportEntry = make_shared<ReportBudgetCloseEntry>();
+      reportEntry->setCategory(category);
+      reportEntry->setOwner(m_owners[category]);
+      report->appendEntry(reportEntry);
+
       m_incomes.erase(category);
       m_owners.erase(category);
    }
    else if (m_reserves.count(category))
    {
-      if (!m_reserves[category].reserved.isZero())
-      {
-         stringstream ss;
-         ss << "Returning " << m_reserves[category].reserved.toString()
-            << " from category '" << category << "' to available";
-         warn(entry.fileName(), entry.lineNum(), ss.str());
-      }
+      auto reportEntry = make_shared<ReportBudgetCloseEntry>();
+      reportEntry->setAvailableStartBalance(m_availables[m_owners[category]]);
+      reportEntry->setCategory(category);
+      reportEntry->setCategoryBalance(m_reserves[category].reserved);
+      reportEntry->setOwner(m_owners[category]);
+      report->appendEntry(reportEntry);
+
       m_availables[m_owners[category]] += m_reserves[category].reserved;
       m_reserves.erase(category);
       m_owners.erase(category);
    }
    else if (m_routines.count(category))
    {
-      if (!m_routines[category].reserved.isZero())
-      {
-         stringstream ss;
-         ss << "Returning " << m_routines[category].reserved.toString()
-            << " from category '" << category << "' to available";
-         warn(entry.fileName(), entry.lineNum(), ss.str());
-      }
+      auto reportEntry = make_shared<ReportBudgetCloseEntry>();
+      reportEntry->setAvailableStartBalance(m_availables[m_owners[category]]);
+      reportEntry->setCategory(category);
+      reportEntry->setCategoryBalance(m_routines[category].reserved);
+      reportEntry->setOwner(m_owners[category]);
+      report->appendEntry(reportEntry);
+
       m_availables[m_owners[category]] += m_routines[category].reserved;
       m_routines.erase(category);
       m_owners.erase(category);
    }
    else if (m_withholdings.count(category))
    {
+      auto reportEntry = make_shared<ReportBudgetCloseEntry>();
+      reportEntry->setCategory(category);
+      reportEntry->setOwner(m_owners[category]);
+      report->appendEntry(reportEntry);
+
       m_withholdings.erase(category);
       m_owners.erase(category);
    }
    else
    {
-      stringstream ss;
-      ss << "Cannot close budget category '" << category
-         << "' that did not already exist";
-      warn(entry.fileName(), entry.lineNum(), ss.str());
+      auto reportEntry = make_shared<ReportBudgetWarningEntry>();
+      reportEntry->setFileName(entry.fileName());
+      reportEntry->setLineNumber(entry.lineNum());
+      reportEntry->setText("Cannot close budget category '" + category
+                           + "' that did not already exist");
+      report->appendEntry(reportEntry);
    }
 }
 

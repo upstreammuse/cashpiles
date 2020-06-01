@@ -4,6 +4,7 @@ class ReportAccount;
 class ReportAccountEntry;
 class ReportBudget;
 class ReportBudgetCancelEntry;
+class ReportBudgetCloseEntry;
 class ReportBudgetWarningEntry;
 
 class ReportProcessor
@@ -15,6 +16,7 @@ public:
    virtual void processReport(ReportAccountEntry const& entry);
    virtual bool processReport(ReportBudget const& budget);
    virtual void processReport(ReportBudgetCancelEntry const& entry);
+   virtual void processReport(ReportBudgetCloseEntry const& entry);
    virtual void processReport(ReportBudgetWarningEntry const& entry);
    virtual void start();
 };

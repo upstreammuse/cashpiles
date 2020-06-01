@@ -54,6 +54,56 @@ void ReportBudgetCancelEntry::processReport(ReportProcessor& processor) const
    processor.processReport(*this);
 }
 
+Currency ReportBudgetCloseEntry::availableStartBalance() const
+{
+   return m_availableStartBalance;
+}
+
+Currency ReportBudgetCloseEntry::availableEndBalance() const
+{
+   return m_availableStartBalance + m_categoryBalance;
+}
+
+void ReportBudgetCloseEntry::setAvailableStartBalance(Currency const& balance)
+{
+   m_availableStartBalance = balance;
+}
+
+string ReportBudgetCloseEntry::category() const
+{
+   return m_category;
+}
+
+void ReportBudgetCloseEntry::setCategory(string const& category)
+{
+   m_category = category;
+}
+
+Currency ReportBudgetCloseEntry::categoryBalance() const
+{
+   return m_categoryBalance;
+}
+
+void ReportBudgetCloseEntry::setCategoryBalance(Currency const& balance)
+{
+   m_categoryBalance = balance;
+}
+
+string ReportBudgetCloseEntry::owner() const
+{
+   return m_owner;
+}
+
+void ReportBudgetCloseEntry::setOwner(string const& owner)
+{
+   m_owner = owner;
+}
+
+void ReportBudgetCloseEntry::processReport(ReportProcessor& processor) const
+{
+   processor.processReport(*this);
+}
+
 string ReportBudgetWarningEntry::fileName() const
 {
    return m_fileName;
@@ -106,5 +156,11 @@ void ReportBudget::appendEntry(std::shared_ptr<ReportBudgetEntry> entry)
 
 void ReportBudget::processReport(ReportProcessor& processor) const
 {
-   processor.processReport(*this);
+   if (processor.processReport(*this))
+   {
+      for (auto entry : m_entries)
+      {
+         entry->processReport(processor);
+      }
+   }
 }
