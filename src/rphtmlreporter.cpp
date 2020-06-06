@@ -114,6 +114,13 @@ void RPHtmlReporter::processReport(ReportBudgetGoalEntry const& entry)
                 << ".</p>" << endl;
 }
 
+void RPHtmlReporter::processReport(ReportBudgetGoalAllocationEntry const& entry)
+{
+   m_budgetFile << "<p>Goal '" << entry.goal() << "' in category '"
+                << entry.category() << "'.  Currently saved "
+                << entry.balance().toString() << ".</p>" << endl;
+}
+
 void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
 {
    m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "

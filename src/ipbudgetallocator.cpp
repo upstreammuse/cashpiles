@@ -676,8 +676,17 @@ void IPBudgetAllocator::syncGoal(
 {
    auto& theGoal = m_goals[category].goals[goal];
    auto amount = theGoal.amount.amortize(theGoal.period, m_currentPeriod);
+   auto report = this->report();
+
    theGoal.reserved += amount;
    m_availables[m_owners[category]] -= amount;
+
+   auto reportEntry = make_shared<ReportBudgetGoalAllocationEntry>();
+   reportEntry->setBalance(theGoal.reserved);
+   reportEntry->setCategory(category);
+   reportEntry->setGoal(goal);
+   report->appendEntry(reportEntry);
+
    if (theGoal.period.endDate() <= m_currentPeriod.endDate())
    {
       assert(theGoal.reserved == theGoal.amount);

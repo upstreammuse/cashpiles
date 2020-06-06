@@ -149,6 +149,42 @@ void ReportBudgetGoalEntry::processReport(ReportProcessor& processor) const
    processor.processReport(*this);
 }
 
+Currency ReportBudgetGoalAllocationEntry::balance() const
+{
+   return m_balance;
+}
+
+void ReportBudgetGoalAllocationEntry::setBalance(Currency const& balance)
+{
+   m_balance = balance;
+}
+
+string ReportBudgetGoalAllocationEntry::category() const
+{
+   return m_category;
+}
+
+void ReportBudgetGoalAllocationEntry::setCategory(string const& category)
+{
+   m_category = category;
+}
+
+string ReportBudgetGoalAllocationEntry::goal() const
+{
+   return m_goal;
+}
+
+void ReportBudgetGoalAllocationEntry::setGoal(std::string const& goal)
+{
+   m_goal = goal;
+}
+
+void ReportBudgetGoalAllocationEntry::processReport(
+      ReportProcessor& processor) const
+{
+   processor.processReport(*this);
+}
+
 string ReportBudgetWarningEntry::fileName() const
 {
    return m_fileName;

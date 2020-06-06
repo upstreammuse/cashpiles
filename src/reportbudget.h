@@ -79,11 +79,30 @@ public:
    void processReport(ReportProcessor& processor) const;
 
 private:
-   Currency m_balance;
    std::string m_category;
    std::string m_goal;
    Currency m_goalAmount;
    Date m_goalDate;
+};
+
+class ReportBudgetGoalAllocationEntry : public ReportBudgetEntry
+{
+public:
+   Currency balance() const;
+   void setBalance(Currency const& balance);
+
+   std::string category() const;
+   void setCategory(std::string const& category);
+
+   std::string goal() const;
+   void setGoal(std::string const& goal);
+
+   void processReport(ReportProcessor& processor) const;
+
+private:
+   Currency m_balance;
+   std::string m_category;
+   std::string m_goal;
 };
 
 class ReportBudgetWarningEntry : public ReportBudgetEntry
