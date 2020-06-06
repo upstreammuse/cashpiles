@@ -83,6 +83,7 @@ bool RPHtmlReporter::processReport(ReportBudget const& budget)
 
 void RPHtmlReporter::processReport(ReportBudgetCancelEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>Cancelled goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Adding "
                 << entry.goalBalance().toString() << " to category balance "
@@ -93,6 +94,7 @@ void RPHtmlReporter::processReport(ReportBudgetCancelEntry const& entry)
 
 void RPHtmlReporter::processReport(ReportBudgetCloseEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>Closed category '" << entry.category() << "'";
    if (entry.owner() != "")
    {
@@ -107,6 +109,7 @@ void RPHtmlReporter::processReport(ReportBudgetCloseEntry const& entry)
 
 void RPHtmlReporter::processReport(ReportBudgetGoalEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>Goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Saving "
                 << entry.goalAmount().toString() << " by "
@@ -116,6 +119,7 @@ void RPHtmlReporter::processReport(ReportBudgetGoalEntry const& entry)
 
 void RPHtmlReporter::processReport(ReportBudgetGoalAllocationEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>Goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Currently saved "
                 << entry.balance().toString() << ".</p>" << endl;
@@ -124,12 +128,14 @@ void RPHtmlReporter::processReport(ReportBudgetGoalAllocationEntry const& entry)
 void RPHtmlReporter::processReport(
       ReportBudgetReserveAllocationEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>Category '" << entry.category() << "'.  Currently saved "
                 << entry.balance().toString() << ".</p>" << endl;
 }
 
 void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
 {
+   removeById(entry);
    m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "
                 << entry.lineNumber() << ", " << entry.text() << "</p>" << endl;
 }
