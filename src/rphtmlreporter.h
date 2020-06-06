@@ -18,6 +18,7 @@ public:
    bool processReport(ReportBudget const& budget);
    void processReport(ReportBudgetCancelEntry const& entry);
    void processReport(ReportBudgetCloseEntry const& entry);
+   void processReport(ReportBudgetGoalEntry const& entry);
    void processReport(ReportBudgetWarningEntry const& entry);
 
 private:

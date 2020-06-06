@@ -338,22 +338,31 @@ void IPBudgetAllocator::processItem(LedgerBudgetCloseEntry const& entry)
 void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& entry)
 {
    auto category = entry.category();
+   auto goal = entry.goal();
+   auto report = this->report();
 
    if (!m_goals.count(category))
    {
       die(entry.fileName(), entry.lineNum(),
           "Budget goal uses unknown category");
    }
-   if (m_goals[category].goals.count(entry.goal()))
+   if (m_goals[category].goals.count(goal))
    {
       die(entry.fileName(), entry.lineNum(), "Budget goal already in use");
    }
 
-   m_goals[category].goals[entry.goal()].amount = entry.amount();
-   m_goals[category].goals[entry.goal()].period =
+   m_goals[category].goals[goal].amount = entry.amount();
+   m_goals[category].goals[goal].period =
          DateRange(m_workingDate, entry.goalDate());
 
-   syncGoal(category, entry.goal());
+   auto reportEntry = make_shared<ReportBudgetGoalEntry>();
+   reportEntry->setCategory(category);
+   reportEntry->setGoal(goal);
+   reportEntry->setGoalAmount(entry.amount());
+   reportEntry->setGoalDate(entry.goalDate());
+   report->appendEntry(reportEntry);
+
+   syncGoal(category, goal);
 }
 
 void IPBudgetAllocator::processItem(LedgerBudgetGoalsEntry const& entry)

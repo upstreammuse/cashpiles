@@ -104,6 +104,51 @@ void ReportBudgetCloseEntry::processReport(ReportProcessor& processor) const
    processor.processReport(*this);
 }
 
+string ReportBudgetGoalEntry::category() const
+{
+   return m_category;
+}
+
+void ReportBudgetGoalEntry::setCategory(string const& category)
+{
+   m_category = category;
+}
+
+string ReportBudgetGoalEntry::goal() const
+{
+   return m_goal;
+}
+
+void ReportBudgetGoalEntry::setGoal(std::string const& goal)
+{
+   m_goal = goal;
+}
+
+Currency ReportBudgetGoalEntry::goalAmount() const
+{
+   return m_goalAmount;
+}
+
+void ReportBudgetGoalEntry::setGoalAmount(Currency const& amount)
+{
+   m_goalAmount = amount;
+}
+
+Date ReportBudgetGoalEntry::goalDate() const
+{
+   return m_goalDate;
+}
+
+void ReportBudgetGoalEntry::setGoalDate(Date const& date)
+{
+   m_goalDate = date;
+}
+
+void ReportBudgetGoalEntry::processReport(ReportProcessor& processor) const
+{
+   processor.processReport(*this);
+}
+
 string ReportBudgetWarningEntry::fileName() const
 {
    return m_fileName;

@@ -61,6 +61,31 @@ private:
    std::string m_owner;
 };
 
+class ReportBudgetGoalEntry : public ReportBudgetEntry
+{
+public:
+   std::string category() const;
+   void setCategory(std::string const& category);
+
+   std::string goal() const;
+   void setGoal(std::string const& goal);
+
+   Currency goalAmount() const;
+   void setGoalAmount(Currency const& amount);
+
+   Date goalDate() const;
+   void setGoalDate(Date const& date);
+
+   void processReport(ReportProcessor& processor) const;
+
+private:
+   Currency m_balance;
+   std::string m_category;
+   std::string m_goal;
+   Currency m_goalAmount;
+   Date m_goalDate;
+};
+
 class ReportBudgetWarningEntry : public ReportBudgetEntry
 {
 public:
