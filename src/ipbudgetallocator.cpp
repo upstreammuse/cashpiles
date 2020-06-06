@@ -725,4 +725,10 @@ void IPBudgetAllocator::syncReserve(string const& category)
          ++m_reserves[category].period;
       }
    }
+
+   auto report = this->report();
+   auto reportEntry = make_shared<ReportBudgetReserveAllocationEntry>();
+   reportEntry->setBalance(m_reserves[category].reserved);
+   reportEntry->setCategory(category);
+   report->appendEntry(reportEntry);
 }

@@ -38,6 +38,10 @@ void ReportProcessor::processReport(ReportBudgetGoalAllocationEntry const&)
 {
 }
 
+void ReportProcessor::processReport(ReportBudgetReserveAllocationEntry const&)
+{
+}
+
 void ReportProcessor::processReport(ReportBudgetWarningEntry const&)
 {
 }

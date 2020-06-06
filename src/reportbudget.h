@@ -105,6 +105,22 @@ private:
    std::string m_goal;
 };
 
+class ReportBudgetReserveAllocationEntry : public ReportBudgetEntry
+{
+public:
+   Currency balance() const;
+   void setBalance(Currency const& balance);
+
+   std::string category() const;
+   void setCategory(std::string const& category);
+
+   void processReport(ReportProcessor& processor) const;
+
+private:
+   Currency m_balance;
+   std::string m_category;
+};
+
 class ReportBudgetWarningEntry : public ReportBudgetEntry
 {
 public:

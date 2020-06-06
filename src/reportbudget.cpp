@@ -185,6 +185,32 @@ void ReportBudgetGoalAllocationEntry::processReport(
    processor.processReport(*this);
 }
 
+Currency ReportBudgetReserveAllocationEntry::balance() const
+{
+   return m_balance;
+}
+
+void ReportBudgetReserveAllocationEntry::setBalance(Currency const& balance)
+{
+   m_balance = balance;
+}
+
+string ReportBudgetReserveAllocationEntry::category() const
+{
+   return m_category;
+}
+
+void ReportBudgetReserveAllocationEntry::setCategory(string const& category)
+{
+   m_category = category;
+}
+
+void ReportBudgetReserveAllocationEntry::processReport(
+      ReportProcessor& processor) const
+{
+   processor.processReport(*this);
+}
+
 string ReportBudgetWarningEntry::fileName() const
 {
    return m_fileName;

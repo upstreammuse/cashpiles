@@ -20,6 +20,7 @@ public:
    void processReport(ReportBudgetCloseEntry const& entry);
    void processReport(ReportBudgetGoalEntry const& entry);
    void processReport(ReportBudgetGoalAllocationEntry const& entry);
+   void processReport(ReportBudgetReserveAllocationEntry const& entry);
    void processReport(ReportBudgetWarningEntry const& entry);
 
 private:

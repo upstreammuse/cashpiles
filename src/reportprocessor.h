@@ -7,6 +7,7 @@ class ReportBudgetCancelEntry;
 class ReportBudgetCloseEntry;
 class ReportBudgetGoalEntry;
 class ReportBudgetGoalAllocationEntry;
+class ReportBudgetReserveAllocationEntry;
 class ReportBudgetWarningEntry;
 
 class ReportProcessor
@@ -21,6 +22,7 @@ public:
    virtual void processReport(ReportBudgetCloseEntry const& entry);
    virtual void processReport(ReportBudgetGoalEntry const& entry);
    virtual void processReport(ReportBudgetGoalAllocationEntry const& entry);
+   virtual void processReport(ReportBudgetReserveAllocationEntry const& entry);
    virtual void processReport(ReportBudgetWarningEntry const& entry);
    virtual void start();
 };

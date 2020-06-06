@@ -121,6 +121,13 @@ void RPHtmlReporter::processReport(ReportBudgetGoalAllocationEntry const& entry)
                 << entry.balance().toString() << ".</p>" << endl;
 }
 
+void RPHtmlReporter::processReport(
+      ReportBudgetReserveAllocationEntry const& entry)
+{
+   m_budgetFile << "<p>Category '" << entry.category() << "'.  Currently saved "
+                << entry.balance().toString() << ".</p>" << endl;
+}
+
 void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
 {
    m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "
