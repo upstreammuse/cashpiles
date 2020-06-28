@@ -54,6 +54,7 @@ HEADERS += \
    src/model/referenceaccount.h \
    src/model/referencetransaction.h \
    src/model/transactionflag.h \
+   src/model/transactionflaginvalid.h \
    src/report.h \
    src/reportaccount.h \
    src/reportbudget.h \
@@ -114,6 +115,7 @@ SOURCES += \
    src/model/modelregex.cpp \
    src/model/referenceaccount.cpp \
    src/model/referencetransaction.cpp \
+   src/model/transactionflaginvalid.cpp \
    src/report.cpp \
    src/reportaccount.cpp \
    src/reportbudget.cpp \
