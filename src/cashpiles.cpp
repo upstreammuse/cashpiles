@@ -36,9 +36,12 @@
    die(fileName, lineNum, std::string(message));
 }
 
+extern void testMain();
+
 int main(int argc, char** argv)
 {
    setlocale(LC_ALL,"");
+   testMain();
    bool convertYnab = false;
    std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
