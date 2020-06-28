@@ -34,6 +34,26 @@ HEADERS += \
    src/ledgeritem.h \
    src/ledgertransaction.h \
    src/ledgertransactionv2.h \
+   src/model/account.h \
+   src/model/accountclosed.h \
+   src/model/accountclosure.h \
+   src/model/accountexists.h \
+   src/model/accountnotexists.h \
+   src/model/accountopen.h \
+   src/model/accountstatement.h \
+   src/model/accountwrongtype.h \
+   src/model/blank.h \
+   src/model/budgetaccount.h \
+   src/model/m_currency.h \
+   src/model/m_date.h \
+   src/model/model.h \
+   src/model/modeldata.h \
+   src/model/modelreader.h \
+   src/model/modelreaderformat.h \
+   src/model/modelregex.h \
+   src/model/referenceaccount.h \
+   src/model/referencetransaction.h \
+   src/model/transactionflag.h \
    src/report.h \
    src/reportaccount.h \
    src/reportbudget.h \
@@ -75,6 +95,25 @@ SOURCES += \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionv2.cpp \
+   src/model/account.cpp \
+   src/model/accountclosed.cpp \
+   src/model/accountclosure.cpp \
+   src/model/accountexists.cpp \
+   src/model/accountnotexists.cpp \
+   src/model/accountopen.cpp \
+   src/model/accountstatement.cpp \
+   src/model/accountwrongtype.cpp \
+   src/model/blank.cpp \
+   src/model/budgetaccount.cpp \
+   src/model/m_currency.cpp \
+   src/model/m_date.cpp \
+   src/model/model.cpp \
+   src/model/modeldata.cpp \
+   src/model/modelreader.cpp \
+   src/model/modelreaderformat.cpp \
+   src/model/modelregex.cpp \
+   src/model/referenceaccount.cpp \
+   src/model/referencetransaction.cpp \
    src/report.cpp \
    src/reportaccount.cpp \
    src/reportbudget.cpp \
