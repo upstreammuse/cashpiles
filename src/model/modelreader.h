@@ -11,6 +11,7 @@
 namespace model { struct Currency; }
 namespace model { class Model; }
 namespace model { class ModelReader; }
+namespace model { enum class TransactionFlag; }
 
 class model::ModelReader
 {
@@ -22,6 +23,7 @@ private:
    bool hasLines(std::ifstream&);
    Currency parseCurrency(std::string);
    model::Date parseDate(std::string const&);
+   TransactionFlag parseFlag(std::string const&);
    void processAccount(Model&, std::smatch const&, std::string const&);
    void processAccountBalance(Model&, std::smatch const&, std::string const&);
    void processBlank(Model&, std::string const&);
@@ -44,7 +46,6 @@ private:
 private:
    IdentifierType identifierType(std::string const&);
 //   Interval parseInterval(std::string const& interval);
-//   LedgerAccount::Mode parseMode(std::string const& mode);
    void verifyIdentifier(std::string const&, IdentifierType);
    void verifySetIdentifier(std::string const&, IdentifierType);
 

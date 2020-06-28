@@ -7,6 +7,7 @@
 #include "modelreaderformat.h"
 #include "modelregex.h"
 #include "transactionflag.h"
+#include "transactionflaginvalid.h"
 
 using namespace model;
 
@@ -259,6 +260,21 @@ Date ModelReader::parseDate(string const& date)
    return Date(dateNum);
 }
 
+TransactionFlag ModelReader::parseFlag(string const& flag)
+{
+   switch (flag[0])
+   {
+      case '*':
+         return TransactionFlag::CLEARED;
+      case '!':
+         return TransactionFlag::DISPUTED;
+      case '?':
+         return TransactionFlag::PENDING;
+      default:
+         throw TransactionFlagInvalid(flag);
+   }
+}
+
 void ModelReader::processAccount(Model& model, smatch const& match,
                                  string const& comment)
 {
@@ -404,14 +420,6 @@ void FileReader::processBudget(smatch& match)
 
    m_ledger.appendItem(budget);
 }
-
-void FileReader::processComment(smatch const& match)
-{
-   auto comment = make_shared<LedgerComment>(m_fileName, m_lineNum);
-   comment->setNote(match.str(1));
-   m_ledger.appendItem(comment);
-}
-
 #endif
 
 void ModelReader::processLine(Model& model, string& line)
@@ -464,19 +472,7 @@ void ModelReader::processReferenceTransaction(
       Model& model, smatch const& match, string const& note)
 {
    auto date = parseDate(match[1]);
-   TransactionFlag flag = TransactionFlag::DISPUTED;
-   switch (match.str(2)[0])
-   {
-      case '*':
-         flag = TransactionFlag::CLEARED;
-         break;
-      case '!':
-         flag = TransactionFlag::DISPUTED;
-         break;
-      case '?':
-         flag = TransactionFlag::PENDING;
-         break;
-   }
+   auto flag = parseFlag(match[2]);
    auto account = match[3];
    verifyIdentifier(account, IdentifierType::ACCOUNT);
    auto payee = match[4];
@@ -486,7 +482,6 @@ void ModelReader::processReferenceTransaction(
 }
 
 #if 0
-
 void FileReader::processTransactionV2(smatch& match)
 {
    auto txn = make_shared<LedgerTransactionV2>(m_fileName, m_lineNum);
@@ -627,7 +622,6 @@ void FileReader::processTransactionV2(smatch& match)
    txn->finalize();
    m_ledger.appendItem(txn);
 }
-
 #endif
 
 string ModelReader::readLine(ifstream& file)
@@ -682,19 +676,6 @@ Interval FileReader::parseInterval(string const& interval)
       die(m_fileName, m_lineNum, ss.str());
    }
    return i;
-}
-
-LedgerAccount::Mode FileReader::parseMode(string const& mode)
-{
-   bool ok;
-   LedgerAccount::Mode m(LedgerAccount::modeFromString(mode, &ok));
-   if (!ok)
-   {
-      stringstream ss;
-      ss << "Unknown account command '" << mode << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-   return m;
 }
 #endif
 
