@@ -8,9 +8,11 @@
 #include "modelreaderformat.h"
 #include "modelregex.h"
 
+namespace model { struct Budget; }
 namespace model { struct Currency; }
 namespace model { class Model; }
 namespace model { class ModelReader; }
+namespace model { struct Transaction; }
 namespace model { enum class TransactionFlag; }
 
 class model::ModelReader
@@ -31,9 +33,12 @@ private:
    void processLine(Model&, std::string&);
    void processReferenceTransaction(
          Model&, std::smatch const&, std::string const&);
-   void processTransaction(Model&, std::smatch&, std::string const&);
+   void processTransaction(Model&, std::smatch const&, std::string const&);
+   void processTransactionLine(Model&, std::smatch const&, std::string const&);
+   void processTransactionTrackingLine(
+         Model&, std::smatch const&, std::string const&);
    std::string readLine(std::ifstream&);
-//   void unReadLine(std::string const& line);
+   void unReadLine(std::string const& line);
 
 private:
    enum class IdentifierType
@@ -50,7 +55,8 @@ private:
    void verifySetIdentifier(std::string const&, IdentifierType);
 
 private:
-   std::ifstream m_file;
+   std::shared_ptr<Budget const> m_activeBudget;
+   std::shared_ptr<Transaction const> m_activeTransaction;
    std::string m_fileName;
    ModelReaderFormat m_format;
    std::map<std::string, IdentifierType> m_identifiers;

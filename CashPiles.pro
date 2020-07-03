@@ -53,6 +53,8 @@ HEADERS += \
    src/model/modelregex.h \
    src/model/referenceaccount.h \
    src/model/referencetransaction.h \
+   src/model/rubbish.h \
+   src/model/transaction.h \
    src/model/transactionflag.h \
    src/model/transactionflaginvalid.h \
    src/report.h \
@@ -115,6 +117,8 @@ SOURCES += \
    src/model/modelregex.cpp \
    src/model/referenceaccount.cpp \
    src/model/referencetransaction.cpp \
+   src/model/rubbish.cpp \
+   src/model/transaction.cpp \
    src/model/transactionflaginvalid.cpp \
    src/report.cpp \
    src/reportaccount.cpp \

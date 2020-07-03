@@ -13,14 +13,14 @@ namespace model { enum class TransactionFlag; }
 struct model::ReferenceTransaction : public ModelData
 {
    int const id = newId();  //PK
-   std::shared_ptr<ReferenceAccount> account;  //FK
-   std::shared_ptr<AccountStatement> statement;  //FK-nillable
+   std::shared_ptr<ReferenceAccount const> account;  //FK
+   std::shared_ptr<AccountStatement const> statement;  //FK-nillable
    Currency amount;
    Date date;
+   TransactionFlag flag;
    std::string payee;
-   TransactionFlag status;
 
    ReferenceTransaction(
-         std::shared_ptr<ReferenceAccount>, Date const&, std::string const&,
-         TransactionFlag);
+         std::shared_ptr<ReferenceAccount const>, Date const&, TransactionFlag,
+         std::string const& payee);
 };

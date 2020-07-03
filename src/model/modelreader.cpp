@@ -1,11 +1,14 @@
 #include "modelreader.h"
 
+#include <cassert>
 #include <memory>
 #include <regex>
 #include "m_currency.h"
 #include "model.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"
+#include "rubbish.h"
+#include "transaction.h"
 #include "transactionflag.h"
 #include "transactionflaginvalid.h"
 
@@ -34,17 +37,16 @@ void ModelReader::readModel(Model& model)
       m_lines.pop();
    }
 
-   m_file.open(m_fileName);
-   if (!m_file)
+   ifstream file(m_fileName);
+   if (!file)
    {
-      throw 1;
+      throw Rubbish("can't read file, or file is empty?");
    }
-   while (hasLines(m_file))
+   while (hasLines(file))
    {
-      auto line = readLine(m_file);
+      auto line = readLine(file);
       processLine(model, line);
    }
-   m_file.close();
 }
 
 bool ModelReader::hasLines(ifstream& file)
@@ -75,7 +77,7 @@ Currency ModelReader::parseCurrency(string s)
    allowed.append(m_format.negativeSign());
    if (s.find_first_not_of(allowed) != string::npos)
    {
-      throw 598712;
+      throw Rubbish("currency has invalid characters");
    }
 
    // this is a stupid hack, but when we split the number at the decimal, we
@@ -107,7 +109,7 @@ Currency ModelReader::parseCurrency(string s)
    // make sure we either have no decimal, or the correct decimal digits
    if (after.size() != 0 && after.size() != m_format.currencyDecimalDigits())
    {
-      throw 87235;
+      throw Rubbish("currency has invalid number of decimal digits");
    }
 
    // turn the values into a currency class
@@ -208,22 +210,22 @@ Date ModelReader::parseDate(string const& date)
       }
       else
       {
-         throw 841245;
+         throw Rubbish("Date doesn't match format string");
       }
    }
 
    auto digits = "01234567889";
    if (monthS.find_first_not_of(digits) != string::npos)
    {
-      throw 841245;
+      throw Rubbish("date doesn't have month");
    }
    if (dayS.find_first_not_of(digits) != string::npos)
    {
-      throw 841245;
+      throw Rubbish("date doesn't have day");
    }
    if (yearS.find_first_not_of(digits) != string::npos)
    {
-      throw 841245;
+      throw Rubbish("date doesn't have year");
    }
 
    // days in 1 year
@@ -438,6 +440,30 @@ void ModelReader::processLine(Model& model, string& line)
       comment = match[2];
    }
 
+   if (m_activeBudget)
+   {
+      // TODO read budget lines instead
+      return;
+   }
+   else if (m_activeTransaction)
+   {
+      if (regex_match(line, match, m_regex.txnLineRx))
+      {
+         processTransactionLine(model, match, comment);
+      }
+      else if (regex_match(line, match, m_regex.txnTrackingLineRx))
+      {
+         processTransactionTrackingLine(model, match, comment);
+      }
+      else
+      {
+         unReadLine(line);
+         model.finalizeTransaction(m_activeTransaction->id);
+         m_activeTransaction.reset();
+      }
+      return;
+   }
+
    if (regex_match(line, match, m_regex.accountRx))
    {
       processAccount(model, match, comment);
@@ -464,7 +490,7 @@ void ModelReader::processLine(Model& model, string& line)
    }
    else
    {
-      throw line;
+      throw Rubbish("invalid line '" + line + "'");
    }
 }
 
@@ -481,148 +507,89 @@ void ModelReader::processReferenceTransaction(
    model.createReferenceTransaction(date, flag, account, payee, amount, note);
 }
 
-#if 0
-void FileReader::processTransactionV2(smatch& match)
+void ModelReader::processTransaction(
+      Model& model, smatch const& match, string const& note)
 {
-   auto txn = make_shared<LedgerTransactionV2>(m_fileName, m_lineNum);
-   txn->setDate(parseDate(match[1]));
-   auto status = match.str(2)[0];
-   switch (status)
-   {
-      case '*':
-         txn->setStatus(LedgerTransactionV2::Status::CLEARED);
-         break;
-      case '!':
-         txn->setStatus(LedgerTransactionV2::Status::DISPUTED);
-         break;
-      case '?':
-         txn->setStatus(LedgerTransactionV2::Status::PENDING);
-         break;
-   }
-   txn->setPayee(match[3]);
-   if (match[5] != "")
-   {
-      txn->setNote(match[5]);
-   }
+   auto date = parseDate(match[1]);
+   auto flag = parseFlag(match[2]);
+   auto payee = match[3];
 
-   while (true)
-   {
-      auto line = readLine();
-      if (regex_match(line, match, regEx->txn2LineRx))
-      {
-         switch (identifierType(match[1]))
-         {
-            case IdentifierType::ACCOUNT:
-            {
-               auto entry = make_shared<LedgerTransactionV2AccountEntry>(
-                               m_fileName, m_lineNum);
-               entry->setAccount(match[1]);
-               if (match[2] != "")
-               {
-                  entry->setAmount(parseCurrency(match[2]));
-               }
-               if (match[3] != "")
-               {
-                  entry->setNote(match[3]);
-               }
-               txn->appendEntry(entry);
-               break;
-            }
-            case IdentifierType::CATEGORY:
-            {
-               auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
-                               m_fileName, m_lineNum);
-               entry->setCategory(match[1]);
-               if (match[2] != "")
-               {
-                  entry->setAmount(parseCurrency(match[2]));
-               }
-               if (match[3] != "")
-               {
-                  entry->setNote(match[3]);
-               }
-               txn->appendEntry(entry);
-               break;
-            }
-            case IdentifierType::OWNER:
-            {
-               auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
-                               m_fileName, m_lineNum);
-               entry->setOwner(match[1]);
-               if (match[2] != "")
-               {
-                  entry->setAmount(parseCurrency(match[2]));
-               }
-               if (match[3] != "")
-               {
-                  entry->setNote(match[3]);
-               }
-               txn->appendEntry(entry);
-               break;
-            }
-         }
-      }
-      else if (regex_match(line, match, regEx->txn2TrackingLineRx))
-      {
-         switch (identifierType(match[1]))
-         {
-            case IdentifierType::ACCOUNT:
-            {
-               die(m_fileName, m_lineNum,
-                   "Cannot use tracking account with account");
-               // TODO put a break here when die() is removed
-            }
-            case IdentifierType::CATEGORY:
-            {
-               auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
-                               m_fileName, m_lineNum);
-               entry->setCategory(match[1]);
-               entry->setTrackingAccount(match[2]);
-               verifyIdentifier(entry->trackingAccount().first,
-                                IdentifierType::ACCOUNT);
-               if (match[3] != "")
-               {
-                  entry->setAmount(parseCurrency(match[3]));
-               }
-               if (match[4] != "")
-               {
-                  entry->setNote(match[4]);
-               }
-               txn->appendEntry(entry);
-               break;
-            }
-            case IdentifierType::OWNER:
-            {
-               auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
-                               m_fileName, m_lineNum);
-               entry->setOwner(match[1]);
-               entry->setTrackingAccount(match[2]);
-               verifyIdentifier(entry->trackingAccount().first,
-                                IdentifierType::ACCOUNT);
-               if (match[3] != "")
-               {
-                  entry->setAmount(parseCurrency(match[3]));
-               }
-               if (match[4] != "")
-               {
-                  entry->setNote(match[4]);
-               }
-               txn->appendEntry(entry);
-               break;
-            }
-         }
-      }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-
-   txn->finalize();
-   m_ledger.appendItem(txn);
+   m_activeTransaction = model.createTransaction(date, flag, payee, note);
 }
-#endif
+
+void ModelReader::processTransactionLine(
+      Model& model, smatch const& match, string const& note)
+{
+   assert(m_activeTransaction);
+   switch (identifierType(match[1]))
+   {
+      case IdentifierType::ACCOUNT:
+      {
+         auto account = match[1];
+         // TODO this might throw if it has nothing
+         auto amount = parseCurrency(match[2]);
+         model.createAccountLine(
+                  m_activeTransaction->id, account, amount, note);
+         break;
+      }
+      case IdentifierType::CATEGORY:
+      {
+         auto category = match[1];
+         // TODO this might throw if it has nothing
+         auto amount = parseCurrency(match[2]);
+         model.createCategoryLine(
+                  m_activeTransaction->id, category, amount, note);
+         break;
+      }
+      case IdentifierType::OWNER:
+      {
+         auto owner = match[1];
+         // TODO this might throw if it has nothing
+         auto amount = parseCurrency(match[2]);
+         model.createOwnerLine(m_activeTransaction->id, owner, amount, note);
+         break;
+      }
+   }
+}
+
+void ModelReader::processTransactionTrackingLine(
+      Model& model, smatch const& match, string const& note)
+{
+   switch (identifierType(match[1]))
+   {
+      case IdentifierType::ACCOUNT:
+      {
+         throw Rubbish("Cannot use tracking account X with account Y");
+      }
+      case IdentifierType::CATEGORY:
+      {
+         auto category = match[1];
+         auto trackingAccount = match[2];
+         // TODO need to figure out if this level of validation is contrary to what the model validation does, and which is correct if so (e.g. can an account and an owner have the same name?  The main model should decide how that works, not here...but there's a level of needing to know, so that we know whether to try something as a category or as an account, for example .... BUT the model could have queries to tell us what a string corresponds to, it's 'type' if you will)
+         verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
+         // TODO this might throw if empty
+         auto amount = parseCurrency(match[3]);
+         model.createCategoryTrackingLine(
+                  m_activeTransaction->id, category, trackingAccount, amount,
+                  note);
+         break;
+      }
+      case IdentifierType::OWNER:
+      {
+         auto owner = match[1];
+         auto trackingAccount = match[2];
+         // TODO need to figure out if this level of validation is contrary to what the model validation does, and which is correct if so (e.g. can an account and an owner have the same name?  The main model should decide how that works, not here...but there's a level of needing to know, so that we know whether to try something as a category or as an account, for example .... BUT the model could have queries to tell us what a string corresponds to, it's 'type' if you will)
+         verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
+         // TODO this might throw if empty
+         auto amount = parseCurrency(match[3]);
+         // TODO clean up the terminology so there is one thing in CP to call this
+         model.createOwnerTrackingLine(
+                  m_activeTransaction->id, owner, trackingAccount, amount,
+                  note);
+         break;
+      }
+   }
+}
 
 string ModelReader::readLine(ifstream& file)
 {
@@ -636,7 +603,7 @@ string ModelReader::readLine(ifstream& file)
    else if (file)
    {
       string line;
-      getline(m_file, line);
+      getline(file, line);
       ++m_lineNum;
       return line;
    }
@@ -646,20 +613,18 @@ string ModelReader::readLine(ifstream& file)
    }
 }
 
-#if 0
-void FileReader::unReadLine(string const& line)
+void ModelReader::unReadLine(string const& line)
 {
    --m_lineNum;
    m_lines.push(line);
 }
-#endif
 
 ModelReader::IdentifierType ModelReader::identifierType(
       string const& identifier)
 {
    if (!m_identifiers.count(identifier))
    {
-      throw "Unknown identifier '" + identifier + "'";
+      throw Rubbish("Unknown identifier '" + identifier + "'");
    }
    return m_identifiers[identifier];
 }
@@ -710,7 +675,7 @@ void ModelReader::verifyIdentifier(
             ss << "budget category owner";
             break;
       }
-      throw ss.str();
+      throw Rubbish(ss.str());
    }
 }
 
@@ -731,14 +696,5 @@ void testMain()
    Model model;
    ModelReaderFormat format("M/dd/yyyy");
    ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
-   try
-   {
-      reader.readModel(model);
-   }
-   catch (int)
-   {
-   }
-   catch (string)
-   {
-   }
+   reader.readModel(model);
 }

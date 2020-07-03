@@ -5,11 +5,11 @@ using namespace model;
 using std::string;
 
 ReferenceTransaction::ReferenceTransaction(
-      std::shared_ptr<ReferenceAccount> account_, Date const& date_,
-      string const& payee_, TransactionFlag flag) :
+      std::shared_ptr<ReferenceAccount const> account_, Date const& date_,
+      TransactionFlag flag_, string const& payee_) :
    account(account_),
    date(date_),
-   payee(payee_),
-   status(flag)
+   flag(flag_),
+   payee(payee_)
 {
 }
