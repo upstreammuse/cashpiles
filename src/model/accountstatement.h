@@ -11,9 +11,9 @@ namespace model { struct AccountStatement; }
 struct model::AccountStatement : public ModelData
 {
    int const id = newId();  //PK
-   std::shared_ptr<Account> account;  //FK
+   std::shared_ptr<Account const> account;  //FK
    Currency balance;
    Date date;
 
-   AccountStatement(std::shared_ptr<Account>, Date const&);
+   AccountStatement(std::shared_ptr<Account const>, Date const&);
 };

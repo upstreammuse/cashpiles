@@ -18,6 +18,7 @@
 #include "budgetaccount.h"
 #include "referenceaccount.h"
 #include "referencetransaction.h"
+#include "transaction.h"
 
 using namespace model;
 
@@ -77,19 +78,6 @@ struct BudgetPeriod : public ModelData
    std::shared_ptr<BudgetPeriod> nextPeriod;  //FK-nillable
 
    explicit BudgetPeriod(DateRange const&);
-};
-
-struct Transaction : public ModelData
-{
-   int const id = newId();  //PK
-   std::shared_ptr<BudgetPeriod> budgetPeriod;  //FK
-   Date date;
-   std::string payee;
-   TransactionFlag status;
-
-   Transaction(
-         std::shared_ptr<BudgetPeriod>, Date const&, std::string const&,
-         TransactionFlag);
 };
 
 struct TransactionEntry : public ModelData
@@ -252,7 +240,8 @@ auto Model::requireAccount(string const& name)
    throw AccountNotExists(name);
 }
 
-void Model::createBudgetAccount(string const& name, string const& note)
+shared_ptr<BudgetAccount const> Model::createBudgetAccount(
+      string const& name, string const& note)
 {
    requireNoAccount(name);
 
@@ -261,9 +250,11 @@ void Model::createBudgetAccount(string const& name, string const& note)
    account->open = true;
    data.push_back(account);
    budgetAccounts.insert(account);
+   return move(account);
 }
 
-void Model::createReferenceAccount(string const& name, string const& note)
+shared_ptr<ReferenceAccount const> Model::createReferenceAccount(
+      string const& name, string const& note)
 {
    requireNoAccount(name);
 
@@ -272,6 +263,7 @@ void Model::createReferenceAccount(string const& name, string const& note)
    account->open = true;
    data.push_back(account);
    referenceAccounts.insert(account);
+   return move(account);
 }
 
 // TODO this is funny, since opening an account just means to ignore the
@@ -279,7 +271,6 @@ void Model::createReferenceAccount(string const& name, string const& note)
 void Model::openAccount(string const& name)
 {
    auto account = requireAccount(name);
-
    if (account->open)
    {
       throw AccountOpen(name);
@@ -292,7 +283,6 @@ void Model::openAccount(string const& name)
 void Model::closeAccount(string const& name, string const& note)
 {
    auto account = requireAccount(name);
-
    if (!account->open)
    {
       throw AccountClosed(name);
@@ -304,8 +294,9 @@ void Model::closeAccount(string const& name, string const& note)
    data.push_back(closure);
 }
 
-void Model::createAccountStatement(Date const& date, string const& name,
-                                   Currency const& balance, string const& note)
+shared_ptr<AccountStatement const> Model::createAccountStatement(
+      Date const& date, string const& name, Currency const& balance,
+      string const& note)
 {
    auto account = requireAccount(name);
 
@@ -314,26 +305,29 @@ void Model::createAccountStatement(Date const& date, string const& name,
    statement->note = note;
    data.push_back(statement);
    statements[name].insert(statement);
+   return move(statement);
 }
 
-void Model::createBlank(string const& note)
+shared_ptr<Blank const> Model::createBlank(string const& note)
 {
    auto blank = make_shared<Blank>();
    blank->note = note;
    data.push_back(blank);
+   return move(blank);
 }
 
-void Model::createReferenceTransaction(
+shared_ptr<ReferenceTransaction const> Model::createReferenceTransaction(
       Date const& date, TransactionFlag flag, string const& account_,
       string const& payee, Currency const& amount, string const& note)
 {
    auto account = requireReferenceAccount(account_);
 
-   auto txn = make_shared<ReferenceTransaction>(account, date, payee, flag);
+   auto txn = make_shared<ReferenceTransaction>(account, date, flag, payee);
    txn->amount = amount;
    txn->note = note;
    data.push_back(txn);
    referenceTransactions[account_].insert(txn);
+   return move(txn);
 }
 
 void Model::requireNoAccount(string const& name)

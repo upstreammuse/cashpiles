@@ -8,7 +8,7 @@ namespace model { struct AccountClosure; }
 
 struct model::AccountClosure : public ModelData
 {
-   std::shared_ptr<Account> const account;  //PK, FK
+   std::shared_ptr<Account const> const account;  //PK, FK
 
-   AccountClosure(std::shared_ptr<Account>);
+   explicit AccountClosure(std::shared_ptr<Account const>);
 };
