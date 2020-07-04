@@ -229,24 +229,26 @@ Date ModelReader::parseDate(string const& date)
    }
 
    // days in 1 year
-   auto days1year = 365;
+//   auto days1year = 365;
    // days in 4 year cycle
-   auto days4years = days1year * 4 + 1;
+//   auto days4years = days1year * 4 + 1;
    // days in 100 year cycle
-   auto days100years = days4years * 25 - 1;
+//   auto days100years = days4years * 25 - 1;
    // days in 400 year cycle
-   auto days400years = days100years * 4 + 1;
+//   auto days400years = days100years * 4 + 1;
 
-   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+//   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
    auto yearNum = strtol(yearS.c_str(), nullptr, 10);
-   if (yearNum % 400 == 0 || (yearNum % 4 == 0 && yearNum % 100 != 0))
-   {
-      daysInMonth[2] = 29;
-   }
+//   if (yearNum % 400 == 0 || (yearNum % 4 == 0 && yearNum % 100 != 0))
+//   {
+//      daysInMonth[2] = 29;
+//   }
    auto monthNum = strtol(monthS.c_str(), nullptr, 10);
    auto dayNum = strtol(dayS.c_str(), nullptr, 10);
 
+   // TODO do we need this code any more?
+#if 0
    long long int dateNum = yearNum / 400 * days400years;
    yearNum %= 400;
    dateNum += yearNum / 100 * days100years;
@@ -260,6 +262,11 @@ Date ModelReader::parseDate(string const& date)
    }
    dateNum += dayNum;
    return Date(dateNum);
+#else
+   return Date(static_cast<unsigned char>(monthNum),
+               static_cast<unsigned char>(dayNum),
+               static_cast<size_t>(yearNum));
+#endif
 }
 
 TransactionFlag ModelReader::parseFlag(string const& flag)
@@ -310,9 +317,9 @@ void ModelReader::processBlank(Model& model, string const& comment)
    model.createBlank(comment);
 }
 
-#if 0
-void FileReader::processBudget(smatch& match)
+void ModelReader::processBudget(Model&, smatch const& match, string const&)
 {
+#if 0
    auto budget = make_shared<LedgerBudget>(m_fileName, m_lineNum);
    budget->setDate(parseDate(match[1]));
    budget->setInterval(parseInterval(match[2]));
@@ -421,8 +428,8 @@ void FileReader::processBudget(smatch& match)
    }
 
    m_ledger.appendItem(budget);
-}
 #endif
+}
 
 void ModelReader::processLine(Model& model, string& line)
 {
@@ -443,7 +450,6 @@ void ModelReader::processLine(Model& model, string& line)
    if (m_activeBudget)
    {
       // TODO read budget lines instead
-      return;
    }
    else if (m_activeTransaction)
    {
@@ -461,10 +467,8 @@ void ModelReader::processLine(Model& model, string& line)
          model.finalizeTransaction(m_activeTransaction->id);
          m_activeTransaction.reset();
       }
-      return;
    }
-
-   if (regex_match(line, match, m_regex.accountRx))
+   else if (regex_match(line, match, m_regex.accountRx))
    {
       processAccount(model, match, comment);
    }
@@ -490,7 +494,7 @@ void ModelReader::processLine(Model& model, string& line)
    }
    else
    {
-      throw Rubbish("invalid line '" + line + "'");
+      throw Rubbish("invalid line '" + line + "', comment '" + comment + "'");
    }
 }
 
@@ -528,7 +532,7 @@ void ModelReader::processTransactionLine(
          auto account = match[1];
          // TODO this might throw if it has nothing
          auto amount = parseCurrency(match[2]);
-         model.createAccountLine(
+         model.createAccountEntry(
                   m_activeTransaction->id, account, amount, note);
          break;
       }
@@ -537,7 +541,7 @@ void ModelReader::processTransactionLine(
          auto category = match[1];
          // TODO this might throw if it has nothing
          auto amount = parseCurrency(match[2]);
-         model.createCategoryLine(
+         model.createCategoryEntry(
                   m_activeTransaction->id, category, amount, note);
          break;
       }
@@ -546,7 +550,7 @@ void ModelReader::processTransactionLine(
          auto owner = match[1];
          // TODO this might throw if it has nothing
          auto amount = parseCurrency(match[2]);
-         model.createOwnerLine(m_activeTransaction->id, owner, amount, note);
+         model.createOwnerEntry(m_activeTransaction->id, owner, amount, note);
          break;
       }
    }
@@ -569,7 +573,7 @@ void ModelReader::processTransactionTrackingLine(
          verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
          // TODO this might throw if empty
          auto amount = parseCurrency(match[3]);
-         model.createCategoryTrackingLine(
+         model.createCategoryTrackingEntry(
                   m_activeTransaction->id, category, trackingAccount, amount,
                   note);
          break;
@@ -583,7 +587,7 @@ void ModelReader::processTransactionTrackingLine(
          // TODO this might throw if empty
          auto amount = parseCurrency(match[3]);
          // TODO clean up the terminology so there is one thing in CP to call this
-         model.createOwnerTrackingLine(
+         model.createOwnerTrackingEntry(
                   m_activeTransaction->id, owner, trackingAccount, amount,
                   note);
          break;
@@ -689,12 +693,20 @@ void ModelReader::verifySetIdentifier(
    verifyIdentifier(identifier, type);
 }
 
+#include <iostream>
 #include "model.h"
 
 void testMain()
 {
-   Model model;
-   ModelReaderFormat format("M/dd/yyyy");
-   ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
-   reader.readModel(model);
+   try
+   {
+      Model model;
+      ModelReaderFormat format("M/dd/yyyy");
+      ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
+      reader.readModel(model);
+   }
+   catch (std::logic_error const& ex)
+   {
+      std::cerr << ex.what() << std::endl;
+   }
 }

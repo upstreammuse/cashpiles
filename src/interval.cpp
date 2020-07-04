@@ -51,7 +51,7 @@ Interval::Interval()
    // TODO this constructor is evil
 }
 
-Interval::Interval(size_t number, Period period) :
+::Interval::Interval(size_t number, Period period) :
    m_number(number),
    m_period(period)
 {
