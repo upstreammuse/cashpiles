@@ -29,7 +29,7 @@ private:
    void processAccount(Model&, std::smatch const&, std::string const&);
    void processAccountBalance(Model&, std::smatch const&, std::string const&);
    void processBlank(Model&, std::string const&);
-   void processBudget(Model&, std::smatch&, std::string const&);
+   void processBudget(Model&, std::smatch const&, std::string const&);
    void processLine(Model&, std::string&);
    void processReferenceTransaction(
          Model&, std::smatch const&, std::string const&);

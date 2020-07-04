@@ -11,7 +11,7 @@ DateRange::DateRange(Date const& start, Date const& end) :
 {
 }
 
-DateRange::DateRange(Date const& start, Interval const& interval) :
+::DateRange::DateRange(Date const& start, Interval const& interval) :
    m_interval(interval),
    m_startDate(start)
 {

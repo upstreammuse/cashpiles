@@ -44,8 +44,14 @@ HEADERS += \
    src/model/accountwrongtype.h \
    src/model/blank.h \
    src/model/budgetaccount.h \
+   src/model/budgetperiod.h \
+   src/model/budgetuninitialized.h \
+   src/model/categorynotexists.h \
+   src/model/categoryownernotexists.h \
    src/model/m_currency.h \
    src/model/m_date.h \
+   src/model/m_daterange.h \
+   src/model/m_interval.h \
    src/model/model.h \
    src/model/modeldata.h \
    src/model/modelreader.h \
@@ -55,8 +61,15 @@ HEADERS += \
    src/model/referencetransaction.h \
    src/model/rubbish.h \
    src/model/transaction.h \
+   src/model/transactionaccountentry.h \
+   src/model/transactioncategoryentry.h \
+   src/model/transactioncategorytrackingentry.h \
+   src/model/transactionentry.h \
    src/model/transactionflag.h \
    src/model/transactionflaginvalid.h \
+   src/model/transactionnotexists.h \
+   src/model/transactionownerentry.h \
+   src/model/transactionownertrackingentry.h \
    src/report.h \
    src/reportaccount.h \
    src/reportbudget.h \
@@ -108,8 +121,14 @@ SOURCES += \
    src/model/accountwrongtype.cpp \
    src/model/blank.cpp \
    src/model/budgetaccount.cpp \
+   src/model/budgetperiod.cpp \
+   src/model/budgetuninitialized.cpp \
+   src/model/categorynotexists.cpp \
+   src/model/categoryownernotexists.cpp \
    src/model/m_currency.cpp \
    src/model/m_date.cpp \
+   src/model/m_daterange.cpp \
+   src/model/m_interval.cpp \
    src/model/model.cpp \
    src/model/modeldata.cpp \
    src/model/modelreader.cpp \
@@ -119,7 +138,14 @@ SOURCES += \
    src/model/referencetransaction.cpp \
    src/model/rubbish.cpp \
    src/model/transaction.cpp \
+   src/model/transactionaccountentry.cpp \
+   src/model/transactioncategoryentry.cpp \
+   src/model/transactioncategorytrackingentry.cpp \
+   src/model/transactionentry.cpp \
    src/model/transactionflaginvalid.cpp \
+   src/model/transactionnotexists.cpp \
+   src/model/transactionownerentry.cpp \
+   src/model/transactionownertrackingentry.cpp \
    src/report.cpp \
    src/reportaccount.cpp \
    src/reportbudget.cpp \
