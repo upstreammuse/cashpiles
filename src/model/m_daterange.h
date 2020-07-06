@@ -1,14 +1,14 @@
 #pragma once
 
-#include "m_date.h"
+#include "../util/m_date.h"
 #include "m_interval.h"
 
 namespace model { struct DateRange; }
 
 struct model::DateRange
 {
-   Date startDate;
+   util::Date startDate;
    Interval interval;
 
-   DateRange(Date const&, Interval const&);
+   DateRange(util::Date const&, Interval const&);
 };

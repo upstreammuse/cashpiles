@@ -16,6 +16,7 @@
 #include "accountwrongtype.h"
 #include "blank.h"
 #include "budgetaccount.h"
+#include "budgetcancelentry.h"
 #include "budgetperiod.h"
 #include "budgetuninitialized.h"
 #include "categorynotexists.h"
@@ -23,6 +24,7 @@
 #include "transaction.h"
 #include "referenceaccount.h"
 #include "referencetransaction.h"
+#include "rubbish.h"
 #include "transaction.h"
 #include "transactionaccountentry.h"
 #include "transactioncategoryentry.h"
@@ -32,6 +34,7 @@
 #include "transactionownertrackingentry.h"
 
 using namespace model;
+using namespace util;
 
 using std::find_if;
 using std::logic_error;
@@ -39,119 +42,11 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 
-// TODO everything come out of this namespace and be visible elsewhere
-#if 0
-namespace {
-
-struct BudgetCategoryOwner : public ModelData
-{
-   std::string const name;  //PK
-   Currency available;
-
-   explicit BudgetCategoryOwner(std::string const&);
-};
-
-// TODO needs to be split out by type
-struct BudgetCategory : public ModelData
-{
-   std::string const name;  //PK
-   std::shared_ptr<BudgetCategoryOwner> owner;  //FK
-   Currency balance;
-
-   BudgetCategory(std::string const&, std::shared_ptr<BudgetCategoryOwner>);
-};
-
-struct TransactionEntryOwner : public TransactionEntry
-{
-   std::shared_ptr<BudgetCategoryOwner> owner;  //FK
-   Currency amount;
-
-   TransactionEntryOwner(std::shared_ptr<Transaction>, std::shared_ptr<BudgetCategoryOwner>);
-};
-
-struct TransactionEntryOwnerRef : public TransactionEntry
-{
-   std::shared_ptr<ReferenceAccount> account;  //FK
-   std::shared_ptr<BudgetCategoryOwner> owner;  //FK
-   std::shared_ptr<AccountStatement> statement;  //FK-nillable
-   Currency amount;
-
-   TransactionEntryOwnerRef(std::shared_ptr<Transaction>, std::shared_ptr<ReferenceAccount>, std::shared_ptr<BudgetCategoryOwner>);
-};
-
-struct Comment : public ModelData
-{
-   int const id = newId();  //PK
-   std::string content;
-
-   explicit Comment(std::string const&);
-};
-
-// references to all budget categories
-std::set<std::shared_ptr<BudgetCategory>> categories;
-
-// reverse access to statements from accounts
-//std::map<std::string, std::set<std::shared_ptr<AccountStatement>>> statements;
-
-// reverse access to transactions from accounts
-//std::map<std::string, std::set<std::shared_ptr<TransactionEntryAccount>>>
-//budgetTransactions;
-//std::map<std::string, std::set<std::shared_ptr<ReferenceTransaction>>>
-//referenceTransactions;
-
-// reverse access to transaction entries from statements
-// TODO how to get to ref trans from statement?
-//std::map<int, std::set<std::shared_ptr<TransactionEntry>>> entries;
-
-// reverse access to transaction entries from transactions
-//std::map<int, std::set<std::shared_ptr<TransactionEntry>>> transactions;
-
-}
-#endif
-
-auto Model::compareDates(Date const& left, Date const& right)
-{
-   if (left.year < right.year)
-   {
-      return -1;
-   }
-   else if (left.year > right.year)
-   {
-      return 1;
-   }
-   else
-   {
-      if (left.month < right.month)
-      {
-         return -1;
-      }
-      else if (left.month > right.month)
-      {
-         return 1;
-      }
-      else
-      {
-         if (left.day < right.day)
-         {
-            return -1;
-         }
-         else if (left.day > right.day)
-         {
-            return 1;
-         }
-         else
-         {
-            return 0;
-         }
-      }
-   }
-}
-
 auto Model::nextRange(DateRange const& range)
 {
-   size_t bigMonth = range.startDate.month;
-   size_t day = range.startDate.day;
-   size_t year = range.startDate.year;
+   size_t bigMonth = range.startDate.month();
+   size_t day = range.startDate.day();
+   size_t year = range.startDate.year();
 
    switch (range.interval.period)
    {
@@ -249,6 +144,19 @@ auto Model::requireAccount(string const& name)
    throw AccountNotExists(name);
 }
 
+auto Model::requireBudget(int id)
+{
+   if (!lastBudgetPeriod)
+   {
+      throw BudgetUninitialized();
+   }
+   if (lastBudgetPeriod->id != id)
+   {
+      throw Rubbish("Can only modify the most recent budget period");
+   }
+   return lastBudgetPeriod;
+}
+
 auto Model::requireBudgetCategory(string const& name)
 {
    auto it = categories.find(name);
@@ -268,6 +176,16 @@ auto Model::requireBudgetCategoryOwner(string const& name)
       throw CategoryOwnerNotExists(name);
    }
 
+   return it->second;
+}
+
+auto Model::requireTransaction(int id)
+{
+   auto it = transactions.find(id);
+   if (it == transactions.end())
+   {
+      throw TransactionNotExists(id);
+   }
    return it->second;
 }
 
@@ -346,6 +264,30 @@ shared_ptr<Blank const> Model::createBlank(string const& note)
    return move(blank);
 }
 
+shared_ptr<BudgetPeriod const> Model::initializeBudget(
+      Date const& date, Interval const& interval, string const& note)
+{
+   if (lastBudgetPeriod)
+   {
+      throw Rubbish("budget already initialized");
+   }
+
+   firstBudgetPeriod = lastBudgetPeriod = make_shared<BudgetPeriod>(
+                                             DateRange(date, interval));
+   lastBudgetPeriod->note = note;
+   data.push_back(lastBudgetPeriod);
+   return lastBudgetPeriod;
+}
+
+shared_ptr<BudgetPeriod const> Model::configureBudget(
+      int id, Interval const& interval, string const& note)
+{
+   auto budget = requireBudget(id);
+   budget->period = DateRange(budget->period.startDate, interval);
+   budget->note = note;
+   return move(budget);
+}
+
 shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
 {
    if (!lastBudgetPeriod)
@@ -353,8 +295,7 @@ shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
       throw BudgetUninitialized();
    }
 
-   while (compareDates(nextRange(lastBudgetPeriod->period).startDate,
-                       date) <= 0)
+   while (nextRange(lastBudgetPeriod->period).startDate <= date)
    {
       auto nextPeriod = make_shared<BudgetPeriod>(
                            nextRange(lastBudgetPeriod->period));
@@ -363,6 +304,67 @@ shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
       lastBudgetPeriod = nextPeriod;
    }
    return lastBudgetPeriod;
+}
+
+auto Model::requireGoalsCategory(std::string const& name)
+{
+   if (!categories.count(name))
+   {
+      throw CategoryNotExists(name);
+   }
+   auto category = goalCategories.find(name);
+   if (category == goalCategories.end())
+   {
+      throw Rubbish("Category '" + name + "' is not a goals category");
+   }
+   return category->second;
+}
+
+auto Model::goalKey(std::string const& goalsCategory, std::string const& goal)
+{
+   return goalsCategory + "--" + goal;
+}
+
+auto Model::requireGoal(std::string const& category, std::string const& goal_)
+{
+   auto goalCategory = requireGoalsCategory(category);
+
+   auto key = goalKey(category, goal_);
+   auto goal = goals.find(key);
+   if (goal == goals.end())
+   {
+      throw Rubbish("Goal '" + goal_ + "' in category '" + category +
+                    "' does not exist");
+   }
+   return goal->second;
+}
+
+// TODO it probably makes sense for this to return an error if the current
+// budget period doesn't have this category/goal combo, but that requires the
+// ability to make sense of budget category logic to know when a goal is no
+// longer valid
+shared_ptr<BudgetCancelEntry const> Model::cancelGoal(
+      std::string const& category, std::string const& goal_,
+      std::string const& note)
+{
+   auto goal = requireGoal(category, goal_);
+   auto cancel = make_shared<BudgetCancelEntry>(goal);
+   cancel->note = note;
+   data.push_back(cancel);
+   return move(cancel);
+}
+
+shared_ptr<BudgetGoalEntry const> Model::budgetGoal(
+      std::string const& category, std::string const& goal_)
+{
+   auto key = goalKey(category, goal_);
+   auto goal = goals.find(key);
+   if (goal == goals.end())
+   {
+      throw Rubbish("Goal '" + goal_ + "' in category '" + category +
+                    "' not found");
+   }
+   return goal->second;
 }
 
 shared_ptr<ReferenceTransaction const> Model::createReferenceTransaction(
@@ -389,17 +391,6 @@ shared_ptr<Transaction const> Model::createTransaction(
    data.push_back(txn);
    transactions[txn->id] = txn;
    return move(txn);
-}
-
-// TODO move this
-auto Model::requireTransaction(int id)
-{
-   auto it = transactions.find(id);
-   if (it == transactions.end())
-   {
-      throw TransactionNotExists(id);
-   }
-   return it->second;
 }
 
 shared_ptr<TransactionAccountEntry const> Model::createAccountEntry(

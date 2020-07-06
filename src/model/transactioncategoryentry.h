@@ -1,17 +1,17 @@
 #pragma once
 
-#include "m_currency.h"
+#include "../util/m_currency.h"
 #include "transactionentry.h"
 
-namespace model { struct BudgetCategory; }
+namespace model { struct BudgetCategoryEntry; }
 namespace model { struct TransactionCategoryEntry; }
 
 struct model::TransactionCategoryEntry : public TransactionEntry
 {
-   std::shared_ptr<BudgetCategory const> category;  //FK
-   Currency amount;
+   std::shared_ptr<BudgetCategoryEntry const> category;  //FK
+   util::Currency amount;
 
    TransactionCategoryEntry(
          std::shared_ptr<Transaction const>,
-         std::shared_ptr<BudgetCategory const>);
+         std::shared_ptr<BudgetCategoryEntry const>);
 };

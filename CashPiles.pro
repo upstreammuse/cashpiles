@@ -44,12 +44,15 @@ HEADERS += \
    src/model/accountwrongtype.h \
    src/model/blank.h \
    src/model/budgetaccount.h \
+   src/model/budgetcancelentry.h \
+   src/model/budgetcategoryentry.h \
+   src/model/budgetentry.h \
+   src/model/budgetgoalentry.h \
+   src/model/budgetgoalsentry.h \
    src/model/budgetperiod.h \
    src/model/budgetuninitialized.h \
    src/model/categorynotexists.h \
    src/model/categoryownernotexists.h \
-   src/model/m_currency.h \
-   src/model/m_date.h \
    src/model/m_daterange.h \
    src/model/m_interval.h \
    src/model/model.h \
@@ -77,6 +80,8 @@ HEADERS += \
    src/reportprocessor.h \
    src/rphtmlreporter.h \
    src/texttable.h \
+   src/util/m_currency.h \
+   src/util/m_date.h \
    src/ynabregisterreader.h
 SOURCES += \
    src/cashpiles.cpp \
@@ -121,12 +126,15 @@ SOURCES += \
    src/model/accountwrongtype.cpp \
    src/model/blank.cpp \
    src/model/budgetaccount.cpp \
+   src/model/budgetcancelentry.cpp \
+   src/model/budgetcategoryentry.cpp \
+   src/model/budgetentry.cpp \
+   src/model/budgetgoalentry.cpp \
+   src/model/budgetgoalsentry.cpp \
    src/model/budgetperiod.cpp \
    src/model/budgetuninitialized.cpp \
    src/model/categorynotexists.cpp \
    src/model/categoryownernotexists.cpp \
-   src/model/m_currency.cpp \
-   src/model/m_date.cpp \
    src/model/m_daterange.cpp \
    src/model/m_interval.cpp \
    src/model/model.cpp \
@@ -153,5 +161,7 @@ SOURCES += \
    src/reportprocessor.cpp \
    src/rphtmlreporter.cpp \
    src/texttable.cpp \
+   src/util/m_currency.cpp \
+   src/util/m_date.cpp \
    src/ynabregisterreader.cpp
 TARGET = cashpiles
