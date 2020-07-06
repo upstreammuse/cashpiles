@@ -4,12 +4,13 @@
 #include <memory>
 #include <stack>
 #include <string>
-#include "m_date.h"
+#include "../util/m_currency.h"
+#include "../util/m_date.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"
 
-namespace model { struct Budget; }
-namespace model { struct Currency; }
+namespace model { struct BudgetPeriod; }
+namespace model { struct Interval; }
 namespace model { class Model; }
 namespace model { class ModelReader; }
 namespace model { struct Transaction; }
@@ -23,13 +24,14 @@ public:
 
 private:
    bool hasLines(std::ifstream&);
-   Currency parseCurrency(std::string);
-   model::Date parseDate(std::string const&);
+   util::Currency parseCurrency(std::string);
    TransactionFlag parseFlag(std::string const&);
+   Interval parseInterval(std::string const&);
    void processAccount(Model&, std::smatch const&, std::string const&);
    void processAccountBalance(Model&, std::smatch const&, std::string const&);
    void processBlank(Model&, std::string const&);
    void processBudget(Model&, std::smatch const&, std::string const&);
+   void processBudgetCancel(Model&, std::smatch const&, std::string const&);
    void processLine(Model&, std::string&);
    void processReferenceTransaction(
          Model&, std::smatch const&, std::string const&);
@@ -50,12 +52,11 @@ private:
 
 private:
    IdentifierType identifierType(std::string const&);
-//   Interval parseInterval(std::string const& interval);
    void verifyIdentifier(std::string const&, IdentifierType);
    void verifySetIdentifier(std::string const&, IdentifierType);
 
 private:
-   std::shared_ptr<Budget const> m_activeBudget;
+   std::shared_ptr<BudgetPeriod const> m_activeBudget;
    std::shared_ptr<Transaction const> m_activeTransaction;
    std::string m_fileName;
    ModelReaderFormat m_format;

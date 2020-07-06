@@ -7,11 +7,6 @@ using namespace model;
 using std::string;
 using std::stringstream;
 
-// TODO trim end of lines before parsing
-
-// TODO split at the semicolon before parsing, and attach the note to the base
-//   data object instead of tracking for each type
-
 ModelRegex::ModelRegex(ModelReaderFormat const& format) :
    CLEAR_RX("(\\*|\\!|\\?)"),
    CURR_RX(currencyRx(format)),

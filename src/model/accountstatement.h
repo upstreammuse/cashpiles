@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "m_currency.h"
-#include "m_date.h"
+#include "../util/m_currency.h"
+#include "../util/m_date.h"
 #include "modeldata.h"
 
 namespace model { struct Account; }
@@ -12,8 +12,8 @@ struct model::AccountStatement : public ModelData
 {
    int const id = newId();  //PK
    std::shared_ptr<Account const> account;  //FK
-   Currency balance;
-   Date date;
+   util::Currency balance;
+   util::Date date;
 
-   AccountStatement(std::shared_ptr<Account const>, Date const&);
+   AccountStatement(std::shared_ptr<Account const>, util::Date const&);
 };

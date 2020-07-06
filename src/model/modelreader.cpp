@@ -3,7 +3,14 @@
 #include <cassert>
 #include <memory>
 #include <regex>
-#include "m_currency.h"
+#include "budgetcategoryentry.h"
+#include "budgetgoalentry.h"
+#include "budgetgoalsentry.h"
+#include "budgetperiod.h"
+#include "budgetuninitialized.h"
+#include "../util/m_currency.h"
+#include "m_daterange.h"
+#include "m_interval.h"
 #include "model.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"
@@ -13,6 +20,7 @@
 #include "transactionflaginvalid.h"
 
 using namespace model;
+using namespace util;
 
 using std::ifstream;
 using std::make_shared;
@@ -54,7 +62,8 @@ bool ModelReader::hasLines(ifstream& file)
    return !m_lines.empty() || !file.eof();
 }
 
-Currency ModelReader::parseCurrency(string s)
+// TODO move this into util code
+util::Currency ModelReader::parseCurrency(string s)
 {
    // remove currency symbol
    auto symbol = m_format.currencySymbol();
@@ -84,8 +93,7 @@ Currency ModelReader::parseCurrency(string s)
    // end up reading "-0" when the number is less than a whole currency unit,
    // and that gets translated into a positive number
    bool negate = false;
-   // TODO c++ version of atof?
-   if (atof(s.c_str()) < 0)
+   if (strtod(s.c_str(), nullptr) < 0)
    {
       negate = true;
    }
@@ -115,7 +123,6 @@ Currency ModelReader::parseCurrency(string s)
    // turn the values into a currency class
    Currency retval;
    // make sure we are working with a positive number for now
-   // TODO c++ variant of strtoll?
    retval.value = strtoll(before.c_str(), nullptr, 10);
    if (retval.value < 0)
    {
@@ -134,141 +141,6 @@ Currency ModelReader::parseCurrency(string s)
    return retval;
 }
 
-Date ModelReader::parseDate(string const& date)
-{
-   auto format = m_format.dateFormat();
-   auto month = format.find("M");
-   auto monthLeading = format.find("MM");
-   auto day = format.find("d");
-   auto dayLeading = format.find("dd");
-   auto year = format.find("yyyy");
-
-   if (monthLeading != string::npos)
-   {
-      month = monthLeading;
-   }
-   if (dayLeading != string::npos)
-   {
-      day = dayLeading;
-   }
-
-   string monthS;
-   string dayS;
-   string yearS;
-   for (size_t i = 0, j = 0; i < date.size() && j < format.size(); /*inside*/)
-   {
-      if (j == month)
-      {
-         monthS.append(1, date[i]);
-         ++i;
-         ++j;
-         if (monthLeading == string::npos)
-         {
-            if (i < date.size() && isdigit(date[i]))
-            {
-               monthS.append(1, date[i]);
-               ++i;
-            }
-         }
-         else
-         {
-            monthS.append(1, date[i]);
-            ++i;
-            ++j;
-         }
-      }
-      else if (j == day)
-      {
-         dayS.append(1, date[i]);
-         ++i;
-         ++j;
-         if (dayLeading == string::npos)
-         {
-            if (i < date.size() && isdigit(date[i]))
-            {
-               dayS.append(1, date[i]);
-               ++i;
-            }
-         }
-         else
-         {
-            dayS.append(1, date[i]);
-            ++i;
-            ++j;
-         }
-      }
-      else if (j == year)
-      {
-         yearS.append(date.c_str() + i, 4);
-         i += 4;
-         j += 4;
-      }
-      else if (date[i] == format[j])
-      {
-         ++i;
-         ++j;
-      }
-      else
-      {
-         throw Rubbish("Date doesn't match format string");
-      }
-   }
-
-   auto digits = "01234567889";
-   if (monthS.find_first_not_of(digits) != string::npos)
-   {
-      throw Rubbish("date doesn't have month");
-   }
-   if (dayS.find_first_not_of(digits) != string::npos)
-   {
-      throw Rubbish("date doesn't have day");
-   }
-   if (yearS.find_first_not_of(digits) != string::npos)
-   {
-      throw Rubbish("date doesn't have year");
-   }
-
-   // days in 1 year
-//   auto days1year = 365;
-   // days in 4 year cycle
-//   auto days4years = days1year * 4 + 1;
-   // days in 100 year cycle
-//   auto days100years = days4years * 25 - 1;
-   // days in 400 year cycle
-//   auto days400years = days100years * 4 + 1;
-
-//   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-   auto yearNum = strtol(yearS.c_str(), nullptr, 10);
-//   if (yearNum % 400 == 0 || (yearNum % 4 == 0 && yearNum % 100 != 0))
-//   {
-//      daysInMonth[2] = 29;
-//   }
-   auto monthNum = strtol(monthS.c_str(), nullptr, 10);
-   auto dayNum = strtol(dayS.c_str(), nullptr, 10);
-
-   // TODO do we need this code any more?
-#if 0
-   long long int dateNum = yearNum / 400 * days400years;
-   yearNum %= 400;
-   dateNum += yearNum / 100 * days100years;
-   yearNum %= 100;
-   dateNum += yearNum / 4 * days4years;
-   yearNum %= 4;
-   dateNum += yearNum * days1year;
-   for (int i = 1; i <= monthNum; ++i)
-   {
-      dateNum += daysInMonth[i];
-   }
-   dateNum += dayNum;
-   return Date(dateNum);
-#else
-   return Date(static_cast<unsigned char>(monthNum),
-               static_cast<unsigned char>(dayNum),
-               static_cast<size_t>(yearNum));
-#endif
-}
-
 TransactionFlag ModelReader::parseFlag(string const& flag)
 {
    switch (flag[0])
@@ -282,6 +154,43 @@ TransactionFlag ModelReader::parseFlag(string const& flag)
       default:
          throw TransactionFlagInvalid(flag);
    }
+}
+
+Interval ModelReader::parseInterval(string const& interval)
+{
+   if (interval.substr(0, 1) != "+")
+   {
+      throw Rubbish("Cannot parse interval");
+   }
+
+   auto number = std::stoull(interval.substr(1, interval.size() - 2), nullptr,
+                             10);
+
+   auto periodStr = interval.substr(interval.size() - 1);
+   Interval::Period period;
+   if (periodStr == "d")
+   {
+      period = Interval::Period::DAYS;
+   }
+   else if (periodStr == "w")
+   {
+      period = Interval::Period::DAYS;
+      number *= 7;
+   }
+   else if (periodStr == "m")
+   {
+      period = Interval::Period::MONTHS;
+   }
+   else if (periodStr == "y")
+   {
+      period = Interval::Period::YEARS;
+   }
+   else
+   {
+      throw Rubbish("Cannot parse interval");
+   }
+
+   return Interval(number, period);
 }
 
 void ModelReader::processAccount(Model& model, smatch const& match,
@@ -306,7 +215,7 @@ void ModelReader::processAccount(Model& model, smatch const& match,
 void ModelReader::processAccountBalance(Model& model, smatch const& match,
                                         string const& comment)
 {
-   auto date = parseDate(match[1]);
+   auto date = Date::parseDate(match[1], m_format.dateFormat());
    auto account = match[2];
    auto amount = parseCurrency(match[3]);
    model.createAccountStatement(date, account, amount, comment);
@@ -317,25 +226,76 @@ void ModelReader::processBlank(Model& model, string const& comment)
    model.createBlank(comment);
 }
 
-void ModelReader::processBudget(Model&, smatch const& match, string const&)
+void ModelReader::processBudget(
+      Model& model, smatch const& match, string const& note)
 {
-#if 0
-   auto budget = make_shared<LedgerBudget>(m_fileName, m_lineNum);
-   budget->setDate(parseDate(match[1]));
-   budget->setInterval(parseInterval(match[2]));
-
-   while (true)
+   auto date = Date::parseDate(match[1], m_format.dateFormat());
+   auto interval = parseInterval(match[2]);
+   try
    {
-      auto line = readLine();
-      if (regex_match(line, match, regEx->budgetLineCancelRx))
+      m_activeBudget = model.growBudgetPeriods(date);
+      model.configureBudget(m_activeBudget->id, interval, note);
+   }
+   catch (BudgetUninitialized const&)
+   {
+      m_activeBudget = model.initializeBudget(date, interval, note);
+   }
+}
+
+void ModelReader::processBudgetCancel(
+      Model& model, smatch const& match, string const& note)
+{
+   verifyIdentifier(match[1], IdentifierType::CATEGORY);
+   auto goal = model.budgetGoal(match[1], match[2]);
+   model.cancelGoal(goal->category->name, goal->name, note);
+}
+
+void ModelReader::processLine(Model& model, string& line)
+{
+   // Based on what I can find about the C++ regex spec, this is the regex that
+   // will split the line into the line and the comment.  However, it appears to
+   // be broken and failing to match.  I've debugged with online regex tools to
+   // verify the logic, so I'm at a loss to explain why it doesn't work.  Going
+   // to stick with basic string manipulation that I can trust, since the format
+   // is easy enough.
+
+   // strings without ';' that end in a non-space character, possible space,
+   // then an optional comment starting with ';' and ending with a non-space
+   // character, possible space
+//   auto lineRx = regex {"^([^;]*[^;[:s:]])?\\s*(?:;(.*\\S))?\\s*$"};
+
+   string comment;
+   auto loc = line.find(';');
+   if (loc != string::npos)
+   {
+      comment = line.substr(loc + 1);
+      line = line.substr(0, loc);
+   }
+   while (isspace(line.back()))
+   {
+      line = line.substr(0, line.size() - 1);
+   }
+   while (isspace(comment.back()))
+   {
+      comment = comment.substr(0, comment.size() - 1);
+   }
+
+   smatch match;
+   if (m_activeBudget)
+   {
+      if (regex_match(line, match, m_regex.budgetLineCancelRx))
       {
-         auto entry = make_shared<LedgerBudgetCancelEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setGoal(match[2]);
-         budget->appendEntry(entry);
+         processBudgetCancel(model, match, comment);
       }
+      else
+      {
+         unReadLine(line);
+         m_activeBudget.reset();
+      }
+
+
+#if 0
+
       else if (regex_match(line, match, regEx->budgetLineCloseRx))
       {
          auto entry = make_shared<LedgerBudgetCloseEntry>(
@@ -420,36 +380,14 @@ void ModelReader::processBudget(Model&, smatch const& match, string const&)
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
       }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-
-   m_ledger.appendItem(budget);
 #endif
-}
 
-void ModelReader::processLine(Model& model, string& line)
-{
-   // TODO why doesn't this live with the other regex?
-   // strings without ';' that end in a non-space character, possible space,
-   // then an optional comment starting with ';' and ending with a non-space
-   // character, possible space
-   auto lineRx = regex {"^([^;]*[^\\s;])\\s*(?:;(.*\\S))?\\s*"};
 
-   string comment;
-   smatch match;
-   if (regex_match(line, match, lineRx))
-   {
-      line = match[1];
-      comment = match[2];
-   }
 
-   if (m_activeBudget)
-   {
-      // TODO read budget lines instead
+
+
+
+
    }
    else if (m_activeTransaction)
    {
@@ -501,7 +439,7 @@ void ModelReader::processLine(Model& model, string& line)
 void ModelReader::processReferenceTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = parseDate(match[1]);
+   auto date = Date::parseDate(match[1], m_format.dateFormat());
    auto flag = parseFlag(match[2]);
    auto account = match[3];
    verifyIdentifier(account, IdentifierType::ACCOUNT);
@@ -514,7 +452,7 @@ void ModelReader::processReferenceTransaction(
 void ModelReader::processTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = parseDate(match[1]);
+   auto date = Date::parseDate(match[1], m_format.dateFormat());
    auto flag = parseFlag(match[2]);
    auto payee = match[3];
 
@@ -633,21 +571,6 @@ ModelReader::IdentifierType ModelReader::identifierType(
    return m_identifiers[identifier];
 }
 
-#if 0
-Interval FileReader::parseInterval(string const& interval)
-{
-   bool ok;
-   Interval i(Interval::fromString(interval, &ok));
-   if (!ok)
-   {
-      stringstream ss;
-      ss << "Unable to parse interval '" << interval << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
-   return i;
-}
-#endif
-
 void ModelReader::verifyIdentifier(
       string const& identifier, IdentifierType type)
 {
@@ -701,7 +624,7 @@ void testMain()
    try
    {
       Model model;
-      ModelReaderFormat format("M/dd/yyyy");
+      ModelReaderFormat format("M/d/yyyy");
       ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
       reader.readModel(model);
    }
