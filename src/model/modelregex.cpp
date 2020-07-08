@@ -76,7 +76,7 @@ string ModelRegex::currencyRx(ModelReaderFormat const& format)
    retval << "((?:";
 
    // escape ascii symbols
-   for (char c : format.currencySymbol())
+   for (char c : format.currencyFormat.symbol)
    {
       if (c & 0x80)
       {
@@ -90,7 +90,7 @@ string ModelRegex::currencyRx(ModelReaderFormat const& format)
    retval << '|';
 
    // escape ascii symbols
-   for (char c : format.groupSeparator())
+   for (char c : format.currencyFormat.separator)
    {
       if (c & 0x80)
       {
@@ -104,7 +104,7 @@ string ModelRegex::currencyRx(ModelReaderFormat const& format)
    retval << '|';
 
    // escape ascii symbols
-   for (char c : format.decimalPoint())
+   for (char c : format.currencyFormat.decimal)
    {
       if (c & 0x80)
       {
@@ -118,7 +118,7 @@ string ModelRegex::currencyRx(ModelReaderFormat const& format)
    retval << '|';
 
    // escape ascii symbols
-   for (char c : format.negativeSign())
+   for (char c : format.currencyFormat.negative)
    {
       if (c & 0x80)
       {
