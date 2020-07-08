@@ -62,85 +62,6 @@ bool ModelReader::hasLines(ifstream& file)
    return !m_lines.empty() || !file.eof();
 }
 
-// TODO move this into util code
-util::Currency ModelReader::parseCurrency(string s)
-{
-   // remove currency symbol
-   auto symbol = m_format.currencySymbol();
-   auto pos = s.find(symbol);
-   if (pos != string::npos)
-   {
-      s.erase(pos, symbol.size());
-   }
-
-   // remove separator symbols
-   auto sep = m_format.groupSeparator();
-   for (pos = s.find(sep); pos != string::npos; pos = s.find(sep, pos))
-   {
-      s.erase(pos, sep.size());
-   }
-
-   // make sure we only have digits, -, and .
-   auto allowed = string { "0123456789" };
-   allowed.append(m_format.decimalPoint());
-   allowed.append(m_format.negativeSign());
-   if (s.find_first_not_of(allowed) != string::npos)
-   {
-      throw Rubbish("currency has invalid characters");
-   }
-
-   // this is a stupid hack, but when we split the number at the decimal, we
-   // end up reading "-0" when the number is less than a whole currency unit,
-   // and that gets translated into a positive number
-   bool negate = false;
-   if (strtod(s.c_str(), nullptr) < 0)
-   {
-      negate = true;
-   }
-
-   // get the numbers before and after the decimal
-   auto decimal = m_format.decimalPoint();
-   string before;
-   string after;
-   pos = s.find(decimal);
-   if (pos != string::npos)
-   {
-      before = string(s, 0, pos);
-      after = string(s, pos + decimal.size());
-   }
-   else
-   {
-      before = s;
-      after = "";
-   }
-
-   // make sure we either have no decimal, or the correct decimal digits
-   if (after.size() != 0 && after.size() != m_format.currencyDecimalDigits())
-   {
-      throw Rubbish("currency has invalid number of decimal digits");
-   }
-
-   // turn the values into a currency class
-   Currency retval;
-   // make sure we are working with a positive number for now
-   retval.value = strtoll(before.c_str(), nullptr, 10);
-   if (retval.value < 0)
-   {
-      retval.value = -retval.value;
-   }
-   for (size_t i = 0; i < after.size(); ++i)
-   {
-      retval.value *= 10;
-   }
-   retval.value += strtoll(after.c_str(), nullptr, 10);
-   if (negate)
-   {
-      retval.value = -retval.value;
-   }
-   retval.decimalPlaces = after.size();
-   return retval;
-}
-
 TransactionFlag ModelReader::parseFlag(string const& flag)
 {
    switch (flag[0])
@@ -215,9 +136,9 @@ void ModelReader::processAccount(Model& model, smatch const& match,
 void ModelReader::processAccountBalance(Model& model, smatch const& match,
                                         string const& comment)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat());
+   auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto account = match[2];
-   auto amount = parseCurrency(match[3]);
+   auto amount = Currency::parseCurrency(match[3], m_format.currencyFormat);
    model.createAccountStatement(date, account, amount, comment);
 }
 
@@ -229,7 +150,7 @@ void ModelReader::processBlank(Model& model, string const& comment)
 void ModelReader::processBudget(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat());
+   auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto interval = parseInterval(match[2]);
    try
    {
@@ -439,12 +360,12 @@ void ModelReader::processLine(Model& model, string& line)
 void ModelReader::processReferenceTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat());
+   auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto flag = parseFlag(match[2]);
    auto account = match[3];
    verifyIdentifier(account, IdentifierType::ACCOUNT);
    auto payee = match[4];
-   auto amount = parseCurrency(match[5]);
+   auto amount = Currency::parseCurrency(match[5], m_format.currencyFormat);
 
    model.createReferenceTransaction(date, flag, account, payee, amount, note);
 }
@@ -452,7 +373,7 @@ void ModelReader::processReferenceTransaction(
 void ModelReader::processTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat());
+   auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto flag = parseFlag(match[2]);
    auto payee = match[3];
 
@@ -463,73 +384,57 @@ void ModelReader::processTransactionLine(
       Model& model, smatch const& match, string const& note)
 {
    assert(m_activeTransaction);
+   auto identifier = match[1];
+   // TODO this might throw if it has nothing
+   auto amount = Currency::parseCurrency(match[2], m_format.currencyFormat);
    switch (identifierType(match[1]))
    {
       case IdentifierType::ACCOUNT:
-      {
-         auto account = match[1];
-         // TODO this might throw if it has nothing
-         auto amount = parseCurrency(match[2]);
          model.createAccountEntry(
-                  m_activeTransaction->id, account, amount, note);
+                  m_activeTransaction->id, identifier, amount, note);
          break;
-      }
       case IdentifierType::CATEGORY:
-      {
-         auto category = match[1];
-         // TODO this might throw if it has nothing
-         auto amount = parseCurrency(match[2]);
          model.createCategoryEntry(
-                  m_activeTransaction->id, category, amount, note);
+                  m_activeTransaction->id, identifier, amount, note);
          break;
-      }
       case IdentifierType::OWNER:
-      {
-         auto owner = match[1];
-         // TODO this might throw if it has nothing
-         auto amount = parseCurrency(match[2]);
-         model.createOwnerEntry(m_activeTransaction->id, owner, amount, note);
+         model.createOwnerEntry(
+                  m_activeTransaction->id, identifier, amount, note);
          break;
-      }
    }
 }
 
 void ModelReader::processTransactionTrackingLine(
       Model& model, smatch const& match, string const& note)
 {
+   auto identifier = match[1];
+   auto trackingAccount = match[2];
+   // TODO need to figure out if this level of validation is contrary to what
+   // the model validation does, and which is correct if so (e.g. can an account
+   // and an owner have the same name?  The main model should decide how that
+   // works, not here...but there's a level of needing to know, so that we know
+   // whether to try something as a category or as an account, for example ....
+   // BUT the model could have queries to tell us what a string corresponds to,
+   // it's 'type' if you will)
+   verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
+   // TODO this might throw if empty
+   auto amount = Currency::parseCurrency(match[3], m_format.currencyFormat);
    switch (identifierType(match[1]))
    {
       case IdentifierType::ACCOUNT:
-      {
          throw Rubbish("Cannot use tracking account X with account Y");
-      }
       case IdentifierType::CATEGORY:
-      {
-         auto category = match[1];
-         auto trackingAccount = match[2];
-         // TODO need to figure out if this level of validation is contrary to what the model validation does, and which is correct if so (e.g. can an account and an owner have the same name?  The main model should decide how that works, not here...but there's a level of needing to know, so that we know whether to try something as a category or as an account, for example .... BUT the model could have queries to tell us what a string corresponds to, it's 'type' if you will)
-         verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
-         // TODO this might throw if empty
-         auto amount = parseCurrency(match[3]);
          model.createCategoryTrackingEntry(
-                  m_activeTransaction->id, category, trackingAccount, amount,
+                  m_activeTransaction->id, identifier, trackingAccount, amount,
                   note);
          break;
-      }
       case IdentifierType::OWNER:
-      {
-         auto owner = match[1];
-         auto trackingAccount = match[2];
-         // TODO need to figure out if this level of validation is contrary to what the model validation does, and which is correct if so (e.g. can an account and an owner have the same name?  The main model should decide how that works, not here...but there's a level of needing to know, so that we know whether to try something as a category or as an account, for example .... BUT the model could have queries to tell us what a string corresponds to, it's 'type' if you will)
-         verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
-         // TODO this might throw if empty
-         auto amount = parseCurrency(match[3]);
-         // TODO clean up the terminology so there is one thing in CP to call this
+         // TODO clean up the terminology so there is one thing in CP to call
+         // this, 'tracking', or 'reference', or somethign else?
          model.createOwnerTrackingEntry(
-                  m_activeTransaction->id, owner, trackingAccount, amount,
+                  m_activeTransaction->id, identifier, trackingAccount, amount,
                   note);
          break;
-      }
    }
 }
 

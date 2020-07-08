@@ -1,25 +1,14 @@
 #pragma once
 
 #include <string>
+#include "../util/m_currency.h"
 
-namespace model { class ModelReaderFormat; }
+namespace model { struct ModelReaderFormat; }
 
-class model::ModelReaderFormat
+struct model::ModelReaderFormat
 {
-public:
-   explicit ModelReaderFormat(std::string const& dateFormat);
-   size_t currencyDecimalDigits() const;
-   std::string currencySymbol() const;
-   std::string dateFormat() const;
-   std::string decimalPoint() const;
-   std::string groupSeparator() const;
-   std::string negativeSign() const;
+   util::CurrencyFormat currencyFormat;
+   std::string dateFormat;
 
-private:
-   size_t m_currencyDecimalDigits;
-   std::string m_currencySymbol;
-   std::string m_dateFormat;
-   std::string m_decimalPoint;
-   std::string m_groupSeparator;
-   std::string m_negativeSign;
+   explicit ModelReaderFormat(std::string const& dateFormat);
 };

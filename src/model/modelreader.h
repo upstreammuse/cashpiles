@@ -24,7 +24,6 @@ public:
 
 private:
    bool hasLines(std::ifstream&);
-   util::Currency parseCurrency(std::string);
    TransactionFlag parseFlag(std::string const&);
    Interval parseInterval(std::string const&);
    void processAccount(Model&, std::smatch const&, std::string const&);
