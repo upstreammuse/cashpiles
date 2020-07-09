@@ -117,8 +117,6 @@ Interval ModelReader::parseInterval(string const& interval)
 void ModelReader::processAccount(Model& model, smatch const& match,
                                  string const& comment)
 {
-   verifySetIdentifier(match[3], IdentifierType::ACCOUNT);
-
    if (match[2] == "on-budget")
    {
       model.createBudgetAccount(match[3], comment);
@@ -166,9 +164,15 @@ void ModelReader::processBudget(
 void ModelReader::processBudgetCancel(
       Model& model, smatch const& match, string const& note)
 {
-   verifyIdentifier(match[1], IdentifierType::CATEGORY);
    auto goal = model.budgetGoal(match[1], match[2]);
    model.cancelGoal(goal->category->name, goal->name, note);
+}
+
+void ModelReader::processBudgetIncome(
+      Model& model, smatch const& match, string const& note)
+{
+   auto budget = model.getCurrentBudget();
+   model.createBudgetIncomeEntry(budget->id, match[1], match[2], note);
 }
 
 void ModelReader::processLine(Model& model, string& line)
@@ -207,6 +211,10 @@ void ModelReader::processLine(Model& model, string& line)
       if (regex_match(line, match, m_regex.budgetLineCancelRx))
       {
          processBudgetCancel(model, match, comment);
+      }
+      else if (regex_match(line, match, m_regex.budgetLineIncomeRx))
+      {
+         processBudgetIncome(model, match, comment);
       }
       else
       {
@@ -363,7 +371,6 @@ void ModelReader::processReferenceTransaction(
    auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto flag = parseFlag(match[2]);
    auto account = match[3];
-   verifyIdentifier(account, IdentifierType::ACCOUNT);
    auto payee = match[4];
    auto amount = Currency::parseCurrency(match[5], m_format.currencyFormat);
 
@@ -387,17 +394,17 @@ void ModelReader::processTransactionLine(
    auto identifier = match[1];
    // TODO this might throw if it has nothing
    auto amount = Currency::parseCurrency(match[2], m_format.currencyFormat);
-   switch (identifierType(match[1]))
+   switch (model.getIdentifierType(match[1]))
    {
-      case IdentifierType::ACCOUNT:
+      case Model::IdentifierType::ACCOUNT:
          model.createAccountEntry(
                   m_activeTransaction->id, identifier, amount, note);
          break;
-      case IdentifierType::CATEGORY:
+      case Model::IdentifierType::CATEGORY:
          model.createCategoryEntry(
                   m_activeTransaction->id, identifier, amount, note);
          break;
-      case IdentifierType::OWNER:
+      case Model::IdentifierType::OWNER:
          model.createOwnerEntry(
                   m_activeTransaction->id, identifier, amount, note);
          break;
@@ -409,26 +416,18 @@ void ModelReader::processTransactionTrackingLine(
 {
    auto identifier = match[1];
    auto trackingAccount = match[2];
-   // TODO need to figure out if this level of validation is contrary to what
-   // the model validation does, and which is correct if so (e.g. can an account
-   // and an owner have the same name?  The main model should decide how that
-   // works, not here...but there's a level of needing to know, so that we know
-   // whether to try something as a category or as an account, for example ....
-   // BUT the model could have queries to tell us what a string corresponds to,
-   // it's 'type' if you will)
-   verifyIdentifier(trackingAccount, IdentifierType::ACCOUNT);
    // TODO this might throw if empty
    auto amount = Currency::parseCurrency(match[3], m_format.currencyFormat);
-   switch (identifierType(match[1]))
+   switch (model.getIdentifierType(match[1]))
    {
-      case IdentifierType::ACCOUNT:
+      case Model::IdentifierType::ACCOUNT:
          throw Rubbish("Cannot use tracking account X with account Y");
-      case IdentifierType::CATEGORY:
+      case Model::IdentifierType::CATEGORY:
          model.createCategoryTrackingEntry(
                   m_activeTransaction->id, identifier, trackingAccount, amount,
                   note);
          break;
-      case IdentifierType::OWNER:
+      case Model::IdentifierType::OWNER:
          // TODO clean up the terminology so there is one thing in CP to call
          // this, 'tracking', or 'reference', or somethign else?
          model.createOwnerTrackingEntry(
@@ -464,61 +463,6 @@ void ModelReader::unReadLine(string const& line)
 {
    --m_lineNum;
    m_lines.push(line);
-}
-
-ModelReader::IdentifierType ModelReader::identifierType(
-      string const& identifier)
-{
-   if (!m_identifiers.count(identifier))
-   {
-      throw Rubbish("Unknown identifier '" + identifier + "'");
-   }
-   return m_identifiers[identifier];
-}
-
-void ModelReader::verifyIdentifier(
-      string const& identifier, IdentifierType type)
-{
-   if (identifierType(identifier) != type)
-   {
-      stringstream ss;
-      switch (identifierType(identifier))
-      {
-         case IdentifierType::ACCOUNT:
-            ss << "Account";
-            break;
-         case IdentifierType::CATEGORY:
-            ss << "Budget category";
-            break;
-         case IdentifierType::OWNER:
-            ss << "Budget category owner";
-            break;
-      }
-      ss << " '" << identifier << "' now used as ";
-      switch (type)
-      {
-         case IdentifierType::ACCOUNT:
-            ss << "account";
-            break;
-         case IdentifierType::CATEGORY:
-            ss << "budget category";
-            break;
-         case IdentifierType::OWNER:
-            ss << "budget category owner";
-            break;
-      }
-      throw Rubbish(ss.str());
-   }
-}
-
-void ModelReader::verifySetIdentifier(
-      string const& identifier, IdentifierType type)
-{
-   if (!m_identifiers.count(identifier))
-   {
-      m_identifiers[identifier] = type;
-   }
-   verifyIdentifier(identifier, type);
 }
 
 #include <iostream>
