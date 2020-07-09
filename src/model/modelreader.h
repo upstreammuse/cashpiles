@@ -31,6 +31,7 @@ private:
    void processBlank(Model&, std::string const&);
    void processBudget(Model&, std::smatch const&, std::string const&);
    void processBudgetCancel(Model&, std::smatch const&, std::string const&);
+   void processBudgetIncome(Model&, std::smatch const&, std::string const&);
    void processLine(Model&, std::string&);
    void processReferenceTransaction(
          Model&, std::smatch const&, std::string const&);
@@ -42,24 +43,10 @@ private:
    void unReadLine(std::string const& line);
 
 private:
-   enum class IdentifierType
-   {
-      ACCOUNT,
-      CATEGORY,
-      OWNER
-   };
-
-private:
-   IdentifierType identifierType(std::string const&);
-   void verifyIdentifier(std::string const&, IdentifierType);
-   void verifySetIdentifier(std::string const&, IdentifierType);
-
-private:
    std::shared_ptr<BudgetPeriod const> m_activeBudget;
    std::shared_ptr<Transaction const> m_activeTransaction;
    std::string m_fileName;
    ModelReaderFormat m_format;
-   std::map<std::string, IdentifierType> m_identifiers;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
    ModelRegex m_regex;

@@ -16,6 +16,7 @@ namespace model { struct BudgetCategoryEntry; }
 namespace model { struct BudgetCategoryOwner; }
 namespace model { struct BudgetGoalEntry; }
 namespace model { struct BudgetGoalsEntry; }
+namespace model { struct BudgetIncomeEntry; }
 namespace model { struct BudgetPeriod; }
 namespace model { struct DateRange; }
 namespace model { struct Interval; }
@@ -34,39 +35,92 @@ namespace model { enum class TransactionFlag; }
 class model::Model
 {
 public:
+   enum class IdentifierType
+   {
+      ACCOUNT,
+      CATEGORY,
+      OWNER
+   };
+
+public:
+   // general stuff
+   IdentifierType getIdentifierType(std::string const&);
+
+   // accounts
+   // create
    std::shared_ptr<BudgetAccount const> createBudgetAccount(
          std::string const& name, std::string const& note);
    std::shared_ptr<ReferenceAccount const> createReferenceAccount(
          std::string const& name, std::string const& note);
-   void openAccount(std::string const& name);
+   // read
+   std::shared_ptr<Account const> getAccount(std::string const&);
+   std::shared_ptr<BudgetAccount const> getBudgetAccount(std::string const&);
+   std::shared_ptr<ReferenceAccount const> getReferenceAccount(
+         std::string const&);
+   // update
+   void openAccount(std::string const&);
    void closeAccount(std::string const& name, std::string const& note);
+   // delete
+//   void deleteAccount(std::string const&);
 
+   // account statements
+   // create
    std::shared_ptr<AccountStatement const> createAccountStatement(
          util::Date const&, std::string const& name, util::Currency const&,
          std::string const& note);
+   // read
+   // update
+   // delete
 
+   // blank lines and comments
+   // create
    std::shared_ptr<Blank const> createBlank(std::string const& note);
+   // read
+   // update
+   // delete
 
+   // budget
+   // create
    std::shared_ptr<BudgetPeriod const> initializeBudget(
          util::Date const&, Interval const&, std::string const& note);
+   // read
+   std::shared_ptr<BudgetPeriod const> getBudget(int);
+   std::shared_ptr<BudgetPeriod const> getCurrentBudget();
+   // update
    std::shared_ptr<BudgetPeriod const> configureBudget(
          int, Interval const&, std::string const& note);
    std::shared_ptr<BudgetPeriod const> growBudgetPeriods(util::Date const&);
+   // delete
+
+
+
+
+
+
+
+   // create, update, and grow budget
    std::shared_ptr<BudgetCancelEntry const> cancelGoal(
          std::string const& category, std::string const& goal,
          std::string const& note);
 
-   std::shared_ptr<BudgetCategoryEntry const> budgetCategory(
-         std::string const& category);
+   // create budget items
+   std::shared_ptr<BudgetIncomeEntry const> createBudgetIncomeEntry(
+         int, std::string const& name, std::string const& owner,
+         std::string const& note);
+
+   // read budget items
+//   std::shared_ptr<BudgetCategoryEntry const> budgetCategory(
+//         std::string const& category);
    std::shared_ptr<BudgetGoalEntry const> budgetGoal(
          std::string const& category, std::string const& goal);
-   std::shared_ptr<BudgetPeriod const> currentBudget();
 
+   // create reference transactions
    std::shared_ptr<ReferenceTransaction const> createReferenceTransaction(
          util::Date const&, TransactionFlag, std::string const& account,
          std::string const& payee, util::Currency const&,
          std::string const& note);
 
+   // create transactions
    std::shared_ptr<Transaction const> createTransaction(
          util::Date const&, TransactionFlag, std::string const& payee,
          std::string const& note);
@@ -90,30 +144,30 @@ public:
    void finalizeTransaction(int);
 
 private:
-   auto goalKey(std::string const& goalsCategory, std::string const& goal);
    auto nextRange(DateRange const&);
-   auto requireAccount(std::string const&);
-   auto requireBudget(int);
-   auto requireBudgetAccount(std::string const&);
    auto requireBudgetCategory(std::string const&);
    auto requireBudgetCategoryOwner(std::string const&);
    auto requireGoal(std::string const& category, std::string const& goal);
    auto requireGoalsCategory(std::string const&);
    void requireNoAccount(std::string const&);
-   auto requireReferenceAccount(std::string const&);
    auto requireTransaction(int);
+   void requireUnusedIdentifier(std::string const&);
 
 private:
    std::vector<std::shared_ptr<ModelData>> data;
+   std::map<std::string, IdentifierType> identifiers;
 
    std::map<std::string, std::shared_ptr<BudgetAccount>> budgetAccounts;
    std::map<std::string, std::shared_ptr<ReferenceAccount>> referenceAccounts;
 
+   std::map<int, std::shared_ptr<AccountStatement>> statements;
+
    std::shared_ptr<BudgetPeriod> firstBudgetPeriod;
    std::shared_ptr<BudgetPeriod> lastBudgetPeriod;
    std::map<std::string, std::shared_ptr<BudgetCategoryEntry>> categories;
-   std::map<std::string, std::shared_ptr<BudgetGoalsEntry>> goalCategories;
-   std::map<std::string, std::shared_ptr<BudgetGoalEntry>> goals;
+   std::map<std::string,
+   std::map<std::string, std::shared_ptr<BudgetGoalEntry>>> goals;
+   std::map<std::string, std::shared_ptr<BudgetIncomeEntry>> incomes;
    std::map<std::string, std::shared_ptr<BudgetCategoryOwner>> owners;
 
    std::map<int, std::shared_ptr<Transaction>> transactions;
