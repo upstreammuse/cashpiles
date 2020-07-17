@@ -1,5 +1,6 @@
 #include "modelregex.h"
 
+#include <sstream>
 #include "modelreaderformat.h"
 
 using namespace model;

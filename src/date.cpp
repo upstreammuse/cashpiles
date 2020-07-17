@@ -1,8 +1,14 @@
 #include "date.h"
 
 #include <cassert>
-#include <ctime>
 #include <iomanip>
+#include <sstream>
+
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <ctime>
+
+// TODO look into difftime for comparing dates, and maybe using the ctime
+// library to avoid writing a date class from scratch
 
 Date Date::currentDate()
 {
@@ -12,7 +18,7 @@ Date Date::currentDate()
 #ifdef WINNT
    localtime_s(&dateTime, &time);
 #else
-   localtime_s(&time, &dateTime);
+   localtime_r(&time, &dateTime);
 #endif
 
    Date retval;
