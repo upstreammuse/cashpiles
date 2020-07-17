@@ -1,6 +1,8 @@
 #include "currency.h"
 
 #include <cassert>
+#include <climits>
+#include <clocale>
 #include <cmath>
 #include <cstring>
 #include "daterange.h"

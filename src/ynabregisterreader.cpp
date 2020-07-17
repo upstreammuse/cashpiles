@@ -1,5 +1,6 @@
 #include "ynabregisterreader.h"
 
+#include <sstream>
 #include "cashpiles.h"
 #include "csvreader.h"
 #include "date.h"

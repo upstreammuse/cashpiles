@@ -4,6 +4,7 @@
 #include <clocale>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <sys/stat.h>
 #include "currency.h"
 #include "filereader.h"

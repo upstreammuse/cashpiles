@@ -1,0 +1,5 @@
+project(CashPiles)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+file(GLOB_RECURSE cashpiles_SRC src/*.h src/*.cpp)
+add_executable(cashpiles ${cashpiles_SRC})

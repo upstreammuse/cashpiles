@@ -1,5 +1,7 @@
 #include "modelreaderformat.h"
 
+#include <clocale>
+
 using namespace model;
 using namespace util;
 
