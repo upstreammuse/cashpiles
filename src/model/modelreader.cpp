@@ -8,7 +8,7 @@
 #include "budgetgoalsentry.h"
 #include "budgetperiod.h"
 #include "budgetuninitialized.h"
-#include "../util/m_currency.h"
+#include "../currency.h"
 #include "m_daterange.h"
 #include "m_interval.h"
 #include "model.h"
@@ -136,7 +136,7 @@ void ModelReader::processAccountBalance(Model& model, smatch const& match,
 {
    auto date = Date::parseDate(match[1], m_format.dateFormat);
    auto account = match[2];
-   auto amount = Currency::parseCurrency(match[3], m_format.currencyFormat);
+   auto amount = Currency::fromString(match[3], m_format.currencyFormat);
    model.createAccountStatement(date, account, amount, comment);
 }
 
@@ -372,7 +372,7 @@ void ModelReader::processReferenceTransaction(
    auto flag = parseFlag(match[2]);
    auto account = match[3];
    auto payee = match[4];
-   auto amount = Currency::parseCurrency(match[5], m_format.currencyFormat);
+   auto amount = Currency::fromString(match[5], m_format.currencyFormat);
 
    model.createReferenceTransaction(date, flag, account, payee, amount, note);
 }
@@ -393,7 +393,7 @@ void ModelReader::processTransactionLine(
    assert(m_activeTransaction);
    auto identifier = match[1];
    // TODO this might throw if it has nothing
-   auto amount = Currency::parseCurrency(match[2], m_format.currencyFormat);
+   auto amount = Currency::fromString(match[2], m_format.currencyFormat);
    switch (model.getIdentifierType(match[1]))
    {
       case Model::IdentifierType::ACCOUNT:
@@ -417,7 +417,7 @@ void ModelReader::processTransactionTrackingLine(
    auto identifier = match[1];
    auto trackingAccount = match[2];
    // TODO this might throw if empty
-   auto amount = Currency::parseCurrency(match[3], m_format.currencyFormat);
+   auto amount = Currency::fromString(match[3], m_format.currencyFormat);
    switch (model.getIdentifierType(match[1]))
    {
       case Model::IdentifierType::ACCOUNT:
