@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "../util/m_currency.h"
+#include "../currency.h"
 #include "../util/m_date.h"
 
 namespace model { struct Account; }

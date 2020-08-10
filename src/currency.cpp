@@ -5,9 +5,15 @@
 #include <clocale>
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 #include "daterange.h"
 
-Currency Currency::fromString(std::string s, bool* ok_)
+using std::logic_error;
+using std::max;
+using std::min;
+using std::string;
+
+Currency Currency::fromString(string s, bool* ok_)
 {
    bool dummy;
    bool& ok = ok_ != nullptr ? *ok_ : dummy;
@@ -15,25 +21,25 @@ Currency Currency::fromString(std::string s, bool* ok_)
    struct lconv* lc = localeconv();
 
    // remove currency symbol
-   std::string symbol(lc->currency_symbol);
+   string symbol(lc->currency_symbol);
    size_t pos;
-   if ((pos = s.find(symbol)) != std::string::npos)
+   if ((pos = s.find(symbol)) != string::npos)
    {
       s.erase(pos, symbol.size());
    }
 
    // remove separator symbols
-   std::string sep(lc->mon_thousands_sep);
-   for (pos = s.find(sep); pos != std::string::npos; pos = s.find(sep, pos))
+   string sep(lc->mon_thousands_sep);
+   for (pos = s.find(sep); pos != string::npos; pos = s.find(sep, pos))
    {
       s.erase(pos, sep.size());
    }
 
    // make sure we only have digits, -, and .
-   std::string allowed("0123456789");
+   string allowed("0123456789");
    allowed.append(lc->mon_decimal_point);
    allowed.append(lc->negative_sign);
-   if (s.find_first_not_of(allowed) != std::string::npos)
+   if (s.find_first_not_of(allowed) != string::npos)
    {
       ok = false;
       return Currency();
@@ -46,13 +52,13 @@ Currency Currency::fromString(std::string s, bool* ok_)
    }
 
    // get the numbers before and after the decimal
-   std::string decimal(lc->mon_decimal_point);
-   std::string before;
-   std::string after;
-   if ((pos = s.find(decimal)) != std::string::npos)
+   string decimal(lc->mon_decimal_point);
+   string before;
+   string after;
+   if ((pos = s.find(decimal)) != string::npos)
    {
-      before = std::string(s, 0, pos);
-      after = std::string(s, pos + 1);
+      before = string(s, 0, pos);
+      after = string(s, pos + 1);
    }
    else
    {
@@ -65,6 +71,73 @@ Currency Currency::fromString(std::string s, bool* ok_)
    {
       ok = false;
       return Currency();
+   }
+
+   // turn the values into a currency class
+   Currency retval;
+   // make sure we are working with a positive number for now
+   retval.m_value = strtoll(before.c_str(), nullptr, 10);
+   if (retval.m_value < 0)
+   {
+      retval.m_value = -retval.m_value;
+   }
+   for (size_t i = 0; i < after.size(); ++i)
+   {
+      retval.m_value *= 10;
+   }
+   retval.m_value += strtoll(after.c_str(), nullptr, 10);
+   if (negate)
+   {
+      retval.m_value = -retval.m_value;
+   }
+   retval.m_decimalPlaces = after.size();
+   return retval;
+}
+
+Currency Currency::fromString(string s, CurrencyFormat const& format)
+{
+   // remove currency symbol
+   auto pos = s.find(format.symbol);
+   if (pos != string::npos)
+   {
+      s.erase(pos, format.symbol.size());
+   }
+
+   // remove separator symbols
+   for (pos = s.find(format.separator); pos != string::npos;
+        pos = s.find(format.separator, pos))
+   {
+      s.erase(pos, format.separator.size());
+   }
+
+   // make sure we only have digits, -, and .
+   auto allowed = string { "0123456789" };
+   allowed.append(format.decimal);
+   allowed.append(format.negative);
+   if (s.find_first_not_of(allowed) != string::npos)
+   {
+      throw logic_error("currency has invalid characters");
+   }
+
+   // this is a stupid hack, but when we split the number at the decimal, we
+   // end up reading "-0" when the number is less than a whole currency unit,
+   // and that gets translated into a positive number
+   bool negate = strtod(s.c_str(), nullptr) < 0;
+
+   // get the numbers before and after the decimal
+   auto before = s;
+   auto after = string { "" };
+   pos = s.find(format.decimal);
+   if (pos != string::npos)
+   {
+      before = s.substr(0, pos);
+      after = s.substr(pos + format.decimal.size());
+   }
+
+   // make sure we either have no decimal, or the correct decimal digits
+   if (after.size() != 0 && after.size() != format.decimalDigits)
+   {
+      throw logic_error("Currency has invalid number of decimal digits");
    }
 
    // turn the values into a currency class
@@ -168,8 +241,7 @@ Currency Currency::amortize(DateRange const& total,
    long long int dayOffset = total.startDate().daysTo(overlap.startDate());
 
    // number of days we will use amountA
-   long long int daysOfA = std::min(std::max(0LL, numberA - dayOffset),
-                                    overlap.days());
+   long long int daysOfA = min(max(0LL, numberA - dayOffset), overlap.days());
 
    // the rest of the days we will use amountB
    long long int daysOfB = overlap.days() - daysOfA;
@@ -203,7 +275,7 @@ bool Currency::isZero() const
 }
 
 // TODO why is C++ string handling so bad?
-std::string Currency::toString() const
+string Currency::toString() const
 {
    struct lconv* lc = localeconv();
    size_t places = size_t(lc->frac_digits);
@@ -319,7 +391,7 @@ Currency Currency::operator*(long long int factor) const
 Currency Currency::operator*(double factor) const
 {
    Currency result(*this);
-   result.m_value = std::llround(result.m_value * factor);
+   result.m_value = llround(result.m_value * factor);
    return result;
 }
 

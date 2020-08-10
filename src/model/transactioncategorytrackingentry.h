@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/m_currency.h"
+#include "../currency.h"
 #include "transactionentry.h"
 
 namespace model { struct AccountStatement; }
@@ -13,7 +13,7 @@ struct model::TransactionCategoryTrackingEntry : public TransactionEntry
    std::shared_ptr<ReferenceAccount const> account;  //FK
    std::shared_ptr<BudgetCategoryEntry const> category;  //FK
    std::shared_ptr<AccountStatement const> statement;  //FK-nillable
-   util::Currency amount;
+   Currency amount;
 
    TransactionCategoryTrackingEntry(
          std::shared_ptr<Transaction const>,
