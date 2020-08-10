@@ -4,10 +4,20 @@
 
 class DateRange;
 
+struct CurrencyFormat
+{
+   std::string decimal;
+   size_t decimalDigits;
+   std::string negative;
+   std::string separator;
+   std::string symbol;
+};
+
 class Currency
 {
 public:
    static Currency fromString(std::string s, bool* ok = nullptr);
+   static Currency fromString(std::string, CurrencyFormat const&);
    static void normalize(Currency& a, Currency& b);
    static void normalize(Currency& curr, size_t decimalPlaces);
 
