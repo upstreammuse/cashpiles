@@ -66,7 +66,7 @@ public:
    // account statements
    // create
    std::shared_ptr<AccountStatement const> createAccountStatement(
-         util::Date const&, std::string const& name, util::Currency const&,
+         util::Date const&, std::string const& name, Currency const&,
          std::string const& note);
    // read
    // update
@@ -117,30 +117,29 @@ public:
    // create reference transactions
    std::shared_ptr<ReferenceTransaction const> createReferenceTransaction(
          util::Date const&, TransactionFlag, std::string const& account,
-         std::string const& payee, util::Currency const&,
-         std::string const& note);
+         std::string const& payee, Currency const&, std::string const& note);
 
    // create transactions
    std::shared_ptr<Transaction const> createTransaction(
          util::Date const&, TransactionFlag, std::string const& payee,
          std::string const& note);
    std::shared_ptr<TransactionAccountEntry const> createAccountEntry(
-         int, std::string const& name, util::Currency const&,
+         int, std::string const& name, Currency const&,
          std::string const& note);
    std::shared_ptr<TransactionCategoryEntry const> createCategoryEntry(
-         int, std::string const& name, util::Currency const&,
+         int, std::string const& name, Currency const&,
          std::string const& note);
    std::shared_ptr<TransactionCategoryTrackingEntry const>
    createCategoryTrackingEntry(
          int, std::string const& name, std::string const& account,
-         util::Currency const&, std::string const& note);
+         Currency const&, std::string const& note);
    std::shared_ptr<TransactionOwnerEntry const> createOwnerEntry(
-         int, std::string const& name, util::Currency const&,
+         int, std::string const& name, Currency const&,
          std::string const& note);
    std::shared_ptr<TransactionOwnerTrackingEntry const>
    createOwnerTrackingEntry(
          int, std::string const& name, std::string const& account,
-         util::Currency const&, std::string const& note);
+         Currency const&, std::string const& note);
    void finalizeTransaction(int);
 
 private:

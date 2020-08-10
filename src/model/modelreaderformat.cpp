@@ -3,7 +3,6 @@
 #include <clocale>
 
 using namespace model;
-using namespace util;
 
 using std::string;
 
