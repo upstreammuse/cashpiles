@@ -1,6 +1,8 @@
 #include "daterange.h"
 
-DateRange::DateRange()
+// TODO this is a temporary HACK
+DateRange::DateRange() :
+   m_startDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
    // TODO this constructor is evil
 }
@@ -46,9 +48,11 @@ DateRange DateRange::intersect(DateRange const& other) const
    }
 }
 
+// TODO this is a temporary HACK
 bool DateRange::isNull() const
 {
-   return m_startDate.isNull();
+   Date magic = DateBuilder().month(1).day(1).year(1).toDate();
+   return m_startDate == magic;
 }
 
 Date DateRange::startDate() const

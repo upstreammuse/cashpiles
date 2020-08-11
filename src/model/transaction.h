@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "../util/m_date.h"
+#include "../date.h"
 #include "modeldata.h"
 #include "transactionflag.h"
 
@@ -12,11 +12,11 @@ struct model::Transaction : public ModelData
 {
    int const id = newId();  //PK
    std::shared_ptr<BudgetPeriod const> budgetPeriod;  //FK
-   util::Date date;
+   Date date;
    TransactionFlag flag;
    std::string payee;
 
    Transaction(
-         std::shared_ptr<BudgetPeriod const>, util::Date const&,
+         std::shared_ptr<BudgetPeriod const>, Date const&,
          TransactionFlag, std::string const&);
 };

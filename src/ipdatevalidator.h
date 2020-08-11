@@ -6,6 +6,7 @@
 class IPDateValidator : public ItemProcessor
 {
 public:
+   IPDateValidator(std::string const& dateFormat);
    void processItem(LedgerAccount const& account);
    void processItem(LedgerAccountBalance const& balance);
    bool processItem(LedgerBudget const& budget);
@@ -17,5 +18,6 @@ private:
                     size_t lineNum);
 
 private:
+   std::string m_dateFormat;
    Date m_latestDate;
 };

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include "../currency.h"
-#include "../util/m_date.h"
+#include "../date.h"
 
 namespace model { struct Account; }
 namespace model { struct AccountStatement; }
@@ -66,7 +66,7 @@ public:
    // account statements
    // create
    std::shared_ptr<AccountStatement const> createAccountStatement(
-         util::Date const&, std::string const& name, Currency const&,
+         Date const&, std::string const& name, Currency const&,
          std::string const& note);
    // read
    // update
@@ -82,14 +82,14 @@ public:
    // budget
    // create
    std::shared_ptr<BudgetPeriod const> initializeBudget(
-         util::Date const&, Interval const&, std::string const& note);
+         Date const&, Interval const&, std::string const& note);
    // read
    std::shared_ptr<BudgetPeriod const> getBudget(int);
    std::shared_ptr<BudgetPeriod const> getCurrentBudget();
    // update
    std::shared_ptr<BudgetPeriod const> configureBudget(
          int, Interval const&, std::string const& note);
-   std::shared_ptr<BudgetPeriod const> growBudgetPeriods(util::Date const&);
+   std::shared_ptr<BudgetPeriod const> growBudgetPeriods(Date const&);
    // delete
 
 
@@ -116,12 +116,12 @@ public:
 
    // create reference transactions
    std::shared_ptr<ReferenceTransaction const> createReferenceTransaction(
-         util::Date const&, TransactionFlag, std::string const& account,
+         Date const&, TransactionFlag, std::string const& account,
          std::string const& payee, Currency const&, std::string const& note);
 
    // create transactions
    std::shared_ptr<Transaction const> createTransaction(
-         util::Date const&, TransactionFlag, std::string const& payee,
+         Date const&, TransactionFlag, std::string const& payee,
          std::string const& note);
    std::shared_ptr<TransactionAccountEntry const> createAccountEntry(
          int, std::string const& name, Currency const&,

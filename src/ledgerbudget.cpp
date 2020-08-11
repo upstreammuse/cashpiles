@@ -15,7 +15,6 @@ Date LedgerBudget::date() const
 
 void LedgerBudget::setDate(Date const& date)
 {
-   assert(date.isValid());
    m_date = date;
 }
 

@@ -20,7 +20,6 @@
 #include "transactionflaginvalid.h"
 
 using namespace model;
-using namespace util;
 
 using std::ifstream;
 using std::make_shared;
@@ -134,7 +133,7 @@ void ModelReader::processAccount(Model& model, smatch const& match,
 void ModelReader::processAccountBalance(Model& model, smatch const& match,
                                         string const& comment)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat);
+   auto date = Date::fromString(match[1], m_format.dateFormat);
    auto account = match[2];
    auto amount = Currency::fromString(match[3], m_format.currencyFormat);
    model.createAccountStatement(date, account, amount, comment);
@@ -148,7 +147,7 @@ void ModelReader::processBlank(Model& model, string const& comment)
 void ModelReader::processBudget(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat);
+   auto date = Date::fromString(match[1], m_format.dateFormat);
    auto interval = parseInterval(match[2]);
    try
    {
@@ -368,7 +367,7 @@ void ModelReader::processLine(Model& model, string& line)
 void ModelReader::processReferenceTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat);
+   auto date = Date::fromString(match[1], m_format.dateFormat);
    auto flag = parseFlag(match[2]);
    auto account = match[3];
    auto payee = match[4];
@@ -380,7 +379,7 @@ void ModelReader::processReferenceTransaction(
 void ModelReader::processTransaction(
       Model& model, smatch const& match, string const& note)
 {
-   auto date = Date::parseDate(match[1], m_format.dateFormat);
+   auto date = Date::fromString(match[1], m_format.dateFormat);
    auto flag = parseFlag(match[2]);
    auto payee = match[3];
 

@@ -36,7 +36,6 @@
 #include "transactionownertrackingentry.h"
 
 using namespace model;
-using namespace util;
 
 using std::const_pointer_cast;
 using std::find_if;
@@ -295,7 +294,7 @@ auto Model::nextRange(DateRange const& range)
       }
    }
 
-   return DateRange(Date(month, static_cast<unsigned char>(day), year),
+   return DateRange(DateBuilder().month(month).day(day).year(year).toDate(),
                     range.interval);
 }
 

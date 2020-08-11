@@ -5,7 +5,7 @@
 class LedgerBudgetGoalEntry : public LedgerBudgetEntry
 {
 public:
-   using LedgerBudgetEntry::LedgerBudgetEntry;
+   LedgerBudgetGoalEntry(Date const& date, std::string const& filename, size_t linenum);
 
    Currency amount() const;
    void setAmount(Currency const& amount);

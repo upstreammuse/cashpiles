@@ -18,7 +18,9 @@ using std::string;
 using std::stringstream;
 
 IPAccountBalancer::IPAccountBalancer(Reporter& reporter) :
-   m_reporter(reporter)
+   m_reporter(reporter),
+   // TODO this is a HACK
+   m_workingDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
 }
 
@@ -60,8 +62,7 @@ void IPAccountBalancer::processItem(LedgerAccount const& accountCommand)
       case LedgerAccount::Mode::CLOSED:
          if (account.isClosed)
          {
-            auto entry = make_shared<ReportAccountEntry>();
-            entry->setDate(date);
+            auto entry = make_shared<ReportAccountEntry>(date);
             entry->setText(
                      "Attempted to close account that was already closed");
             report->appendEntry(entry);

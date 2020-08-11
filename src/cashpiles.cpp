@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 
    Reporter reporter;
 
-   IPDateValidator dv;
+   IPDateValidator dv(dateFormat);
    ledger.processItems(dv);
 
    if (!convertYnab)
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
       IPAccountBalancer ab(reporter);
       ledger.processItems(ab);
 
-      IPBudgetAllocator budAlloc(reporter);
+      IPBudgetAllocator budAlloc(reporter, dateFormat);
       ledger.processItems(budAlloc);
 
       assert(ab.budgetable() == budAlloc.budgetable());

@@ -9,6 +9,15 @@
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 
+using std::string;
+
+IPDateValidator::IPDateValidator(string const& dateFormat) :
+   m_dateFormat(dateFormat),
+   // TODO this is a HACK
+   m_latestDate(DateBuilder().month(1).day(1).year(1).toDate())
+{
+}
+
 void IPDateValidator::processItem(LedgerAccount const& account)
 {
    processDate(account.date(), account.fileName(), account.lineNum());
@@ -41,10 +50,10 @@ bool IPDateValidator::processItem(LedgerTransactionV2 const& transaction)
 void IPDateValidator::processDate(Date const& date, std::string const& fileName,
                                   size_t lineNum)
 {
-   if (!m_latestDate.isNull() && date < m_latestDate)
+   if (date < m_latestDate)
    {
       std::stringstream ss;
-      ss << "Date " << date.toString() << " out of order";
+      ss << "Date " << date.toString(m_dateFormat) << " out of order";
       die(fileName, lineNum, ss.str());
    }
    else
