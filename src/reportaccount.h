@@ -9,6 +9,8 @@
 class ReportAccountEntry : public Report
 {
 public:
+   ReportAccountEntry(Date const& date);
+
    Currency amount() const;
    void setAmount(Currency const& amount);
 

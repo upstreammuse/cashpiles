@@ -5,7 +5,7 @@
 #include <stack>
 #include <string>
 #include "../currency.h"
-#include "../util/m_date.h"
+#include "../date.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"
 

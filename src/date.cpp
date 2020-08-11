@@ -4,51 +4,61 @@
 #include <iomanip>
 #include <sstream>
 
-#define __STDC_WANT_LIB_EXT1__ 1
-#include <ctime>
+using std::string;
 
-// TODO look into difftime for comparing dates, and maybe using the ctime
-// library to avoid writing a date class from scratch
-
-Date Date::currentDate()
+int Date::daysInMonth(int month, int year)
 {
-   std::time_t time = std::time(nullptr);
-   struct tm dateTime;
+   Date d;
+   d.m_day = 1;
+   d.m_month = month;
+   d.m_year = year;
+   d.assertValid();
 
-#ifdef WINNT
-   localtime_s(&dateTime, &time);
-#else
-   localtime_r(&time, &dateTime);
-#endif
-
-   Date retval;
-   retval.m_day = dateTime.tm_mday;
-   retval.m_month = dateTime.tm_mon + 1;
-   retval.m_year = dateTime.tm_year + 1900;
-   assert(retval.isValid());
-   return retval;
+   // 30 days hath september, april, june, and november
+   if (month == 9 || month == 4 || month == 6 || month == 11)
+   {
+      return 30;
+   }
+   // all the rest have 31, save february alone
+   else if (month != 2)
+   {
+      return 31;
+   }
+   else
+   {
+      // which hath 4 and 24
+      if (!isLeapYear(year))
+      {
+         return 28;
+      }
+      // 'til leap year gives it one day more
+      else
+      {
+         return 29;
+      }
+   }
 }
 
-Date Date::fromString(std::string const& date, std::string const& format)
+Date Date::fromString(string const& date, string const& format)
 {
-   size_t month = format.find("M");
-   size_t monthLeading = format.find("MM");
-   size_t day = format.find("d");
-   size_t dayLeading = format.find("dd");
-   size_t year = format.find("yyyy");
+   auto month = format.find("M");
+   auto monthLeading = format.find("MM");
+   auto day = format.find("d");
+   auto dayLeading = format.find("dd");
+   auto year = format.find("yyyy");
 
-   if (monthLeading != std::string::npos)
+   if (monthLeading != string::npos)
    {
       month = monthLeading;
    }
-   if (dayLeading != std::string::npos)
+   if (dayLeading != string::npos)
    {
       day = dayLeading;
    }
 
-   std::string monthS;
-   std::string dayS;
-   std::string yearS;
+   string monthS;
+   string dayS;
+   string yearS;
    for (size_t i = 0, j = 0; i < date.size() && j < format.size(); /*inside*/)
    {
       if (j == month)
@@ -56,19 +66,16 @@ Date Date::fromString(std::string const& date, std::string const& format)
          monthS.append(1, date[i]);
          ++i;
          ++j;
-         if (monthLeading == std::string::npos)
-         {
-            if (i < date.size() && isdigit(date[i]))
-            {
-               monthS.append(1, date[i]);
-               ++i;
-            }
-         }
-         else
+         if (monthLeading != string::npos)
          {
             monthS.append(1, date[i]);
             ++i;
             ++j;
+         }
+         else if (i < date.size() && isdigit(date[i]))
+         {
+            monthS.append(1, date[i]);
+            ++i;
          }
       }
       else if (j == day)
@@ -76,19 +83,16 @@ Date Date::fromString(std::string const& date, std::string const& format)
          dayS.append(1, date[i]);
          ++i;
          ++j;
-         if (dayLeading == std::string::npos)
-         {
-            if (i < date.size() && isdigit(date[i]))
-            {
-               dayS.append(1, date[i]);
-               ++i;
-            }
-         }
-         else
+         if (dayLeading != string::npos)
          {
             dayS.append(1, date[i]);
             ++i;
             ++j;
+         }
+         else if (i < date.size() && isdigit(date[i]))
+         {
+            dayS.append(1, date[i]);
+            ++i;
          }
       }
       else if (j == year)
@@ -104,42 +108,98 @@ Date Date::fromString(std::string const& date, std::string const& format)
       }
       else
       {
-         return Date();
+         throw std::logic_error("Date '" + date +
+                                "' doesn't match format string '" + format +
+                                "'");
       }
    }
 
-   if (monthS.find_first_not_of("0123456789") != std::string::npos)
-   {
-      return Date();
-   }
-   if (dayS.find_first_not_of("0123456789") != std::string::npos)
-   {
-      return Date();
-   }
-   if (yearS.find_first_not_of("0123456789") != std::string::npos)
-   {
-      return Date();
-   }
+   auto monthN = strtol(monthS.c_str(), nullptr, 10);
+   auto dayN = strtol(dayS.c_str(), nullptr, 10);
+   auto yearN = strtoul(yearS.c_str(), nullptr, 10);
 
+   return DateBuilder().month(monthN).day(dayN).year(yearN).toDate();
+}
+
+bool Date::isLeapYear(int year)
+{
    Date d;
-   d.m_month = strtol(monthS.c_str(), nullptr, 10);
-   d.m_day = strtol(dayS.c_str(), nullptr, 10);
-   d.m_year = strtol(yearS.c_str(), nullptr, 10);
-   assert(d.isValid());
-   return d;
+   d.m_day = 1;
+   d.m_month = 1;
+   d.m_year = year;
+   d.assertValid();
+   // leap years occur every 4 years, but not every 100, but every 400
+   return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
 }
 
-Date::Date()
+int Date::day() const
 {
-   // TODO this constructor is evil
+   return m_day;
 }
 
-Date::Date(int year, int month, int day) :
-   m_day(day),
-   m_month(month),
-   m_year(year)
+int Date::month() const
 {
-   assert(isValid());
+   return m_month;
+}
+
+int Date::year() const
+{
+   return m_year;
+}
+
+std::string Date::toString(std::string const& format) const
+{
+   std::string retval = format;
+
+   size_t monthLeading = retval.find("MM");
+   size_t month = retval.find("M");
+   if (monthLeading != std::string::npos)
+   {
+      std::stringstream ss;
+      ss << retval.substr(0, monthLeading)
+      << std::setw(2) << std::setfill('0') << m_month
+      << retval.substr(monthLeading + 2);
+      retval = ss.str();
+   }
+   else if (month != std::string::npos)
+   {
+      std::stringstream ss;
+      ss << retval.substr(0, month)
+      << m_month
+      << retval.substr(month + 1);
+      retval = ss.str();
+   }
+
+   size_t dayLeading = retval.find("dd");
+   size_t day = retval.find("d");
+   if (dayLeading != std::string::npos)
+   {
+      std::stringstream ss;
+      ss << retval.substr(0, dayLeading)
+      << std::setw(2) << std::setfill('0') << m_day
+      << retval.substr(dayLeading + 2);
+      retval = ss.str();
+   }
+   else if (day != std::string::npos)
+   {
+      std::stringstream ss;
+      ss << retval.substr(0, day)
+      << m_day
+      << retval.substr(day + 1);
+      retval = ss.str();
+   }
+
+   size_t year = retval.find("yyyy");
+   if (year != std::string::npos)
+   {
+      std::stringstream ss;
+      ss << retval.substr(0, year)
+      << std::setw(4) << std::setfill('0') << m_year
+      << retval.substr(year + 4);
+      retval = ss.str();
+   }
+
+   return retval;
 }
 
 Date Date::addDays(int days) const
@@ -171,7 +231,7 @@ Date Date::addDays(int days) const
          ++d.m_year;
       }
    }
-   assert(d.isValid());
+   d.assertValid();
 
    // handle negative movement
    for (/*already set*/; days < 0; ++days)
@@ -197,7 +257,7 @@ Date Date::addDays(int days) const
          d.m_day = daysInMonth[d.m_month];
       }
    }
-   assert(d.isValid());
+   d.assertValid();
 
    return d;
 }
@@ -222,7 +282,7 @@ Date Date::addMonths(int months) const
    {
       d.m_day = daysInMonth[d.m_month];
    }
-   assert(d.isValid());
+   d.assertValid();
    return d;
 }
 
@@ -239,7 +299,7 @@ Date Date::addYears(int years) const
    {
       d.m_day = daysInMonth[d.m_month];
    }
-   assert(d.isValid());
+   d.assertValid();
    return d;
 }
 
@@ -250,97 +310,11 @@ long long int Date::daysTo(Date const& other) const
    return julianEnd - julianStart;
 }
 
-bool Date::isNull() const
-{
-   return m_day <= 0 || m_month <= 0 || m_year <= 0;
-}
-
-bool Date::isValid() const
-{
-   if (m_year <= 0) return false;
-   if (m_month <= 0 || m_month > 12) return false;
-   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-   if ((m_year % 4 == 0 && m_year % 100 != 0) || m_year % 400 == 0)
-   {
-      daysInMonth[2] = 29;
-   }
-   if (m_day <= 0 || m_day > daysInMonth[m_month]) return false;
-   return true;
-}
-
-int Date::month() const
-{
-   assert(isValid());
-   return m_month;
-}
-
-std::string Date::toString(std::string const& format) const
-{
-   assert(isValid());
-   std::string retval = format;
-
-   size_t monthLeading = retval.find("MM");
-   size_t month = retval.find("M");
-   if (monthLeading != std::string::npos)
-   {
-      std::stringstream ss;
-      ss << retval.substr(0, monthLeading)
-         << std::setw(2) << std::setfill('0') << m_month
-         << retval.substr(monthLeading + 2);
-      retval = ss.str();
-   }
-   else if (month != std::string::npos)
-   {
-      std::stringstream ss;
-      ss << retval.substr(0, month)
-         << m_month
-         << retval.substr(month + 1);
-      retval = ss.str();
-   }
-
-   size_t dayLeading = retval.find("dd");
-   size_t day = retval.find("d");
-   if (dayLeading != std::string::npos)
-   {
-      std::stringstream ss;
-      ss << retval.substr(0, dayLeading)
-         << std::setw(2) << std::setfill('0') << m_day
-         << retval.substr(dayLeading + 2);
-      retval = ss.str();
-   }
-   else if (day != std::string::npos)
-   {
-      std::stringstream ss;
-      ss << retval.substr(0, day)
-         << m_day
-         << retval.substr(day + 1);
-      retval = ss.str();
-   }
-
-   size_t year = retval.find("yyyy");
-   if (year != std::string::npos)
-   {
-      std::stringstream ss;
-      ss << retval.substr(0, year)
-         << std::setw(4) << std::setfill('0') << m_year
-         << retval.substr(year + 4);
-      retval = ss.str();
-   }
-
-   return retval;
-}
-
-int Date::year() const
-{
-   assert(isValid());
-   return m_year;
-}
-
 bool Date::operator==(Date const& other) const
 {
    return m_day == other.m_day &&
-         m_month == other.m_month &&
-         m_year == other.m_year;
+   m_month == other.m_month &&
+   m_year == other.m_year;
 }
 
 bool Date::operator!=(Date const& other) const
@@ -351,6 +325,25 @@ bool Date::operator!=(Date const& other) const
 bool Date::operator<(Date const& other) const
 {
    return toJulianDayNumber() < other.toJulianDayNumber();
+
+   // TODO or consider this, which may be less computational, but is also more verbose...
+   if (m_year < other.m_year)
+   {
+      return true;
+   }
+   else if (m_year == other.m_year)
+   {
+      if (m_month < other.m_month)
+      {
+         return true;
+      }
+      else if (m_month == other.m_month)
+      {
+         return m_day < other.m_day;
+      }
+   }
+   return false;
+
 }
 
 bool Date::operator<=(Date const& other) const
@@ -363,11 +356,47 @@ bool Date::operator>(Date const& other) const
    return !(*this <= other);
 }
 
+void Date::assertValid()
+{
+   assert(m_month >= 1 && m_month <= 12);
+   assert(m_year >= 1);
+   assert(m_day >= 1 && m_day <= daysInMonth(m_month, m_year));
+}
+
+// TODO rework this to use something I can explain a little easier, even if not strictly Julian
 // from Wikipedia, would love to derive how this works
 long long int Date::toJulianDayNumber() const
 {
    return (1461 * (m_year + 4800 + (m_month - 14) / 12)) / 4 +
-         (367 * (m_month - 2 - 12 * ((m_month - 14) / 12))) / 12 -
-         (3 * ((m_year + 4900 + (m_month - 14) / 12) / 100)) / 4 +
-         m_day - 32075;
+   (367 * (m_month - 2 - 12 * ((m_month - 14) / 12))) / 12 -
+   (3 * ((m_year + 4900 + (m_month - 14) / 12) / 100)) / 4 +
+   m_day - 32075;
+}
+
+Date DateBuilder::toDate() const
+{
+   Date d;
+   d.m_day = m_day;
+   d.m_month = m_month;
+   d.m_year = m_year;
+   d.assertValid();
+   return d;
+}
+
+DateBuilder& DateBuilder::day(int day)
+{
+   m_day = day;
+   return *this;
+}
+
+DateBuilder& DateBuilder::month(int month)
+{
+   m_month = month;
+   return *this;
+}
+
+DateBuilder& DateBuilder::year(int year)
+{
+   m_year = year;
+   return *this;
 }

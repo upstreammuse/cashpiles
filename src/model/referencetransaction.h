@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "../currency.h"
-#include "../util/m_date.h"
+#include "../date.h"
 #include "modeldata.h"
 
 namespace model { struct AccountStatement; }
@@ -16,11 +16,11 @@ struct model::ReferenceTransaction : public ModelData
    std::shared_ptr<ReferenceAccount const> account;  //FK
    std::shared_ptr<AccountStatement const> statement;  //FK-nillable
    Currency amount;
-   util::Date date;
+   Date date;
    TransactionFlag flag;
    std::string payee;
 
    ReferenceTransaction(
-         std::shared_ptr<ReferenceAccount const>, util::Date const&,
+         std::shared_ptr<ReferenceAccount const>, Date const&,
          TransactionFlag, std::string const& payee);
 };

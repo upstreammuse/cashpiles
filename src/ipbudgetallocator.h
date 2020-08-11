@@ -13,7 +13,7 @@ class Reporter;
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator(Reporter& reporter);
+   IPBudgetAllocator(Reporter& reporter, std::string const& dateFormat);
    Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
@@ -74,6 +74,7 @@ private:
 private:
    std::map<std::string, Currency> m_availables;
    DateRange m_currentPeriod;
+   std::string m_dateFormat;
    std::map<std::string, Goals> m_goals;
    std::set<std::string> m_incomes;
    std::map<std::string, std::string> m_owners;

@@ -227,15 +227,17 @@ Date FileReader::parseDate(
       string const& date, string const& dateFormat, string const& fileName,
       size_t lineNum)
 {
-   Date d(Date::fromString(date, dateFormat));
-   if (!d.isValid())
+   try
+   {
+      return Date::fromString(date, dateFormat);
+   }
+   catch (...)
    {
       stringstream ss;
       ss << "Unable to parse date '" << date << "', expected something like '"
          << dateFormat << "'";
       die(fileName, lineNum, ss.str());
    }
-   return d;
 }
 
 FileReader::FileReader(string const& fileName, Ledger& ledger) :
@@ -279,8 +281,7 @@ void FileReader::processAccount(smatch const& match)
 
 void FileReader::processAccountBalance(smatch const& match)
 {
-   auto balance = make_shared<LedgerAccountBalance>(m_fileName, m_lineNum);
-   balance->setDate(parseDate(match[1]));
+   auto balance = make_shared<LedgerAccountBalance>(parseDate(match[1]), m_fileName, m_lineNum);
    balance->setAccount(match[2]);
    verifySetIdentifier(balance->account(), IdentifierType::ACCOUNT);
    balance->setAmount(parseCurrency(match[3]));
@@ -321,12 +322,11 @@ void FileReader::processBudget(smatch& match)
       }
       else if (regex_match(line, match, regEx->budgetLineGoalRx))
       {
-         auto entry = make_shared<LedgerBudgetGoalEntry>(m_fileName, m_lineNum);
+         auto entry = make_shared<LedgerBudgetGoalEntry>(parseDate(match[4]), m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setGoal(match[2]);
          entry->setAmount(parseCurrency(match[3]));
-         entry->setGoalDate(parseDate(match[4]));
          // TODO these do not have owners since they reference via their parent
          //   categories, but they inherit from something that provides them
          //  - then again, so does LedgerBudgetCloseEntry
@@ -480,8 +480,7 @@ void FileReader::processLine(string const& line)
 
 void FileReader::processTransactionV2(smatch& match)
 {
-   auto txn = make_shared<LedgerTransactionV2>(m_fileName, m_lineNum);
-   txn->setDate(parseDate(match[1]));
+   auto txn = make_shared<LedgerTransactionV2>(parseDate(match[1]), m_fileName, m_lineNum);
    auto status = match.str(2)[0];
    switch (status)
    {

@@ -53,13 +53,11 @@ LedgerAccount::LedgerAccount(string const& filename, size_t lineNum) :
 
 Date LedgerAccount::date() const
 {
-   assert(m_date.isValid());
    return m_date;
 }
 
 void LedgerAccount::setDate(Date const& date)
 {
-   assert(date.isValid());
    m_date = date;
 }
 

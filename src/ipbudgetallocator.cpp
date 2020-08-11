@@ -26,7 +26,8 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 
-IPBudgetAllocator::IPBudgetAllocator(Reporter& reporter) :
+IPBudgetAllocator::IPBudgetAllocator(Reporter& reporter, string const& dateFormat) :
+   m_dateFormat(dateFormat),
    m_reporter(reporter)
 {
 }
@@ -73,7 +74,7 @@ void IPBudgetAllocator::finish()
          table.appendColumn(0, it1.first + "  ");
          table.appendColumn(1, it2.first + "  ");
          table.appendColumn(2, it2.second.amount.toString() + "  ");
-         table.appendColumn(3, it2.second.period.endDate().toString() + "  ");
+         table.appendColumn(3, it2.second.period.endDate().toString(m_dateFormat) + "  ");
          table.appendColumn(4, it2.second.reserved.toString() + "  ");
          total += it2.second.reserved;
       }
@@ -113,8 +114,8 @@ void IPBudgetAllocator::finish()
       else
       {
          table.appendColumn(1, it->second.amount.toString() + "  ");
-         table.appendColumn(2, it->second.period.startDate().toString() + "-" +
-                            it->second.period.endDate().toString() + "  ");
+         table.appendColumn(2, it->second.period.startDate().toString(m_dateFormat) + "-" +
+                            it->second.period.endDate().toString(m_dateFormat) + "  ");
          table.appendColumn(3, "  ");
       }
       table.appendColumn(4, it->second.reserved.toString());
@@ -135,8 +136,8 @@ void IPBudgetAllocator::finish()
    table.appendColumn(2, "6-Month  ");
    table.appendColumn(3, "Available");
    std::cout << "Routine history period "
-             << m_priorPeriod.startDate().toString()
-             << " - " << m_priorPeriod.endDate().toString() << std::endl;
+             << m_priorPeriod.startDate().toString(m_dateFormat)
+             << " - " << m_priorPeriod.endDate().toString(m_dateFormat) << std::endl;
    for (auto it = m_routines.begin(); it != m_routines.end(); ++it)
    {
       stringstream ss;
@@ -566,7 +567,7 @@ void IPBudgetAllocator::advanceBudgetPeriod(string const& filename,
    if (m_currentPeriod.isNull())
    {
       warn(filename, lineNum, "Creating a default monthly budget period");
-      advanceBudgetPeriod(DateRange(Date(date.year(), date.month(), 1),
+      advanceBudgetPeriod(DateRange(DateBuilder().month(date.month()).day(1).year(date.year()).toDate(),
                                     Interval(1, Interval::Period::MONTHS)));
    }
 

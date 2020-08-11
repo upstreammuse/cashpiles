@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "../currency.h"
-#include "../util/m_date.h"
+#include "../date.h"
 #include "modeldata.h"
 
 namespace model { struct Account; }
@@ -13,7 +13,7 @@ struct model::AccountStatement : public ModelData
    int const id = newId();  //PK
    std::shared_ptr<Account const> account;  //FK
    Currency balance;
-   util::Date date;
+   Date date;
 
-   AccountStatement(std::shared_ptr<Account const>, util::Date const&);
+   AccountStatement(std::shared_ptr<Account const>, Date const&);
 };

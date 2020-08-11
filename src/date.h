@@ -4,22 +4,24 @@
 
 class Date
 {
-public:
-   static Date currentDate();
-   static Date fromString(std::string const& date, std::string const& format);
+   friend class DateBuilder;
 
 public:
-   Date();
-   Date(int year, int month, int day);
+   static int daysInMonth(int month, int year);
+   static Date fromString(std::string const& date, std::string const& format);
+   static bool isLeapYear(int year);
+
+public:
+   int day() const;
+   int month() const;
+   int year() const;
+   std::string toString(std::string const& format) const;
+
    Date addDays(int days) const;
    Date addMonths(int months) const;
    Date addYears(int years) const;
    long long int daysTo(Date const& other) const;
-   bool isNull() const;
-   bool isValid() const;
-   int month() const;
-   std::string toString(std::string const& format = "M/dd/yyyy") const;
-   int year() const;
+
    bool operator==(Date const& other) const;
    bool operator!=(Date const& other) const;
    bool operator<(Date const& other) const;
@@ -27,10 +29,28 @@ public:
    bool operator>(Date const& other) const;
 
 private:
+   Date();
+   void assertValid();
    long long int toJulianDayNumber() const;
 
 private:
    int m_day = 0;
    int m_month = 0;
    int m_year = 0;
+};
+
+class DateBuilder
+{
+public:
+   Date toDate() const;
+
+public:
+   DateBuilder& day(int);
+   DateBuilder& month(int);
+   DateBuilder& year(int);
+
+private:
+   int m_day;
+   int m_month;
+   int m_year;
 };

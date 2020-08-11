@@ -106,23 +106,13 @@ bool Interval::operator==(Interval const& other) const
 
 Date operator+(Date const& left, Interval const& right)
 {
-   if (left.isNull())
-   {
-      return Date();
-   }
-   Date result;
    switch (right.period())
    {
       case Interval::Period::DAYS:
-         result = left.addDays(right.number());
-         break;
+         return left.addDays(right.number());
       case Interval::Period::MONTHS:
-         result = left.addMonths(right.number());
-         break;
+         return left.addMonths(right.number());
       case Interval::Period::YEARS:
-         result = left.addYears(right.number());
-         break;
+         return left.addYears(right.number());
    }
-   assert(result.isValid());
-   return result;
 }
