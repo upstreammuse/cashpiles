@@ -3,9 +3,10 @@
 #include <cassert>
 #include "itemprocessor.h"
 
-LedgerTransaction::LedgerTransaction(std::string const& filename,
-                                     size_t lineNum) :
-   LedgerItem(filename, lineNum)
+LedgerTransaction::LedgerTransaction(
+      Date const& date, std::string const& filename, size_t lineNum) :
+   LedgerItem(filename, lineNum),
+   m_date(date)
 {
 }
 

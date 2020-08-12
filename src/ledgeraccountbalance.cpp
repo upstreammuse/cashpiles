@@ -4,6 +4,13 @@
 
 using std::string;
 
+LedgerAccountBalance::LedgerAccountBalance(
+      Date const& date, std::string const& filename, size_t linenum) :
+   LedgerItem (filename, linenum),
+   m_date(date)
+{
+}
+
 string LedgerAccountBalance::account() const
 {
    return m_account;

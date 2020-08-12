@@ -4,6 +4,11 @@
 
 using std::string;
 
+ReportAccountEntry::ReportAccountEntry(Date const& date) :
+   m_date(date)
+{
+}
+
 Currency ReportAccountEntry::amount() const
 {
    return m_amount;

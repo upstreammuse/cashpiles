@@ -7,7 +7,8 @@
 class LedgerAccountBalance : public LedgerItem
 {
 public:
-   LedgerAccountBalance(Date const& date, std::string const& filename, size_t linenum);
+   LedgerAccountBalance(
+         Date const& date, std::string const& filename, size_t linenum);
 
    std::string account() const;
    void setAccount(std::string const& account);

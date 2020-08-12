@@ -17,7 +17,7 @@ public:
    static std::string modeToString(Mode mode);
 
 public:
-   LedgerAccount(std::string const& filename, size_t lineNum);
+   LedgerAccount(Date const& date, std::string const& filename, size_t lineNum);
 
    Date date() const;
    void setDate(Date const& date);

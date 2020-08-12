@@ -258,9 +258,9 @@ shared_ptr<BudgetPeriod const> Model::configureBudget(
 
 auto Model::nextRange(DateRange const& range)
 {
-   size_t bigMonth = range.startDate.month();
-   size_t day = range.startDate.day();
-   size_t year = range.startDate.year();
+   int bigMonth = range.startDate.month();
+   int day = range.startDate.day();
+   int year = range.startDate.year();
 
    switch (range.interval.period)
    {

@@ -46,8 +46,10 @@ string LedgerAccount::modeToString(Mode mode)
    return "";
 }
 
-LedgerAccount::LedgerAccount(string const& filename, size_t lineNum) :
-   LedgerItem(filename, lineNum)
+LedgerAccount::LedgerAccount(
+      Date const& date, string const& filename, size_t lineNum) :
+   LedgerItem(filename, lineNum),
+   m_date(date)
 {
 }
 

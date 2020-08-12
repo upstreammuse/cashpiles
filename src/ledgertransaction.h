@@ -18,7 +18,8 @@ public:
    };
 
 public:
-   LedgerTransaction(std::string const& filename, size_t lineNum);
+   LedgerTransaction(
+         Date const& date, std::string const& filename, size_t lineNum);
 
    std::string account() const;
    void setAccount(std::string const& account);

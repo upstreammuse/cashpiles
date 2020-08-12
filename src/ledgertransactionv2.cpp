@@ -155,6 +155,13 @@ void LedgerTransactionV2OwnerEntry::processItem(ItemProcessor& processor) const
    processor.processItem(*this);
 }
 
+LedgerTransactionV2::LedgerTransactionV2(
+      Date const& date, std::string const& filename, size_t linenum) :
+   LedgerItem(filename, linenum),
+   m_date(date)
+{
+}
+
 Currency LedgerTransactionV2::amount() const
 {
    return m_amount;

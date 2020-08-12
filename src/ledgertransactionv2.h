@@ -95,7 +95,8 @@ public:
    };
 
 public:
-   LedgerTransactionV2(Date const& date, std::string const& filename, size_t linenum);
+   LedgerTransactionV2(
+         Date const& date, std::string const& filename, size_t linenum);
 
    Currency amount() const;
 
