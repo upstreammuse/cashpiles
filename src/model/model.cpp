@@ -251,51 +251,9 @@ shared_ptr<BudgetPeriod const> Model::configureBudget(
    }
 
    auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
-   budgetMod->period = DateRange(budget->period.startDate, interval);
+   budgetMod->period = DateRange(budget->period.startDate(), interval);
    budgetMod->note = note;
    return move(budgetMod);
-}
-
-auto Model::nextRange(DateRange const& range)
-{
-   int bigMonth = range.startDate.month();
-   int day = range.startDate.day();
-   int year = range.startDate.year();
-
-   switch (range.interval.period())
-   {
-      case Interval::Period::DAYS:
-         day += range.interval.number();
-         break;
-      case Interval::Period::MONTHS:
-         bigMonth += range.interval.number();
-         break;
-      case Interval::Period::YEARS:
-         year += range.interval.number();
-         break;
-   }
-
-   while (bigMonth > 12)
-   {
-      bigMonth -= 12;
-      ++year;
-   }
-
-   unsigned char month = static_cast<unsigned char>(bigMonth);
-
-   while (day > Date::daysInMonth(month, year))
-   {
-      day -= Date::daysInMonth(month, year);
-      ++month;
-      if (month > 12)
-      {
-         month -= 12;
-         ++year;
-      }
-   }
-
-   return DateRange(DateBuilder().month(month).day(day).year(year).toDate(),
-                    range.interval);
 }
 
 shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
@@ -305,10 +263,12 @@ shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
       throw BudgetUninitialized();
    }
 
-   while (nextRange(lastBudgetPeriod->period).startDate <= date)
+   while (lastBudgetPeriod->period.endDate() < date)
    {
-      auto nextPeriod = make_shared<BudgetPeriod>(
-                           nextRange(lastBudgetPeriod->period));
+      DateRange nextPeriodRange = lastBudgetPeriod->period;
+      ++nextPeriodRange;
+
+      auto nextPeriod = make_shared<BudgetPeriod>(nextPeriodRange);
       nextPeriod->prevPeriod = lastBudgetPeriod;
       lastBudgetPeriod->nextPeriod = nextPeriod;
       lastBudgetPeriod = nextPeriod;

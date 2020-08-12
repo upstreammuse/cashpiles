@@ -54,7 +54,6 @@ HEADERS += \
    src/model/budgetuninitialized.h \
    src/model/categorynotexists.h \
    src/model/categoryownernotexists.h \
-   src/model/m_daterange.h \
    src/model/model.h \
    src/model/modeldata.h \
    src/model/modelreader.h \
@@ -134,7 +133,6 @@ SOURCES += \
    src/model/budgetuninitialized.cpp \
    src/model/categorynotexists.cpp \
    src/model/categoryownernotexists.cpp \
-   src/model/m_daterange.cpp \
    src/model/model.cpp \
    src/model/modeldata.cpp \
    src/model/modelreader.cpp \
