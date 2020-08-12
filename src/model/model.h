@@ -19,7 +19,6 @@ namespace model { struct BudgetGoalEntry; }
 namespace model { struct BudgetGoalsEntry; }
 namespace model { struct BudgetIncomeEntry; }
 namespace model { struct BudgetPeriod; }
-namespace model { struct DateRange; }
 namespace model { class Model; }
 namespace model { struct ModelData; }
 namespace model { struct ReferenceAccount; }
@@ -143,7 +142,6 @@ public:
    void finalizeTransaction(int);
 
 private:
-   auto nextRange(DateRange const&);
    auto requireBudgetCategory(std::string const&);
    auto requireBudgetCategoryOwner(std::string const&);
    auto requireGoal(std::string const& category, std::string const& goal);

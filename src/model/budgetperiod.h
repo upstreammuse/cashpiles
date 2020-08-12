@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "m_daterange.h"
+#include "../daterange.h"
 #include "modeldata.h"
 
 namespace model { struct BudgetPeriod; }
