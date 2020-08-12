@@ -39,7 +39,7 @@
 
 extern void testMain();
 
-int main(int argc, char** argv)
+int cashpiles(int argc, char** argv)
 {
    setlocale(LC_ALL,"");
    testMain();
@@ -111,6 +111,24 @@ int main(int argc, char** argv)
    }
 
    return EXIT_SUCCESS;
+}
+
+int main(int argc, char** argv)
+{
+   try
+   {
+      return cashpiles(argc, argv);
+   }
+   catch (std::exception const& ex)
+   {
+      std::cerr << "caught unhandled exception" << std::endl;
+      std::cerr << ex.what() << std::endl;
+   }
+   catch (...)
+   {
+      std::cerr << "caught unhandled unknown exception" << std::endl;
+   }
+   return EXIT_FAILURE;
 }
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
