@@ -365,7 +365,7 @@ void Date::assertValid()
 {
    assert(m_month >= 1 && m_month <= 12);
    assert(m_year >= 1);
-   assert(m_day >= 1 && m_day <= daysInMonth(m_month, m_year));
+   assert(m_day >= 1 && (m_day <= 28 || m_day <= daysInMonth(m_month, m_year)));
 }
 
 // TODO rework this to use something I can explain a little easier, even if not strictly Julian
