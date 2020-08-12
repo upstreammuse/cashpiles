@@ -6,11 +6,11 @@
 #include <string>
 #include "../currency.h"
 #include "../date.h"
+#include "../interval.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"
 
 namespace model { struct BudgetPeriod; }
-namespace model { struct Interval; }
 namespace model { class Model; }
 namespace model { class ModelReader; }
 namespace model { struct Transaction; }

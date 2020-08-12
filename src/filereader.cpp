@@ -297,9 +297,10 @@ void FileReader::processBlank()
 
 void FileReader::processBudget(smatch& match)
 {
+   auto date = parseDate(match[1]);
+   auto interval = parseInterval(match[2]);
    auto budget = make_shared<LedgerBudget>(
-                    parseDate(match[1]), m_fileName, m_lineNum);
-   budget->setInterval(parseInterval(match[2]));
+                    date, interval, m_fileName, m_lineNum);
 
    while (true)
    {
@@ -355,12 +356,12 @@ void FileReader::processBudget(smatch& match)
       }
       else if (regex_match(line, match, regEx->budgetLineReserveAmountRx))
       {
+         auto interval = parseInterval(match[3]);
          auto entry = make_shared<LedgerBudgetReserveAmountEntry>(
-                         m_fileName, m_lineNum);
+                         interval, m_fileName, m_lineNum);
          entry->setCategory(match[1]);
          verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
          entry->setAmount(parseCurrency(match[2]));
-         entry->setInterval(parseInterval(match[3]));
          entry->setOwner(match[4]);
          verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
          budget->appendEntry(entry);
@@ -673,15 +674,16 @@ Date FileReader::parseDate(string const& date)
 
 Interval FileReader::parseInterval(string const& interval)
 {
-   bool ok;
-   Interval i(Interval::fromString(interval, &ok));
-   if (!ok)
+   try
+   {
+      return Interval::fromString(interval);
+   }
+   catch (...)
    {
       stringstream ss;
       ss << "Unable to parse interval '" << interval << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
-   return i;
 }
 
 LedgerAccount::Mode FileReader::parseMode(string const& mode)

@@ -6,6 +6,7 @@
 #include <vector>
 #include "../currency.h"
 #include "../date.h"
+#include "../interval.h"
 
 namespace model { struct Account; }
 namespace model { struct AccountStatement; }
@@ -19,7 +20,6 @@ namespace model { struct BudgetGoalsEntry; }
 namespace model { struct BudgetIncomeEntry; }
 namespace model { struct BudgetPeriod; }
 namespace model { struct DateRange; }
-namespace model { struct Interval; }
 namespace model { class Model; }
 namespace model { struct ModelData; }
 namespace model { struct ReferenceAccount; }

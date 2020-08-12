@@ -13,21 +13,24 @@ public:
       MONTHS,
       YEARS
    };
-   static Interval fromString(std::string const& interval, bool* ok);
+   static Interval fromString(std::string const& interval);
 
 public:
-   Interval();
-   Interval(size_t number, Period period);
+   Interval(int number, Period period);
    Interval(Date const& start, Date const& end);
-   size_t number() const;
+
+   int number() const;
    Period period() const;
    std::string toString() const;
 
    bool operator==(Interval const& other) const;
 
 private:
-   size_t m_number = 0;
-   Period m_period = Period::DAYS;
+   void assertValid() const;
+
+private:
+   int m_number;
+   Period m_period;
 };
 
 Date operator+(Date const& left, Interval const& right);

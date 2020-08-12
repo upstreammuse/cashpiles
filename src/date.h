@@ -20,7 +20,7 @@ public:
    Date addDays(int days) const;
    Date addMonths(int months) const;
    Date addYears(int years) const;
-   long long int daysTo(Date const& other) const;
+   int daysTo(Date const& other) const;
 
    bool operator==(Date const& other) const;
    bool operator!=(Date const& other) const;
@@ -30,8 +30,8 @@ public:
 
 private:
    Date();
-   void assertValid();
-   long long int toJulianDayNumber() const;
+   void assertValid() const;
+   int toJulianDayNumber() const;
 
 private:
    int m_day = 0;

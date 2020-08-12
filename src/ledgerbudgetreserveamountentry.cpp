@@ -3,8 +3,9 @@
 #include "itemprocessor.h"
 
 LedgerBudgetReserveAmountEntry::LedgerBudgetReserveAmountEntry(
-      std::string const& filename, size_t lineNum) :
-   LedgerBudgetEntry(filename, lineNum)
+      Interval const& interval, std::string const& filename, size_t lineNum) :
+   LedgerBudgetEntry(filename, lineNum),
+   m_interval(interval)
 {
 }
 

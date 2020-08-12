@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../date.h"
-#include "m_interval.h"
+#include "../interval.h"
 
 namespace model { struct DateRange; }
 
