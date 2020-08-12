@@ -4,9 +4,11 @@
 #include "itemprocessor.h"
 
 LedgerBudget::LedgerBudget(
-      Date const& date, std::string const& fileName, size_t lineNum) :
+      Date const& date, Interval const& interval, std::string const& fileName,
+      size_t lineNum) :
    LedgerItem(fileName, lineNum),
-   m_date(date)
+   m_date(date),
+   m_interval(interval)
 {
 }
 

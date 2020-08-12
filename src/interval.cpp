@@ -4,21 +4,18 @@
 #include <sstream>
 #include "date.h"
 
-Interval Interval::fromString(std::string const& interval, bool* ok)
+Interval Interval::fromString(std::string const& interval)
 {
-   bool dummy;
-   bool* success = ok ? ok : &dummy;
-   *success = true;
-   size_t number = std::stoull(interval.substr(1, interval.size() - 2),
-                               nullptr, 10);
+   auto number = stol(interval.substr(1, interval.size() - 2), nullptr, 10);
 
-   std::string start = interval.substr(0, 1);
+   auto start = interval.substr(0, 1);
    if (start != "+")
    {
-      *success = false;
+      throw std::logic_error(
+               "Interval '" + interval + "' did not start with '+'");
    }
 
-   std::string periodStr = interval.substr(interval.size() - 1);
+   auto periodStr = interval.substr(interval.size() - 1);
    Period period;
    if (periodStr == "d")
    {
@@ -39,31 +36,28 @@ Interval Interval::fromString(std::string const& interval, bool* ok)
    }
    else
    {
-      period = Period::DAYS;
-      *success = false;
+      throw std::logic_error(
+               "Interval '" + interval + "' period not one of [dwmy]");
    }
 
    return Interval(number, period);
 }
 
-Interval::Interval()
-{
-   // TODO this constructor is evil
-}
-
-::Interval::Interval(size_t number, Period period) :
+Interval::Interval(int number, Period period) :
    m_number(number),
    m_period(period)
 {
+   assertValid();
 }
 
 Interval::Interval(Date const& start, Date const& end) :
-   m_number(size_t(start.daysTo(end) + 1)),
+   m_number(start.daysTo(end) + 1),
    m_period(Period::DAYS)
 {
+   assertValid();
 }
 
-size_t Interval::number() const
+int Interval::number() const
 {
    return m_number;
 }
@@ -102,6 +96,19 @@ std::string Interval::toString() const
 bool Interval::operator==(Interval const& other) const
 {
    return m_number == other.m_number && m_period == other.m_period;
+}
+
+void Interval::assertValid() const
+{
+   assert(m_number >= 0);
+   switch (m_period)
+   {
+      case Interval::Period::DAYS:
+      case Interval::Period::MONTHS:
+      case Interval::Period::YEARS:
+         return;
+   }
+   assert(false);
 }
 
 Date operator+(Date const& left, Interval const& right)

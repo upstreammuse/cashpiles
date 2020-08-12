@@ -262,16 +262,16 @@ auto Model::nextRange(DateRange const& range)
    int day = range.startDate.day();
    int year = range.startDate.year();
 
-   switch (range.interval.period)
+   switch (range.interval.period())
    {
       case Interval::Period::DAYS:
-         day += range.interval.number;
+         day += range.interval.number();
          break;
       case Interval::Period::MONTHS:
-         bigMonth += range.interval.number;
+         bigMonth += range.interval.number();
          break;
       case Interval::Period::YEARS:
-         year += range.interval.number;
+         year += range.interval.number();
          break;
    }
 

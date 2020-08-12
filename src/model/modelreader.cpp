@@ -10,7 +10,7 @@
 #include "budgetuninitialized.h"
 #include "../currency.h"
 #include "m_daterange.h"
-#include "m_interval.h"
+#include "../interval.h"
 #include "model.h"
 #include "modelreaderformat.h"
 #include "modelregex.h"

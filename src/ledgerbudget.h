@@ -11,7 +11,9 @@
 class LedgerBudget : public LedgerItem
 {
 public:
-   LedgerBudget(Date const& date, std::string const& fileName, size_t lineNum);
+   LedgerBudget(
+         Date const& date, Interval const& interval,
+         std::string const& fileName, size_t lineNum);
 
    Date date() const;
    void setDate(Date const& date);

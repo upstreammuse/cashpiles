@@ -114,9 +114,9 @@ Date Date::fromString(string const& date, string const& format)
       }
    }
 
-   auto monthN = strtol(monthS.c_str(), nullptr, 10);
-   auto dayN = strtol(dayS.c_str(), nullptr, 10);
-   auto yearN = strtol(yearS.c_str(), nullptr, 10);
+   auto monthN = stol(monthS, nullptr, 10);
+   auto dayN = stol(dayS, nullptr, 10);
+   auto yearN = stol(yearS, nullptr, 10);
 
    return DateBuilder().month(monthN).day(dayN).year(yearN).toDate();
 }
@@ -303,10 +303,10 @@ Date Date::addYears(int years) const
    return d;
 }
 
-long long int Date::daysTo(Date const& other) const
+int Date::daysTo(Date const& other) const
 {
-   long long julianStart = toJulianDayNumber();
-   long long julianEnd = other.toJulianDayNumber();
+   int julianStart = toJulianDayNumber();
+   int julianEnd = other.toJulianDayNumber();
    return julianEnd - julianStart;
 }
 
@@ -361,7 +361,7 @@ Date::Date()
 {
 }
 
-void Date::assertValid()
+void Date::assertValid() const
 {
    assert(m_month >= 1 && m_month <= 12);
    assert(m_year >= 1);
@@ -370,7 +370,7 @@ void Date::assertValid()
 
 // TODO rework this to use something I can explain a little easier, even if not strictly Julian
 // from Wikipedia, would love to derive how this works
-long long int Date::toJulianDayNumber() const
+int Date::toJulianDayNumber() const
 {
    return (1461 * (m_year + 4800 + (m_month - 14) / 12)) / 4 +
    (367 * (m_month - 2 - 12 * ((m_month - 14) / 12))) / 12 -

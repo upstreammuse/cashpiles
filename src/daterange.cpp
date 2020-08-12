@@ -2,6 +2,7 @@
 
 // TODO this is a temporary HACK
 DateRange::DateRange() :
+   m_interval(0, Interval::Period::DAYS),
    m_startDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
    // TODO this constructor is evil
