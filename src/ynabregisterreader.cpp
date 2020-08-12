@@ -47,7 +47,9 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    bool inSplit = false;
    if (!m_transaction)
    {
-      m_transaction = std::make_shared<LedgerTransactionV2>(record.fileName, record.lineNum);
+      m_transaction = std::make_shared<LedgerTransactionV2>(
+                         DateBuilder().month(1).day(1).year(1).toDate(),
+                         record.fileName, record.lineNum);
       addAccountLine = true;
    }
 
@@ -228,8 +230,8 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
    // expense from off-budget (no category)
    else
    {
-      auto txnOB = std::make_shared<LedgerTransaction>(record.fileName, record.lineNum);
-      txnOB->setDate(m_transaction->date());
+      auto txnOB = std::make_shared<LedgerTransaction>(
+                      m_transaction->date(), record.fileName, record.lineNum);
       if (note != "")
       {
          txnOB->setNote(note);

@@ -116,7 +116,7 @@ Date Date::fromString(string const& date, string const& format)
 
    auto monthN = strtol(monthS.c_str(), nullptr, 10);
    auto dayN = strtol(dayS.c_str(), nullptr, 10);
-   auto yearN = strtoul(yearS.c_str(), nullptr, 10);
+   auto yearN = strtol(yearS.c_str(), nullptr, 10);
 
    return DateBuilder().month(monthN).day(dayN).year(yearN).toDate();
 }
@@ -326,6 +326,7 @@ bool Date::operator<(Date const& other) const
 {
    return toJulianDayNumber() < other.toJulianDayNumber();
 
+#if 0
    // TODO or consider this, which may be less computational, but is also more verbose...
    if (m_year < other.m_year)
    {
@@ -343,7 +344,7 @@ bool Date::operator<(Date const& other) const
       }
    }
    return false;
-
+#endif
 }
 
 bool Date::operator<=(Date const& other) const
@@ -354,6 +355,10 @@ bool Date::operator<=(Date const& other) const
 bool Date::operator>(Date const& other) const
 {
    return !(*this <= other);
+}
+
+Date::Date()
+{
 }
 
 void Date::assertValid()

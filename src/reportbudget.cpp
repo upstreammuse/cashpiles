@@ -104,6 +104,11 @@ void ReportBudgetCloseEntry::processReport(ReportProcessor& processor) const
    processor.processReport(*this);
 }
 
+ReportBudgetGoalEntry::ReportBudgetGoalEntry(Date const& date) :
+   m_goalDate(date)
+{
+}
+
 string ReportBudgetGoalEntry::category() const
 {
    return m_category;

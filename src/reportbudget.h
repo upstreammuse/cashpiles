@@ -64,6 +64,8 @@ private:
 class ReportBudgetGoalEntry : public ReportBudgetEntry
 {
 public:
+   ReportBudgetGoalEntry(Date const& date);
+
    std::string category() const;
    void setCategory(std::string const& category);
 

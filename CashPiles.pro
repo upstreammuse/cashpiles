@@ -81,7 +81,6 @@ HEADERS += \
    src/reportprocessor.h \
    src/rphtmlreporter.h \
    src/texttable.h \
-   src/util/m_date.h \
    src/ynabregisterreader.h
 SOURCES += \
    src/cashpiles.cpp \
@@ -162,6 +161,5 @@ SOURCES += \
    src/reportprocessor.cpp \
    src/rphtmlreporter.cpp \
    src/texttable.cpp \
-   src/util/m_date.cpp \
    src/ynabregisterreader.cpp
 TARGET = cashpiles

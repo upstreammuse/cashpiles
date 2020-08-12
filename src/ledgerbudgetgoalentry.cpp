@@ -4,6 +4,13 @@
 
 using std::string;
 
+LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(
+      Date const& date, std::string const& filename, size_t linenum) :
+   LedgerBudgetEntry(filename, linenum),
+   m_goalDate(date)
+{
+}
+
 Currency LedgerBudgetGoalEntry::amount() const
 {
    return m_amount;

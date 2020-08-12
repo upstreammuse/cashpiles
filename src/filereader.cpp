@@ -271,8 +271,8 @@ void FileReader::setDateFormat(string const& dateFormat)
 
 void FileReader::processAccount(smatch const& match)
 {
-   auto account = make_shared<LedgerAccount>(m_fileName, m_lineNum);
-   account->setDate(parseDate(match[1]));
+   auto account = make_shared<LedgerAccount>(
+                     parseDate(match[1]), m_fileName, m_lineNum);
    account->setMode(parseMode(match[2]));
    account->setName(match[3]);
    verifySetIdentifier(account->name(), IdentifierType::ACCOUNT);
@@ -281,7 +281,8 @@ void FileReader::processAccount(smatch const& match)
 
 void FileReader::processAccountBalance(smatch const& match)
 {
-   auto balance = make_shared<LedgerAccountBalance>(parseDate(match[1]), m_fileName, m_lineNum);
+   auto balance = make_shared<LedgerAccountBalance>(
+                     parseDate(match[1]), m_fileName, m_lineNum);
    balance->setAccount(match[2]);
    verifySetIdentifier(balance->account(), IdentifierType::ACCOUNT);
    balance->setAmount(parseCurrency(match[3]));
@@ -296,8 +297,8 @@ void FileReader::processBlank()
 
 void FileReader::processBudget(smatch& match)
 {
-   auto budget = make_shared<LedgerBudget>(m_fileName, m_lineNum);
-   budget->setDate(parseDate(match[1]));
+   auto budget = make_shared<LedgerBudget>(
+                    parseDate(match[1]), m_fileName, m_lineNum);
    budget->setInterval(parseInterval(match[2]));
 
    while (true)
@@ -414,8 +415,8 @@ void FileReader::processComment(smatch const& match)
 
 void FileReader::processCompactTransactionOff(smatch const& match)
 {
-   auto transaction = make_shared<LedgerTransaction>(m_fileName, m_lineNum);
-   transaction->setDate(parseDate(match[1]));
+   auto transaction = make_shared<LedgerTransaction>(
+                         parseDate(match[1]), m_fileName, m_lineNum);
    switch (match.str(2)[0])
    {
       case '*':

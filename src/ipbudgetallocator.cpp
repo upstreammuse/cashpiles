@@ -28,7 +28,8 @@ using std::stringstream;
 
 IPBudgetAllocator::IPBudgetAllocator(Reporter& reporter, string const& dateFormat) :
    m_dateFormat(dateFormat),
-   m_reporter(reporter)
+   m_reporter(reporter),
+   m_workingDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
 }
 
@@ -356,11 +357,10 @@ void IPBudgetAllocator::processItem(LedgerBudgetGoalEntry const& entry)
    m_goals[category].goals[goal].period =
          DateRange(m_workingDate, entry.goalDate());
 
-   auto reportEntry = make_shared<ReportBudgetGoalEntry>();
+   auto reportEntry = make_shared<ReportBudgetGoalEntry>(entry.goalDate());
    reportEntry->setCategory(category);
    reportEntry->setGoal(goal);
    reportEntry->setGoalAmount(entry.amount());
-   reportEntry->setGoalDate(entry.goalDate());
    report->appendEntry(reportEntry);
 
    syncGoal(category, goal);

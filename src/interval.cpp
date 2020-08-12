@@ -115,4 +115,5 @@ Date operator+(Date const& left, Interval const& right)
       case Interval::Period::YEARS:
          return left.addYears(right.number());
    }
+   assert(false);
 }
