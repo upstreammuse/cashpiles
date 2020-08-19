@@ -6,6 +6,8 @@
 #include "date.h"
 #include "ledgeritem.h"
 
+// TODO propose the resurrection of the single-entry transaction for ynab import.  consider a 'checksum' hash that prevents the user from creating them (or a flag that has to be set to enable them), so that ynab can be imported directly, while at the same time coercing the user to use the V2 transactions for new things, and giving them the ability to migrate gradually if desired (or to leave it as-is 'legacy data')
+
 // TODO rename "LedgerExternalTransaction" or similar
 class LedgerTransaction : public LedgerItem
 {
@@ -30,9 +32,6 @@ public:
    Date date() const;
    void setDate(Date const& date);
 
-   std::pair<std::string, bool> note() const;
-   void setNote(std::string const& note);
-
    std::string payee() const;
    void setPayee(std::string const& payee);
 
@@ -45,7 +44,6 @@ private:
    std::string m_account;
    Currency m_amount;
    Date m_date;
-   std::pair<std::string, bool> m_note = std::make_pair("", false);
    std::string m_payee;
    Status m_status = Status::PENDING;
 };

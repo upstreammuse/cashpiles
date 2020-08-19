@@ -35,9 +35,8 @@ private:
    void processBudgetReservePercent(std::smatch& match);
    void processBudgetRoutine(std::smatch& match);
    void processBudgetWithholding(std::smatch& match);
-   void processComment(Ledger&, std::smatch const& match);
    void processCompactTransactionOff(Ledger&, std::smatch const& match);
-   void processLine(Ledger&, std::string const& line);
+   void processLine(Ledger&, std::string line);
    void processTransactionV2(std::smatch& match);
    void processTransactionV2Line(std::smatch& match);
    void processTransactionV2TrackingLine(std::smatch& match);
@@ -66,6 +65,7 @@ private:
 private:
    std::shared_ptr<LedgerBudget> m_activeBudget;
    std::shared_ptr<LedgerTransactionV2> m_activeTransaction;
+   std::string m_comment;
    std::string m_dateFormat = "yyyy/MM/dd";
    std::string m_fileName;
    std::map<std::string, IdentifierType> m_identifiers;

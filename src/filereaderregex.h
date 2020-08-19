@@ -11,7 +11,6 @@ struct FileReaderRegEx
    std::string const END_RX;
    std::string const IDENT_RX;
    std::string const INTERVAL_RX;
-   std::string const NOTE_RX;  //TODO deprecated!
    std::string const PERCENT_RX;
    std::string const SEP_RX;
    std::string const SPACE_RX;
@@ -29,7 +28,6 @@ struct FileReaderRegEx
    std::regex const budgetLineReservePercentRx;
    std::regex const budgetLineRoutineRx;
    std::regex const budgetLineWithholdingRx;
-   std::regex const commentRx;  // TODO deprecated!
    std::regex const txnCompactOffRx;
    std::regex const txn2Rx;
    std::regex const txn2LineRx;

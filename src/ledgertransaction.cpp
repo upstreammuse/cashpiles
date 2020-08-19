@@ -40,16 +40,6 @@ void LedgerTransaction::setDate(Date const& date)
    m_date = date;
 }
 
-std::pair<std::string, bool> LedgerTransaction::note() const
-{
-   return m_note;
-}
-
-void LedgerTransaction::setNote(std::string const& note)
-{
-   m_note = make_pair(note, true);
-}
-
 std::string LedgerTransaction::payee() const
 {
    return m_payee;

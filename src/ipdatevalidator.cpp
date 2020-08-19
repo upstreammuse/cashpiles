@@ -5,7 +5,6 @@
 #include "ledgeraccount.h"
 #include "ledgeraccountbalance.h"
 #include "ledgerbudget.h"
-#include "ledgercomment.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 
