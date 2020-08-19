@@ -5,7 +5,11 @@
 using std::string;
 using std::stringstream;
 
-// TODO proposal for ledgeritem to contain the note, since the data model aligns to the file such that each line is its own item, and the file reader can play 'find the semicolon' to split the note away from the rest of the content for regex parsing.  way better than each item child having to deal with note processing on its own
+// TODO proposal for ledgeritem to contain the note, since the data model aligns
+// to the file such that each line is its own item, and the file reader can play
+// 'find the semicolon' to split the note away from the rest of the content for
+// regex parsing.  way better than each item child having to deal with note
+// processing on its own
 FileReaderRegEx::FileReaderRegEx() :
    CLEAR_RX("(\\*|\\!|\\?)"),
    CURR_RX(currencyRx()),

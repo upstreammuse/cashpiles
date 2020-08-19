@@ -8,6 +8,7 @@ HEADERS += \
    src/date.h \
    src/daterange.h \
    src/filereader.h \
+   src/filereaderregex.h \
    src/filewriter.h \
    src/interval.h \
    src/ipaccountbalancer.h \
@@ -87,6 +88,7 @@ SOURCES += \
    src/date.cpp \
    src/daterange.cpp \
    src/filereader.cpp \
+   src/filereaderregex.cpp \
    src/filewriter.cpp \
    src/interval.cpp \
    src/ipaccountbalancer.cpp \
