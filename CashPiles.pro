@@ -80,6 +80,10 @@ HEADERS += \
    src/reporter.h \
    src/reportprocessor.h \
    src/rphtmlreporter.h \
+   src/sqlmodel/daoaccounts.h \
+   src/sqlmodel/daocomments.h \
+   src/sqlmodel/dataaccessobject.h \
+   src/sqlmodel/sqlite3.h \
    src/texttable.h \
    src/util/m_date.h \
    src/ynabregisterreader.h
@@ -161,6 +165,10 @@ SOURCES += \
    src/reporter.cpp \
    src/reportprocessor.cpp \
    src/rphtmlreporter.cpp \
+   src/sqlmodel/daoaccounts.cpp \
+   src/sqlmodel/daocomments.cpp \
+   src/sqlmodel/dataaccessobject.cpp \
+   src/sqlmodel/sqlite3.c \
    src/texttable.cpp \
    src/util/m_date.cpp \
    src/ynabregisterreader.cpp

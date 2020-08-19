@@ -9,6 +9,7 @@
 #include "budgetperiod.h"
 #include "budgetuninitialized.h"
 #include "../util/m_currency.h"
+#include "../sqlmodel/daocomments.h"
 #include "m_daterange.h"
 #include "m_interval.h"
 #include "model.h"
@@ -29,8 +30,9 @@ using std::smatch;
 using std::string;
 using std::stringstream;
 
-ModelReader::ModelReader(string const& fileName,
-                         ModelReaderFormat const& format) :
+ModelReader::ModelReader(
+      sqlite3* db, string const& fileName, ModelReaderFormat const& format) :
+   m_db(db),
    m_fileName(fileName),
    m_format(format),
    m_regex(format)
@@ -187,7 +189,7 @@ void ModelReader::processLine(Model& model, string& line)
    // strings without ';' that end in a non-space character, possible space,
    // then an optional comment starting with ';' and ending with a non-space
    // character, possible space
-//   auto lineRx = regex {"^([^;]*[^;[:s:]])?\\s*(?:;(.*\\S))?\\s*$"};
+   // auto lineRx = regex {"^([^;]*[^;[:s:]])?\\s*(?:;(.*\\S))?\\s*$"};
 
    string comment;
    auto loc = line.find(';');
@@ -203,6 +205,12 @@ void ModelReader::processLine(Model& model, string& line)
    while (isspace(comment.back()))
    {
       comment = comment.substr(0, comment.size() - 1);
+   }
+
+   if (comment != "")
+   {
+      DaoComments dao(m_db);
+      dao.setComment(m_lineNum, comment);
    }
 
    smatch match;
@@ -467,18 +475,39 @@ void ModelReader::unReadLine(string const& line)
 
 #include <iostream>
 #include "model.h"
+#include "../sqlmodel/sqlite3.h"
+
+using std::runtime_error;
 
 void testMain()
 {
+   auto dbFileName = "cashpiles.db";
+   sqlite3* db = nullptr;
    try
    {
+      auto rc = sqlite3_open(dbFileName, &db);
+      if (rc != SQLITE_OK)
+      {
+         throw runtime_error("Can't open database");
+      }
+
       Model model;
       ModelReaderFormat format("M/d/yyyy");
-      ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
+      ModelReader reader(db, "Z:\\CashPiles\\CashPiles-Us.txt", format);
       reader.readModel(model);
+
+      sqlite3_exec(db, "SELECT * from Comments", DaoComments::genericCallback, nullptr, nullptr);
    }
-   catch (std::logic_error const& ex)
+   catch (std::exception const& ex)
    {
+      sqlite3_close(db);
+      remove(dbFileName);
       std::cerr << ex.what() << std::endl;
+   }
+   catch (...)
+   {
+      sqlite3_close(db);
+      remove(dbFileName);
+      std::cerr << "unknown error caught" << std::endl;
    }
 }

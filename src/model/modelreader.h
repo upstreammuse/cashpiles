@@ -9,6 +9,7 @@
 #include "modelreaderformat.h"
 #include "modelregex.h"
 
+struct sqlite3;
 namespace model { struct BudgetPeriod; }
 namespace model { struct Interval; }
 namespace model { class Model; }
@@ -19,7 +20,8 @@ namespace model { enum class TransactionFlag; }
 class model::ModelReader
 {
 public:
-   ModelReader(std::string const& fileName, ModelReaderFormat const&);
+   ModelReader(
+         sqlite3* db, std::string const& fileName, ModelReaderFormat const&);
    void readModel(Model&);
 
 private:
@@ -45,6 +47,7 @@ private:
 private:
    std::shared_ptr<BudgetPeriod const> m_activeBudget;
    std::shared_ptr<Transaction const> m_activeTransaction;
+   sqlite3* m_db;
    std::string m_fileName;
    ModelReaderFormat m_format;
    size_t m_lineNum = 0;
