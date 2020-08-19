@@ -17,12 +17,6 @@ class LedgerTransactionV2;
 class FileReader
 {
 public:
-   static Currency parseCurrency(std::string const& currency,
-                                 std::string const& fileName, size_t lineNum);
-   static Date parseDate(std::string const& date, std::string const& dateFormat,
-                         std::string const& fileName, size_t lineNum);
-
-public:
    FileReader();
    void readAll(Ledger& ledger, std::string const& fileName);
    void setDateFormat(std::string const& dateFormat);
@@ -77,5 +71,5 @@ private:
    std::map<std::string, IdentifierType> m_identifiers;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
-FileReaderRegEx m_regEx;
+   FileReaderRegEx m_regEx;
 };

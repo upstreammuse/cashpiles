@@ -41,6 +41,36 @@ void YnabRegisterReader::setDateFormat(std::string const& dateFormat)
    m_dateFormat = dateFormat;
 }
 
+Currency YnabRegisterReader::parseCurrency(
+      std::string const& currency, std::string const& filename, size_t linenum)
+{
+   bool ok;
+   Currency c(Currency::fromString(currency, &ok));
+   if (!ok)
+   {
+      std::stringstream ss;
+      ss << "Unable to parse currency '" << currency << "'";
+      die(filename, linenum, ss.str());
+   }
+   return c;
+}
+
+Date YnabRegisterReader::parseDate(
+      std::string const& date, std::string const& filename, size_t linenum)
+{
+   try
+   {
+      return Date::fromString(date, m_dateFormat);
+   }
+   catch (...)
+   {
+      std::stringstream ss;
+      ss << "Unable to parse date '" << date << "', expected something like '"
+         << m_dateFormat << "'";
+      die(filename, linenum, ss.str());
+   }
+}
+
 void YnabRegisterReader::processRecord(CsvReader::Record const& record)
 {
    bool addAccountLine = false;
@@ -108,8 +138,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       else if (it.first == "Date")
       {
          m_transaction->setDate(
-                  FileReader::parseDate(it.second, m_dateFormat, record.fileName,
-                                        record.lineNum));
+                  parseDate(it.second, record.fileName, record.lineNum));
       }
       else if (it.first == "Flag")
       {
@@ -122,8 +151,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Inflow")
       {
-         inflow = FileReader::parseCurrency(it.second, record.fileName,
-                                            record.lineNum);
+         inflow = parseCurrency(it.second, record.fileName, record.lineNum);
       }
       else if (it.first == "Memo")
       {
@@ -154,7 +182,7 @@ void YnabRegisterReader::processRecord(CsvReader::Record const& record)
       }
       else if (it.first == "Outflow")
       {
-         outflow = FileReader::parseCurrency(it.second, record.fileName, record.lineNum);
+         outflow = parseCurrency(it.second, record.fileName, record.lineNum);
       }
       else if (it.first == "Payee")
       {

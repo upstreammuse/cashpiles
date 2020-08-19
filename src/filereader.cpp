@@ -31,37 +31,6 @@ using std::smatch;
 using std::string;
 using std::stringstream;
 
-Currency FileReader::parseCurrency(
-      string const& currency, string const& fileName, size_t lineNum)
-{
-   bool ok;
-   Currency c(Currency::fromString(currency, &ok));
-   if (!ok)
-   {
-      stringstream ss;
-      ss << "Unable to parse currency '" << currency << "'";
-      die(fileName, lineNum, ss.str());
-   }
-   return c;
-}
-
-Date FileReader::parseDate(
-      string const& date, string const& dateFormat, string const& fileName,
-      size_t lineNum)
-{
-   try
-   {
-      return Date::fromString(date, dateFormat);
-   }
-   catch (...)
-   {
-      stringstream ss;
-      ss << "Unable to parse date '" << date << "', expected something like '"
-         << dateFormat << "'";
-      die(fileName, lineNum, ss.str());
-   }
-}
-
 FileReader::FileReader()
 {
 }
@@ -539,12 +508,30 @@ FileReader::IdentifierType FileReader::identifierType(string const& identifier)
 
 Currency FileReader::parseCurrency(string const& currency)
 {
-   return parseCurrency(currency, m_fileName, m_lineNum);
+   bool ok;
+   Currency c(Currency::fromString(currency, &ok));
+   if (!ok)
+   {
+      stringstream ss;
+      ss << "Unable to parse currency '" << currency << "'";
+      die(m_fileName, m_lineNum, ss.str());
+   }
+   return c;
 }
 
 Date FileReader::parseDate(string const& date)
 {
-   return parseDate(date, m_dateFormat, m_fileName, m_lineNum);
+   try
+   {
+      return Date::fromString(date, m_dateFormat);
+   }
+   catch (...)
+   {
+      stringstream ss;
+      ss << "Unable to parse date '" << date << "', expected something like '"
+         << m_dateFormat << "'";
+      die(m_fileName, m_lineNum, ss.str());
+   }
 }
 
 Interval FileReader::parseInterval(string const& interval)

@@ -17,6 +17,11 @@ public:
    void setDateFormat(std::string const& dateFormat);
 
 private:
+   Currency parseCurrency(
+         std::string const& currency, std::string const& filename,
+         size_t linenum);
+   Date parseDate(
+         std::string const& date, std::string const& filename, size_t linenum);
    void processRecord(CsvReader::Record const& record);
 
 private:
