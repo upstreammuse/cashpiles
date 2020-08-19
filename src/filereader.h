@@ -31,11 +31,22 @@ private:
    void processAccount(Ledger&, std::smatch const& match);
    void processAccountBalance(Ledger&, std::smatch const& match);
    void processBlank(Ledger&);
-   void processBudget(Ledger&, std::smatch& match);
+   void processBudget(std::smatch& match);
+   void processBudgetCancel(std::smatch& match);
+   void processBudgetClose(std::smatch& match);
+   void processBudgetGoal(std::smatch& match);
+   void processBudgetGoals(std::smatch& match);
+   void processBudgetIncome(std::smatch& match);
+   void processBudgetReserveAmount(std::smatch& match);
+   void processBudgetReservePercent(std::smatch& match);
+   void processBudgetRoutine(std::smatch& match);
+   void processBudgetWithholding(std::smatch& match);
    void processComment(Ledger&, std::smatch const& match);
    void processCompactTransactionOff(Ledger&, std::smatch const& match);
    void processLine(Ledger&, std::string const& line);
-   void processTransactionV2(Ledger&, std::smatch& match);
+   void processTransactionV2(std::smatch& match);
+   void processTransactionV2Line(std::smatch& match);
+   void processTransactionV2TrackingLine(std::smatch& match);
 
    bool hasLines(std::ifstream&);
    std::string readLine(std::ifstream&);
