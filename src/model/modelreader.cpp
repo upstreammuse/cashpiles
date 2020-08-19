@@ -463,21 +463,3 @@ void ModelReader::unReadLine(string const& line)
    --m_lineNum;
    m_lines.push(line);
 }
-
-#include <iostream>
-#include "model.h"
-
-void testMain()
-{
-   try
-   {
-      Model model;
-      ModelReaderFormat format("M/d/yyyy");
-      ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
-      reader.readModel(model);
-   }
-   catch (std::logic_error const& ex)
-   {
-      std::cerr << ex.what() << std::endl;
-   }
-}

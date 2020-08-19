@@ -14,6 +14,9 @@
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
+#include "model/model.h"
+#include "model/modelreader.h"
+#include "model/modelreaderformat.h"
 #include "reporter.h"
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
@@ -37,12 +40,22 @@
    die(fileName, lineNum, std::string(message));
 }
 
-extern void testMain();
-
 int cashpiles(int argc, char** argv)
 {
    setlocale(LC_ALL,"");
-   testMain();
+
+   try
+   {
+      model::Model model;
+      model::ModelReaderFormat format("M/d/yyyy");
+      model::ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
+      reader.readModel(model);
+   }
+   catch (std::logic_error const& ex)
+   {
+      std::cerr << ex.what() << std::endl;
+   }
+
    bool convertYnab = false;
    std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
@@ -72,9 +85,9 @@ int cashpiles(int argc, char** argv)
    }
    else
    {
-      FileReader reader(inFileName, ledger);
+      FileReader reader;
       reader.setDateFormat(dateFormat);
-      reader.readAll();
+      reader.readAll(ledger, inFileName);
    }
 
    Reporter reporter;
