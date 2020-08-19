@@ -19,17 +19,6 @@ void LedgerTransactionV2Entry::setAmount(Currency const& amount)
    m_amount.second = true;
 }
 
-pair<string, bool> LedgerTransactionV2Entry::note() const
-{
-   return m_note;
-}
-
-void LedgerTransactionV2Entry::setNote(string const& note)
-{
-   m_note.first = note;
-   m_note.second = true;
-}
-
 string LedgerTransactionV2AccountEntry::account() const
 {
    return m_account;
@@ -175,17 +164,6 @@ Date LedgerTransactionV2::date() const
 void LedgerTransactionV2::setDate(Date const& date)
 {
    m_date = date;
-}
-
-pair<string, bool> LedgerTransactionV2::note() const
-{
-   return m_note;
-}
-
-void LedgerTransactionV2::setNote(string const& note)
-{
-   m_note.first = note;
-   m_note.second = true;
 }
 
 string LedgerTransactionV2::payee() const

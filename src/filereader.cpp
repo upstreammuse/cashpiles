@@ -20,7 +20,6 @@
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
-#include "ledgercomment.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 
@@ -196,13 +195,6 @@ void FileReader::processBudgetWithholding(smatch& match)
    m_activeBudget->appendEntry(entry);
 }
 
-void FileReader::processComment(Ledger& ledger, smatch const& match)
-{
-   auto comment = make_shared<LedgerComment>(m_fileName, m_lineNum);
-   comment->setNote(match.str(1));
-   ledger.appendItem(comment);
-}
-
 void FileReader::processCompactTransactionOff(Ledger& ledger, smatch const& match)
 {
    auto transaction = make_shared<LedgerTransaction>(
@@ -230,10 +222,36 @@ void FileReader::processCompactTransactionOff(Ledger& ledger, smatch const& matc
    ledger.appendItem(transaction);
 }
 
-void FileReader::processLine(Ledger& ledger, string const& line)
+void FileReader::processLine(Ledger& ledger, string line)
 {
-   smatch match;
+   // Based on what I can find about the C++ regex spec, this is the regex that
+   // will split the line into the line and the comment.  However, it appears to
+   // be broken and failing to match.  I've debugged with online regex tools to
+   // verify the logic, so I'm at a loss to explain why it doesn't work.  Going
+   // to stick with basic string manipulation that I can trust, since the format
+   // is easy enough.
 
+   // strings without ';' that end in a non-space character, possible space,
+   // then an optional comment starting with ';' and ending with a non-space
+   // character, possible space
+//   auto lineRx = regex {"^([^;]*[^;[:s:]])?\\s*(?:;(.*\\S))?\\s*$"};
+
+   auto loc = line.find(';');
+   if (loc != string::npos)
+   {
+      m_comment = line.substr(loc + 1);
+      line = line.substr(0, loc);
+   }
+   while (isspace(line.back()))
+   {
+      line = line.substr(0, line.size() - 1);
+   }
+   while (isspace(m_comment.back()))
+   {
+      m_comment = m_comment.substr(0, m_comment.size() - 1);
+   }
+
+   smatch match;
    if (m_activeBudget)
    {
       if (regex_match(line, match, m_regEx.budgetLineCancelRx))
@@ -308,10 +326,6 @@ void FileReader::processLine(Ledger& ledger, string const& line)
    else if (regex_match(line, match, m_regEx.budgetRx))
    {
       processBudget(match);
-   }
-   else if (regex_match(line, match, m_regEx.commentRx))
-   {
-      processComment(ledger, match);
    }
    else if (regex_match(line, match, m_regEx.txnCompactOffRx))
    {

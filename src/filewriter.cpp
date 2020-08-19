@@ -4,6 +4,7 @@
 #include "cashpiles.h"
 #include "ledgeraccount.h"
 #include "ledgeraccountbalance.h"
+#include "ledgerblank.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
@@ -14,7 +15,6 @@
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
-#include "ledgercomment.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 
@@ -37,45 +37,76 @@ void FileWriter::finish()
 void FileWriter::processItem(LedgerAccount const& account)
 {
    m_file << account.date().toString(m_dateFormat) << " "
-          << account.modeToString(account.mode()) << " " << account.name()
-          << std::endl;
+          << account.modeToString(account.mode()) << " " << account.name();
+   if (account.note().second)
+   {
+      m_file << " ;" << account.note().first;
+   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerAccountBalance const& balance)
 {
    m_file << balance.date().toString(m_dateFormat) << " balance "
-          << balance.account() << "  " << balance.amount().toString()
-          << std::endl;
+          << balance.account() << "  " << balance.amount().toString();
+   if (balance.note().second)
+   {
+      m_file << " ;" << balance.note().first;
+   }
+   m_file << std::endl;
 }
 
-void FileWriter::processItem(LedgerBlank const&)
+void FileWriter::processItem(LedgerBlank const& blank)
 {
+   if (blank.note().second)
+   {
+      m_file << ";" << blank.note().first;
+   }
    m_file << std::endl;
 }
 
 bool FileWriter::processItem(LedgerBudget const& budget)
 {
    m_file << budget.date().toString(m_dateFormat) << " budget "
-          << budget.interval().toString() << std::endl;
+          << budget.interval().toString();
+   if (budget.note().second)
+   {
+      m_file << " ;" << budget.note().first;
+   }
+   m_file << std::endl;
    return true;
 }
 
 void FileWriter::processItem(LedgerBudgetCancelEntry const& entry)
 {
-   m_file << "  cancel  " << entry.category() << "  " << entry.goal()
-          << std::endl;
+   m_file << "  cancel  " << entry.category() << "  " << entry.goal();
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetCloseEntry const& entry)
 {
-   m_file << "  close   " << entry.category() << std::endl;
+   m_file << "  close   " << entry.category();
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetGoalEntry const& entry)
 {
    m_file << "  goal    " << entry.category() << "  " << entry.goal() << "  "
           << entry.amount().toString() << " "
-          << entry.goalDate().toString(m_dateFormat) << std::endl;
+          << entry.goalDate().toString(m_dateFormat);
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
+   m_file << std::endl;
 }
 
 void FileWriter::processItem(LedgerBudgetGoalsEntry const& entry)
@@ -84,6 +115,10 @@ void FileWriter::processItem(LedgerBudgetGoalsEntry const& entry)
    if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
+   }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
    }
    m_file << std::endl;
 }
@@ -94,6 +129,10 @@ void FileWriter::processItem(LedgerBudgetIncomeEntry const& entry)
    if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
+   }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
    }
    m_file << std::endl;
 }
@@ -106,6 +145,10 @@ void FileWriter::processItem(LedgerBudgetReserveAmountEntry const& entry)
    {
       m_file << "  " << entry.owner();
    }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
    m_file << std::endl;
 }
 
@@ -117,6 +160,10 @@ void FileWriter::processItem(LedgerBudgetReservePercentEntry const& entry)
    {
       m_file << "  " << entry.owner();
    }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
    m_file << std::endl;
 }
 
@@ -126,6 +173,10 @@ void FileWriter::processItem(LedgerBudgetRoutineEntry const& entry)
    if (entry.owner() != "")
    {
       m_file << "  " << entry.owner();
+   }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
    }
    m_file << std::endl;
 }
@@ -137,12 +188,11 @@ void FileWriter::processItem(LedgerBudgetWithholdingEntry const& entry)
    {
       m_file << "  " << entry.owner();
    }
+   if (entry.note().second)
+   {
+      m_file << " ;" << entry.note().first;
+   }
    m_file << std::endl;
-}
-
-void FileWriter::processItem(LedgerComment const& comment)
-{
-   m_file << ";" << comment.note() << std::endl;
 }
 
 void FileWriter::processItem(LedgerTransaction const& transaction)
@@ -162,6 +212,10 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
    }
    m_file << " " << transaction.account() << "  " << transaction.payee() << "  "
           << transaction.amount().toString();
+   if (transaction.note().second)
+   {
+      m_file << " ;" << transaction.note().first;
+   }
    if (transaction.note().second)
    {
       m_file << " ;" << transaction.note().first;
@@ -186,6 +240,10 @@ bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
    }
    m_file << ' ' << transaction.payee() << "  "
           << transaction.amount().toString();
+   if (transaction.note().second)
+   {
+      m_file << " ;" << transaction.note().first;
+   }
    if (transaction.note().second)
    {
       m_file << " ;" << transaction.note().first;

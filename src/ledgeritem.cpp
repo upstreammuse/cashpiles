@@ -19,3 +19,13 @@ size_t LedgerItem::lineNum() const
 {
    return m_lineNum;
 }
+
+std::pair<std::string, bool> LedgerItem::note() const
+{
+   return m_note;
+}
+
+void LedgerItem::setNote(std::string const& note)
+{
+   m_note = make_pair(note, true);
+}

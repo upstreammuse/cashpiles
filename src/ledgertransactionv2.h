@@ -17,12 +17,8 @@ public:
    virtual void balance(Currency& accounts, Currency& categories) const = 0;
    virtual void setBalance(Currency& accounts, Currency& categories) = 0;
 
-   std::pair<std::string, bool> note() const;
-   void setNote(std::string const& note);
-
 private:
    std::pair<Currency, bool> m_amount = std::make_pair(Currency{}, false);
-   std::pair<std::string, bool> m_note = std::make_pair("", false);
 };
 
 class LedgerTransactionV2AccountEntry : public LedgerTransactionV2Entry
@@ -103,9 +99,6 @@ public:
    Date date() const;
    void setDate(Date const& date);
 
-   std::pair<std::string, bool> note() const;
-   void setNote(std::string const& note);
-
    std::string payee() const;
    void setPayee(std::string const& payee);
 
@@ -120,7 +113,6 @@ private:
    Currency m_amount;
    Date m_date;
    std::vector<std::shared_ptr<LedgerTransactionV2Entry>> m_entries;
-   std::pair<std::string, bool> m_note = std::make_pair("", false);
    std::string m_payee;
    Status m_status = Status::PENDING;
 };

@@ -204,6 +204,9 @@ void ModelReader::processLine(Model& model, string& line)
       comment = comment.substr(0, comment.size() - 1);
    }
 
+   // TODO propose a 'ledgeriteminfo' struct that gets populated here and then passed into ledgeritems when they are constructed
+   //   this struct has the line number, file name, comment, etc. that is for all LIs, so each processX doesn't have to deal with each item separately
+
    smatch match;
    if (m_activeBudget)
    {
