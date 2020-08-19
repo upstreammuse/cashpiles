@@ -5,11 +5,14 @@
 #include <regex>
 #include <stack>
 #include "ledgeraccount.h"
+#include "filereaderregex.h"
 
 class Currency;
 class Date;
 class Interval;
 class Ledger;
+class LedgerBudget;
+class LedgerTransactionV2;
 
 class FileReader
 {
@@ -20,22 +23,22 @@ public:
                          std::string const& fileName, size_t lineNum);
 
 public:
-   FileReader(std::string const& fileName, Ledger& ledger);
-   void readAll();
+   FileReader();
+   void readAll(Ledger& ledger, std::string const& fileName);
    void setDateFormat(std::string const& dateFormat);
 
 private:
-   void processAccount(std::smatch const& match);
-   void processAccountBalance(std::smatch const& match);
-   void processBlank();
-   void processBudget(std::smatch& match);
-   void processComment(std::smatch const& match);
-   void processCompactTransactionOff(std::smatch const& match);
-   void processLine(std::string const& line);
-   void processTransactionV2(std::smatch& match);
+   void processAccount(Ledger&, std::smatch const& match);
+   void processAccountBalance(Ledger&, std::smatch const& match);
+   void processBlank(Ledger&);
+   void processBudget(Ledger&, std::smatch& match);
+   void processComment(Ledger&, std::smatch const& match);
+   void processCompactTransactionOff(Ledger&, std::smatch const& match);
+   void processLine(Ledger&, std::string const& line);
+   void processTransactionV2(Ledger&, std::smatch& match);
 
-   bool hasLines();
-   std::string readLine();
+   bool hasLines(std::ifstream&);
+   std::string readLine(std::ifstream&);
    void unReadLine(std::string const& line);
 
 private:
@@ -56,11 +59,12 @@ private:
    void verifySetIdentifier(std::string const& identifier, IdentifierType type);
 
 private:
+   std::shared_ptr<LedgerBudget> m_activeBudget;
+   std::shared_ptr<LedgerTransactionV2> m_activeTransaction;
    std::string m_dateFormat = "yyyy/MM/dd";
-   std::ifstream m_file;
    std::string m_fileName;
    std::map<std::string, IdentifierType> m_identifiers;
-   Ledger& m_ledger;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
+FileReaderRegEx m_regEx;
 };

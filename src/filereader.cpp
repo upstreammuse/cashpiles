@@ -30,185 +30,6 @@ using std::smatch;
 using std::string;
 using std::stringstream;
 
-struct FileReaderRegEx
-{
-   string const CLEAR_RX;
-   string const CURR_RX;
-   string const DATE_RX;
-   string const END_RX;
-   string const IDENT_RX;
-   string const INTERVAL_RX;
-   string const NOTE_RX;
-   string const PERCENT_RX;
-   string const SEP_RX;
-   string const SPACE_RX;
-   string const START_RX;
-
-   regex const accountRx;
-   regex const accountBalanceRx;
-   regex const budgetRx;
-   regex const budgetLineCancelRx;
-   regex const budgetLineCloseRx;
-   regex const budgetLineGoalRx;
-   regex const budgetLineGoalsRx;
-   regex const budgetLineIncomeRx;
-   regex const budgetLineReserveAmountRx;
-   regex const budgetLineReservePercentRx;
-   regex const budgetLineRoutineRx;
-   regex const budgetLineWithholdingRx;
-   regex const commentRx;
-   regex const txnCompactOffRx;
-   regex const txn2Rx;
-   regex const txn2LineRx;
-   regex const txn2TrackingLineRx;
-
-   string currencyRx()
-   {
-      stringstream retval;
-      struct lconv* lc = localeconv();
-      retval << "((?:";
-
-      string symbol(lc->currency_symbol);
-      // make sure ascii currency symbols don't interfere with regex
-      for (char c : symbol)
-      {
-         if (c & 0x80)
-         {
-            retval << c;
-         }
-         else
-         {
-            retval << '\\' << c;
-         }
-      }
-      retval << '|';
-
-      string sep(lc->mon_thousands_sep);
-      // make sure ascii separator symbols don't interfere with regex
-      for (char c : sep)
-      {
-         if (c & 0x80)
-         {
-            retval << c;
-         }
-         else
-         {
-            retval << '\\' << c;
-         }
-      }
-      retval << '|';
-
-      string decimal(lc->mon_decimal_point);
-      for (char c : decimal)
-      {
-         if (c & 0x80)
-         {
-            retval << c;
-         }
-         else
-         {
-            retval << '\\' << c;
-         }
-      }
-      retval << '|';
-
-      string negative(lc->negative_sign);
-      for (char c : negative)
-      {
-         if (c & 0x80)
-         {
-            retval << c;
-         }
-         else
-         {
-            retval << '\\' << c;
-         }
-      }
-      retval << '|';
-
-      retval << "\\d)+)";
-      return retval.str();
-   }
-
-   string optional(string const& item)
-   {
-      stringstream ss;
-      ss << "(?:" << item << ")?";
-      return ss.str();
-   }
-
-   // TODO proposal for ledgeritem to contain the note, since the data model aligns to the file such that each line is its own item, and the file reader can play 'find the semicolon' to split the note away from the rest of the content for regex parsing.  way better than each item child having to deal with note processing on its own
-   FileReaderRegEx() :
-      CLEAR_RX("(\\*|\\!|\\?)"),
-      CURR_RX(currencyRx()),
-      DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
-      END_RX("\\s*$"),
-      IDENT_RX("(\\S(?:\\S| (?! ))*)"),
-      INTERVAL_RX("(\\+\\d+[dwmy])"),
-      NOTE_RX(";(.*)"),
-      PERCENT_RX("(\\d+)%"),
-      SEP_RX("(?:\\s{2,}|\\t)\\s*"),
-      SPACE_RX("\\s+"),
-      START_RX("^"),
-      accountRx(
-         START_RX + DATE_RX + SPACE_RX + "(on-budget|off-budget|close)" +
-         SPACE_RX + IDENT_RX + END_RX),
-      accountBalanceRx(
-         START_RX + DATE_RX + SPACE_RX + "balance" + SPACE_RX + IDENT_RX +
-         SEP_RX + CURR_RX + END_RX),
-      budgetRx(
-         START_RX + DATE_RX + SPACE_RX + "budget" + SPACE_RX + INTERVAL_RX +
-         END_RX),
-      budgetLineCancelRx(
-         START_RX + SEP_RX + "cancel" + SPACE_RX + IDENT_RX + SEP_RX +
-         IDENT_RX + END_RX),
-      budgetLineCloseRx(
-         START_RX + SEP_RX + "close" + SPACE_RX + IDENT_RX + END_RX),
-      budgetLineGoalRx(
-         START_RX + SEP_RX + "goal" + SPACE_RX + IDENT_RX + SEP_RX + IDENT_RX +
-         SEP_RX + CURR_RX + SPACE_RX + DATE_RX + optional(SPACE_RX + NOTE_RX) +
-         END_RX),
-      budgetLineGoalsRx(
-         START_RX + SEP_RX + "goals" + SPACE_RX + IDENT_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      budgetLineIncomeRx(
-         START_RX + SEP_RX + "income" + SPACE_RX + IDENT_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      budgetLineReserveAmountRx(
-         START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX +
-         SEP_RX + CURR_RX + SPACE_RX + INTERVAL_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      budgetLineReservePercentRx(
-         START_RX + SEP_RX + "reserve" + SPACE_RX + IDENT_RX +
-         SEP_RX + PERCENT_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      budgetLineRoutineRx(
-         START_RX + SEP_RX + "routine" + SPACE_RX + IDENT_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      budgetLineWithholdingRx(
-         START_RX + SEP_RX + "withholding" + SPACE_RX +
-         IDENT_RX +
-         optional(SEP_RX + IDENT_RX) + END_RX),
-      commentRx(START_RX + NOTE_RX + END_RX),
-      txnCompactOffRx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX + IDENT_RX +
-         SEP_RX + IDENT_RX + SEP_RX + CURR_RX + optional(SPACE_RX + NOTE_RX) +
-         END_RX),
-      txn2Rx(
-         START_RX + DATE_RX + SPACE_RX + CLEAR_RX + SPACE_RX + IDENT_RX +
-         optional(SEP_RX + CURR_RX) + optional(SPACE_RX + NOTE_RX)),
-      txn2LineRx(
-         START_RX + SEP_RX + IDENT_RX + optional(SEP_RX + CURR_RX) +
-         optional(SPACE_RX + NOTE_RX)),
-      txn2TrackingLineRx(
-         START_RX + SEP_RX + IDENT_RX + SEP_RX + IDENT_RX +
-         optional(SEP_RX + CURR_RX) + optional(SPACE_RX + NOTE_RX))
-   {
-   }
-};
-
-static FileReaderRegEx* regEx = nullptr;
-
 Currency FileReader::parseCurrency(
       string const& currency, string const& fileName, size_t lineNum)
 {
@@ -240,28 +61,32 @@ Date FileReader::parseDate(
    }
 }
 
-FileReader::FileReader(string const& fileName, Ledger& ledger) :
-   m_fileName(fileName),
-   m_ledger(ledger)
+FileReader::FileReader()
 {
-   regEx = new FileReaderRegEx;
 }
 
-void FileReader::readAll()
+void FileReader::readAll(Ledger& ledger, string const& fileName)
 {
-   m_file.open(m_fileName);
-   if (!m_file)
+   m_identifiers.clear();
+   m_lineNum = 0;
+   while (!m_lines.empty())
+   {
+      m_lines.pop();
+   }
+
+   std::ifstream file(fileName);
+   if (!file)
    {
       stringstream ss;
       ss << "Unable to open input file '" << m_fileName << "'";
       die(ss.str());
    }
-   while (hasLines())
+   while (hasLines(file))
    {
-      string line(readLine());
-      processLine(line);
+      string line(readLine(file));
+      processLine(ledger, line);
    }
-   m_file.close();
+   file.close();
 }
 
 void FileReader::setDateFormat(string const& dateFormat)
@@ -269,152 +94,50 @@ void FileReader::setDateFormat(string const& dateFormat)
    m_dateFormat = dateFormat;
 }
 
-void FileReader::processAccount(smatch const& match)
+void FileReader::processAccount(Ledger& ledger, smatch const& match)
 {
    auto account = make_shared<LedgerAccount>(
                      parseDate(match[1]), m_fileName, m_lineNum);
    account->setMode(parseMode(match[2]));
    account->setName(match[3]);
    verifySetIdentifier(account->name(), IdentifierType::ACCOUNT);
-   m_ledger.appendItem(account);
+   ledger.appendItem(account);
 }
 
-void FileReader::processAccountBalance(smatch const& match)
+void FileReader::processAccountBalance(Ledger& ledger, smatch const& match)
 {
    auto balance = make_shared<LedgerAccountBalance>(
                      parseDate(match[1]), m_fileName, m_lineNum);
    balance->setAccount(match[2]);
    verifySetIdentifier(balance->account(), IdentifierType::ACCOUNT);
    balance->setAmount(parseCurrency(match[3]));
-   m_ledger.appendItem(balance);
+   ledger.appendItem(balance);
 }
 
-void FileReader::processBlank()
+void FileReader::processBlank(Ledger& ledger)
 {
    auto blank = make_shared<LedgerBlank>(m_fileName, m_lineNum);
-   m_ledger.appendItem(blank);
+   ledger.appendItem(blank);
 }
 
-void FileReader::processBudget(smatch& match)
+void FileReader::processBudget(Ledger& ledger, smatch& match)
 {
    auto date = parseDate(match[1]);
    auto interval = parseInterval(match[2]);
-   auto budget = make_shared<LedgerBudget>(
+assert(!m_activeBudget);
+m_activeBudget = 
+make_shared<LedgerBudget>(
                     date, interval, m_fileName, m_lineNum);
-
-   while (true)
-   {
-      auto line = readLine();
-      if (regex_match(line, match, regEx->budgetLineCancelRx))
-      {
-         auto entry = make_shared<LedgerBudgetCancelEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setGoal(match[2]);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineCloseRx))
-      {
-         auto entry = make_shared<LedgerBudgetCloseEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineGoalRx))
-      {
-         auto entry = make_shared<LedgerBudgetGoalEntry>(parseDate(match[4]), m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setGoal(match[2]);
-         entry->setAmount(parseCurrency(match[3]));
-         // TODO these do not have owners since they reference via their parent
-         //   categories, but they inherit from something that provides them
-         //  - then again, so does LedgerBudgetCloseEntry
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineGoalsRx))
-      {
-         auto entry = make_shared<LedgerBudgetGoalsEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setOwner(match[2]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineIncomeRx))
-      {
-         auto entry = make_shared<LedgerBudgetIncomeEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setOwner(match[2]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineReserveAmountRx))
-      {
-         auto interval = parseInterval(match[3]);
-         auto entry = make_shared<LedgerBudgetReserveAmountEntry>(
-                         interval, m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setAmount(parseCurrency(match[2]));
-         entry->setOwner(match[4]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineReservePercentRx))
-      {
-         auto entry = make_shared<LedgerBudgetReservePercentEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setPercentage(stoul(match.str(2), nullptr, 10));
-         entry->setOwner(match[3]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineRoutineRx))
-      {
-         auto entry = make_shared<LedgerBudgetRoutineEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setOwner(match[2]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else if (regex_match(line, match, regEx->budgetLineWithholdingRx))
-      {
-         auto entry = make_shared<LedgerBudgetWithholdingEntry>(
-                         m_fileName, m_lineNum);
-         entry->setCategory(match[1]);
-         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
-         entry->setOwner(match[2]);
-         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
-         budget->appendEntry(entry);
-      }
-      else
-      {
-         unReadLine(line);
-         break;
-      }
-   }
-
-   m_ledger.appendItem(budget);
 }
 
-void FileReader::processComment(smatch const& match)
+void FileReader::processComment(Ledger& ledger, smatch const& match)
 {
    auto comment = make_shared<LedgerComment>(m_fileName, m_lineNum);
    comment->setNote(match.str(1));
-   m_ledger.appendItem(comment);
+   ledger.appendItem(comment);
 }
 
-void FileReader::processCompactTransactionOff(smatch const& match)
+void FileReader::processCompactTransactionOff(Ledger& ledger, smatch const& match)
 {
    auto transaction = make_shared<LedgerTransaction>(
                          parseDate(match[1]), m_fileName, m_lineNum);
@@ -438,74 +161,118 @@ void FileReader::processCompactTransactionOff(smatch const& match)
    {
       transaction->setNote(match[6]);
    }
-   m_ledger.appendItem(transaction);
+   ledger.appendItem(transaction);
 }
 
-void FileReader::processLine(string const& line)
+void FileReader::processLine(Ledger& ledger, string const& line)
 {
    smatch match;
-   if (regex_match(line, match, regEx->accountRx))
-   {
-      processAccount(match);
-   }
-   else if (regex_match(line, match, regEx->accountBalanceRx))
-   {
-      processAccountBalance(match);
-   }
-   else if (regex_match(line, match, regEx->budgetRx))
-   {
-      processBudget(match);
-   }
-   else if (regex_match(line, match, regEx->commentRx))
-   {
-      processComment(match);
-   }
-   else if (regex_match(line, match, regEx->txnCompactOffRx))
-   {
-      processCompactTransactionOff(match);
-   }
-   else if (regex_match(line, match, regEx->txn2Rx))
-   {
-      processTransactionV2(match);
-   }
-   else if (line == "")
-   {
-      processBlank();
-   }
-   else
-   {
-      stringstream ss;
-      ss << "Invalid contents '" << line << "'";
-      die(m_fileName, m_lineNum, ss.str());
-   }
+
+if (m_activeBudget)
+{
+      if (regex_match(line, match, m_regEx.budgetLineCancelRx))
+      {
+         auto entry = make_shared<LedgerBudgetCancelEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setGoal(match[2]);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineCloseRx))
+      {
+         auto entry = make_shared<LedgerBudgetCloseEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineGoalRx))
+      {
+         auto entry = make_shared<LedgerBudgetGoalEntry>(parseDate(match[4]), m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setGoal(match[2]);
+         entry->setAmount(parseCurrency(match[3]));
+         // TODO these do not have owners since they reference via their parent
+         //   categories, but they inherit from something that provides them
+         //  - then again, so does LedgerBudgetCloseEntry
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineGoalsRx))
+      {
+         auto entry = make_shared<LedgerBudgetGoalsEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineIncomeRx))
+      {
+         auto entry = make_shared<LedgerBudgetIncomeEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineReserveAmountRx))
+      {
+         auto interval = parseInterval(match[3]);
+         auto entry = make_shared<LedgerBudgetReserveAmountEntry>(
+                         interval, m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setAmount(parseCurrency(match[2]));
+         entry->setOwner(match[4]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineReservePercentRx))
+      {
+         auto entry = make_shared<LedgerBudgetReservePercentEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setPercentage(stoul(match.str(2), nullptr, 10));
+         entry->setOwner(match[3]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineRoutineRx))
+      {
+         auto entry = make_shared<LedgerBudgetRoutineEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else if (regex_match(line, match, m_regEx.budgetLineWithholdingRx))
+      {
+         auto entry = make_shared<LedgerBudgetWithholdingEntry>(
+                         m_fileName, m_lineNum);
+         entry->setCategory(match[1]);
+         verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
+         entry->setOwner(match[2]);
+         verifySetIdentifier(entry->owner(), IdentifierType::OWNER);
+         m_activeBudget->appendEntry(entry);
+      }
+      else
+      {
+         unReadLine(line);
+ledger.appendItem(m_activeBudget);
+m_activeBudget.reset();
+      }
 }
 
-void FileReader::processTransactionV2(smatch& match)
+else if (m_activeTransaction)
 {
-   auto txn = make_shared<LedgerTransactionV2>(parseDate(match[1]), m_fileName, m_lineNum);
-   auto status = match.str(2)[0];
-   switch (status)
-   {
-      case '*':
-         txn->setStatus(LedgerTransactionV2::Status::CLEARED);
-         break;
-      case '!':
-         txn->setStatus(LedgerTransactionV2::Status::DISPUTED);
-         break;
-      case '?':
-         txn->setStatus(LedgerTransactionV2::Status::PENDING);
-         break;
-   }
-   txn->setPayee(match[3]);
-   if (match[5] != "")
-   {
-      txn->setNote(match[5]);
-   }
-
-   while (true)
-   {
-      auto line = readLine();
-      if (regex_match(line, match, regEx->txn2LineRx))
+      if (regex_match(line, match, m_regEx.txn2LineRx))
       {
          switch (identifierType(match[1]))
          {
@@ -522,7 +289,7 @@ void FileReader::processTransactionV2(smatch& match)
                {
                   entry->setNote(match[3]);
                }
-               txn->appendEntry(entry);
+               m_activeTransaction->appendEntry(entry);
                break;
             }
             case IdentifierType::CATEGORY:
@@ -538,7 +305,7 @@ void FileReader::processTransactionV2(smatch& match)
                {
                   entry->setNote(match[3]);
                }
-               txn->appendEntry(entry);
+               m_activeTransaction->appendEntry(entry);
                break;
             }
             case IdentifierType::OWNER:
@@ -554,12 +321,12 @@ void FileReader::processTransactionV2(smatch& match)
                {
                   entry->setNote(match[3]);
                }
-               txn->appendEntry(entry);
+               m_activeTransaction->appendEntry(entry);
                break;
             }
          }
       }
-      else if (regex_match(line, match, regEx->txn2TrackingLineRx))
+      else if (regex_match(line, match, m_regEx.txn2TrackingLineRx))
       {
          switch (identifierType(match[1]))
          {
@@ -585,7 +352,7 @@ void FileReader::processTransactionV2(smatch& match)
                {
                   entry->setNote(match[4]);
                }
-               txn->appendEntry(entry);
+               m_activeTransaction->appendEntry(entry);
                break;
             }
             case IdentifierType::OWNER:
@@ -604,7 +371,7 @@ void FileReader::processTransactionV2(smatch& match)
                {
                   entry->setNote(match[4]);
                }
-               txn->appendEntry(entry);
+               m_activeTransaction->appendEntry(entry);
                break;
             }
          }
@@ -612,20 +379,82 @@ void FileReader::processTransactionV2(smatch& match)
       else
       {
          unReadLine(line);
-         break;
+m_activeTransaction->finalize();
+ledger.appendItem(m_activeTransaction);
+m_activeTransaction.reset();
       }
+}
+
+
+
+
+   else if (regex_match(line, match, m_regEx.accountRx))
+   {
+      processAccount(ledger, match);
    }
-
-   txn->finalize();
-   m_ledger.appendItem(txn);
+   else if (regex_match(line, match, m_regEx.accountBalanceRx))
+   {
+      processAccountBalance(ledger, match);
+   }
+   else if (regex_match(line, match, m_regEx.budgetRx))
+   {
+      processBudget(ledger, match);
+   }
+   else if (regex_match(line, match, m_regEx.commentRx))
+   {
+      processComment(ledger, match);
+   }
+   else if (regex_match(line, match, m_regEx.txnCompactOffRx))
+   {
+      processCompactTransactionOff(ledger, match);
+   }
+   else if (regex_match(line, match, m_regEx.txn2Rx))
+   {
+      processTransactionV2(ledger, match);
+   }
+   else if (line == "")
+   {
+      processBlank(ledger);
+   }
+   else
+   {
+      stringstream ss;
+      ss << "Invalid contents '" << line << "'";
+      die(m_fileName, m_lineNum, ss.str());
+   }
 }
 
-bool FileReader::hasLines()
+void FileReader::processTransactionV2(Ledger& ledger, smatch& match)
 {
-   return !m_lines.empty() || !m_file.eof();
+assert(!m_activeTransaction);
+m_activeTransaction =
+make_shared<LedgerTransactionV2>(parseDate(match[1]), m_fileName, m_lineNum);
+   auto status = match.str(2)[0];
+   switch (status)
+   {
+      case '*':
+         m_activeTransaction->setStatus(LedgerTransactionV2::Status::CLEARED);
+         break;
+      case '!':
+         m_activeTransaction->setStatus(LedgerTransactionV2::Status::DISPUTED);
+         break;
+      case '?':
+         m_activeTransaction->setStatus(LedgerTransactionV2::Status::PENDING);
+         break;
+   }
+   m_activeTransaction->setPayee(match[3]);
+   if (match[5] != "")
+   {
+      m_activeTransaction->setNote(match[5]);
+   }
 }
 
-string FileReader::readLine()
+bool FileReader::hasLines(std::ifstream& file)
+{
+   return !m_lines.empty() || !file.eof();
+}
+
+string FileReader::readLine(std::ifstream& file)
 {
    if (!m_lines.empty())
    {
@@ -634,11 +463,11 @@ string FileReader::readLine()
       ++m_lineNum;
       return line;
    }
-   else if (m_file)
+   else if (file)
    {
       ++m_lineNum;
       string line;
-      getline(m_file, line);
+      getline(file, line);
       return line;
    }
    else
