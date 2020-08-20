@@ -66,7 +66,7 @@ void FileReader::setDateFormat(string const& dateFormat)
 void FileReader::processAccount(Ledger& ledger, smatch const& match)
 {
    auto account = make_shared<LedgerAccount>(
-                     parseDate(match[1]), m_fileName, m_lineNum);
+                     parseDate(match[1]), *m_activeItem);
    account->setMode(parseMode(match[2]));
    account->setName(match[3]);
    verifySetIdentifier(account->name(), IdentifierType::ACCOUNT);
@@ -76,7 +76,7 @@ void FileReader::processAccount(Ledger& ledger, smatch const& match)
 void FileReader::processAccountBalance(Ledger& ledger, smatch const& match)
 {
    auto balance = make_shared<LedgerAccountBalance>(
-                     parseDate(match[1]), m_fileName, m_lineNum);
+                     parseDate(match[1]), *m_activeItem);
    balance->setAccount(match[2]);
    verifySetIdentifier(balance->account(), IdentifierType::ACCOUNT);
    balance->setAmount(parseCurrency(match[3]));
@@ -85,7 +85,7 @@ void FileReader::processAccountBalance(Ledger& ledger, smatch const& match)
 
 void FileReader::processBlank(Ledger& ledger)
 {
-   auto blank = make_shared<LedgerBlank>(m_fileName, m_lineNum);
+   auto blank = make_shared<LedgerBlank>(*m_activeItem);
    ledger.appendItem(blank);
 }
 
@@ -94,13 +94,12 @@ void FileReader::processBudget(smatch& match)
    auto date = parseDate(match[1]);
    auto interval = parseInterval(match[2]);
    assert(!m_activeBudget);
-   m_activeBudget = make_shared<LedgerBudget>(
-                       date, interval, m_fileName, m_lineNum);
+   m_activeBudget = make_shared<LedgerBudget>(date, interval, *m_activeItem);
 }
 
 void FileReader::processBudgetCancel(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetCancelEntry>(m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetCancelEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setGoal(match[2]);
@@ -109,7 +108,7 @@ void FileReader::processBudgetCancel(smatch& match)
 
 void FileReader::processBudgetClose(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetCloseEntry>(m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetCloseEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
    m_activeBudget->appendEntry(entry);
@@ -118,20 +117,20 @@ void FileReader::processBudgetClose(smatch& match)
 void FileReader::processBudgetGoal(smatch& match)
 {
    auto entry = make_shared<LedgerBudgetGoalEntry>(
-                   parseDate(match[4]), m_fileName, m_lineNum);
+                   parseDate(match[4]), *m_activeItem);
    entry->setCategory(match[1]);
    verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setGoal(match[2]);
    entry->setAmount(parseCurrency(match[3]));
    // TODO these do not have owners since they reference via their parent
    //   categories, but they inherit from something that provides them
-   //  - then again, so does LedgerBudgetCloseEntry
+   //  - then again, so does LedgerBudgetCloseEntry (and cancel)
    m_activeBudget->appendEntry(entry);
 }
 
 void FileReader::processBudgetGoals(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetGoalsEntry>(m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetGoalsEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setOwner(match[2]);
@@ -141,7 +140,7 @@ void FileReader::processBudgetGoals(smatch& match)
 
 void FileReader::processBudgetIncome(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetIncomeEntry>(m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetIncomeEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setOwner(match[2]);
@@ -153,7 +152,7 @@ void FileReader::processBudgetReserveAmount(smatch& match)
 {
    auto interval = parseInterval(match[3]);
    auto entry = make_shared<LedgerBudgetReserveAmountEntry>(
-                   interval, m_fileName, m_lineNum);
+                   interval, *m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setAmount(parseCurrency(match[2]));
@@ -164,8 +163,7 @@ void FileReader::processBudgetReserveAmount(smatch& match)
 
 void FileReader::processBudgetReservePercent(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetReservePercentEntry>(
-                   m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetReservePercentEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setPercentage(stoul(match.str(2), nullptr, 10));
@@ -176,7 +174,7 @@ void FileReader::processBudgetReservePercent(smatch& match)
 
 void FileReader::processBudgetRoutine(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetRoutineEntry>(m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetRoutineEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setOwner(match[2]);
@@ -186,8 +184,7 @@ void FileReader::processBudgetRoutine(smatch& match)
 
 void FileReader::processBudgetWithholding(smatch& match)
 {
-   auto entry = make_shared<LedgerBudgetWithholdingEntry>(
-                   m_fileName, m_lineNum);
+   auto entry = make_shared<LedgerBudgetWithholdingEntry>(*m_activeItem);
    entry->setCategory(match[1]);
    verifySetIdentifier(entry->category(), IdentifierType::CATEGORY);
    entry->setOwner(match[2]);
@@ -195,10 +192,11 @@ void FileReader::processBudgetWithholding(smatch& match)
    m_activeBudget->appendEntry(entry);
 }
 
-void FileReader::processCompactTransactionOff(Ledger& ledger, smatch const& match)
+void FileReader::processCompactTransactionOff(
+      Ledger& ledger, smatch const& match)
 {
    auto transaction = make_shared<LedgerTransaction>(
-                         parseDate(match[1]), m_fileName, m_lineNum);
+                         parseDate(match[1]), *m_activeItem);
    switch (match.str(2)[0])
    {
       case '*':
@@ -215,14 +213,10 @@ void FileReader::processCompactTransactionOff(Ledger& ledger, smatch const& matc
    verifyIdentifier(transaction->account(), IdentifierType::ACCOUNT);
    transaction->setPayee(match[4]);
    transaction->setAmount(parseCurrency(match[5]));
-   if (match[6] != "")
-   {
-      transaction->setNote(match[6]);
-   }
    ledger.appendItem(transaction);
 }
 
-void FileReader::processLine(Ledger& ledger, string line)
+void FileReader::processLine(Ledger& ledger, string const& fullLine)
 {
    // Based on what I can find about the C++ regex spec, this is the regex that
    // will split the line into the line and the comment.  However, it appears to
@@ -236,19 +230,26 @@ void FileReader::processLine(Ledger& ledger, string line)
    // character, possible space
 //   auto lineRx = regex {"^([^;]*[^;[:s:]])?\\s*(?:;(.*\\S))?\\s*$"};
 
-   auto loc = line.find(';');
+   m_activeItem = make_shared<LedgerBlank>(m_fileName, m_lineNum);
+   auto loc = fullLine.find(';');
+   string comment;
+   string line;
    if (loc != string::npos)
    {
-      m_comment = line.substr(loc + 1);
-      line = line.substr(0, loc);
+      comment = fullLine.substr(loc + 1);
+      line = fullLine.substr(0, loc);
    }
    while (isspace(line.back()))
    {
       line = line.substr(0, line.size() - 1);
    }
-   while (isspace(m_comment.back()))
+   while (isspace(comment.back()))
    {
-      m_comment = m_comment.substr(0, m_comment.size() - 1);
+      comment = comment.substr(0, comment.size() - 1);
+   }
+   if (comment != "")
+   {
+      m_activeItem->setNote(comment);
    }
 
    smatch match;
@@ -292,7 +293,7 @@ void FileReader::processLine(Ledger& ledger, string line)
       }
       else
       {
-         unReadLine(line);
+         unReadLine(fullLine);
          ledger.appendItem(m_activeBudget);
          m_activeBudget.reset();
       }
@@ -309,7 +310,7 @@ void FileReader::processLine(Ledger& ledger, string line)
       }
       else
       {
-         unReadLine(line);
+         unReadLine(fullLine);
          m_activeTransaction->finalize();
          ledger.appendItem(m_activeTransaction);
          m_activeTransaction.reset();
@@ -342,7 +343,7 @@ void FileReader::processLine(Ledger& ledger, string line)
    else
    {
       stringstream ss;
-      ss << "Invalid contents '" << line << "'";
+      ss << "Invalid contents '" << fullLine << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
 }
@@ -351,7 +352,7 @@ void FileReader::processTransactionV2(smatch& match)
 {
    assert(!m_activeTransaction);
    m_activeTransaction = make_shared<LedgerTransactionV2>(
-                            parseDate(match[1]), m_fileName, m_lineNum);
+                            parseDate(match[1]), *m_activeItem);
    auto status = match.str(2)[0];
    switch (status)
    {
@@ -366,10 +367,6 @@ void FileReader::processTransactionV2(smatch& match)
          break;
    }
    m_activeTransaction->setPayee(match[3]);
-   if (match[5] != "")
-   {
-      m_activeTransaction->setNote(match[5]);
-   }
 }
 
 void FileReader::processTransactionV2Line(smatch& match)
@@ -379,15 +376,12 @@ void FileReader::processTransactionV2Line(smatch& match)
       case IdentifierType::ACCOUNT:
       {
          auto entry = make_shared<LedgerTransactionV2AccountEntry>(
-                         m_fileName, m_lineNum);
+                         *m_activeItem);
          entry->setAccount(match[1]);
+         verifyIdentifier(entry->account(), IdentifierType::ACCOUNT);
          if (match[2] != "")
          {
             entry->setAmount(parseCurrency(match[2]));
-         }
-         if (match[3] != "")
-         {
-            entry->setNote(match[3]);
          }
          m_activeTransaction->appendEntry(entry);
          break;
@@ -395,31 +389,24 @@ void FileReader::processTransactionV2Line(smatch& match)
       case IdentifierType::CATEGORY:
       {
          auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
-                         m_fileName, m_lineNum);
+                         *m_activeItem);
          entry->setCategory(match[1]);
+         verifyIdentifier(entry->category(), IdentifierType::CATEGORY);
          if (match[2] != "")
          {
             entry->setAmount(parseCurrency(match[2]));
-         }
-         if (match[3] != "")
-         {
-            entry->setNote(match[3]);
          }
          m_activeTransaction->appendEntry(entry);
          break;
       }
       case IdentifierType::OWNER:
       {
-         auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
-                         m_fileName, m_lineNum);
+         auto entry = make_shared<LedgerTransactionV2OwnerEntry>(*m_activeItem);
          entry->setOwner(match[1]);
+         verifyIdentifier(entry->owner(), IdentifierType::OWNER);
          if (match[2] != "")
          {
             entry->setAmount(parseCurrency(match[2]));
-         }
-         if (match[3] != "")
-         {
-            entry->setNote(match[3]);
          }
          m_activeTransaction->appendEntry(entry);
          break;
@@ -440,7 +427,7 @@ void FileReader::processTransactionV2TrackingLine(smatch& match)
       case IdentifierType::CATEGORY:
       {
          auto entry = make_shared<LedgerTransactionV2CategoryEntry>(
-                         m_fileName, m_lineNum);
+                         *m_activeItem);
          entry->setCategory(match[1]);
          entry->setTrackingAccount(match[2]);
          verifyIdentifier(entry->trackingAccount().first,
@@ -449,17 +436,12 @@ void FileReader::processTransactionV2TrackingLine(smatch& match)
          {
             entry->setAmount(parseCurrency(match[3]));
          }
-         if (match[4] != "")
-         {
-            entry->setNote(match[4]);
-         }
          m_activeTransaction->appendEntry(entry);
          break;
       }
       case IdentifierType::OWNER:
       {
-         auto entry = make_shared<LedgerTransactionV2OwnerEntry>(
-                         m_fileName, m_lineNum);
+         auto entry = make_shared<LedgerTransactionV2OwnerEntry>(*m_activeItem);
          entry->setOwner(match[1]);
          entry->setTrackingAccount(match[2]);
          verifyIdentifier(entry->trackingAccount().first,
@@ -467,10 +449,6 @@ void FileReader::processTransactionV2TrackingLine(smatch& match)
          if (match[3] != "")
          {
             entry->setAmount(parseCurrency(match[3]));
-         }
-         if (match[4] != "")
-         {
-            entry->setNote(match[4]);
          }
          m_activeTransaction->appendEntry(entry);
          break;

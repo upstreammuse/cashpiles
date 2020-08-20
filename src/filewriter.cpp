@@ -216,10 +216,6 @@ void FileWriter::processItem(LedgerTransaction const& transaction)
    {
       m_file << " ;" << transaction.note().first;
    }
-   if (transaction.note().second)
-   {
-      m_file << " ;" << transaction.note().first;
-   }
    m_file << std::endl;
 }
 
@@ -240,10 +236,6 @@ bool FileWriter::processItem(LedgerTransactionV2 const& transaction)
    }
    m_file << ' ' << transaction.payee() << "  "
           << transaction.amount().toString();
-   if (transaction.note().second)
-   {
-      m_file << " ;" << transaction.note().first;
-   }
    if (transaction.note().second)
    {
       m_file << " ;" << transaction.note().first;

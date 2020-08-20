@@ -7,6 +7,7 @@ class LedgerBudgetReserveAmountEntry : public LedgerBudgetEntry
 public:
    LedgerBudgetReserveAmountEntry(
          Interval const& interval, std::string const& filename, size_t lineNum);
+   LedgerBudgetReserveAmountEntry(Interval const& interval, LedgerItem const&);
 
    Currency amount() const;
    void setAmount(Currency const& amount);

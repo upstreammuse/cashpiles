@@ -10,6 +10,7 @@ class LedgerTransactionV2Entry : public LedgerItem
 {
 public:
    using LedgerItem::LedgerItem;
+   LedgerTransactionV2Entry(LedgerItem const&);
 
    std::pair<Currency, bool> amount() const;
    void setAmount(Currency const& amount);
@@ -93,6 +94,7 @@ public:
 public:
    LedgerTransactionV2(
          Date const& date, std::string const& filename, size_t linenum);
+   LedgerTransactionV2(Date const& date, LedgerItem const&);
 
    Currency amount() const;
 

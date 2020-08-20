@@ -5,6 +5,6 @@
 class LedgerBudgetIncomeEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetIncomeEntry(std::string const& filename, size_t lineNum);
+   using LedgerBudgetEntry::LedgerBudgetEntry;
    void processItem(ItemProcessor& processor) const;
 };

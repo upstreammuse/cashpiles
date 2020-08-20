@@ -11,6 +11,13 @@ LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(
 {
 }
 
+LedgerBudgetGoalEntry::LedgerBudgetGoalEntry(
+      Date const& date, LedgerItem const& item) :
+   LedgerBudgetEntry(item),
+   m_goalDate(date)
+{
+}
+
 Currency LedgerBudgetGoalEntry::amount() const
 {
    return m_amount;

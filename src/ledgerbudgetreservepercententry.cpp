@@ -2,12 +2,6 @@
 
 #include "itemprocessor.h"
 
-LedgerBudgetReservePercentEntry::LedgerBudgetReservePercentEntry(
-      std::string const& filename, size_t lineNum) :
-   LedgerBudgetEntry(filename, lineNum)
-{
-}
-
 unsigned int LedgerBudgetReservePercentEntry::percentage() const
 {
    return m_percentage;

@@ -5,7 +5,7 @@
 class LedgerBudgetReservePercentEntry : public LedgerBudgetEntry
 {
 public:
-   LedgerBudgetReservePercentEntry(std::string const& filename, size_t lineNum);
+   using LedgerBudgetEntry::LedgerBudgetEntry;
 
    unsigned int percentage() const;
    void setPercentage(unsigned int percentage);
