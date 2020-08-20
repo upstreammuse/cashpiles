@@ -11,6 +11,11 @@ LedgerBudgetEntry::LedgerBudgetEntry(std::string const& filename,
 {
 }
 
+LedgerBudgetEntry::LedgerBudgetEntry(LedgerItem const& item) :
+   LedgerItem(item)
+{
+}
+
 string LedgerBudgetEntry::category() const
 {
    return m_category;

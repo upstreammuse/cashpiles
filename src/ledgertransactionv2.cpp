@@ -8,6 +8,11 @@ using std::pair;
 using std::shared_ptr;
 using std::string;
 
+LedgerTransactionV2Entry::LedgerTransactionV2Entry(LedgerItem const& item) :
+   LedgerItem(item)
+{
+}
+
 pair<Currency, bool> LedgerTransactionV2Entry::amount() const
 {
    return m_amount;
@@ -147,6 +152,13 @@ void LedgerTransactionV2OwnerEntry::processItem(ItemProcessor& processor) const
 LedgerTransactionV2::LedgerTransactionV2(
       Date const& date, std::string const& filename, size_t linenum) :
    LedgerItem(filename, linenum),
+   m_date(date)
+{
+}
+
+LedgerTransactionV2::LedgerTransactionV2(
+      Date const& date, LedgerItem const& item) :
+   LedgerItem(item),
    m_date(date)
 {
 }

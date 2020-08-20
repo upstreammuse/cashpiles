@@ -10,6 +10,12 @@ LedgerTransaction::LedgerTransaction(
 {
 }
 
+LedgerTransaction::LedgerTransaction(Date const& date, LedgerItem const& item) :
+   LedgerItem(item),
+   m_date(date)
+{
+}
+
 std::string LedgerTransaction::account() const
 {
    return m_account;

@@ -9,6 +9,13 @@ LedgerBudgetReserveAmountEntry::LedgerBudgetReserveAmountEntry(
 {
 }
 
+LedgerBudgetReserveAmountEntry::LedgerBudgetReserveAmountEntry(
+      Interval const& interval, LedgerItem const& item) :
+   LedgerBudgetEntry(item),
+   m_interval(interval)
+{
+}
+
 Currency LedgerBudgetReserveAmountEntry::amount() const
 {
    return m_amount;

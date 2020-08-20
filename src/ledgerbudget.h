@@ -14,6 +14,8 @@ public:
    LedgerBudget(
          Date const& date, Interval const& interval,
          std::string const& fileName, size_t lineNum);
+   LedgerBudget(
+         Date const& date, Interval const& interval, LedgerItem const&);
 
    Date date() const;
    void setDate(Date const& date);

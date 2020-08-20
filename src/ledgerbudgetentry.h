@@ -11,6 +11,7 @@ class LedgerBudgetEntry : public LedgerItem
 {
 public:
    LedgerBudgetEntry(std::string const& filename, size_t lineNum);
+   LedgerBudgetEntry(LedgerItem const&);
 
    std::string category() const;
    void setCategory(std::string const& category);

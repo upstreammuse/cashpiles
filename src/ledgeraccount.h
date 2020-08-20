@@ -18,6 +18,7 @@ public:
 
 public:
    LedgerAccount(Date const& date, std::string const& filename, size_t lineNum);
+   LedgerAccount(Date const& date, LedgerItem const&);
 
    Date date() const;
    void setDate(Date const& date);

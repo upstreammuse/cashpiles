@@ -12,6 +12,14 @@ LedgerBudget::LedgerBudget(
 {
 }
 
+LedgerBudget::LedgerBudget(
+      Date const& date, Interval const& interval, LedgerItem const& item) :
+   LedgerItem(item),
+   m_date(date),
+   m_interval(interval)
+{
+}
+
 Date LedgerBudget::date() const
 {
    return m_date;

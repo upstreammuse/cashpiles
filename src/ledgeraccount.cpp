@@ -53,6 +53,12 @@ LedgerAccount::LedgerAccount(
 {
 }
 
+LedgerAccount::LedgerAccount(Date const& date, LedgerItem const& item) :
+   LedgerItem(item),
+   m_date(date)
+{
+}
+
 Date LedgerAccount::date() const
 {
    return m_date;
