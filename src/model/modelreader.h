@@ -6,8 +6,8 @@
 #include <string>
 #include "../currency.h"
 #include "../date.h"
+#include "../filereaderformat.h"
 #include "../interval.h"
-#include "modelreaderformat.h"
 #include "modelregex.h"
 
 namespace model { struct BudgetPeriod; }
@@ -19,7 +19,7 @@ namespace model { enum class TransactionFlag; }
 class model::ModelReader
 {
 public:
-   ModelReader(std::string const& fileName, ModelReaderFormat const&);
+   ModelReader(std::string const& fileName, FileReaderFormat const&);
    void readModel(Model&);
 
 private:
@@ -46,7 +46,7 @@ private:
    std::shared_ptr<BudgetPeriod const> m_activeBudget;
    std::shared_ptr<Transaction const> m_activeTransaction;
    std::string m_fileName;
-   ModelReaderFormat m_format;
+   FileReaderFormat m_format;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
    ModelRegex m_regex;

@@ -2,8 +2,8 @@
 
 #include <regex>
 #include <string>
+#include "../filereaderformat.h"
 
-namespace model { class ModelReaderFormat; }
 namespace model { struct ModelRegex; }
 
 struct model::ModelRegex
@@ -36,7 +36,7 @@ struct model::ModelRegex
    std::regex const txnTrackingLineRx;
    std::regex const txnRefRx;
 
-   ModelRegex(ModelReaderFormat const&);
-   std::string currencyRx(ModelReaderFormat const&);
+   ModelRegex(FileReaderFormat const&);
+   std::string currencyRx(FileReaderFormat const&);
    std::string optional(std::string const& item);
 };

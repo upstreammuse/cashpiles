@@ -1,14 +1,13 @@
 #include "modelregex.h"
 
 #include <sstream>
-#include "modelreaderformat.h"
 
 using namespace model;
 
 using std::string;
 using std::stringstream;
 
-ModelRegex::ModelRegex(ModelReaderFormat const& format) :
+ModelRegex::ModelRegex(FileReaderFormat const& format) :
    CLEAR_RX("(\\*|\\!|\\?)"),
    CURR_RX(currencyRx(format)),
    DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
@@ -71,7 +70,7 @@ ModelRegex::ModelRegex(ModelReaderFormat const& format) :
 {
 }
 
-string ModelRegex::currencyRx(ModelReaderFormat const& format)
+string ModelRegex::currencyRx(FileReaderFormat const& format)
 {
    stringstream retval;
    retval << "((?:";
