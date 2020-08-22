@@ -7,7 +7,7 @@ namespace model { struct ModelData; }
 struct model::ModelData
 {
    virtual ~ModelData();
-   std::string note;
+   int refId = 0;  // FK to other data models
 
 protected:
    int newId();
