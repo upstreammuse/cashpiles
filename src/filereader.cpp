@@ -38,6 +38,7 @@ FileReader::FileReader(FileReaderFormat const& format) :
 
 void FileReader::readAll(Ledger& ledger, string const& fileName)
 {
+   m_fileName = fileName;
    m_identifiers.clear();
    m_lineNum = 0;
    while (!m_lines.empty())
