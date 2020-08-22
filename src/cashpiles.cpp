@@ -14,8 +14,7 @@
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
-#include "model/model.h"
-#include "model/modelreader.h"
+#include "model/modelbuilder.h"
 #include "reporter.h"
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
@@ -39,107 +38,23 @@
    die(fileName, lineNum, std::string(message));
 }
 
-int cashpiles(int argc, char** argv)
+void warn(std::string const& message)
 {
-   setlocale(LC_ALL,"");
-
-   try
-   {
-      model::Model model;
-      FileReaderFormat format("M/d/yyyy");
-      model::ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
-      reader.readModel(model);
-   }
-   catch (std::logic_error const& ex)
-   {
-      std::cerr << ex.what() << std::endl;
-   }
-
-   bool convertYnab = false;
-   std::string dateFormat = "yyyy-MM-dd";
-   std::string inFileName;
-   std::string outFileName;
-   std::string reportDir;
-   processArguments(convertYnab, dateFormat, inFileName, outFileName, reportDir,
-                    argc, argv);
-   if (inFileName == "")
-   {
-      die("No input file specified");
-   }
-   if (reportDir != "")
-   {
-      struct stat status;
-      if (stat(reportDir.c_str(), &status) != 0)
-      {
-         die("Report directory does not exist");
-      }
-   }
-
-   Ledger ledger;
-   if (convertYnab)
-   {
-      YnabRegisterReader reader(inFileName, ledger);
-      reader.setDateFormat(dateFormat);
-      reader.readAll();
-   }
-   else
-   {
-      FileReader reader{FileReaderFormat{dateFormat}};
-      reader.readAll(ledger, inFileName);
-   }
-
-   Reporter reporter;
-
-   IPDateValidator dv(dateFormat);
-   ledger.processItems(dv);
-
-   if (!convertYnab)
-   {
-      IPTransactionCategorizer tc;
-      ledger.processItems(tc);
-
-      IPAccountBalancer ab(reporter);
-      ledger.processItems(ab);
-
-      IPBudgetAllocator budAlloc(reporter, dateFormat);
-      ledger.processItems(budAlloc);
-
-      assert(ab.budgetable() == budAlloc.budgetable());
-   }
-
-   RPHtmlReporter hr(reportDir, dateFormat);
-   reporter.processReports(hr);
-
-   if (outFileName != "")
-   {
-      if (outFileName == inFileName)
-      {
-         die("Refusing to overwrite original input file");
-      }
-      FileWriter writer(outFileName);
-      writer.setDateFormat(dateFormat);
-      ledger.processItems(writer);
-   }
-
-   return EXIT_SUCCESS;
+   std::cerr << message << std::endl;
 }
 
-int main(int argc, char** argv)
+void warn(std::string const& fileName, size_t lineNum,
+          std::string const& message)
 {
-   try
-   {
-      return cashpiles(argc, argv);
-   }
-   catch (std::exception const& ex)
-   {
-      std::cerr << "caught unhandled exception" << std::endl;
-      std::cerr << ex.what() << std::endl;
-   }
-   catch (...)
-   {
-      std::cerr << "caught unhandled unknown exception" << std::endl;
-   }
-   return EXIT_FAILURE;
+   std::stringstream ss;
+   ss << "File '" << fileName << "', line " << lineNum << ": " << message;
+   warn(ss.str());
+}
+
+void modelling(Ledger const& ledger)
+{
+   model::ModelBuilder modelBuilder;
+   ledger.processItems(modelBuilder);
 }
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
@@ -184,15 +99,98 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
    }
 }
 
-void warn(std::string const& message)
+int cashpiles(int argc, char** argv)
 {
-   std::cerr << message << std::endl;
+   setlocale(LC_ALL,"");
+
+   bool convertYnab = false;
+   std::string dateFormat = "yyyy-MM-dd";
+   std::string inFileName;
+   std::string outFileName;
+   std::string reportDir;
+   processArguments(convertYnab, dateFormat, inFileName, outFileName, reportDir,
+                    argc, argv);
+   if (inFileName == "")
+   {
+      die("No input file specified");
+   }
+   if (reportDir != "")
+   {
+      struct stat status;
+      if (stat(reportDir.c_str(), &status) != 0)
+      {
+         die("Report directory does not exist");
+      }
+   }
+
+   Ledger ledger;
+   if (convertYnab)
+   {
+      YnabRegisterReader reader(inFileName, ledger);
+      reader.setDateFormat(dateFormat);
+      reader.readAll();
+   }
+   else
+   {
+      FileReader reader{FileReaderFormat{dateFormat}};
+      reader.readAll(ledger, inFileName);
+   }
+
+   IPDateValidator dv(dateFormat);
+   ledger.processItems(dv);
+
+   Reporter reporter;
+
+   if (!convertYnab)
+   {
+      IPTransactionCategorizer tc;
+      ledger.processItems(tc);
+
+      IPAccountBalancer ab(reporter);
+      ledger.processItems(ab);
+
+      IPBudgetAllocator budAlloc(reporter, dateFormat);
+      ledger.processItems(budAlloc);
+
+      assert(ab.budgetable() == budAlloc.budgetable());
+   }
+
+   modelling(ledger);
+
+   if (reportDir != "")
+   {
+      RPHtmlReporter hr(reportDir, dateFormat);
+      reporter.processReports(hr);
+   }
+
+   if (outFileName != "")
+   {
+      if (outFileName == inFileName)
+      {
+         die("Refusing to overwrite original input file");
+      }
+      FileWriter writer(outFileName);
+      writer.setDateFormat(dateFormat);
+      ledger.processItems(writer);
+   }
+
+   return EXIT_SUCCESS;
 }
 
-void warn(std::string const& fileName, size_t lineNum,
-          std::string const& message)
+int main(int argc, char** argv)
 {
-   std::stringstream ss;
-   ss << "File '" << fileName << "', line " << lineNum << ": " << message;
-   warn(ss.str());
+   try
+   {
+      return cashpiles(argc, argv);
+   }
+   catch (std::exception const& ex)
+   {
+      std::cerr << "caught unhandled exception" << std::endl;
+      std::cerr << ex.what() << std::endl;
+   }
+   catch (...)
+   {
+      std::cerr << "caught unhandled unknown exception" << std::endl;
+   }
+   return EXIT_FAILURE;
 }
