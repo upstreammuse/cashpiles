@@ -67,9 +67,9 @@ private:
    std::shared_ptr<LedgerItem> m_activeItem;
    std::shared_ptr<LedgerTransactionV2> m_activeTransaction;
    std::string m_fileName;
-   FileReaderFormat m_format;
+   FileReaderFormat const m_format;
    std::map<std::string, IdentifierType> m_identifiers;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
-   FileReaderRegEx m_regEx;
+   FileReaderRegEx const m_regEx;
 };
