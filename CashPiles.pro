@@ -58,7 +58,6 @@ HEADERS += \
    src/model/model.h \
    src/model/modeldata.h \
    src/model/modelreader.h \
-   src/model/modelregex.h \
    src/model/referenceaccount.h \
    src/model/referencetransaction.h \
    src/model/rubbish.h \
@@ -137,7 +136,6 @@ SOURCES += \
    src/model/model.cpp \
    src/model/modeldata.cpp \
    src/model/modelreader.cpp \
-   src/model/modelregex.cpp \
    src/model/referenceaccount.cpp \
    src/model/referencetransaction.cpp \
    src/model/rubbish.cpp \

@@ -12,7 +12,6 @@
 #include "../daterange.h"
 #include "../interval.h"
 #include "model.h"
-#include "modelregex.h"
 #include "rubbish.h"
 #include "transaction.h"
 #include "transactionflag.h"
@@ -321,11 +320,11 @@ void ModelReader::processLine(Model& model, string& line)
    }
    else if (m_activeTransaction)
    {
-      if (regex_match(line, match, m_regex.txnLineRx))
+      if (regex_match(line, match, m_regex.txn2LineRx))
       {
          processTransactionLine(model, match, comment);
       }
-      else if (regex_match(line, match, m_regex.txnTrackingLineRx))
+      else if (regex_match(line, match, m_regex.txn2TrackingLineRx))
       {
          processTransactionTrackingLine(model, match, comment);
       }
@@ -348,11 +347,11 @@ void ModelReader::processLine(Model& model, string& line)
    {
       processBudget(model, match, comment);
    }
-   else if (regex_match(line, match, m_regex.txnRx))
+   else if (regex_match(line, match, m_regex.txn2Rx))
    {
       processTransaction(model, match, comment);
    }
-   else if (regex_match(line, match, m_regex.txnRefRx))
+   else if (regex_match(line, match, m_regex.txnCompactOffRx))
    {
       processReferenceTransaction(model, match, comment);
    }
