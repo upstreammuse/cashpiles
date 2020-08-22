@@ -12,7 +12,6 @@
 #include "../daterange.h"
 #include "../interval.h"
 #include "model.h"
-#include "modelreaderformat.h"
 #include "modelregex.h"
 #include "rubbish.h"
 #include "transaction.h"
@@ -28,8 +27,8 @@ using std::smatch;
 using std::string;
 using std::stringstream;
 
-ModelReader::ModelReader(string const& fileName,
-                         ModelReaderFormat const& format) :
+ModelReader::ModelReader(
+      string const& fileName, FileReaderFormat const& format) :
    m_fileName(fileName),
    m_format(format),
    m_regex(format)

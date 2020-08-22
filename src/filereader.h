@@ -5,6 +5,7 @@
 #include <regex>
 #include <stack>
 #include "ledgeraccount.h"
+#include "filereaderformat.h"
 #include "filereaderregex.h"
 
 class Currency;
@@ -17,9 +18,8 @@ class LedgerTransactionV2;
 class FileReader
 {
 public:
-   FileReader();
+   FileReader(FileReaderFormat const& format);
    void readAll(Ledger& ledger, std::string const& fileName);
-   void setDateFormat(std::string const& dateFormat);
 
 private:
    void processAccount(Ledger&, std::smatch const& match);
@@ -66,8 +66,8 @@ private:
    std::shared_ptr<LedgerBudget> m_activeBudget;
    std::shared_ptr<LedgerItem> m_activeItem;
    std::shared_ptr<LedgerTransactionV2> m_activeTransaction;
-   std::string m_dateFormat = "yyyy/MM/dd";
    std::string m_fileName;
+   FileReaderFormat m_format;
    std::map<std::string, IdentifierType> m_identifiers;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;

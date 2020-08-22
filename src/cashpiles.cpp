@@ -16,7 +16,6 @@
 #include "ledger.h"
 #include "model/model.h"
 #include "model/modelreader.h"
-#include "model/modelreaderformat.h"
 #include "reporter.h"
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
@@ -47,7 +46,7 @@ int cashpiles(int argc, char** argv)
    try
    {
       model::Model model;
-      model::ModelReaderFormat format("M/d/yyyy");
+      FileReaderFormat format("M/d/yyyy");
       model::ModelReader reader("Z:\\CashPiles\\CashPiles-Us.txt", format);
       reader.readModel(model);
    }
@@ -85,8 +84,7 @@ int cashpiles(int argc, char** argv)
    }
    else
    {
-      FileReader reader;
-      reader.setDateFormat(dateFormat);
+      FileReader reader{FileReaderFormat{dateFormat}};
       reader.readAll(ledger, inFileName);
    }
 

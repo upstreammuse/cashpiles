@@ -8,6 +8,7 @@ HEADERS += \
    src/date.h \
    src/daterange.h \
    src/filereader.h \
+   src/filereaderformat.h \
    src/filereaderregex.h \
    src/filewriter.h \
    src/interval.h \
@@ -57,7 +58,6 @@ HEADERS += \
    src/model/model.h \
    src/model/modeldata.h \
    src/model/modelreader.h \
-   src/model/modelreaderformat.h \
    src/model/modelregex.h \
    src/model/referenceaccount.h \
    src/model/referencetransaction.h \
@@ -87,6 +87,7 @@ SOURCES += \
    src/date.cpp \
    src/daterange.cpp \
    src/filereader.cpp \
+   src/filereaderformat.cpp \
    src/filereaderregex.cpp \
    src/filewriter.cpp \
    src/interval.cpp \
@@ -136,7 +137,6 @@ SOURCES += \
    src/model/model.cpp \
    src/model/modeldata.cpp \
    src/model/modelreader.cpp \
-   src/model/modelreaderformat.cpp \
    src/model/modelregex.cpp \
    src/model/referenceaccount.cpp \
    src/model/referencetransaction.cpp \

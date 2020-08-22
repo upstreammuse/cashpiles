@@ -30,7 +30,8 @@ using std::smatch;
 using std::string;
 using std::stringstream;
 
-FileReader::FileReader()
+FileReader::FileReader(FileReaderFormat const& format) :
+   m_format{format}
 {
 }
 
@@ -56,11 +57,6 @@ void FileReader::readAll(Ledger& ledger, string const& fileName)
       processLine(ledger, line);
    }
    file.close();
-}
-
-void FileReader::setDateFormat(string const& dateFormat)
-{
-   m_dateFormat = dateFormat;
 }
 
 void FileReader::processAccount(Ledger& ledger, smatch const& match)
@@ -520,13 +516,13 @@ Date FileReader::parseDate(string const& date)
 {
    try
    {
-      return Date::fromString(date, m_dateFormat);
+      return Date::fromString(date, m_format.dateFormat);
    }
    catch (...)
    {
       stringstream ss;
       ss << "Unable to parse date '" << date << "', expected something like '"
-         << m_dateFormat << "'";
+         << m_format.dateFormat << "'";
       die(m_fileName, m_lineNum, ss.str());
    }
 }
