@@ -9,10 +9,8 @@ class LedgerItem;
 class Ledger
 {
 public:
-   void processItems(ItemProcessor& processor);
-
-public:
    void appendItem(std::shared_ptr<LedgerItem> item);
+   void processItems(ItemProcessor& processor) const;
 
 protected:
    std::vector<std::shared_ptr<LedgerItem>> m_items;
