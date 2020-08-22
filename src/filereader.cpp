@@ -357,6 +357,7 @@ void FileReader::processTransactionV2(smatch& match)
    m_activeTransaction = make_shared<LedgerTransactionV2>(
                             parseDate(match[1]), *m_activeItem);
    auto status = match.str(2)[0];
+   // TODO migrate to a 'parseFlag' method once all txns use the same enum
    switch (status)
    {
       case '*':
