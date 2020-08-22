@@ -11,6 +11,7 @@
 namespace model { struct Account; }
 namespace model { struct AccountStatement; }
 namespace model { struct Blank; }
+namespace model { class Budget; }
 namespace model { struct BudgetAccount; }
 namespace model { struct BudgetCancelEntry; }
 namespace model { struct BudgetCategoryEntry; }
@@ -31,8 +32,23 @@ namespace model { struct TransactionOwnerEntry; }
 namespace model { struct TransactionOwnerTrackingEntry; }
 namespace model { enum class TransactionFlag; }
 
+class model::Budget
+{
+public:
+   std::shared_ptr<BudgetPeriod const> getCurrentBudget();
+   std::shared_ptr<BudgetPeriod const> growBudgetPeriods(Date const&);
+   std::shared_ptr<BudgetPeriod const> initializeBudget(
+         Date const&, Interval const&, int refId);
+
+private:
+   std::shared_ptr<BudgetPeriod> m_lastBudgetPeriod;
+};
+
 class model::Model
 {
+public:
+   Budget budget;
+
 public:
    enum class IdentifierType
    {
@@ -80,15 +96,11 @@ public:
 
    // budget
    // create
-   std::shared_ptr<BudgetPeriod const> initializeBudget(
-         Date const&, Interval const&, std::string const& note);
    // read
-   std::shared_ptr<BudgetPeriod const> getBudget(int);
-   std::shared_ptr<BudgetPeriod const> getCurrentBudget();
+//   std::shared_ptr<BudgetPeriod const> getBudget(int);
    // update
    std::shared_ptr<BudgetPeriod const> configureBudget(
          int, Interval const&, std::string const& note);
-   std::shared_ptr<BudgetPeriod const> growBudgetPeriods(Date const&);
    // delete
 
 
@@ -159,8 +171,6 @@ private:
 
    std::map<int, std::shared_ptr<AccountStatement>> statements;
 
-   std::shared_ptr<BudgetPeriod> firstBudgetPeriod;
-   std::shared_ptr<BudgetPeriod> lastBudgetPeriod;
    std::map<std::string, std::shared_ptr<BudgetCategoryEntry>> categories;
    std::map<std::string,
    std::map<std::string, std::shared_ptr<BudgetGoalEntry>>> goals;

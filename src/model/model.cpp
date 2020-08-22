@@ -14,7 +14,6 @@
 #include "accountopen.h"
 #include "accountstatement.h"
 #include "accountwrongtype.h"
-#include "blank.h"
 #include "budgetaccount.h"
 #include "budgetcancelentry.h"
 #include "budgetgoalentry.h"
@@ -44,6 +43,56 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 
+shared_ptr<BudgetPeriod const> Budget::getCurrentBudget()
+{
+   if (!m_lastBudgetPeriod)
+   {
+      throw BudgetUninitialized();
+   }
+
+   return m_lastBudgetPeriod;
+}
+
+shared_ptr<BudgetPeriod const> Budget::growBudgetPeriods(Date const& date)
+{
+   if (!m_lastBudgetPeriod)
+   {
+      throw BudgetUninitialized();
+   }
+
+   while (m_lastBudgetPeriod->period.endDate() < date)
+   {
+      DateRange nextPeriodRange = m_lastBudgetPeriod->period;
+      ++nextPeriodRange;
+
+      auto nextPeriod = make_shared<BudgetPeriod>(nextPeriodRange);
+      nextPeriod->prevPeriod = m_lastBudgetPeriod;
+      m_lastBudgetPeriod->nextPeriod = nextPeriod;
+      m_lastBudgetPeriod = nextPeriod;
+   }
+
+   return m_lastBudgetPeriod;
+}
+
+shared_ptr<BudgetPeriod const> Budget::initializeBudget(
+      Date const& date, Interval const& interval, int refId)
+{
+   if (m_lastBudgetPeriod)
+   {
+      throw Rubbish("budget already initialized");
+   }
+
+   m_lastBudgetPeriod = make_shared<BudgetPeriod>(DateRange(date, interval));
+   m_lastBudgetPeriod->refId = refId;
+
+   return m_lastBudgetPeriod;
+}
+
+
+
+#if 0
+
+
 Model::IdentifierType Model::getIdentifierType(std::string const& identifier)
 {
    auto it = identifiers.find(identifier);
@@ -62,7 +111,7 @@ shared_ptr<BudgetAccount const> Model::createBudgetAccount(
    requireUnusedIdentifier(name);
 
    auto account = make_shared<BudgetAccount>(name);
-   account->note = note;
+//   account->note = note;
    account->open = true;
 
    data.push_back(account);
@@ -78,7 +127,7 @@ shared_ptr<ReferenceAccount const> Model::createReferenceAccount(
    requireUnusedIdentifier(name);
 
    auto account = make_shared<ReferenceAccount>(name);
-   account->note = note;
+//   account->note = note;
    account->open = true;
 
    data.push_back(account);
@@ -171,7 +220,7 @@ void Model::closeAccount(string const& name, string const& note)
    const_pointer_cast<Account>(account)->open = false;
 
    auto closure = make_shared<AccountClosure>(account);
-   closure->note = note;
+//   closure->note = note;
 
    data.push_back(closure);
 }
@@ -184,97 +233,42 @@ shared_ptr<AccountStatement const> Model::createAccountStatement(
 
    auto statement = make_shared<AccountStatement>(account, date);
    statement->balance = balance;
-   statement->note = note;
+//   statement->note = note;
 
    data.push_back(statement);
    statements[statement->id] = statement;
    return move(statement);
 }
 
-shared_ptr<Blank const> Model::createBlank(string const& note)
-{
-   auto blank = make_shared<Blank>();
-   blank->note = note;
+//std::shared_ptr<BudgetPeriod const> Model::getBudget(int id)
+//{
+//   auto budget = getCurrentBudget();
+//   while (budget && budget->id != id)
+//   {
+//      budget = budget->prevPeriod;
+//   }
+//   if (!budget || budget->id != id)
+//   {
+//      throw Rubbish("Cannot find specified budget");
+//   }
 
-   data.push_back(blank);
-   return move(blank);
-}
+//   return budget;
+//}
 
-shared_ptr<BudgetPeriod const> Model::initializeBudget(
-      Date const& date, Interval const& interval, string const& note)
-{
-   if (lastBudgetPeriod)
-   {
-      throw Rubbish("budget already initialized");
-   }
+//shared_ptr<BudgetPeriod const> Model::configureBudget(
+//      int id, Interval const& interval, string const& note)
+//{
+//   auto budget = getCurrentBudget();
+//   if (budget->id != id)
+//   {
+//      throw Rubbish("Can only modify most recent budget period");
+//   }
 
-   firstBudgetPeriod = lastBudgetPeriod = make_shared<BudgetPeriod>(
-                                             DateRange(date, interval));
-   lastBudgetPeriod->note = note;
-
-   data.push_back(lastBudgetPeriod);
-   return lastBudgetPeriod;
-}
-
-std::shared_ptr<BudgetPeriod const> Model::getBudget(int id)
-{
-   auto budget = getCurrentBudget();
-   while (budget && budget->id != id)
-   {
-      budget = budget->prevPeriod;
-   }
-   if (!budget || budget->id != id)
-   {
-      throw Rubbish("Cannot find specified budget");
-   }
-
-   return budget;
-}
-
-shared_ptr<BudgetPeriod const> Model::getCurrentBudget()
-{
-   if (!lastBudgetPeriod)
-   {
-      throw BudgetUninitialized();
-   }
-
-   return lastBudgetPeriod;
-}
-
-shared_ptr<BudgetPeriod const> Model::configureBudget(
-      int id, Interval const& interval, string const& note)
-{
-   auto budget = getCurrentBudget();
-   if (budget->id != id)
-   {
-      throw Rubbish("Can only modify most recent budget period");
-   }
-
-   auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
-   budgetMod->period = DateRange(budget->period.startDate(), interval);
-   budgetMod->note = note;
-   return move(budgetMod);
-}
-
-shared_ptr<BudgetPeriod const> Model::growBudgetPeriods(Date const& date)
-{
-   if (!lastBudgetPeriod)
-   {
-      throw BudgetUninitialized();
-   }
-
-   while (lastBudgetPeriod->period.endDate() < date)
-   {
-      DateRange nextPeriodRange = lastBudgetPeriod->period;
-      ++nextPeriodRange;
-
-      auto nextPeriod = make_shared<BudgetPeriod>(nextPeriodRange);
-      nextPeriod->prevPeriod = lastBudgetPeriod;
-      lastBudgetPeriod->nextPeriod = nextPeriod;
-      lastBudgetPeriod = nextPeriod;
-   }
-   return lastBudgetPeriod;
-}
+//   auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
+//   budgetMod->period = DateRange(budget->period.startDate(), interval);
+//   budgetMod->note = note;
+//   return move(budgetMod);
+//}
 
 
 
@@ -356,7 +350,7 @@ shared_ptr<BudgetCancelEntry const> Model::cancelGoal(
 {
    auto goal = requireGoal(category, goal_);
    auto cancel = make_shared<BudgetCancelEntry>(goal);
-   cancel->note = note;
+//   cancel->note = note;
    data.push_back(cancel);
    return move(cancel);
 }
@@ -379,7 +373,7 @@ shared_ptr<BudgetIncomeEntry const> Model::createBudgetIncomeEntry(
       throw Rubbish("Category already exists");
    }
    auto income = make_shared<BudgetIncomeEntry>(name, budget, owner);
-   income->note = note;
+//   income->note = note;
    data.push_back(income);
    categories[name] = incomes[name] = income;
    return move(income);
@@ -393,23 +387,23 @@ shared_ptr<ReferenceTransaction const> Model::createReferenceTransaction(
 
    auto txn = make_shared<ReferenceTransaction>(account, date, flag, payee);
    txn->amount = amount;
-   txn->note = note;
+//   txn->note = note;
    data.push_back(txn);
    return move(txn);
 }
 
-shared_ptr<Transaction const> Model::createTransaction(
-      Date const& date, TransactionFlag flag, string const& payee,
-      string const& note)
-{
-   auto budgetPeriod = growBudgetPeriods(date);
+//shared_ptr<Transaction const> Model::createTransaction(
+//      Date const& date, TransactionFlag flag, string const& payee,
+//      string const& note)
+//{
+//   auto budgetPeriod = growBudgetPeriods(date);
 
-   auto txn = make_shared<Transaction>(budgetPeriod, date, flag, payee);
-   txn->note = note;
-   data.push_back(txn);
-   transactions[txn->id] = txn;
-   return move(txn);
-}
+//   auto txn = make_shared<Transaction>(budgetPeriod, date, flag, payee);
+//   txn->note = note;
+//   data.push_back(txn);
+//   transactions[txn->id] = txn;
+//   return move(txn);
+//}
 
 shared_ptr<TransactionAccountEntry const> Model::createAccountEntry(
       int id, std::string const& name, Currency const& amount,
@@ -420,7 +414,7 @@ shared_ptr<TransactionAccountEntry const> Model::createAccountEntry(
 
    auto entry = make_shared<TransactionAccountEntry>(txn, account);
    entry->amount = amount;
-   entry->note = note;
+//   entry->note = note;
    data.push_back(entry);
    return move(entry);
 }
@@ -434,7 +428,7 @@ shared_ptr<TransactionCategoryEntry const> Model::createCategoryEntry(
 
    auto entry = make_shared<TransactionCategoryEntry>(txn, category);
    entry->amount = amount;
-   entry->note = note;
+//   entry->note = note;
    data.push_back(entry);
    return move(entry);
 }
@@ -451,7 +445,7 @@ Model::createCategoryTrackingEntry(
    auto entry = make_shared<TransactionCategoryTrackingEntry>(
                    txn, account, category);
    entry->amount = amount;
-   entry->note = note;
+//   entry->note = note;
    data.push_back(entry);
    return move(entry);
 }
@@ -465,7 +459,7 @@ shared_ptr<TransactionOwnerEntry const> Model::createOwnerEntry(
 
    auto entry = make_shared<TransactionOwnerEntry>(txn, owner);
    entry->amount = amount;
-   entry->note = note;
+//   entry->note = note;
    data.push_back(entry);
    return move(entry);
 }
@@ -481,7 +475,7 @@ Model::createOwnerTrackingEntry(
 
    auto entry = make_shared<TransactionOwnerTrackingEntry>(txn, account, owner);
    entry->amount = amount;
-   entry->note = note;
+//   entry->note = note;
    data.push_back(entry);
    return move(entry);
 }
@@ -518,3 +512,5 @@ void Model::requireUnusedIdentifier(std::string const& identifier)
    {
    }
 }
+
+#endif

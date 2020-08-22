@@ -14,6 +14,7 @@
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
+#include "model/model.h"
 #include "model/modelbuilder.h"
 #include "reporter.h"
 #include "rphtmlreporter.h"
@@ -53,7 +54,8 @@ void warn(std::string const& fileName, size_t lineNum,
 
 void modelling(Ledger const& ledger)
 {
-   model::ModelBuilder modelBuilder;
+   model::Model model;
+   model::ModelBuilder modelBuilder(model);
    ledger.processItems(modelBuilder);
 }
 
