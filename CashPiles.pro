@@ -43,7 +43,6 @@ HEADERS += \
    src/model/accountopen.h \
    src/model/accountstatement.h \
    src/model/accountwrongtype.h \
-   src/model/blank.h \
    src/model/budgetaccount.h \
    src/model/budgetcancelentry.h \
    src/model/budgetcategoryentry.h \
@@ -58,7 +57,6 @@ HEADERS += \
    src/model/model.h \
    src/model/modelbuilder.h \
    src/model/modeldata.h \
-   src/model/modelreader.h \
    src/model/referenceaccount.h \
    src/model/referencetransaction.h \
    src/model/rubbish.h \
@@ -122,7 +120,6 @@ SOURCES += \
    src/model/accountopen.cpp \
    src/model/accountstatement.cpp \
    src/model/accountwrongtype.cpp \
-   src/model/blank.cpp \
    src/model/budgetaccount.cpp \
    src/model/budgetcancelentry.cpp \
    src/model/budgetcategoryentry.cpp \
@@ -137,7 +134,6 @@ SOURCES += \
    src/model/model.cpp \
    src/model/modelbuilder.cpp \
    src/model/modeldata.cpp \
-   src/model/modelreader.cpp \
    src/model/referenceaccount.cpp \
    src/model/referencetransaction.cpp \
    src/model/rubbish.cpp \
