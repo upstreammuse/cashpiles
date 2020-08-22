@@ -2,13 +2,14 @@
 
 #include <fstream>
 #include <memory>
+#include <regex>
 #include <stack>
 #include <string>
 #include "../currency.h"
 #include "../date.h"
 #include "../filereaderformat.h"
+#include "../filereaderregex.h"
 #include "../interval.h"
-#include "modelregex.h"
 
 namespace model { struct BudgetPeriod; }
 namespace model { class Model; }
@@ -49,5 +50,5 @@ private:
    FileReaderFormat m_format;
    size_t m_lineNum = 0;
    std::stack<std::string> m_lines;
-   ModelRegex m_regex;
+   FileReaderRegEx m_regex;
 };

@@ -1,13 +1,14 @@
 #include "filereaderregex.h"
 
 #include <sstream>
+#include "filereaderformat.h"
 
 using std::string;
 using std::stringstream;
 
-FileReaderRegEx::FileReaderRegEx() :
+FileReaderRegEx::FileReaderRegEx(FileReaderFormat const& format) :
    CLEAR_RX("(\\*|\\!|\\?)"),
-   CURR_RX(currencyRx()),
+   CURR_RX(currencyRxFromFormat(format)),
    DATE_RX("(\\d+[\\/\\.\\-]\\d+[\\/\\.\\-]\\d+)"),
    END_RX("$"),
    IDENT_RX("(\\S(?:\\S| (?! ))*)"),
@@ -65,15 +66,13 @@ FileReaderRegEx::FileReaderRegEx() :
 {
 }
 
-string FileReaderRegEx::currencyRx()
+string FileReaderRegEx::currencyRxFromFormat(FileReaderFormat const& format)
 {
    stringstream retval;
-   struct lconv* lc = localeconv();
    retval << "((?:";
 
-   string symbol(lc->currency_symbol);
    // make sure ascii currency symbols don't interfere with regex
-   for (char c : symbol)
+   for (char c : format.currencyFormat.symbol)
    {
       if (c & 0x80)
       {
@@ -86,9 +85,8 @@ string FileReaderRegEx::currencyRx()
    }
    retval << '|';
 
-   string sep(lc->mon_thousands_sep);
    // make sure ascii separator symbols don't interfere with regex
-   for (char c : sep)
+   for (char c : format.currencyFormat.separator)
    {
       if (c & 0x80)
       {
@@ -101,8 +99,8 @@ string FileReaderRegEx::currencyRx()
    }
    retval << '|';
 
-   string decimal(lc->mon_decimal_point);
-   for (char c : decimal)
+   // make sure ascii decimal symbols don't interfere with regex
+   for (char c : format.currencyFormat.decimal)
    {
       if (c & 0x80)
       {
@@ -115,8 +113,8 @@ string FileReaderRegEx::currencyRx()
    }
    retval << '|';
 
-   string negative(lc->negative_sign);
-   for (char c : negative)
+   // make sure ascii negative symbols don't interfere with regex
+   for (char c : format.currencyFormat.negative)
    {
       if (c & 0x80)
       {

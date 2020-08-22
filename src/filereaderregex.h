@@ -3,6 +3,8 @@
 #include <regex>
 #include <string>
 
+struct FileReaderFormat;
+
 struct FileReaderRegEx
 {
    std::string const CLEAR_RX;
@@ -33,7 +35,7 @@ struct FileReaderRegEx
    std::regex const txn2LineRx;
    std::regex const txn2TrackingLineRx;
 
-   FileReaderRegEx();
-   std::string currencyRx();
-   std::string optional(std::string const&);
+   FileReaderRegEx(FileReaderFormat const&);
+   static std::string currencyRxFromFormat(FileReaderFormat const&);
+   static std::string optional(std::string const&);
 };

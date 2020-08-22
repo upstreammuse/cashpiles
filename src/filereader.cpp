@@ -31,7 +31,8 @@ using std::string;
 using std::stringstream;
 
 FileReader::FileReader(FileReaderFormat const& format) :
-   m_format{format}
+   m_format{format},
+   m_regEx{format}
 {
 }
 
