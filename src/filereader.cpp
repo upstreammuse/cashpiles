@@ -234,7 +234,12 @@ void FileReader::processLine(Ledger& ledger, string const& fullLine)
    auto loc = fullLine.find(';');
    string comment;
    string line;
-   if (loc != string::npos)
+   if (loc == string::npos)
+   {
+      comment = "";
+      line = fullLine;
+   }
+   else
    {
       comment = fullLine.substr(loc + 1);
       line = fullLine.substr(0, loc);
