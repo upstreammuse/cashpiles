@@ -56,6 +56,7 @@ HEADERS += \
    src/model/categorynotexists.h \
    src/model/categoryownernotexists.h \
    src/model/model.h \
+   src/model/modelbuilder.h \
    src/model/modeldata.h \
    src/model/modelreader.h \
    src/model/referenceaccount.h \
@@ -134,6 +135,7 @@ SOURCES += \
    src/model/categorynotexists.cpp \
    src/model/categoryownernotexists.cpp \
    src/model/model.cpp \
+   src/model/modelbuilder.cpp \
    src/model/modeldata.cpp \
    src/model/modelreader.cpp \
    src/model/referenceaccount.cpp \
