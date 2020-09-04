@@ -51,6 +51,7 @@ HEADERS += \
    src/model/budgetgoalsentry.h \
    src/model/budgetincomeentry.h \
    src/model/budgetperiod.h \
+   src/model/budgetroutineentry.h \
    src/model/budgetuninitialized.h \
    src/model/categorynotexists.h \
    src/model/categoryownernotexists.h \
@@ -128,6 +129,7 @@ SOURCES += \
    src/model/budgetgoalsentry.cpp \
    src/model/budgetincomeentry.cpp \
    src/model/budgetperiod.cpp \
+   src/model/budgetroutineentry.cpp \
    src/model/budgetuninitialized.cpp \
    src/model/categorynotexists.cpp \
    src/model/categoryownernotexists.cpp \

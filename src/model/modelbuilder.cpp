@@ -4,6 +4,7 @@
 #include "budgetperiod.h"
 #include "budgetuninitialized.h"
 #include "../ledgerbudget.h"
+#include "../ledgerbudgetroutineentry.h"
 #include "model.h"
 #include "rubbish.h"
 
@@ -16,11 +17,8 @@ ModelBuilder::ModelBuilder(Model& model) :
 {
 }
 
-#include <iostream>
 bool ModelBuilder::processItem(LedgerBudget const& budget)
 {
-   std::cout << "model has a budget period date "
-             << budget.date().toString("M/d/yyyy") << std::endl;
    try
    {
       auto currentBudget = m_model.budget.getCurrentBudget();
@@ -36,13 +34,20 @@ bool ModelBuilder::processItem(LedgerBudget const& budget)
    }
    catch (BudgetUninitialized)
    {
-      auto currentBudget = m_model.budget.initializeBudget(
-                              budget.date(), budget.interval(),
-                              budget.lineNum());
+      m_model.budget.initializeBudget(
+               budget.date(), budget.interval(), budget.lineNum());
    }
+
    auto currentBudget = m_model.budget.getCurrentBudget();
    assert(budget.date() == currentBudget->period.startDate());
+   m_model.budget.configureBudget(currentBudget->id, budget.interval());
+   return true;
+}
 
-   std::cout << "TODO configuring budget can take place" << std::endl;
-   return false;
+void ModelBuilder::processItem(LedgerBudgetRoutineEntry const& entry)
+{
+   auto currentBudget = m_model.budget.getCurrentBudget();
+   m_model.budget.createRoutineEntry(
+            currentBudget->id, entry.category(), entry.owner(),
+            entry.lineNum());
 }
