@@ -14,8 +14,6 @@
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
-#include "model/model.h"
-#include "model/modelbuilder.h"
 #include "reporter.h"
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
@@ -50,13 +48,6 @@ void warn(std::string const& fileName, size_t lineNum,
    std::stringstream ss;
    ss << "File '" << fileName << "', line " << lineNum << ": " << message;
    warn(ss.str());
-}
-
-void modelling(Ledger const& ledger)
-{
-   model::Model model;
-   model::ModelBuilder modelBuilder(model);
-   ledger.processItems(modelBuilder);
 }
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
@@ -156,8 +147,6 @@ int cashpiles(int argc, char** argv)
 
       assert(ab.budgetable() == budAlloc.budgetable());
    }
-
-   modelling(ledger);
 
    if (reportDir != "")
    {
