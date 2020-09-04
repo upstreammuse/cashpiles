@@ -12,6 +12,7 @@
 #include "ipaccountbalancer.h"
 #include "ipbudgetallocator.h"
 #include "ipdatevalidator.h"
+#include "iplogger.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
 #include "reporter.h"
@@ -51,11 +52,13 @@ void warn(std::string const& fileName, size_t lineNum,
 }
 
 void processArguments(bool& convertYnab, std::string& dateFormat,
-                      std::string& inFileName, std::string& outFileName,
-                      std::string& reportDir, int argc, char** argv)
+                      std::string& inFileName, std::string& logFileName,
+                      std::string& outFileName, std::string& reportDir,
+                      int argc, char** argv)
 {
    static std::regex const dateFormatRx("^--dateformat=(.*)$");
    static std::regex const inFileNameRx("^--file=(.*)$");
+   static std::regex const logFileNameRx("^--log=(.*)$");
    static std::regex const outFileNameRx("^--rewrite=(.*)$");
    static std::regex const reportDirRx("^--reports=(.*)$");
    static std::regex const ynabRx("^--ynab$");
@@ -70,6 +73,10 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       else if (std::regex_match(arg, match, inFileNameRx))
       {
          inFileName = match.str(1);
+      }
+      else if (std::regex_match(arg, match, logFileNameRx))
+      {
+         logFileName = match.str(1);
       }
       else if (std::regex_match(arg, match, outFileNameRx))
       {
@@ -99,10 +106,11 @@ int cashpiles(int argc, char** argv)
    bool convertYnab = false;
    std::string dateFormat = "yyyy-MM-dd";
    std::string inFileName;
+   std::string logFileName;
    std::string outFileName;
    std::string reportDir;
-   processArguments(convertYnab, dateFormat, inFileName, outFileName, reportDir,
-                    argc, argv);
+   processArguments(convertYnab, dateFormat, inFileName, logFileName,
+                    outFileName, reportDir, argc, argv);
    if (inFileName == "")
    {
       die("No input file specified");
@@ -131,6 +139,12 @@ int cashpiles(int argc, char** argv)
 
    IPDateValidator dv(dateFormat);
    ledger.processItems(dv);
+
+   if (logFileName != "")
+   {
+      IPLogger logger(logFileName);
+      ledger.processItems(logger);
+   }
 
    Reporter reporter;
 
