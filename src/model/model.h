@@ -19,6 +19,7 @@ namespace model { struct BudgetCategoryOwner; }
 namespace model { struct BudgetGoalEntry; }
 namespace model { struct BudgetGoalsEntry; }
 namespace model { struct BudgetIncomeEntry; }
+namespace model { struct BudgetRoutineEntry; }
 namespace model { struct BudgetPeriod; }
 namespace model { class Model; }
 namespace model { struct ModelData; }
@@ -35,10 +36,14 @@ namespace model { enum class TransactionFlag; }
 class model::Budget
 {
 public:
+   std::shared_ptr<BudgetPeriod const> configureBudget(int, Interval const&);
    std::shared_ptr<BudgetPeriod const> getCurrentBudget();
    std::shared_ptr<BudgetPeriod const> growBudgetPeriods(Date const&);
    std::shared_ptr<BudgetPeriod const> initializeBudget(
          Date const&, Interval const&, int refId);
+
+   std::shared_ptr<BudgetPeriod const> createRoutineEntry(
+         int, std::string const& name, std::string const& owner, int refId);
 
 private:
    std::shared_ptr<BudgetPeriod> m_lastBudgetPeriod;
@@ -49,6 +54,7 @@ class model::Model
 public:
    Budget budget;
 
+#if 0
 public:
    enum class IdentifierType
    {
@@ -94,14 +100,6 @@ public:
    // update
    // delete
 
-   // budget
-   // create
-   // read
-//   std::shared_ptr<BudgetPeriod const> getBudget(int);
-   // update
-   std::shared_ptr<BudgetPeriod const> configureBudget(
-         int, Interval const&, std::string const& note);
-   // delete
 
 
 
@@ -178,4 +176,5 @@ private:
    std::map<std::string, std::shared_ptr<BudgetCategoryOwner>> owners;
 
    std::map<int, std::shared_ptr<Transaction>> transactions;
+#endif
 };

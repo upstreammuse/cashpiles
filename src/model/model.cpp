@@ -19,6 +19,7 @@
 #include "budgetgoalentry.h"
 #include "budgetincomeentry.h"
 #include "budgetperiod.h"
+#include "budgetroutineentry.h"
 #include "budgetuninitialized.h"
 #include "categorynotexists.h"
 #include "categoryownernotexists.h"
@@ -42,6 +43,20 @@ using std::logic_error;
 using std::make_shared;
 using std::shared_ptr;
 using std::string;
+
+shared_ptr<BudgetPeriod const> Budget::configureBudget(
+      int id, Interval const& interval)
+{
+   auto budget = getCurrentBudget();
+   if (budget->id != id)
+   {
+      throw Rubbish("Can only modify current budget period");
+   }
+
+   auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
+   budgetMod->period = DateRange(budget->period.startDate(), interval);
+   return move(budgetMod);
+}
 
 shared_ptr<BudgetPeriod const> Budget::getCurrentBudget()
 {
@@ -86,6 +101,25 @@ shared_ptr<BudgetPeriod const> Budget::initializeBudget(
    m_lastBudgetPeriod->refId = refId;
 
    return m_lastBudgetPeriod;
+}
+
+std::shared_ptr<BudgetPeriod const> Budget::createRoutineEntry(
+      int id, std::string const& name, std::string const& owner, int refId)
+{
+   auto budget = getCurrentBudget();
+   if (budget->id != id)
+   {
+      throw Rubbish("Can only modify current budget period");
+   }
+
+   auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
+   if (budgetMod->entries.count(name))
+   {
+      throw Rubbish("Category " + name + " already exists");
+   }
+   auto entry = make_shared<BudgetRoutineEntry>(name, budget, owner);
+   budgetMod->entries[name] = entry;
+   return move(budgetMod);
 }
 
 
@@ -255,20 +289,6 @@ shared_ptr<AccountStatement const> Model::createAccountStatement(
 //   return budget;
 //}
 
-//shared_ptr<BudgetPeriod const> Model::configureBudget(
-//      int id, Interval const& interval, string const& note)
-//{
-//   auto budget = getCurrentBudget();
-//   if (budget->id != id)
-//   {
-//      throw Rubbish("Can only modify most recent budget period");
-//   }
-
-//   auto budgetMod = const_pointer_cast<BudgetPeriod>(budget);
-//   budgetMod->period = DateRange(budget->period.startDate(), interval);
-//   budgetMod->note = note;
-//   return move(budgetMod);
-//}
 
 
 
