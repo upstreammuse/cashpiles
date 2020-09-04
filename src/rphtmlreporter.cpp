@@ -7,16 +7,24 @@
 #include "reportaccount.h"
 #include "reportbudget.h"
 
-using std::endl;
 using std::ofstream;
 using std::string;
 using std::stringstream;
 
 RPHtmlReporter::RPHtmlReporter(string const& reportsDir,
-                                     string const& dateFormat) :
+                               string const& dateFormat) :
    m_dateFormat(dateFormat),
    m_reportsDir(reportsDir)
 {
+   // TODO rework this with c++17
+   DIR* dir = opendir(m_reportsDir.c_str());
+   if (!dir) return;
+   for (dirent* d = readdir(dir); d; d = readdir(dir))
+   {
+      auto filename = m_reportsDir + '/' + d->d_name;
+      remove(filename.c_str());
+   }
+   closedir(dir);
 }
 
 void RPHtmlReporter::finish()
@@ -28,73 +36,68 @@ void RPHtmlReporter::finish()
 bool RPHtmlReporter::processReport(ReportAccount const& account)
 {
    m_accountFile.close();
-   removeById(account);
    // TODO this is bad file handling
    m_accountFile = ofstream {m_reportsDir + "/Account Report [" +
                account.account() + "] -- " +
-               account.dateRange().endDate().toString("yyyy-MM-dd") + " " +
-               idStr(account) + ".html"};
+               account.dateRange().endDate().toString("yyyy-MM-dd") + ".html"};
 
-   m_accountFile << "<html><head><title>Account Report</title></head>" << endl;
-   m_accountFile << "<body><h1>Account Report</h1>" << endl;
-   m_accountFile << "<p>Account: " << account.account() << "</p>" << endl;
+   m_accountFile << "<html><head><title>Account Report</title></head>\n";
+   m_accountFile << "<body><h1>Account Report</h1>\n";
+   m_accountFile << "<p>Account: " << account.account() << "</p>\n";
    m_accountFile << "<p>Date Range: "
-             << account.dateRange().startDate().toString(m_dateFormat) << " - "
-             << account.dateRange().endDate().toString(m_dateFormat) << "</p>"
-             << endl;
+                 << account.dateRange().startDate().toString(m_dateFormat)
+                 << " - "
+                 << account.dateRange().endDate().toString(m_dateFormat)
+                 << "</p>\n";
    m_accountFile << "<p>Starting Balance: " << account.balanceStart().toString()
-             << "</p>" << endl;
+                 << "</p>\n";
    m_accountFile << "<p>Ending Balance: " << account.balanceEnd().toString()
-             << "</p>" << endl;
-   m_accountFile << "<table><tr><th>Date</th><th>Cleared</th><th>Text</th><th>Amount</th><th>Balance</th></tr>" << endl;
+                 << "</p>\n";
+   m_accountFile << "<table><tr><th>Date</th><th>Cleared</th><th>Text</th><th>Amount</th><th>Balance</th></tr>\n";
    m_balance = account.balanceStart();
    return true;
 }
 
 void RPHtmlReporter::processReport(ReportAccountEntry const& entry)
 {
-   removeById(entry);
    m_balance += entry.amount();
 
    m_accountFile << tr(td(entry.date().toString(m_dateFormat)) +
                    td(entry.cleared() ? "*" : "?") +
                    td(entry.text()) +
                    td(entry.amount().toString()) +
-                   td(m_balance.toString())) << endl;
+                   td(m_balance.toString())) << '\n';
 }
 
 bool RPHtmlReporter::processReport(ReportBudget const& budget)
 {
    m_budgetFile.close();
-   removeById(budget);
    // TODO this is bad file handling
    m_budgetFile = ofstream {m_reportsDir + "/Budget Report -- " +
                   budget.dateRange().endDate().toString("yyyy-MM-dd") +
-                  " " + idStr(budget) + ".html"};
+                  ".html"};
 
-   m_budgetFile << "<html><head><title>Budget Report</title></head>" << endl;
-   m_budgetFile << "<body><h1>Budget Report</h1>" << endl;
+   m_budgetFile << "<html><head><title>Budget Report</title></head>\n";
+   m_budgetFile << "<body><h1>Budget Report</h1>\n";
    m_budgetFile << "<p>Budget Period: "
                 << budget.dateRange().startDate().toString(m_dateFormat)
                 << " - " << budget.dateRange().endDate().toString(m_dateFormat)
-                << "</p>" << endl;
+                << "</p>\n";
    return true;
 }
 
 void RPHtmlReporter::processReport(ReportBudgetCancelEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>Cancelled goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Adding "
                 << entry.goalBalance().toString() << " to category balance "
                 << entry.categoryStartBalance().toString()
                 << " for total balance of "
-                << entry.categoryEndBalance().toString() << "</p>" << endl;
+                << entry.categoryEndBalance().toString() << "</p>\n";
 }
 
 void RPHtmlReporter::processReport(ReportBudgetCloseEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>Closed category '" << entry.category() << "'";
    if (entry.owner() != "")
    {
@@ -104,64 +107,36 @@ void RPHtmlReporter::processReport(ReportBudgetCloseEntry const& entry)
                 << " to available balance "
                 << entry.availableStartBalance().toString()
                 << " for total balance of "
-                << entry.availableEndBalance().toString() << "</p>" << endl;
+                << entry.availableEndBalance().toString() << "</p>\n";
 }
 
 void RPHtmlReporter::processReport(ReportBudgetGoalEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>Goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Saving "
                 << entry.goalAmount().toString() << " by "
                 << entry.goalDate().toString(m_dateFormat)
-                << ".</p>" << endl;
+                << ".</p>\n";
 }
 
 void RPHtmlReporter::processReport(ReportBudgetGoalAllocationEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>Goal '" << entry.goal() << "' in category '"
                 << entry.category() << "'.  Currently saved "
-                << entry.balance().toString() << ".</p>" << endl;
+                << entry.balance().toString() << ".</p>\n";
 }
 
 void RPHtmlReporter::processReport(
       ReportBudgetReserveAllocationEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>Category '" << entry.category() << "'.  Currently saved "
-                << entry.balance().toString() << ".</p>" << endl;
+                << entry.balance().toString() << ".</p>\n";
 }
 
 void RPHtmlReporter::processReport(ReportBudgetWarningEntry const& entry)
 {
-   removeById(entry);
    m_budgetFile << "<p>WARNING: In file '" << entry.fileName() << "' on line "
-                << entry.lineNumber() << ", " << entry.text() << "</p>" << endl;
-}
-
-string RPHtmlReporter::idStr(Report const& report)
-{
-   stringstream ss;
-   ss << "--" << report.id() << "--";
-   return ss.str();
-}
-
-// TODO rework this with c++17
-void RPHtmlReporter::removeById(Report const& report)
-{
-   DIR* dir = opendir(m_reportsDir.c_str());
-   if (!dir) return;
-   for (struct dirent* d = readdir(dir); d; d = readdir(dir))
-   {
-      auto filename = string {d->d_name};
-      if (filename.find(idStr(report)) != string::npos)
-      {
-         filename = m_reportsDir + '/' + filename;
-         remove(filename.c_str());
-      }
-   }
-   closedir(dir);
+                << entry.lineNumber() << ", " << entry.text() << "</p>\n";
 }
 
 string RPHtmlReporter::td(string const& s)
