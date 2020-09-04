@@ -35,42 +35,6 @@ HEADERS += \
    src/ledgeritem.h \
    src/ledgertransaction.h \
    src/ledgertransactionv2.h \
-   src/model/account.h \
-   src/model/accountclosed.h \
-   src/model/accountclosure.h \
-   src/model/accountexists.h \
-   src/model/accountnotexists.h \
-   src/model/accountopen.h \
-   src/model/accountstatement.h \
-   src/model/accountwrongtype.h \
-   src/model/budgetaccount.h \
-   src/model/budgetcancelentry.h \
-   src/model/budgetcategoryentry.h \
-   src/model/budgetentry.h \
-   src/model/budgetgoalentry.h \
-   src/model/budgetgoalsentry.h \
-   src/model/budgetincomeentry.h \
-   src/model/budgetperiod.h \
-   src/model/budgetroutineentry.h \
-   src/model/budgetuninitialized.h \
-   src/model/categorynotexists.h \
-   src/model/categoryownernotexists.h \
-   src/model/model.h \
-   src/model/modelbuilder.h \
-   src/model/modeldata.h \
-   src/model/referenceaccount.h \
-   src/model/referencetransaction.h \
-   src/model/rubbish.h \
-   src/model/transaction.h \
-   src/model/transactionaccountentry.h \
-   src/model/transactioncategoryentry.h \
-   src/model/transactioncategorytrackingentry.h \
-   src/model/transactionentry.h \
-   src/model/transactionflag.h \
-   src/model/transactionflaginvalid.h \
-   src/model/transactionnotexists.h \
-   src/model/transactionownerentry.h \
-   src/model/transactionownertrackingentry.h \
    src/report.h \
    src/reportaccount.h \
    src/reportbudget.h \
@@ -113,41 +77,6 @@ SOURCES += \
    src/ledgeritem.cpp \
    src/ledgertransaction.cpp \
    src/ledgertransactionv2.cpp \
-   src/model/account.cpp \
-   src/model/accountclosed.cpp \
-   src/model/accountclosure.cpp \
-   src/model/accountexists.cpp \
-   src/model/accountnotexists.cpp \
-   src/model/accountopen.cpp \
-   src/model/accountstatement.cpp \
-   src/model/accountwrongtype.cpp \
-   src/model/budgetaccount.cpp \
-   src/model/budgetcancelentry.cpp \
-   src/model/budgetcategoryentry.cpp \
-   src/model/budgetentry.cpp \
-   src/model/budgetgoalentry.cpp \
-   src/model/budgetgoalsentry.cpp \
-   src/model/budgetincomeentry.cpp \
-   src/model/budgetperiod.cpp \
-   src/model/budgetroutineentry.cpp \
-   src/model/budgetuninitialized.cpp \
-   src/model/categorynotexists.cpp \
-   src/model/categoryownernotexists.cpp \
-   src/model/model.cpp \
-   src/model/modelbuilder.cpp \
-   src/model/modeldata.cpp \
-   src/model/referenceaccount.cpp \
-   src/model/referencetransaction.cpp \
-   src/model/rubbish.cpp \
-   src/model/transaction.cpp \
-   src/model/transactionaccountentry.cpp \
-   src/model/transactioncategoryentry.cpp \
-   src/model/transactioncategorytrackingentry.cpp \
-   src/model/transactionentry.cpp \
-   src/model/transactionflaginvalid.cpp \
-   src/model/transactionnotexists.cpp \
-   src/model/transactionownerentry.cpp \
-   src/model/transactionownertrackingentry.cpp \
    src/report.cpp \
    src/reportaccount.cpp \
    src/reportbudget.cpp \
