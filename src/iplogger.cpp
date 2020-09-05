@@ -1,9 +1,12 @@
 #include "iplogger.h"
 
+#include <cassert>
 #include <iostream>
 #include "ledgeraccount.h"
 #include "ledgeraccountbalance.h"
 #include "ledgerbudget.h"
+#include "ledgerbudgetcancelentry.h"
+#include "ledgerbudgetcloseentry.h"
 
 using std::endl;
 using std::string;
@@ -97,6 +100,13 @@ bool IPLogger::processItem(LedgerBudget const& budget)
       while (m_budget.back().dates.endDate() < budget.date())
       {
          BudgetPeriod period = m_budget.back();
+         for (auto it : period.categories)
+         {
+            it.second.allocated = {};
+            assert(it.second.allocated.isZero());
+            it.second.spent = {};
+            assert(it.second.spent.isZero());
+         }
          ++period.dates;
          m_budget.push_back(period);
          log(budget, "Creating budget period from " +
@@ -111,7 +121,69 @@ bool IPLogger::processItem(LedgerBudget const& budget)
       return false;
    }
 
+   // TODO need a way to know that we are done getting updated budget entries so
+   // that we can allocate in the remaining (and new) categories
+
    return true;
+}
+
+// TODO this is kind of a stupid extra, why not just have the close entry cover the category and the individual goals?
+//   better yet, why not consolidate the categories into a single consistent representation instead of all the different types?
+void IPLogger::processItem(LedgerBudgetCancelEntry const& entry)
+{
+   if (!m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot cancel goal '" + entry.goal() +
+           "' in nonexistant category '" + entry.category() + "'");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   if (theCategory.type != Category::Type::GOALS)
+   {
+      warn(entry,
+           "Cannot cancel goal '" + entry.goal() + "' in non-goals category '" +
+           entry.category() + "'");
+      return;
+   }
+   if (!theCategory.categories.count(entry.goal()))
+   {
+      warn(entry, "Cannot cancel nonexistant goal '" + entry.goal() + "'");
+      return;
+   }
+   auto& theGoal = theCategory.categories[entry.goal()];
+
+   log(entry,
+       "Canceling goal '" + entry.goal() + "' in category '" +
+       entry.category() + "'");
+   Currency ownerOldBalance = m_owners[theCategory.owner];
+   m_owners[theCategory.owner] += theGoal.balance;
+   log(entry,
+       "Owner '" + theCategory.owner + "' previous balance " +
+       ownerOldBalance.toString() + ", new balance " +
+       m_owners[theCategory.owner].toString());
+   theCategory.categories.erase(entry.goal());
+}
+
+void IPLogger::processItem(LedgerBudgetCloseEntry const& entry)
+{
+   if (!m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot close nonexistant category '" + entry.category() + "'");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   log(entry, "Closing category '" + entry.category() + "'");
+   Currency ownerOldBalance = m_owners[theCategory.owner];
+   m_owners[theCategory.owner] += theCategory.balance;
+   log(entry,
+       "Owner '" + theCategory.owner + "' previous balance " +
+       ownerOldBalance.toString() + ", new balance " +
+       m_owners[theCategory.owner].toString());
+   m_budget.back().categories.erase(entry.category());
 }
 
 void IPLogger::log(LedgerItem const& item, string const& message)
