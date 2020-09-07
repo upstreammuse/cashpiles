@@ -31,11 +31,11 @@ public:
 
 private:
    void allocateBudget();
-   void log(LedgerItem const& item, std::string const& message);
+   void log(std::string const& message);
    void moveMoney(Currency& to, Currency& from, Currency amount);
-   void processDate(LedgerItem const& item, Date const& date,
-                    bool allocateLastBudget = true);
-   void warn(LedgerItem const& item, std::string const& message);
+   void processDate(Date const& date, bool allocateLastBudget = true);
+   void savePosition(LedgerItem const& item);
+   void warn(std::string const& message);
 
 private:
    struct Account
@@ -90,4 +90,5 @@ private:
    Date m_currentDate;
    std::ofstream m_out;
    std::map<std::string, Currency> m_owners;
+   std::string m_positionInfo;
 };
