@@ -19,6 +19,9 @@
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
 
+using std::cout;
+using std::endl;
+
 [[noreturn]] void die(std::string const& message)
 {
    warn(message);
@@ -54,13 +57,14 @@ void warn(std::string const& fileName, size_t lineNum,
 void processArguments(bool& convertYnab, std::string& dateFormat,
                       std::string& inFileName, std::string& logFileName,
                       std::string& outFileName, std::string& reportDir,
-                      int argc, char** argv)
+                      bool& selfTest, int argc, char** argv)
 {
    static std::regex const dateFormatRx("^--dateformat=(.*)$");
    static std::regex const inFileNameRx("^--file=(.*)$");
    static std::regex const logFileNameRx("^--log=(.*)$");
    static std::regex const outFileNameRx("^--rewrite=(.*)$");
    static std::regex const reportDirRx("^--reports=(.*)$");
+   static std::regex const selfTestRx("^--selftest$");
    static std::regex const ynabRx("^--ynab$");
    std::smatch match;
    for (int i = 1; i < argc; ++i)
@@ -86,6 +90,10 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
       {
          reportDir = match[1];
       }
+      else if (std::regex_match(arg, match, selfTestRx))
+      {
+         selfTest = true;
+      }
       else if (std::regex_match(arg, match, ynabRx))
       {
          convertYnab = true;
@@ -99,6 +107,34 @@ void processArguments(bool& convertYnab, std::string& dateFormat,
    }
 }
 
+void selfTest()
+{
+   cout << "Running self tests..." << endl;
+   assert(Date::daysInMonth(2, 1900) == 28);
+   assert(Date::daysInMonth(2, 2000) == 29);
+   assert(Date::daysInMonth(12, 1980) == 31);
+
+   assert(Date::fromString("1/1/1980", "M/d/yyyy") == DateBuilder{}.month(1).day(1).year(1980).toDate());
+   assert(Date::fromString("31.1.1980", "d.M.yyyy") == DateBuilder{}.month(1).day(31).year(1980).toDate());
+
+   Date nye = DateBuilder{}.month(12).day(31).year(1900).toDate();
+   Date ny = DateBuilder{}.month(1).day(1).year(1901).toDate();
+   assert(nye.addDays(1) == ny);
+   Date leapDay = DateBuilder{}.month(2).day(29).year(2000).toDate();
+   Date notLeapDay = DateBuilder{}.month(2).day(28).year(2001).toDate();
+   assert(leapDay.addYears(1) == notLeapDay);
+
+   DateRange oneDay{ny, ny};
+   assert(oneDay.days() == 1);
+   DateRange onePriorDay(nye, nye);
+   assert(oneDay.intersect(onePriorDay).isNull());
+
+   Currency amount = Currency::fromString("$500.00", {".", 2, "-", ",", "$"});
+   DateRange longTime = {ny, Interval{1, Interval::Period::YEARS}};
+   assert(amount.amortize(oneDay, longTime) == amount);
+   cout << "Done running self tests" << endl;
+}
+
 int cashpiles(int argc, char** argv)
 {
    setlocale(LC_ALL,"");
@@ -109,8 +145,14 @@ int cashpiles(int argc, char** argv)
    std::string logFileName;
    std::string outFileName;
    std::string reportDir;
+   bool doSelfTest = false;
    processArguments(convertYnab, dateFormat, inFileName, logFileName,
-                    outFileName, reportDir, argc, argv);
+                    outFileName, reportDir, doSelfTest, argc, argv);
+   if (doSelfTest)
+   {
+      selfTest();
+   }
+
    if (inFileName == "")
    {
       die("No input file specified");
