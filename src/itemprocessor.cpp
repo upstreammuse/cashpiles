@@ -8,6 +8,10 @@ void ItemProcessor::finish()
 {
 }
 
+void ItemProcessor::finishBudget()
+{
+}
+
 void ItemProcessor::processItem(LedgerAccount const&)
 {
 }

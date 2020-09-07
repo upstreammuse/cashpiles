@@ -25,6 +25,7 @@ class ItemProcessor
 public:
    virtual ~ItemProcessor();
    virtual void finish();
+   virtual void finishBudget();
    virtual void processItem(LedgerAccount const& account);
    virtual void processItem(LedgerAccountBalance const& balance);
    virtual void processItem(LedgerBlank const& blank);

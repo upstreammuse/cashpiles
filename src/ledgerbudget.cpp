@@ -53,5 +53,6 @@ void LedgerBudget::processItem(ItemProcessor& processor) const
       {
          entry->processItem(processor);
       }
+      processor.finishBudget();
    }
 }
