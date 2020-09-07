@@ -408,6 +408,7 @@ void IPLogger::allocateBudget()
          case Category::Type::INCOME:
             break;
          case Category::Type::ROUTINE:
+            // TODO base this on prior performance in the category
             break;
          case Category::Type::RESERVE_AMOUNT:
             // TODO this looks a lot like goals, except they repeat...
