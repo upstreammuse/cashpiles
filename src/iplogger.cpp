@@ -406,9 +406,14 @@ void IPLogger::allocateBudget()
       switch (it.second.type)
       {
          case Category::Type::INCOME:
+            break;
          case Category::Type::ROUTINE:
+            break;
          case Category::Type::RESERVE_AMOUNT:
+            // TODO this looks a lot like goals, except they repeat...
+            break;
          case Category::Type::RESERVE_PERCENTAGE:
+            break;
          case Category::Type::WITHHOLDING:
             break;
       }
@@ -416,47 +421,54 @@ void IPLogger::allocateBudget()
 
    for (auto& it : m_budget.back().goals)
    {
-      list<string> autoClose;
-      for (auto& it2 : it.second.goals)
+      allocateGoals(it.first, it.second);
+   }
+}
+
+void IPLogger::allocateGoals(std::string const& categoryName, Goals& category)
+{
+   list<string> autoClose;
+   for (auto& it : category.goals)
+   {
+      Currency toAllocate = it.second.target.amortize(
+                               it.second.targetDates, m_budget.back().dates);
+      Currency oldOwnerBalance = m_owners[category.owner];
+      moveMoney(it.second.allocated, m_owners[category.owner], toAllocate);
+
+      log("Allocating " + toAllocate.toString() + " for goal '" + it.first +
+          "' in category '" + categoryName + "', goal balance is " +
+          it.second.allocated.toString() + ", owner '" + category.owner +
+          "' previous balance " + oldOwnerBalance.toString() +
+          " new balance " + m_owners[category.owner].toString());
+
+      if (it.second.targetDates.endDate() <= m_budget.back().dates.endDate())
       {
-         Currency toAllocate = it2.second.target.amortize(
-                                  it2.second.targetDates,
-                                  m_budget.back().dates);
-         Currency oldOwnerBalance = m_owners[it.second.owner];
-         moveMoney(it2.second.allocated, m_owners[it.second.owner], toAllocate);
-
-         log("Allocating " + toAllocate.toString() + " for goal '" + it2.first +
-             "' in category '" + it.first + "', goal balance is " +
-             it2.second.allocated.toString() + ", owner '" + it.second.owner +
-             "' previous balance " + oldOwnerBalance.toString() +
-             " new balance " + m_owners[it.second.owner].toString());
-
-         if (it2.second.targetDates.endDate() <= m_budget.back().dates.endDate())
-         {
-            assert(it2.second.allocated == it2.second.target);
-            autoClose.push_back(it2.first);
-         }
-         else if (it2.second.allocated == it2.second.target)
-         {
-            assert(it2.second.targetDates.endDate() <= m_budget.back().dates.endDate());
-            autoClose.push_back(it2.first);
-         }
+         assert(it.second.allocated == it.second.target);
+         autoClose.push_back(it.first);
       }
-
-      for (auto& goal : autoClose)
+      else if (it.second.allocated == it.second.target)
       {
-         assert(it.second.goals[goal].targetDates.endDate() <= m_budget.back().dates.endDate());
-         assert(it.second.goals[goal].allocated == it.second.goals[goal].target);
-         Currency oldCatBalance = it.second.balance;
-
-         moveMoney(it.second.balance, it.second.goals[goal].allocated, it.second.goals[goal].allocated);
-         assert(it.second.goals[goal].allocated.isZero());
-         it.second.goals.erase(goal);
-
-         log("Goal '" + goal + "' reached, transferring to category '" +
-             it.first + "', category balance was " + oldCatBalance.toString() +
-             " new balance " + it.second.balance.toString());
+         assert(it.second.targetDates.endDate() <=
+                m_budget.back().dates.endDate());
+         autoClose.push_back(it.first);
       }
+   }
+
+   for (auto& goal : autoClose)
+   {
+      assert(category.goals[goal].targetDates.endDate() <=
+             m_budget.back().dates.endDate());
+      assert(category.goals[goal].allocated == category.goals[goal].target);
+      Currency oldCatBalance = category.balance;
+
+      moveMoney(category.balance, category.goals[goal].allocated,
+                category.goals[goal].allocated);
+      assert(category.goals[goal].allocated.isZero());
+      category.goals.erase(goal);
+
+      log("Goal '" + goal + "' reached, transferring to category '" +
+          categoryName + "', category balance was " + oldCatBalance.toString() +
+          " new balance " + category.balance.toString());
    }
 }
 

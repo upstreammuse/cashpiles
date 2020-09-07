@@ -30,14 +30,6 @@ public:
    void processItem(LedgerBudgetWithholdingEntry const& entry);
 
 private:
-   void allocateBudget();
-   void log(std::string const& message);
-   void moveMoney(Currency& to, Currency& from, Currency amount);
-   void processDate(Date const& date, bool allocateLastBudget = true);
-   void savePosition(LedgerItem const& item);
-   void warn(std::string const& message);
-
-private:
    struct Account
    {
       Currency balance;
@@ -83,6 +75,15 @@ private:
       DateRange dates;
       std::map<std::string, Goals> goals;
    };
+
+private:
+   void allocateBudget();
+   void allocateGoals(std::string const& categoryName, Goals& category);
+   void log(std::string const& message);
+   void moveMoney(Currency& to, Currency& from, Currency amount);
+   void processDate(Date const& date, bool allocateLastBudget = true);
+   void savePosition(LedgerItem const& item);
+   void warn(std::string const& message);
 
 private:
    std::map<std::string, Account> m_accounts;
