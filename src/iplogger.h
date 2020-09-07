@@ -15,15 +15,26 @@ class IPLogger : public ItemProcessor
 {
 public:
    IPLogger(std::string const& filename);
+   void finishBudget();
    void processItem(LedgerAccount const& account);
    void processItem(LedgerAccountBalance const& account);
    bool processItem(LedgerBudget const& budget);
    void processItem(LedgerBudgetCancelEntry const& entry);
    void processItem(LedgerBudgetCloseEntry const& entry);
+   void processItem(LedgerBudgetGoalEntry const& entry);
+   void processItem(LedgerBudgetGoalsEntry const& entry);
+   void processItem(LedgerBudgetIncomeEntry const& entry);
+   void processItem(LedgerBudgetReserveAmountEntry const& entry);
+   void processItem(LedgerBudgetReservePercentEntry const& entry);
+   void processItem(LedgerBudgetRoutineEntry const& entry);
+   void processItem(LedgerBudgetWithholdingEntry const& entry);
 
 private:
+   void allocateBudget();
    void log(LedgerItem const& item, std::string const& message);
-   void processDate(LedgerItem const& item, Date const& date);
+   void moveMoney(Currency& to, Currency& from, Currency amount);
+   void processDate(LedgerItem const& item, Date const& date,
+                    bool allocateLastBudget = true);
    void warn(LedgerItem const& item, std::string const& message);
 
 private:
@@ -33,23 +44,35 @@ private:
       bool onBudget = false;
    };
 
+   struct Goal
+   {
+      Currency allocated;
+      Currency target;
+      DateRange targetDates;
+   };
+
+   struct Goals
+   {
+      Currency balance;
+      std::map<std::string, Goal> goals;
+      std::string owner;
+   };
+
    struct Category
    {
       Currency allocated;
-      Currency balance;
-      std::map<std::string, Category> categories;
       std::string owner;
+      double percentage = 0;
       Currency spent;
       Currency target;
       DateRange targetDates;
       enum class Type
       {
-         GOAL,
-         GOALS,
          INCOME,
          ROUTINE,
          RESERVE_AMOUNT,
-         RESERVE_PERCENTAGE
+         RESERVE_PERCENTAGE,
+         WITHHOLDING
       };
       Type type;
    };
@@ -58,6 +81,7 @@ private:
    {
       std::map<std::string, Category> categories;
       DateRange dates;
+      std::map<std::string, Goals> goals;
    };
 
 private:

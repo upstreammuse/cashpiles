@@ -4,17 +4,32 @@
 #include <iostream>
 #include "ledgeraccount.h"
 #include "ledgeraccountbalance.h"
+#include "ledgerblank.h"
 #include "ledgerbudget.h"
 #include "ledgerbudgetcancelentry.h"
 #include "ledgerbudgetcloseentry.h"
+#include "ledgerbudgetgoalentry.h"
+#include "ledgerbudgetgoalsentry.h"
+#include "ledgerbudgetincomeentry.h"
+#include "ledgerbudgetreserveamountentry.h"
+#include "ledgerbudgetreservepercententry.h"
+#include "ledgerbudgetroutineentry.h"
+#include "ledgerbudgetwithholdingentry.h"
 
 using std::endl;
+using std::list;
 using std::string;
+using std::to_string;
 
 IPLogger::IPLogger(string const& filename) :
    m_currentDate{DateBuilder().day(1).month(1).year(1).toDate()}
 {
    m_out.open(filename);
+}
+
+void IPLogger::finishBudget()
+{
+   allocateBudget();
 }
 
 void IPLogger::processItem(LedgerAccount const& account)
@@ -83,107 +98,385 @@ void IPLogger::processItem(LedgerAccountBalance const& balance)
 
 bool IPLogger::processItem(LedgerBudget const& budget)
 {
-   processDate(budget, budget.date());
-   if (m_budget.empty())
+   if (!m_budget.empty() && budget.date() <= m_budget.back().dates.endDate())
    {
-      BudgetPeriod period;
-      period.dates = {budget.date(), budget.interval()};
-      m_budget.push_back(period);
+      warn(budget, "Cannot change a budget period in progress");
+      return false;
    }
-   else
-   {
-      if (budget.date() <= m_budget.back().dates.endDate())
-      {
-         warn(budget, "Cannot change a budget period already in progress");
-         return false;
-      }
-      while (m_budget.back().dates.endDate() < budget.date())
-      {
-         BudgetPeriod period = m_budget.back();
-         for (auto it : period.categories)
-         {
-            it.second.allocated = {};
-            assert(it.second.allocated.isZero());
-            it.second.spent = {};
-            assert(it.second.spent.isZero());
-         }
-         ++period.dates;
-         m_budget.push_back(period);
-         log(budget, "Creating budget period from " +
-             m_budget.back().dates.startDate().toString("yyyy-MM-dd") + " to " +
-             m_budget.back().dates.endDate().toString("yyyy-MM-dd"));
-      }
-   }
-
+   processDate(budget, budget.date(), false);
    if (budget.date() != m_budget.back().dates.startDate())
    {
       warn(budget, "Can only change a budget period on its first day");
       return false;
    }
 
-   // TODO need a way to know that we are done getting updated budget entries so
-   // that we can allocate in the remaining (and new) categories
-
+   m_budget.back().dates = {budget.date(), budget.interval()};
+   log(budget,
+       "Reconfiguring budget period start " +
+       m_budget.back().dates.startDate().toString("yyyy-MM-dd") + " end " +
+       m_budget.back().dates.endDate().toString("yyyy-MM-dd"));
    return true;
 }
 
-// TODO this is kind of a stupid extra, why not just have the close entry cover the category and the individual goals?
-//   better yet, why not consolidate the categories into a single consistent representation instead of all the different types?
 void IPLogger::processItem(LedgerBudgetCancelEntry const& entry)
 {
-   if (!m_budget.back().categories.count(entry.category()))
+   if (!m_budget.back().goals.count(entry.category()))
    {
       warn(entry,
            "Cannot cancel goal '" + entry.goal() +
            "' in nonexistant category '" + entry.category() + "'");
       return;
    }
-   auto& theCategory = m_budget.back().categories[entry.category()];
+   auto& theCategory = m_budget.back().goals[entry.category()];
 
-   if (theCategory.type != Category::Type::GOALS)
-   {
-      warn(entry,
-           "Cannot cancel goal '" + entry.goal() + "' in non-goals category '" +
-           entry.category() + "'");
-      return;
-   }
-   if (!theCategory.categories.count(entry.goal()))
+   if (!theCategory.goals.count(entry.goal()))
    {
       warn(entry, "Cannot cancel nonexistant goal '" + entry.goal() + "'");
       return;
    }
-   auto& theGoal = theCategory.categories[entry.goal()];
+   auto& theGoal = theCategory.goals[entry.goal()];
+
+   Currency ownerOldBalance = m_owners[theCategory.owner];
+   moveMoney(m_owners[theCategory.owner], theGoal.allocated, theGoal.allocated);
+   assert(theGoal.allocated.isZero());
+   theCategory.goals.erase(entry.goal());
 
    log(entry,
        "Canceling goal '" + entry.goal() + "' in category '" +
-       entry.category() + "'");
-   Currency ownerOldBalance = m_owners[theCategory.owner];
-   m_owners[theCategory.owner] += theGoal.balance;
-   log(entry,
-       "Owner '" + theCategory.owner + "' previous balance " +
-       ownerOldBalance.toString() + ", new balance " +
+       entry.category() + "', owner '" + theCategory.owner +
+       "' previous balance " + ownerOldBalance.toString() + ", new balance " +
        m_owners[theCategory.owner].toString());
-   theCategory.categories.erase(entry.goal());
 }
 
 void IPLogger::processItem(LedgerBudgetCloseEntry const& entry)
 {
-   if (!m_budget.back().categories.count(entry.category()))
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      auto& theCategory = m_budget.back().categories[entry.category()];
+
+      Currency ownerOldBalance = m_owners[theCategory.owner];
+      moveMoney(theCategory.allocated, theCategory.spent, theCategory.spent);
+      assert(theCategory.spent.isZero());
+      moveMoney(m_owners[theCategory.owner], theCategory.allocated,
+            theCategory.allocated);
+      assert(theCategory.allocated.isZero());
+
+      log(entry, "Closing category '" + entry.category() + "', owner '" +
+          theCategory.owner + "' previous balance " +
+          ownerOldBalance.toString() + ", new balance " +
+          m_owners[theCategory.owner].toString());
+
+      m_budget.back().categories.erase(entry.category());
+   }
+   else if (m_budget.back().goals.count(entry.category()))
+   {
+      auto& theCategory = m_budget.back().goals[entry.category()];
+
+      if (!theCategory.goals.empty())
+      {
+         warn(entry, "Cannot close goals category '" + entry.category() +
+              "' with active goals");
+         return;
+      }
+
+      Currency ownerOldBalance = m_owners[theCategory.owner];
+      moveMoney(m_owners[theCategory.owner], theCategory.balance,
+            theCategory.balance);
+      assert(theCategory.balance.isZero());
+
+      log(entry, "Closing category '" + entry.category() + "', owner '" +
+          theCategory.owner + "' previous balance " +
+          ownerOldBalance.toString() + ", new balance " +
+          m_owners[theCategory.owner].toString());
+
+      m_budget.back().categories.erase(entry.category());
+   }
+   else
    {
       warn(entry,
            "Cannot close nonexistant category '" + entry.category() + "'");
       return;
    }
+}
+
+void IPLogger::processItem(LedgerBudgetGoalEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry, "Cannot create goal in non-goals category");
+      return;
+   }
+   if (!m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create goal in nonexistant category '" + entry.category() +
+           "'");
+      return;
+   }
+   auto& theCategory = m_budget.back().goals[entry.category()];
+
+   if (theCategory.goals.count(entry.goal()))
+   {
+      warn(entry,
+           "Cannot create goal '" + entry.goal() + "' that already exists");
+      return;
+   }
+   auto& theGoal = theCategory.goals[entry.goal()];
+
+   assert(theGoal.allocated.isZero());
+   theGoal.target = entry.amount();
+   theGoal.targetDates = DateRange{m_currentDate, entry.goalDate()};
+   log(entry,
+       "Creating goal '" + entry.goal() + "' in category '" + entry.category() +
+       "' to save " + theGoal.target.toString() + " between dates " +
+       theGoal.targetDates.startDate().toString("yyyy-MM-dd") + " and " +
+       theGoal.targetDates.endDate().toString("yyyy-MM-dd"));
+}
+
+void IPLogger::processItem(LedgerBudgetGoalsEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   auto& theCategory = m_budget.back().goals[entry.category()];
+
+   assert(theCategory.balance.isZero());
+   assert(theCategory.goals.empty());
+   theCategory.owner = entry.owner();
+   log(entry,
+       "Creating goals category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "'");
+}
+
+void IPLogger::processItem(LedgerBudgetIncomeEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
    auto& theCategory = m_budget.back().categories[entry.category()];
 
-   log(entry, "Closing category '" + entry.category() + "'");
-   Currency ownerOldBalance = m_owners[theCategory.owner];
-   m_owners[theCategory.owner] += theCategory.balance;
+   assert(theCategory.allocated.isZero());
+   theCategory.owner = entry.owner();
+   assert(theCategory.spent.isZero());
+   assert(theCategory.target.isZero());
+   assert(theCategory.targetDates.isNull());
+   theCategory.type = Category::Type::INCOME;
    log(entry,
-       "Owner '" + theCategory.owner + "' previous balance " +
-       ownerOldBalance.toString() + ", new balance " +
-       m_owners[theCategory.owner].toString());
-   m_budget.back().categories.erase(entry.category());
+       "Creating income category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "'");
+}
+
+void IPLogger::processItem(LedgerBudgetReserveAmountEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   assert(theCategory.allocated.isZero());
+   theCategory.owner = entry.owner();
+   assert(theCategory.spent.isZero());
+   theCategory.target = entry.amount();
+   theCategory.targetDates = {m_currentDate, entry.interval()};
+   theCategory.type = Category::Type::RESERVE_AMOUNT;
+   log(entry,
+       "Creating category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "' to reserve " + theCategory.target.toString() +
+       " between dates " +
+       theCategory.targetDates.startDate().toString("yyyy-MM-dd") + " and " +
+       theCategory.targetDates.endDate().toString("yyyy-MM-dd"));
+}
+
+void IPLogger::processItem(LedgerBudgetReservePercentEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   assert(theCategory.allocated.isZero());
+   theCategory.owner = entry.owner();
+   theCategory.percentage = entry.percentage() / 100.0;
+   assert(theCategory.spent.isZero());
+   assert(theCategory.target.isZero());
+   assert(theCategory.targetDates.isNull());
+   theCategory.type = Category::Type::RESERVE_PERCENTAGE;
+   log(entry,
+       "Creating category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "' to reserve " + to_string(entry.percentage()) +
+       "%");
+}
+
+void IPLogger::processItem(LedgerBudgetRoutineEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   assert(theCategory.allocated.isZero());
+   theCategory.owner = entry.owner();
+   assert(theCategory.spent.isZero());
+   assert(theCategory.target.isZero());
+   assert(theCategory.targetDates.isNull());
+   theCategory.type = Category::Type::ROUTINE;
+   log(entry,
+       "Creating category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "' for routine expenses");
+}
+
+void IPLogger::processItem(LedgerBudgetWithholdingEntry const& entry)
+{
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   if (m_budget.back().goals.count(entry.category()))
+   {
+      warn(entry,
+           "Cannot create category '" + entry.category() +
+           "' that already exists");
+      return;
+   }
+   auto& theCategory = m_budget.back().categories[entry.category()];
+
+   assert(theCategory.allocated.isZero());
+   theCategory.owner = entry.owner();
+   assert(theCategory.spent.isZero());
+   assert(theCategory.target.isZero());
+   assert(theCategory.targetDates.isNull());
+   theCategory.type = Category::Type::WITHHOLDING;
+   log(entry,
+       "Creating category '" + entry.category() + "' for owner '" +
+       theCategory.owner + "' for withheld income");
+}
+
+void IPLogger::allocateBudget()
+{
+   // TODO this is dumb, need a way to track current file and line as we go,
+   //   especially if we ever support included files
+   log(LedgerBlank{"", 0},
+       "Allocating budget categories for period " +
+       m_budget.back().dates.startDate().toString("yyyy-MM-dd") + " to " +
+       m_budget.back().dates.endDate().toString("yyyy-MM-dd"));
+
+   for (auto& it : m_budget.back().categories)
+   {
+      switch (it.second.type)
+      {
+         case Category::Type::INCOME:
+         case Category::Type::ROUTINE:
+         case Category::Type::RESERVE_AMOUNT:
+         case Category::Type::RESERVE_PERCENTAGE:
+         case Category::Type::WITHHOLDING:
+            break;
+      }
+   }
+
+   for (auto& it : m_budget.back().goals)
+   {
+      list<string> autoClose;
+      for (auto& it2 : it.second.goals)
+      {
+         Currency toAllocate = it2.second.target.amortize(
+                                  it2.second.targetDates,
+                                  m_budget.back().dates);
+         Currency oldOwnerBalance = m_owners[it.second.owner];
+         moveMoney(it2.second.allocated, m_owners[it.second.owner], toAllocate);
+
+         log(LedgerBlank{"", 0},
+             "Allocating " + toAllocate.toString() + " for goal '" + it2.first +
+             "' in category '" + it.first + "', goal balance is " +
+             it2.second.allocated.toString() + ", owner '" + it.second.owner +
+             "' previous balance " + oldOwnerBalance.toString() +
+             " new balance " + m_owners[it.second.owner].toString());
+
+         if (it2.second.targetDates.endDate() <= m_budget.back().dates.endDate())
+         {
+            assert(it2.second.allocated == it2.second.target);
+            autoClose.push_back(it2.first);
+         }
+         else if (it2.second.allocated == it2.second.target)
+         {
+            assert(it2.second.targetDates.endDate() <= m_budget.back().dates.endDate());
+            autoClose.push_back(it2.first);
+         }
+      }
+
+      for (auto& goal : autoClose)
+      {
+         assert(it.second.goals[goal].targetDates.endDate() <= m_budget.back().dates.endDate());
+         assert(it.second.goals[goal].allocated == it.second.goals[goal].target);
+         Currency oldCatBalance = it.second.balance;
+
+         moveMoney(it.second.balance, it.second.goals[goal].allocated, it.second.goals[goal].allocated);
+         assert(it.second.goals[goal].allocated.isZero());
+         it.second.goals.erase(goal);
+
+         log(LedgerBlank{"", 0},
+             "Goal '" + goal + "' reached, transferring to category '" +
+             it.first + "', category balance was " + oldCatBalance.toString() +
+             " new balance " + it.second.balance.toString());
+      }
+   }
 }
 
 void IPLogger::log(LedgerItem const& item, string const& message)
@@ -192,14 +485,52 @@ void IPLogger::log(LedgerItem const& item, string const& message)
          << message << endl;
 }
 
-void IPLogger::processDate(LedgerItem const& item, Date const& date)
+void IPLogger::moveMoney(Currency& to, Currency& from, Currency amount)
+{
+   to += amount;
+   from -= amount;
+}
+
+void IPLogger::processDate(LedgerItem const& item, Date const& date,
+                           bool allocateLastBudget)
 {
    if (date < m_currentDate)
    {
-      log(item,
-          "Cannot use entry with out-of-order date " +
-          date.toString("yyyy-MM-dd"));
+      // TODO this is why throwing is good, this needs to return from the parent
+      // that called it
+      warn(item,
+           "Cannot use entry with out-of-order date " +
+           date.toString("yyyy-MM-dd"));
    }
+   if (m_budget.empty())
+   {
+      BudgetPeriod period;
+      period.dates = {
+         DateBuilder{}.month(date.month()).day(1).year(date.year()).toDate(),
+         {1, Interval::Period::MONTHS}
+      };
+      m_budget.push_back(period);
+      log(item,
+          "Initializing default 1-month budget starting on " +
+          period.dates.startDate().toString("yyyy-MM-dd"));
+   }
+   while (m_budget.back().dates.endDate() < date)
+   {
+      BudgetPeriod period = m_budget.back();
+      ++period.dates;
+      m_budget.push_back(period);
+      log(item,
+          "Advancing budget to start date " +
+          period.dates.startDate().toString("yyyy-MM-dd") + " end date " +
+          period.dates.endDate().toString("yyyy-MM-dd"));
+      if (m_budget.back().dates.endDate() < date ||
+          allocateLastBudget)
+      {
+         allocateBudget();
+      }
+   }
+
+   m_currentDate = date;
 }
 
 void IPLogger::warn(LedgerItem const& item, string const& message)
