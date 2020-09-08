@@ -223,6 +223,7 @@ void IPLogger::processItem(LedgerBudgetGoalEntry const& entry)
    auto& theGoal = theCategory.goals[entry.goal()];
 
    assert(theGoal.allocated.isZero());
+   theGoal.repeat = false;
    theGoal.target = entry.amount();
    theGoal.targetDates = DateRange{m_currentDate, entry.goalDate()};
    log("Creating goal '" + entry.goal() + "' in category '" + entry.category() +
@@ -275,8 +276,6 @@ void IPLogger::processItem(LedgerBudgetIncomeEntry const& entry)
    assert(theCategory.allocated.isZero());
    theCategory.owner = entry.owner();
    assert(theCategory.spent.isZero());
-   assert(theCategory.target.isZero());
-   assert(theCategory.targetDates.isNull());
    theCategory.type = Category::Type::INCOME;
    log("Creating income category '" + entry.category() + "' for owner '" +
        theCategory.owner + "'");
@@ -297,19 +296,21 @@ void IPLogger::processItem(LedgerBudgetReserveAmountEntry const& entry)
            "' that already exists");
       return;
    }
-   auto& theCategory = m_budget.back().categories[entry.category()];
+   auto& theCategory = m_budget.back().goals[entry.category()];
+   auto& theGoal = theCategory.goals[entry.category()];
 
-   assert(theCategory.allocated.isZero());
+   assert(theCategory.balance.isZero());
    theCategory.owner = entry.owner();
-   assert(theCategory.spent.isZero());
-   theCategory.target = entry.amount();
-   theCategory.targetDates = {m_currentDate, entry.interval()};
-   theCategory.type = Category::Type::RESERVE_AMOUNT;
+   assert(theGoal.allocated.isZero());
+   assert(theGoal.repeat);
+   theGoal.target = entry.amount();
+   theGoal.targetDates = {m_currentDate, entry.interval()};
+
    log("Creating category '" + entry.category() + "' for owner '" +
-       theCategory.owner + "' to reserve " + theCategory.target.toString() +
+       theCategory.owner + "' to reserve " + theGoal.target.toString() +
        " between dates " +
-       theCategory.targetDates.startDate().toString("yyyy-MM-dd") + " and " +
-       theCategory.targetDates.endDate().toString("yyyy-MM-dd"));
+       theGoal.targetDates.startDate().toString("yyyy-MM-dd") + " and " +
+       theGoal.targetDates.endDate().toString("yyyy-MM-dd"));
 }
 
 void IPLogger::processItem(LedgerBudgetReservePercentEntry const& entry)
@@ -333,8 +334,6 @@ void IPLogger::processItem(LedgerBudgetReservePercentEntry const& entry)
    theCategory.owner = entry.owner();
    theCategory.percentage = entry.percentage() / 100.0;
    assert(theCategory.spent.isZero());
-   assert(theCategory.target.isZero());
-   assert(theCategory.targetDates.isNull());
    theCategory.type = Category::Type::RESERVE_PERCENTAGE;
    log("Creating category '" + entry.category() + "' for owner '" +
        theCategory.owner + "' to reserve " + to_string(entry.percentage()) +
@@ -361,8 +360,6 @@ void IPLogger::processItem(LedgerBudgetRoutineEntry const& entry)
    assert(theCategory.allocated.isZero());
    theCategory.owner = entry.owner();
    assert(theCategory.spent.isZero());
-   assert(theCategory.target.isZero());
-   assert(theCategory.targetDates.isNull());
    theCategory.type = Category::Type::ROUTINE;
    log("Creating category '" + entry.category() + "' for owner '" +
        theCategory.owner + "' for routine expenses");
@@ -388,8 +385,6 @@ void IPLogger::processItem(LedgerBudgetWithholdingEntry const& entry)
    assert(theCategory.allocated.isZero());
    theCategory.owner = entry.owner();
    assert(theCategory.spent.isZero());
-   assert(theCategory.target.isZero());
-   assert(theCategory.targetDates.isNull());
    theCategory.type = Category::Type::WITHHOLDING;
    log("Creating category '" + entry.category() + "' for owner '" +
        theCategory.owner + "' for withheld income");
@@ -410,9 +405,6 @@ void IPLogger::allocateBudget()
          case Category::Type::ROUTINE:
             // TODO base this on prior performance in the category
             break;
-         case Category::Type::RESERVE_AMOUNT:
-            // TODO this looks a lot like goals, except they repeat...
-            break;
          case Category::Type::RESERVE_PERCENTAGE:
             break;
          case Category::Type::WITHHOLDING:
@@ -426,50 +418,74 @@ void IPLogger::allocateBudget()
    }
 }
 
+// TODO I don't feel great about the way this is written, since most of the
+// cases result in a jump to the outer loop, and only one case needs repeating,
+// so maybe the inner while loop can be written to only loop when the necessary
+// conditions are met
 void IPLogger::allocateGoals(std::string const& categoryName, Goals& category)
 {
-   list<string> autoClose;
-   for (auto& it : category.goals)
+   // for each goal in the category
+   for (auto it = category.goals.begin(); it != category.goals.end();
+        /*inside*/)
    {
-      Currency toAllocate = it.second.target.amortize(
-                               it.second.targetDates, m_budget.back().dates);
-      Currency oldOwnerBalance = m_owners[category.owner];
-      moveMoney(it.second.allocated, m_owners[category.owner], toAllocate);
-
-      log("Allocating " + toAllocate.toString() + " for goal '" + it.first +
-          "' in category '" + categoryName + "', goal balance is " +
-          it.second.allocated.toString() + ", owner '" + category.owner +
-          "' previous balance " + oldOwnerBalance.toString() +
-          " new balance " + m_owners[category.owner].toString());
-
-      if (it.second.targetDates.endDate() <= m_budget.back().dates.endDate())
+      // allocate as long as the goal has a start date that is within the
+      // current period
+      while (it->second.targetDates.startDate() <=
+             m_budget.back().dates.endDate())
       {
-         assert(it.second.allocated == it.second.target);
-         autoClose.push_back(it.first);
+         // do the allocation in the goal
+         Currency toAllocate = it->second.target.amortize(
+                                  it->second.targetDates,
+                                  m_budget.back().dates);
+         Currency oldOwnerBalance = m_owners[category.owner];
+         moveMoney(it->second.allocated, m_owners[category.owner], toAllocate);
+         log("Allocating " + toAllocate.toString() + " for goal '" + it->first +
+             "' in category '" + categoryName + "', goal balance is " +
+             it->second.allocated.toString() + ", owner '" + category.owner +
+             "' previous balance " + oldOwnerBalance.toString() +
+             " new balance " + m_owners[category.owner].toString());
+
+         // if we finished the goal, transfer to the category
+         if (it->second.targetDates.endDate() <=
+             m_budget.back().dates.endDate())
+         {
+            assert(it->second.allocated == it->second.target);
+            Currency oldCatBalance = category.balance;
+            moveMoney(category.balance, it->second.allocated,
+                      it->second.allocated);
+            assert(it->second.allocated.isZero());
+            log("Goal '" + it->first + "' reached, transferring to category '" +
+                categoryName + "', category balance was " +
+                oldCatBalance.toString() + " new balance " +
+                category.balance.toString());
+
+            // repeating goals get cleared out and incremented, we will go again
+            // if the new start date is within our current period
+            if (it->second.repeat)
+            {
+               it->second.allocated = {};
+               ++it->second.targetDates;
+            }
+            // one-shot goals get erased and we jump to the next goal
+            else
+            {
+               it = category.goals.erase(it);
+               // continue in the outer loop, since the inner loop is dangerous
+               // if we just erased the last goal
+               goto outer;
+            }
+         }
+         // otherwise we will need to allocate more for this goal in the next
+         // budget period, so jump out to the next goal
+         else
+         {
+            ++it;
+            goto outer;
+         }
       }
-      else if (it.second.allocated == it.second.target)
-      {
-         assert(it.second.targetDates.endDate() <=
-                m_budget.back().dates.endDate());
-         autoClose.push_back(it.first);
-      }
-   }
 
-   for (auto& goal : autoClose)
-   {
-      assert(category.goals[goal].targetDates.endDate() <=
-             m_budget.back().dates.endDate());
-      assert(category.goals[goal].allocated == category.goals[goal].target);
-      Currency oldCatBalance = category.balance;
-
-      moveMoney(category.balance, category.goals[goal].allocated,
-                category.goals[goal].allocated);
-      assert(category.goals[goal].allocated.isZero());
-      category.goals.erase(goal);
-
-      log("Goal '" + goal + "' reached, transferring to category '" +
-          categoryName + "', category balance was " + oldCatBalance.toString() +
-          " new balance " + category.balance.toString());
+      // location to jump out to
+outer:;
    }
 }
 

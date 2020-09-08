@@ -39,6 +39,7 @@ private:
    struct Goal
    {
       Currency allocated;
+      bool repeat = true;
       Currency target;
       DateRange targetDates;
    };
@@ -56,13 +57,10 @@ private:
       std::string owner;
       double percentage = 0;
       Currency spent;
-      Currency target;
-      DateRange targetDates;
       enum class Type
       {
          INCOME,
          ROUTINE,
-         RESERVE_AMOUNT,
          RESERVE_PERCENTAGE,
          WITHHOLDING
       };
