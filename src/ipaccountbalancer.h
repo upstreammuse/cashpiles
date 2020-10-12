@@ -7,12 +7,12 @@
 #include "ledgertransactionv2.h"
 #include "reportaccount.h"
 
-class Reporter;
+class Report;
 
 class IPAccountBalancer : public ItemProcessor
 {
 public:
-   explicit IPAccountBalancer(Reporter& reporter);
+   explicit IPAccountBalancer(Report& report);
    Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
@@ -39,8 +39,8 @@ private:
 
 private:
    std::map<std::string, Account> m_accounts;
-   Reporter& m_reporter;
-   std::map<std::string, std::shared_ptr<ReportAccount>> m_reports;
+   Report& m_report;
+   std::map<std::string, std::shared_ptr<ReportAccount>> m_reportItems;
    Date m_workingDate;
    std::string m_workingPayee;
    LedgerTransactionV2::Status m_workingStatus;

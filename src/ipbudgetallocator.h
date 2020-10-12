@@ -7,13 +7,13 @@
 #include "daterange.h"
 #include "itemprocessor.h"
 
+class Report;
 class ReportBudget;
-class Reporter;
 
 class IPBudgetAllocator : public ItemProcessor
 {
 public:
-   IPBudgetAllocator(Reporter& reporter, std::string const& dateFormat);
+   IPBudgetAllocator(Report& report, std::string const& dateFormat);
    Currency budgetable() const;
    void finish();
    void processItem(LedgerAccount const& account);
@@ -80,7 +80,7 @@ private:
    std::map<std::string, std::string> m_owners;
    DateRange m_priorPeriod;
    std::shared_ptr<ReportBudget> m_report;
-   Reporter& m_reporter;
+   Report& m_reporter;
    std::map<std::string, Reserve> m_reserves;
    std::map<std::string, Routine> m_routines;
    std::set<std::string> m_withholdings;

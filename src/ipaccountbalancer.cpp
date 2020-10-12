@@ -8,8 +8,8 @@
 #include "ledgerbudget.h"
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
+#include "report.h"
 #include "reportaccount.h"
-#include "reporter.h"
 #include "texttable.h"
 
 using std::make_shared;
@@ -17,8 +17,8 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 
-IPAccountBalancer::IPAccountBalancer(Reporter& reporter) :
-   m_reporter(reporter),
+IPAccountBalancer::IPAccountBalancer(Report& report) :
+   m_report(report),
    // TODO this is a HACK
    m_workingDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
@@ -26,12 +26,12 @@ IPAccountBalancer::IPAccountBalancer(Reporter& reporter) :
 
 void IPAccountBalancer::finish()
 {
-   for (auto& report : m_reports)
+   for (auto& reportItem : m_reportItems)
    {
-      if (report.second)
+      if (reportItem.second)
       {
-         m_reporter.appendItem(report.second);
-         report.second.reset();
+         m_report.appendItem(reportItem.second);
+         reportItem.second.reset();
       }
    }
 }
@@ -85,8 +85,8 @@ void IPAccountBalancer::processItem(LedgerAccount const& accountCommand)
             auto entry = make_shared<ReportAccountEntry>(date);
             entry->setText("Closed account");
             report->appendEntry(entry);
-            m_reporter.appendItem(report);
-            m_reports[accountName].reset();
+            m_report.appendItem(report);
+            m_reportItems[accountName].reset();
             account.isClosed = true;
          }
          break;
@@ -143,8 +143,8 @@ void IPAccountBalancer::processItem(LedgerAccountBalance const& balance)
    }
 
    report->setBalanceEnd(date, amount);
-   m_reporter.appendItem(report);
-   m_reports[accountName].reset();
+   m_report.appendItem(report);
+   m_reportItems[accountName].reset();
 }
 
 void IPAccountBalancer::processItem(LedgerTransaction const& transaction)
@@ -264,11 +264,11 @@ void IPAccountBalancer::ensureOpen(Date const& date, string const& accountName,
 shared_ptr<ReportAccount> IPAccountBalancer::report(
       Date const& date, string const& account)
 {
-   if (!m_reports[account])
+   if (!m_reportItems[account])
    {
-      m_reports[account] = make_shared<ReportAccount>();
-      m_reports[account]->setAccount(account);
-      m_reports[account]->setBalanceStart(date, m_accounts[account].balance);
+      m_reportItems[account] = make_shared<ReportAccount>();
+      m_reportItems[account]->setAccount(account);
+      m_reportItems[account]->setBalanceStart(date, m_accounts[account].balance);
    }
-   return m_reports[account];
+   return m_reportItems[account];
 }

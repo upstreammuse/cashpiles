@@ -18,7 +18,7 @@
 #include "ledgertransaction.h"
 #include "ledgertransactionv2.h"
 #include "reportbudget.h"
-#include "reporter.h"
+#include "report.h"
 #include "texttable.h"
 
 using std::make_shared;
@@ -26,9 +26,9 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 
-IPBudgetAllocator::IPBudgetAllocator(Reporter& reporter, string const& dateFormat) :
+IPBudgetAllocator::IPBudgetAllocator(Report& report, string const& dateFormat) :
    m_dateFormat(dateFormat),
-   m_reporter(reporter),
+   m_reporter(report),
    m_workingDate(DateBuilder().month(1).day(1).year(1).toDate())
 {
 }

@@ -15,7 +15,7 @@
 #include "iplogger.h"
 #include "iptransactioncategorizer.h"
 #include "ledger.h"
-#include "reporter.h"
+#include "report.h"
 #include "rphtmlreporter.h"
 #include "ynabregisterreader.h"
 
@@ -188,17 +188,17 @@ int cashpiles(int argc, char** argv)
       ledger.processItems(logger);
    }
 
-   Reporter reporter;
+   Report report;
 
    if (!convertYnab)
    {
       IPTransactionCategorizer tc;
       ledger.processItems(tc);
 
-      IPAccountBalancer ab(reporter);
+      IPAccountBalancer ab(report);
       ledger.processItems(ab);
 
-      IPBudgetAllocator budAlloc(reporter, dateFormat);
+      IPBudgetAllocator budAlloc(report, dateFormat);
       ledger.processItems(budAlloc);
 
       assert(ab.budgetable() == budAlloc.budgetable());
@@ -207,7 +207,7 @@ int cashpiles(int argc, char** argv)
    if (reportDir != "")
    {
       RPHtmlReporter hr(reportDir, dateFormat);
-      reporter.processItems(hr);
+      report.processItems(hr);
    }
 
    if (outFileName != "")

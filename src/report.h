@@ -6,7 +6,7 @@
 class ReportItem;
 class ReportProcessor;
 
-class Reporter
+class Report
 {
 public:
    void appendItem(std::shared_ptr<ReportItem> item);
