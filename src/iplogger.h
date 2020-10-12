@@ -9,6 +9,16 @@
 #include "daterange.h"
 #include "itemprocessor.h"
 
+// TODO instead of making this spit out strings to a file, it could 'emit' a set
+// of log structs that provide well-formed access to the data we are logging
+// - each struct can print itself into a human readable log string like we have
+//   now
+// - each struct can be analyzed programmatically by a test program to make sure
+//   that a piece of ledger data is correctly handled by the main program
+// - each struct could be formatted into nice output ... look to see if the
+//   existing report system could work for this instead of having to make
+//   something new
+
 class LedgerItem;
 
 class IPLogger : public ItemProcessor
@@ -28,6 +38,11 @@ public:
    void processItem(LedgerBudgetReservePercentEntry const& entry);
    void processItem(LedgerBudgetRoutineEntry const& entry);
    void processItem(LedgerBudgetWithholdingEntry const& entry);
+   void processItem(LedgerTransaction const& transaction);
+   bool processItem(LedgerTransactionV2 const& transaction);
+   void processItem(LedgerTransactionV2AccountEntry const& entry);
+   void processItem(LedgerTransactionV2CategoryEntry const& entry);
+   void processItem(LedgerTransactionV2OwnerEntry const& entry);
 
 private:
    struct Account

@@ -16,6 +16,8 @@
 #include "ledgerbudgetreservepercententry.h"
 #include "ledgerbudgetroutineentry.h"
 #include "ledgerbudgetwithholdingentry.h"
+#include "ledgertransaction.h"
+#include "ledgertransactionv2.h"
 
 using std::endl;
 using std::list;
@@ -388,6 +390,289 @@ void IPLogger::processItem(LedgerBudgetWithholdingEntry const& entry)
    theCategory.type = Category::Type::WITHHOLDING;
    log("Creating category '" + entry.category() + "' for owner '" +
        theCategory.owner + "' for withheld income");
+}
+
+void IPLogger::processItem(LedgerTransaction const& transaction)
+{
+   savePosition(transaction);
+   processDate(transaction.date());
+
+   if (!m_accounts.count(transaction.account()))
+   {
+      warn("Transaction uses unknown account '" + transaction.account() + "'");
+      return;
+   }
+   auto& account = m_accounts[transaction.account()];
+
+   if (account.onBudget)
+   {
+      warn("Single-entry transactions cannot be used with on-budget accounts");
+      return;
+   }
+
+   // TODO need to mark the account as uncleared if we get an uncleared
+   // transaction, so that the balance check can warn that a balance includes
+   // uncleared items
+
+   auto oldBalance = account.balance;
+   account.balance += transaction.amount();
+
+   log(transaction.date().toString("yyyy-MM-dd") + ": transaction for payee '" +
+       transaction.payee() + "' account '" + transaction.account() +
+       "' old balance " + oldBalance.toString() + " new balance " +
+       account.balance.toString());
+}
+
+bool IPLogger::processItem(LedgerTransactionV2 const& transaction)
+{
+   savePosition(transaction);
+   processDate(transaction.date());
+
+   // TODO cache the status so we have access to it for each entry in the txn
+
+   log(transaction.date().toString("yyyy-MM-dd") + ": transaction for payee '" +
+       transaction.payee() + " affects budget by " +
+       transaction.amount().toString());
+   return true;
+}
+
+void IPLogger::processItem(LedgerTransactionV2AccountEntry const& entry)
+{
+   savePosition(entry);
+
+   if (!m_accounts.count(entry.account()))
+   {
+      warn("Transaction uses unknown account '" + entry.account() + "'");
+      return;
+   }
+   auto& account = m_accounts[entry.account()];
+
+   if (!account.onBudget)
+   {
+      warn("Off-budget account '" + entry.account() +
+           "' needs to be used with a category");
+      return;
+   }
+
+   // by the time we get here, all entries should be populated with amounts
+   assert(entry.amount().second);
+   auto oldBalance = account.balance;
+   account.balance += entry.amount().first;
+   log("Account '" + entry.account() + "' balance was " +
+       oldBalance.toString() + ", updated by " +
+       entry.amount().first.toString() + ", new balance is " +
+       account.balance.toString());
+}
+
+// TODO generally, should we make sure that all categories are non-negative when
+// a budget period rolls over?  It's easy to allocate from the owner for each
+// category to keep it non-negative.  But is it better to leave negative category
+// balances in the budget reports so that the user can more easily see where they
+// went wrong?  But then again, does a user want to see this?  Seems like you
+// wouldn't want to have to make a bunch of goals for random expenses in the
+// past.  We want to give the user the best possible view into the future (and
+// safest possible view), but we don't want to nag and penalize for what has
+// already happened.  Then again, for a purist like me, the user may want to
+// audit the past and create those goals?  Or is it better to conceptualize
+// goals as simply a planning tool, with no implied penalty for guessing wrong
+// so long as your balance is non-zero?  All the other allocations and spending
+// generally take care of themselves, so why make goals be obnoxious?  What's
+// done is done.  I think the in-between is to show in a budget report that a
+// category was negative at the end of the period, but don't make it a warning
+// from the program.  Or maybe don't make it an item in the budget report, but
+// make it an optional diagnostic for the sake of users that want to know every
+// time they guessed wrong, or planned wrong, but otherwise CP just does its
+// business and keeps the data correct.
+// - consider that first-time users may well be in debt and spending beyond
+//   their means, which obviously needs to be corrected, but a top-level warning
+//   that the overall balance is negative should be sufficient to resolve this
+// - also, in a debt payoff scenario, the debt account could be made offbudget
+//   with the debt repayment handled as a savings goal? (havent thought this
+//   through all the way)
+void IPLogger::processItem(LedgerTransactionV2CategoryEntry const& entry)
+{
+   savePosition(entry);
+
+   assert(!m_budget.empty());
+   assert(m_budget.back().dates.startDate() <= m_currentDate &&
+          m_currentDate <= m_budget.back().dates.endDate());
+   assert(entry.amount().second);
+
+   if (entry.trackingAccount().second)
+   {
+      if (!m_accounts.count(entry.trackingAccount().first))
+      {
+         warn("Transaction uses unknown account '" +
+              entry.trackingAccount().first + "'");
+         return;
+      }
+      auto& account = m_accounts[entry.trackingAccount().first];
+      if (account.onBudget)
+      {
+         warn("Transaction cannot use on-budget account with a category");
+         return;
+      }
+   }
+
+   if (m_budget.back().categories.count(entry.category()))
+   {
+      auto& category = m_budget.back().categories[entry.category()];
+      switch (category.type)
+      {
+         case Category::Type::INCOME:
+            for (auto& categoryToCheck : m_budget.back().categories)
+            {
+               // TODO make this in if-not-continue check to reduce indent
+               if (categoryToCheck.second.type ==
+                   Category::Type::RESERVE_PERCENTAGE)
+               {
+                  auto oldCatBalance = categoryToCheck.second.allocated +
+                                       categoryToCheck.second.spent;
+                  auto toAllocate = entry.amount().first *
+                                    categoryToCheck.second.percentage;
+
+                  // TODO enforce the same-owner rule more clearly
+                  auto& owner = m_owners[categoryToCheck.second.owner];
+                  if (categoryToCheck.second.owner != category.owner)
+                  {
+                     continue;
+                  }
+
+                  auto oldOwnerBalance = owner;
+                  moveMoney(
+                           categoryToCheck.second.allocated, owner, toAllocate);
+
+                  stringstream ss;
+                  ss << "Reserving " << categoryToCheck.second.percentage
+                     << " of income amount " << entry.amount().first.toString()
+                     << " to category '" << categoryToCheck.first
+                     << "', old balance " << oldCatBalance.toString()
+                     << ", new balance "
+                     << (categoryToCheck.second.allocated +
+                         categoryToCheck.second.spent).toString()
+                     << ", old owner balance " << oldOwnerBalance.toString()
+                     << ", new owner balance " << owner.toString();
+                  log(ss.str());
+               }
+            }
+            break;
+         case Category::Type::ROUTINE:
+         {
+            // TODO since we won't autocorrect the routine category balance
+            // here, we need to make sure it's >= 0 when we allocate a routine
+            // category at the start of a budget period.  That will keep things
+            // deterministic, because allocation is always the very first thing
+            // in a budget period, and transactions will either occur before the
+            // period, or during/after, so transaction order won't matter
+
+            auto oldCatBalance = category.allocated + category.spent;
+            category.spent += entry.amount().first;
+            log("Routine category '" + entry.category() + "' old balance " +
+                oldCatBalance.toString() + ", new balance " +
+                (category.spent + category.allocated).toString());
+            break;
+         }
+         case Category::Type::WITHHOLDING:
+         {
+            auto& owner = m_owners[category.owner];
+            auto oldOwnerBalance = owner;
+            owner += entry.amount().first;
+            log("Withholding category '" + entry.category() +
+                "' applied, old owner balance " + oldOwnerBalance.toString() +
+                ", new owner balance" + owner.toString());
+            break;
+         }
+         case Category::Type::RESERVE_PERCENTAGE:
+         {
+            auto oldCatBalance = category.allocated + category.spent;
+            category.spent += entry.amount().first;
+            log("Reserve category '" + entry.category() + "' old balance " +
+                oldCatBalance.toString() + ", new balance " +
+                (category.spent + category.allocated).toString());
+            break;
+         }
+      }
+   }
+   else if (m_budget.back().goals.count(entry.category()))
+   {
+      auto& category = m_budget.back().goals[entry.category()];
+
+      auto oldCatBalance = category.balance;
+      for (auto goal : category.goals)
+      {
+         oldCatBalance += goal.second.allocated;
+      }
+
+      category.balance += entry.amount().first;
+
+      auto catBalance = category.balance;
+      for (auto goal : category.goals)
+      {
+         catBalance += goal.second.allocated;
+      }
+
+      log("Goals category '" + entry.category() + "' old balance " +
+          oldCatBalance.toString() + ", new balance " + catBalance.toString());
+   }
+   else
+   {
+      warn("Transaction uses unknown category '" + entry.category() + "'");
+      return;
+   }
+
+   if (entry.trackingAccount().second)
+   {
+      auto& account = m_accounts[entry.trackingAccount().first];
+      auto oldBalance = account.balance;
+      // we subtract because we are actually performing the 'other side' of a
+      // transfer into the off-budget account
+      account.balance -= entry.amount().first;
+      log("Tracking account '" + entry.trackingAccount().first +
+          "' old balance " + oldBalance.toString() + ", new balance " +
+          account.balance.toString());
+   }
+}
+
+void IPLogger::processItem(LedgerTransactionV2OwnerEntry const& entry)
+{
+   savePosition(entry);
+
+   assert(entry.amount().second);
+
+   // TODO dry...ish
+   if (entry.trackingAccount().second)
+   {
+      if (!m_accounts.count(entry.trackingAccount().first))
+      {
+         warn("Transaction uses unknown account '" +
+              entry.trackingAccount().first + "'");
+         return;
+      }
+      auto& account = m_accounts[entry.trackingAccount().first];
+
+      if (account.onBudget)
+      {
+         warn("Transaction cannot use on-budget account with a category");
+         return;
+      }
+
+      auto oldBalance = account.balance;
+      // we subtract because we are actually performing the 'other side' of a
+      // transfer into the off-budget account
+      // TODO this could in theory be done with moveMoney vs the owner, but not
+      //   sure how to express such a thing cleanly since the owner needs to be
+      //   updated whether a tracking account is present or not
+      account.balance -= entry.amount().first;
+      log("Tracking account '" + entry.trackingAccount().first +
+          "' old balance " + oldBalance.toString() + ", new balance " +
+          account.balance.toString());
+   }
+
+   auto& owner = m_owners[entry.owner()];
+   auto oldOwnerBalance = owner;
+   owner += entry.amount().first;
+   log("Owner '" + entry.owner() + "' prior balance " +
+       oldOwnerBalance.toString() + ", current balance " + owner.toString());
 }
 
 void IPLogger::allocateBudget()
