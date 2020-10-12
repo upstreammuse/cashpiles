@@ -3,15 +3,15 @@
 #include <memory>
 #include <vector>
 
-class Report;
+class ReportItem;
 class ReportProcessor;
 
 class Reporter
 {
 public:
-   void appendReport(std::shared_ptr<Report> report);
-   void processReports(ReportProcessor& processor);
+   void appendItem(std::shared_ptr<ReportItem> item);
+   void processItems(ReportProcessor& processor) const;
 
 private:
-   std::vector<std::shared_ptr<Report>> m_reports;
+   std::vector<std::shared_ptr<ReportItem>> m_items;
 };

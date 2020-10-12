@@ -4,9 +4,9 @@
 #include <vector>
 #include "currency.h"
 #include "daterange.h"
-#include "report.h"
+#include "reportitem.h"
 
-class ReportAccountEntry : public Report
+class ReportAccountEntry : public ReportItem
 {
 public:
    ReportAccountEntry(Date const& date);
@@ -23,7 +23,7 @@ public:
    std::string text() const;
    void setText(std::string const& text);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    Currency m_amount;
@@ -32,7 +32,7 @@ private:
    std::string m_text;
 };
 
-class ReportAccount : public Report
+class ReportAccount : public ReportItem
 {
 public:
    std::string account() const;
@@ -46,7 +46,7 @@ public:
    DateRange dateRange() const;
 
    void appendEntry(std::shared_ptr<ReportAccountEntry> entry);
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    std::string m_account;

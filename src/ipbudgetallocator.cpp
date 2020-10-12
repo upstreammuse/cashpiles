@@ -658,7 +658,7 @@ void IPBudgetAllocator::advanceBudgetPeriod(DateRange const& period)
 void IPBudgetAllocator::generateReport()
 {
    auto report = this->report();
-   m_reporter.appendReport(report);
+   m_reporter.appendItem(report);
    m_report.reset();
 }
 

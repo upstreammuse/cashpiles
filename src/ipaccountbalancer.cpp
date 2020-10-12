@@ -30,7 +30,7 @@ void IPAccountBalancer::finish()
    {
       if (report.second)
       {
-         m_reporter.appendReport(report.second);
+         m_reporter.appendItem(report.second);
          report.second.reset();
       }
    }
@@ -85,7 +85,7 @@ void IPAccountBalancer::processItem(LedgerAccount const& accountCommand)
             auto entry = make_shared<ReportAccountEntry>(date);
             entry->setText("Closed account");
             report->appendEntry(entry);
-            m_reporter.appendReport(report);
+            m_reporter.appendItem(report);
             m_reports[accountName].reset();
             account.isClosed = true;
          }
@@ -143,7 +143,7 @@ void IPAccountBalancer::processItem(LedgerAccountBalance const& balance)
    }
 
    report->setBalanceEnd(date, amount);
-   m_reporter.appendReport(report);
+   m_reporter.appendItem(report);
    m_reports[accountName].reset();
 }
 

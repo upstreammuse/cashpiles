@@ -4,13 +4,13 @@
 
 class ReportProcessor;
 
-class Report
+class ReportItem
 {
 public:
-   virtual ~Report();
+   virtual ~ReportItem();
    size_t id() const;
 
-   virtual void processReport(ReportProcessor& processor) const = 0;
+   virtual void processItem(ReportProcessor& processor) const = 0;
 
 private:
    static size_t s_nextId;

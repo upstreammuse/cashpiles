@@ -1,19 +1,19 @@
 #include "reporter.h"
 
-#include "report.h"
+#include "reportitem.h"
 #include "reportprocessor.h"
 
-void Reporter::appendReport(std::shared_ptr<Report> report)
+void Reporter::appendItem(std::shared_ptr<ReportItem> item)
 {
-   m_reports.push_back(report);
+   m_items.push_back(item);
 }
 
-void Reporter::processReports(ReportProcessor& processor)
+void Reporter::processItems(ReportProcessor& processor) const
 {
    processor.start();
-   for (auto report : m_reports)
+   for (auto report : m_items)
    {
-      report->processReport(processor);
+      report->processItem(processor);
    }
    processor.finish();
 }

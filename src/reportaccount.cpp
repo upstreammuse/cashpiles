@@ -49,7 +49,7 @@ void ReportAccountEntry::setText(string const& text)
    m_text = text;
 }
 
-void ReportAccountEntry::processReport(ReportProcessor& processor) const
+void ReportAccountEntry::processItem(ReportProcessor& processor) const
 {
    processor.processReport(*this);
 }
@@ -118,13 +118,13 @@ void ReportAccount::appendEntry(std::shared_ptr<ReportAccountEntry> entry)
    m_entries.push_back(entry);
 }
 
-void ReportAccount::processReport(ReportProcessor& processor) const
+void ReportAccount::processItem(ReportProcessor& processor) const
 {
    if (processor.processReport(*this))
    {
       for (auto entry : m_entries)
       {
-         entry->processReport(processor);
+         entry->processItem(processor);
       }
    }
 }

@@ -207,7 +207,7 @@ int cashpiles(int argc, char** argv)
    if (reportDir != "")
    {
       RPHtmlReporter hr(reportDir, dateFormat);
-      reporter.processReports(hr);
+      reporter.processItems(hr);
    }
 
    if (outFileName != "")

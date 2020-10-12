@@ -3,11 +3,11 @@
 #include <vector>
 #include "currency.h"
 #include "daterange.h"
-#include "report.h"
+#include "reportitem.h"
 
 class ReportProcessor;
 
-class ReportBudgetEntry : public Report
+class ReportBudgetEntry : public ReportItem
 {
 };
 
@@ -27,7 +27,7 @@ public:
    Currency goalBalance() const;
    void setGoalBalance(Currency const& balance);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    std::string m_category;
@@ -52,7 +52,7 @@ public:
    std::string owner() const;
    void setOwner(std::string const& owner);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    Currency m_availableStartBalance;
@@ -78,7 +78,7 @@ public:
    Date goalDate() const;
    void setGoalDate(Date const& date);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    std::string m_category;
@@ -99,7 +99,7 @@ public:
    std::string goal() const;
    void setGoal(std::string const& goal);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    Currency m_balance;
@@ -116,7 +116,7 @@ public:
    std::string category() const;
    void setCategory(std::string const& category);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    Currency m_balance;
@@ -135,7 +135,7 @@ public:
    std::string text() const;
    void setText(std::string const& text);
 
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    std::string m_fileName;
@@ -143,14 +143,14 @@ private:
    std::string m_text;
 };
 
-class ReportBudget : public Report
+class ReportBudget : public ReportItem
 {
 public:
    DateRange dateRange() const;
    void setDateRange(DateRange const& dateRange);
 
    void appendEntry(std::shared_ptr<ReportBudgetEntry> entry);
-   void processReport(ReportProcessor& processor) const;
+   void processItem(ReportProcessor& processor) const;
 
 private:
    DateRange m_dateRange;

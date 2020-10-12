@@ -49,7 +49,7 @@ void ReportBudgetCancelEntry::setGoalBalance(Currency const& balance)
    m_goalBalance = balance;
 }
 
-void ReportBudgetCancelEntry::processReport(ReportProcessor& processor) const
+void ReportBudgetCancelEntry::processItem(ReportProcessor& processor) const
 {
    processor.processReport(*this);
 }
@@ -99,7 +99,7 @@ void ReportBudgetCloseEntry::setOwner(string const& owner)
    m_owner = owner;
 }
 
-void ReportBudgetCloseEntry::processReport(ReportProcessor& processor) const
+void ReportBudgetCloseEntry::processItem(ReportProcessor& processor) const
 {
    processor.processReport(*this);
 }
@@ -149,7 +149,7 @@ void ReportBudgetGoalEntry::setGoalDate(Date const& date)
    m_goalDate = date;
 }
 
-void ReportBudgetGoalEntry::processReport(ReportProcessor& processor) const
+void ReportBudgetGoalEntry::processItem(ReportProcessor& processor) const
 {
    processor.processReport(*this);
 }
@@ -184,7 +184,7 @@ void ReportBudgetGoalAllocationEntry::setGoal(std::string const& goal)
    m_goal = goal;
 }
 
-void ReportBudgetGoalAllocationEntry::processReport(
+void ReportBudgetGoalAllocationEntry::processItem(
       ReportProcessor& processor) const
 {
    processor.processReport(*this);
@@ -210,7 +210,7 @@ void ReportBudgetReserveAllocationEntry::setCategory(string const& category)
    m_category = category;
 }
 
-void ReportBudgetReserveAllocationEntry::processReport(
+void ReportBudgetReserveAllocationEntry::processItem(
       ReportProcessor& processor) const
 {
    processor.processReport(*this);
@@ -246,7 +246,7 @@ void ReportBudgetWarningEntry::setText(string const& text)
    m_text = text;
 }
 
-void ReportBudgetWarningEntry::processReport(ReportProcessor& processor) const
+void ReportBudgetWarningEntry::processItem(ReportProcessor& processor) const
 {
    processor.processReport(*this);
 }
@@ -266,13 +266,13 @@ void ReportBudget::appendEntry(std::shared_ptr<ReportBudgetEntry> entry)
    m_entries.push_back(entry);
 }
 
-void ReportBudget::processReport(ReportProcessor& processor) const
+void ReportBudget::processItem(ReportProcessor& processor) const
 {
    if (processor.processReport(*this))
    {
       for (auto entry : m_entries)
       {
-         entry->processReport(processor);
+         entry->processItem(processor);
       }
    }
 }
