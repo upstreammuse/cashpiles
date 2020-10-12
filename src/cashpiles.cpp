@@ -184,6 +184,18 @@ int cashpiles(int argc, char** argv)
 
    if (logFileName != "")
    {
+      // TODO rework to have the logger generate reportitems into a logreport,
+      // then process the logreport with the htmlprocessor.  The goal is to redo
+      // the htmlprocessor to generate a 'full gui' html page that allows the
+      // user to navigate all the CP data like it's a web app, but it's output-
+      // only so we avoid the GUI update loop for now
+
+      // - we can also have a 'sanitychecker' that processes the log outputs to
+      //   evaluate the math as a rolling self-test to make sure things are good
+
+      // - and in addition to the htmlprocessor, we can also have something that
+      //   writes individual bits to the console that works with queries or some
+      //   such to make it more command-style for those that want such a thing
       IPLogger logger(logFileName);
       ledger.processItems(logger);
    }
