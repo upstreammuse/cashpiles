@@ -76,6 +76,10 @@ private:
 
 private:
    void allocateBudget();
+   template<typename T>
+   auto allocateGoal(
+         std::string const& categoryName, Goals& category,
+         std::string const& goalName, Goal& goal, T& it);
    void allocateGoals(std::string const& categoryName, Goals& category);
    void log(std::string const& message);
    void moveMoney(Currency& to, Currency& from, Currency amount);

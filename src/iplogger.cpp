@@ -418,74 +418,146 @@ void IPLogger::allocateBudget()
    }
 }
 
-// TODO I don't feel great about the way this is written, since most of the
-// cases result in a jump to the outer loop, and only one case needs repeating,
-// so maybe the inner while loop can be written to only loop when the necessary
-// conditions are met
+/*
+ * CONDITION 1
+ *
+ * Goal finished before current period
+ *
+ * goal:   |--------|
+ * period:           |--------|
+ *
+ * This is an error and should never be in this state.  A goal always starts at
+ * the same time as a period, so always ensure that a goal overlaps a period by
+ * at least by one day.
+ *
+ *
+ * CONDITION 2
+ *
+ * Goal finishes during current period.  The goal may have started before the
+ * current period, it may start coincident with the current period, or it may
+ * start within the current period.  The goal may complete on any day of the
+ * period, including the first day and the last day.
+ *
+ * goal:   |------|
+ * period:        |-------|
+ *
+ * goal:   |---------|
+ * period:        |-------|
+ *
+ * goal:   |--------------|
+ * period:        |-------|
+ *
+ * goal:          |-----|
+ * period:        |-------|
+ *
+ * goal:          |-------|
+ * period:        |-------|
+ *
+ * goal:             |--|
+ * period:        |-------|
+ *
+ * goal:             |----|
+ * period:        |-------|
+ *
+ * Allocate based on the overlap of the goal and the period.  Assert that the
+ * goal amount has been reached.  If the goal is repeating, then increment the
+ * goal dates.  Continue allocating as long as the goal ends during the current
+ * period.
+ *
+ *
+ * CONDITION 3
+ *
+ * Goal finishes after current period.  The goal may have started before the
+ * current period, it may start coincident with the current period, or it may
+ * start within the current period.
+ *
+ * goal:   |---------------|
+ * period:   |---------|
+ *
+ * goal:   |---------------|
+ * period: |---------|
+ *
+ * goal:      |---------------|
+ * period: |---------|
+ *
+ * Allocate based on the overlap of the goal and the period.  Nothing more to do
+ * at this point.
+ */
+template<typename T>
+auto IPLogger::allocateGoal(
+      string const& categoryName, Goals& category,
+      string const& goalName, Goal& goal, T& it)
+{
+   // make sure we didn't miss a previous goal period, by making sure that
+   // the goal end is at least current with the current period
+   assert(m_budget.back().dates.startDate() <= goal.targetDates.endDate());
+
+   // make sure there's at least something to do
+   assert(goal.targetDates.startDate() <= m_budget.back().dates.endDate());
+
+   // allocate as long as the goal starts before the current period ends
+   while (goal.targetDates.startDate() <= m_budget.back().dates.endDate())
+   {
+      // do the allocation in the goal
+      Currency toAllocate = goal.target.amortize(goal.targetDates,
+                                                 m_budget.back().dates);
+      Currency oldOwnerBalance = m_owners[category.owner];
+      moveMoney(goal.allocated, m_owners[category.owner], toAllocate);
+      log("Allocating " + toAllocate.toString() + " for goal '" + goalName +
+          "' in category '" + categoryName + "', goal balance is " +
+          goal.allocated.toString() + ", owner '" + category.owner +
+          "' previous balance " + oldOwnerBalance.toString() +
+          " new balance " + m_owners[category.owner].toString());
+
+      // if we finished the goal, transfer to the category
+      if (goal.targetDates.endDate() <=
+          m_budget.back().dates.endDate())
+      {
+         assert(goal.allocated == goal.target);
+         Currency oldCatBalance = category.balance;
+         moveMoney(category.balance, goal.allocated, goal.allocated);
+         assert(goal.allocated.isZero());
+         log("Goal '" + goalName + "' reached, transferring to category '" +
+             categoryName + "', category balance was " +
+             oldCatBalance.toString() + " new balance " +
+             category.balance.toString());
+
+         // repeating goals get cleared out and incremented, we will go again
+         // if the new start date is within our current period
+         if (goal.repeat)
+         {
+            goal.allocated = {};
+            ++goal.targetDates;
+         }
+         // one-shot goals get erased and we are done
+         else
+         {
+            it = category.goals.erase(it);
+            return it;
+         }
+      }
+      // otherwise we will need to allocate more for this goal in the next
+      // budget period, so we are done for now
+      else
+      {
+         ++it;
+         return it;
+      }
+   }
+
+   // if we get here we have a goal that starts after the current budget period,
+   // so nothing left to do for now
+   ++it;
+   return it;
+}
+
 void IPLogger::allocateGoals(std::string const& categoryName, Goals& category)
 {
    // for each goal in the category
    for (auto it = category.goals.begin(); it != category.goals.end();
         /*inside*/)
    {
-      // allocate as long as the goal has a start date that is within the
-      // current period
-      while (it->second.targetDates.startDate() <=
-             m_budget.back().dates.endDate())
-      {
-         // do the allocation in the goal
-         Currency toAllocate = it->second.target.amortize(
-                                  it->second.targetDates,
-                                  m_budget.back().dates);
-         Currency oldOwnerBalance = m_owners[category.owner];
-         moveMoney(it->second.allocated, m_owners[category.owner], toAllocate);
-         log("Allocating " + toAllocate.toString() + " for goal '" + it->first +
-             "' in category '" + categoryName + "', goal balance is " +
-             it->second.allocated.toString() + ", owner '" + category.owner +
-             "' previous balance " + oldOwnerBalance.toString() +
-             " new balance " + m_owners[category.owner].toString());
-
-         // if we finished the goal, transfer to the category
-         if (it->second.targetDates.endDate() <=
-             m_budget.back().dates.endDate())
-         {
-            assert(it->second.allocated == it->second.target);
-            Currency oldCatBalance = category.balance;
-            moveMoney(category.balance, it->second.allocated,
-                      it->second.allocated);
-            assert(it->second.allocated.isZero());
-            log("Goal '" + it->first + "' reached, transferring to category '" +
-                categoryName + "', category balance was " +
-                oldCatBalance.toString() + " new balance " +
-                category.balance.toString());
-
-            // repeating goals get cleared out and incremented, we will go again
-            // if the new start date is within our current period
-            if (it->second.repeat)
-            {
-               it->second.allocated = {};
-               ++it->second.targetDates;
-            }
-            // one-shot goals get erased and we jump to the next goal
-            else
-            {
-               it = category.goals.erase(it);
-               // continue in the outer loop, since the inner loop is dangerous
-               // if we just erased the last goal
-               goto outer;
-            }
-         }
-         // otherwise we will need to allocate more for this goal in the next
-         // budget period, so jump out to the next goal
-         else
-         {
-            ++it;
-            goto outer;
-         }
-      }
-
-      // location to jump out to
-outer:;
+      it = allocateGoal(categoryName, category, it->first, it->second, it);
    }
 }
 
