@@ -66,6 +66,7 @@ private:
       std::string owner;
    };
 
+   // TODO this is a nasty agglomeration of things
    struct Category
    {
       Currency allocated;
