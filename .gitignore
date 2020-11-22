@@ -1,1 +1,4 @@
-CashPiles.pro.user
+/.classpath
+/.settings/
+/target/
+.DS_Store
