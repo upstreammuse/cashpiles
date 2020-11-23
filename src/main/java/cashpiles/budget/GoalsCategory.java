@@ -9,16 +9,9 @@ import cashpiles.currency.Amount;
 
 class GoalsCategory extends BudgetCategoryImpl {
 
-	static class BudgetTransaction implements Cloneable {
+	class BudgetTransaction {
 		Amount amount;
 		String payee;
-
-		public BudgetTransaction clone() {
-			var result = new BudgetTransaction();
-			result.amount = amount;
-			result.payee = payee;
-			return result;
-		}
 	}
 
 	Map<String, GoalCalculator> calcs = new HashMap<>();
@@ -29,7 +22,7 @@ class GoalsCategory extends BudgetCategoryImpl {
 	}
 
 	void addTransaction(BudgetTransaction transaction) {
-		transactions.add(transaction.clone());
+		transactions.add(transaction);
 	}
 
 	@Override
