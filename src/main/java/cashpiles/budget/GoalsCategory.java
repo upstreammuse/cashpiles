@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import cashpiles.currency.Amount;
+import cashpiles.time.DateRange;
 
 class GoalsCategory extends BudgetCategoryImpl {
 
@@ -28,13 +29,18 @@ class GoalsCategory extends BudgetCategoryImpl {
 	@Override
 	public BudgetCategory clone() {
 		var dup = new GoalsCategory(getBalance());
-		// TODO figure out stream version for learning sake
 		for (var calc : calcs.entrySet()) {
 			if (!calc.getValue().getCompleted()) {
 				dup.calcs.put(calc.getKey(), calc.getValue().clone());
 			}
 		}
 		return dup;
+	}
+
+	@Override
+	public boolean exceedsDates(DateRange dates) {
+		// TODO implement me
+		return false;
 	}
 
 	@Override

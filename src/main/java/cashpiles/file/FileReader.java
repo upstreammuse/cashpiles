@@ -31,7 +31,7 @@ import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
-class FileReader extends java.io.FileReader {
+public class FileReader extends java.io.FileReader {
 
 	public enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER

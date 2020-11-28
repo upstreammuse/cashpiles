@@ -3,18 +3,37 @@ package cashpiles.budget.ui;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import cashpiles.budget.BudgetPeriod;
+import cashpiles.budget.BudgetReconfigureException;
+import cashpiles.ledger.Budget;
+import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerItem;
 
-public class BudgetWindow extends JFrame {
+@SuppressWarnings("serial")
+public class BudgetWindow extends JFrame implements ItemProcessor {
 
-	private final BudgetWindowTableModel table;
+	private final BudgetWindowTableModel table = new BudgetWindowTableModel();
 
-	public BudgetWindow(BudgetPeriod start) {
-		table = new BudgetWindowTableModel(start);
+	public BudgetWindow() {
 		initUI();
+	}
+
+	// TODO make this return boolean so to not handle sub items if the main item
+	// doesn't process OK?
+	public void process(Budget budget) {
+		try {
+			table.configureCurrentBudget(budget);
+		} catch (BudgetReconfigureException ex) {
+			JOptionPane.showMessageDialog(this, "Error configuring budget.  " + ex.getLocalizedMessage(),
+					"Budget Configure Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public void process(LedgerItem item) {
+		table.addItem(item);
 	}
 
 	private void initUI() {
@@ -48,7 +67,6 @@ public class BudgetWindow extends JFrame {
 		layout.setHorizontalGroup(layout.createParallelGroup().addComponent(scrollPane)
 				.addGroup(layout.createSequentialGroup().addComponent(newbutton).addComponent(editbutton)));
 		pack();
-
 	}
 
 }
