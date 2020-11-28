@@ -1,5 +1,6 @@
 package cashpiles.ledger;
 
+@SuppressWarnings("serial")
 public class MultipleEmptyEntriesException extends Exception {
 
 	MultipleEmptyEntriesException() {

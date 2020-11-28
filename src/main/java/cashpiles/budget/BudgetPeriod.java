@@ -17,7 +17,6 @@ public class BudgetPeriod {
 	}
 
 	public Amount activity() {
-		// TODO learn the stream version of this
 		var activity = new Amount();
 		for (var cat : categories.entrySet()) {
 			activity = activity.add(cat.getValue().getActivity());
@@ -26,7 +25,6 @@ public class BudgetPeriod {
 	}
 
 	public Amount allocation() {
-		// TODO learn the stream version of this
 		var allocation = new Amount();
 		for (var cat : categories.entrySet()) {
 			allocation = allocation.add(cat.getValue().getAllocation());
@@ -35,7 +33,6 @@ public class BudgetPeriod {
 	}
 
 	public Amount balance() {
-		// TODO learn the stream version of this
 		var balance = new Amount();
 		for (var cat : categories.entrySet()) {
 			balance = balance.add(cat.getValue().getBalance());
@@ -50,7 +47,6 @@ public class BudgetPeriod {
 	public BudgetPeriod next() {
 		if (nextPeriod == null) {
 			nextPeriod = new BudgetPeriod(dates.next());
-			// TODO learn the stream version of this
 			for (var cat : categories.entrySet()) {
 				if (cat.getValue().isActive()) {
 					nextPeriod.categories.put(cat.getKey(), cat.getValue().clone());
@@ -58,6 +54,15 @@ public class BudgetPeriod {
 			}
 		}
 		return nextPeriod;
+	}
+
+	public void setDates(DateRange dateRange) throws BudgetReconfigureException {
+		for (var cat : categories.entrySet()) {
+			if (cat.getValue().exceedsDates(dateRange)) {
+				throw new BudgetReconfigureException(dateRange);
+			}
+		}
+		dates = dateRange;
 	}
 
 }

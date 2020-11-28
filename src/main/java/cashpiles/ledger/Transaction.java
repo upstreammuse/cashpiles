@@ -21,7 +21,6 @@ public class Transaction extends LedgerItem {
 
 	public void balance() throws MultipleEmptyEntriesException {
 		var balancer = new TransactionEntry.BalanceResult();
-		// TODO stream this
 		for (var entry : entries) {
 			entry.balance(balancer);
 		}
