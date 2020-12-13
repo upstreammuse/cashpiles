@@ -15,6 +15,7 @@ abstract public class TransactionEntry extends LedgerItem {
 	};
 
 	public Amount amount;
+	public Transaction parent;
 
 	public TransactionEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);

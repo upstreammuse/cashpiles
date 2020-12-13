@@ -9,8 +9,11 @@ import javax.swing.JTable;
 
 import cashpiles.budget.BudgetReconfigureException;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.CloseBudgetEntry;
+import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
-import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.OwnerTransactionEntry;
 
 @SuppressWarnings("serial")
 public class BudgetWindow extends JFrame implements ItemProcessor {
@@ -21,8 +24,7 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		initUI();
 	}
 
-	// TODO make this return boolean so to not handle sub items if the main item
-	// doesn't process OK?
+	@Override
 	public void process(Budget budget) {
 		try {
 			table.configureCurrentBudget(budget);
@@ -32,8 +34,24 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		}
 	}
 
-	public void process(LedgerItem item) {
-		table.addItem(item);
+	@Override
+	public void process(CategoryTransactionEntry entry) {
+		table.addTransaction(entry);
+	}
+
+	@Override
+	public void process(CloseBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
+	public void process(GoalBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
+	public void process(OwnerTransactionEntry entry) {
+		table.addTransaction(entry);
 	}
 
 	private void initUI() {

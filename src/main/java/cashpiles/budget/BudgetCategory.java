@@ -1,23 +1,56 @@
 package cashpiles.budget;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import cashpiles.currency.Amount;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 
-// TODO seems like the concept of startbalance + stuff -> endbalance is something that could be generalized into an interface that categories, budget periods, statements, etc. would all implement.  That could also be the place where the "update dependent calculations" concept could come in, but not exactly sure how that would play out 
-interface BudgetCategory extends Cloneable {
+public abstract class BudgetCategory implements Cloneable {
 
-	BudgetCategory clone();
+	String owner;
+	Map<String, Amount> owners;
+	protected final Amount startBalance;
+	List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
-	boolean exceedsDates(DateRange dateRange);
+	public BudgetCategory(Amount startBalance, Map<String, Amount> owners, String owner) {
+		this.owner = owner;
+		this.owners = owners;
+		this.startBalance = startBalance;
+		if (!owners.containsKey(owner)) {
+			owners.put(owner, new Amount());
+		}
+	}
 
-	Amount getActivity();
+	void addTransaction(CategoryTransactionEntry transaction) {
+		transactions.add(transaction);
+	}
 
-	Amount getAllocation();
+	@Override
+	public abstract BudgetCategory clone();
 
-	Amount getBalance();
+	void close() {
+		if (!transactions.isEmpty()) {
+			throw new RuntimeException("Cannot close category that has activity");
+		}
+		owners.put(owner, owners.get(owner).add(getBalance()));
+	}
 
-	boolean isActive();
+	public boolean exceedsDates(DateRange dates) {
+		return transactions.stream().anyMatch(
+				t -> dates.startDate().compareTo(t.parent.date) > 0 || dates.endDate().compareTo(t.parent.date) < 0);
+	}
 
-	void setActive(boolean active);
+	public Amount getActivity() {
+		return transactions.stream().map(t -> t.amount).reduce(new Amount(), Amount::add);
+	}
+
+	public abstract Amount getAllocation();
+
+	public Amount getBalance() {
+		return startBalance.add(getAllocation()).add(getActivity());
+	}
 
 }
