@@ -25,6 +25,10 @@ public class DateRange {
 		sortDates(startDate, endDate());
 	}
 
+	public boolean contains(LocalDate date) {
+		return startDate.compareTo(date) <= 0 && endDate().compareTo(date) >= 0;
+	}
+
 	public LocalDate endDate() {
 		return startDate.plus(period).minus(Period.ofDays(1));
 	}

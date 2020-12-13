@@ -1,16 +1,19 @@
 package cashpiles.budget.ui;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.budget.BudgetPeriod;
 import cashpiles.budget.BudgetReconfigureException;
 import cashpiles.ledger.Budget;
-import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.CloseBudgetEntry;
+import cashpiles.ledger.GoalBudgetEntry;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
@@ -19,12 +22,24 @@ class BudgetWindowTableModel extends AbstractTableModel {
 
 	private final List<BudgetPeriod> periods = new ArrayList<>();
 
-	public void addItem(LedgerItem item) {
-		// TODO implement
-//		generateToDate(item.date);
+	void addTransaction(LocalDate date) {
+		generateToDate(date);
+		if (!Lists.lastOf(periods).dates().contains(date)) {
+			throw new RuntimeException("Cannot add transaction to non-current budget period");
+		}
 	}
 
-	public void configureCurrentBudget(Budget budget) throws BudgetReconfigureException {
+	void addTransaction(CategoryTransactionEntry entry) {
+		addTransaction(entry.parent.date);
+		Lists.lastOf(periods).addTransaction(entry);
+	}
+
+	void addTransaction(OwnerTransactionEntry entry) {
+		addTransaction(entry.parent.date);
+		Lists.lastOf(periods).addTransaction(entry);
+	}
+
+	void configureCurrentBudget(Budget budget) throws BudgetReconfigureException {
 		generateToDate(budget.date, budget.period);
 		if (Lists.lastOf(periods).dates().startDate().equals(budget.date)) {
 			Lists.lastOf(periods).setDates(new DateRange(budget.date, budget.period));
@@ -34,19 +49,12 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		}
 	}
 
-	void generateToDate(LocalDate date, Period period) {
-		if (periods.isEmpty()) {
-			periods.add(new BudgetPeriod(new DateRange(date, period)));
-			fireTableDataChanged();
-		}
-		while (Lists.lastOf(periods).dates().endDate().compareTo(date) < 0) {
-			generateNext();
-		}
+	void configureCurrentBudget(CloseBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	void generateNext() {
-		periods.add(Lists.lastOf(periods).next());
-		fireTableDataChanged();
+	public void configureCurrentBudget(GoalBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
 	}
 
 	@Override
@@ -81,6 +89,31 @@ class BudgetWindowTableModel extends AbstractTableModel {
 			return period.balance();
 		} else {
 			throw new RuntimeException("Table index out of bounds");
+		}
+	}
+
+	void generateNext() {
+		periods.add(Lists.lastOf(periods).next());
+		fireTableDataChanged();
+	}
+
+	private void generateToDate(LocalDate date) {
+		if (periods.isEmpty()) {
+			periods.add(new BudgetPeriod(new DateRange(date.withDayOfMonth(1), Period.ofMonths(1))));
+			fireTableDataChanged();
+		}
+		while (Lists.lastOf(periods).dates().endDate().compareTo(date) < 0) {
+			generateNext();
+		}
+	}
+
+	private void generateToDate(LocalDate date, Period period) {
+		if (periods.isEmpty()) {
+			periods.add(new BudgetPeriod(new DateRange(date, period)));
+			fireTableDataChanged();
+		}
+		while (Lists.lastOf(periods).dates().endDate().compareTo(date) < 0) {
+			generateNext();
 		}
 	}
 

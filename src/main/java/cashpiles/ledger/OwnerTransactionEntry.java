@@ -21,4 +21,9 @@ public class OwnerTransactionEntry extends TrackingTransactionEntry {
 		}
 	}
 
+	@Override
+	public void process(ItemProcessor processor) {
+		processor.process(this);
+	}
+
 }

@@ -18,6 +18,7 @@ public class Budget extends LedgerItem {
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+		entries.stream().forEach(e -> e.process(processor));
 	}
 
 }

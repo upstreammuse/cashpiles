@@ -12,17 +12,15 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
-import cashpiles.ledger.CancelBudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
-import cashpiles.ledger.GoalsBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.Ledger;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.MultipleEmptyEntriesException;
 import cashpiles.ledger.OwnerTransactionEntry;
-import cashpiles.ledger.ReserveAmountBudgetEntry;
-import cashpiles.ledger.ReservePercentBudgetEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
@@ -73,11 +71,10 @@ public class FileReader extends java.io.FileReader {
 		line = line.stripTrailing();
 		comment = comment.strip();
 
-		if (activeBudget != null && !processBudgetCancel(line, comment) && !processBudgetClose(line, comment)
-				&& !processBudgetGoal(line, comment) && !processBudgetGoals(line, comment)
-				&& !processBudgetIncome(line, comment) && !processBudgetReserveAmount(line, comment)
-				&& !processBudgetReservePercent(line, comment) && !processBudgetRoutine(line, comment)
-				&& !processBudgetWithholding(line, comment)) {
+		if (activeBudget != null && !processBudgetClose(line, comment) && !processBudgetGoal(line, comment)
+				&& !processBudgetIncome(line, comment) && !processBudgetReserve(line, comment)
+				&& !processBudgetRoutine(line, comment) && !processBudgetWithholding(line, comment)
+				&& !processBudgetManualGoal(line, comment)) {
 			activeLedger.add(activeBudget);
 			activeBudget = null;
 		}
@@ -141,12 +138,12 @@ public class FileReader extends java.io.FileReader {
 			throws UnknownIdentifierException, IdentifierMismatchException {
 		var balance = new AccountBalance(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
-		
+
 		if (!scanner.hasNextDate()) {
 			return false;
 		}
 		balance.date = scanner.nextDate();
-		
+
 		if (!scanner.hasNext() || !scanner.next().equals("balance")) {
 			return false;
 		}
@@ -207,37 +204,6 @@ public class FileReader extends java.io.FileReader {
 		return true;
 	}
 
-	private boolean processBudgetCancel(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
-		var cancel = new CancelBudgetEntry(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
-
-		if (!scanner.hasNextSeparator()) {
-			return false;
-		}
-
-		if (!scanner.hasNext() || !scanner.next().equals("cancel")) {
-			return false;
-		}
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		cancel.category = scanner.nextIdentifier();
-		verifyIdentifier(cancel.category, IdentifierType.CATEGORY);
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		cancel.goal = scanner.nextIdentifier();
-
-		if (scanner.hasNext()) {
-			return false;
-		}
-		activeBudget.entries.add(cancel);
-		return true;
-	}
-
 	private boolean processBudgetClose(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
 		var close = new CloseBudgetEntry(fileName, lineNumber, comment);
@@ -280,60 +246,40 @@ public class FileReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.category = scanner.nextIdentifier();
-		verifyIdentifier(goal.category, IdentifierType.CATEGORY);
+		goal.name = scanner.nextIdentifier();
+		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.name = scanner.nextIdentifier();
+		goal.owner = scanner.nextIdentifier();
+		verifySetIdentifier(goal.owner, IdentifierType.OWNER);
 
 		if (!scanner.hasNextAmount()) {
 			return false;
 		}
 		goal.amount = scanner.nextAmount();
 
-		if (!scanner.hasNextDate()) {
+		if (scanner.hasNextDate()) {
+			goal.dates = new DateRange(activeBudget.date, scanner.nextDate());
+		} else if (scanner.hasNextPeriod()) {
+			goal.dates = new DateRange(activeBudget.date, scanner.nextPeriod());
+		} else {
 			return false;
 		}
-		goal.date = scanner.nextDate();
+
+		goal.repeat = false;
+		if (scanner.hasNext()) {
+			if (!scanner.next().equals("repeat")) {
+				return false;
+			}
+			goal.repeat = true;
+		}
 
 		if (scanner.hasNext()) {
 			return false;
 		}
 		activeBudget.entries.add(goal);
-		return true;
-	}
-
-	private boolean processBudgetGoals(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
-		var goals = new GoalsBudgetEntry(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
-
-		if (!scanner.hasNextSeparator()) {
-			return false;
-		}
-
-		if (!scanner.hasNext() || !scanner.next().equals("goals")) {
-			return false;
-		}
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		goals.name = scanner.nextIdentifier();
-		verifySetIdentifier(goals.name, IdentifierType.CATEGORY);
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		goals.owner = scanner.nextIdentifier();
-		verifySetIdentifier(goals.owner, IdentifierType.OWNER);
-
-		if (scanner.hasNext()) {
-			return false;
-		}
-		activeBudget.entries.add(goals);
 		return true;
 	}
 
@@ -369,9 +315,40 @@ public class FileReader extends java.io.FileReader {
 		return true;
 	}
 
-	private boolean processBudgetReserveAmount(String line, String comment)
+	private boolean processBudgetManualGoal(String line, String comment) throws IdentifierMismatchException {
+		var goal = new ManualGoalBudgetEntry(fileName, lineNumber, comment);
+		var scanner = new Scanner(line);
+
+		if (!scanner.hasNextSeparator()) {
+			return false;
+		}
+
+		if (!scanner.hasNext() || !scanner.next().equals("goal")) {
+			return false;
+		}
+
+		if (!scanner.hasNextIdentifier()) {
+			return false;
+		}
+		goal.name = scanner.nextIdentifier();
+		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
+
+		if (!scanner.hasNextIdentifier()) {
+			return false;
+		}
+		goal.owner = scanner.nextIdentifier();
+		verifySetIdentifier(goal.owner, IdentifierType.OWNER);
+
+		if (scanner.hasNext()) {
+			return false;
+		}
+		activeBudget.entries.add(goal);
+		return true;
+	}
+
+	private boolean processBudgetReserve(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var reserve = new ReserveAmountBudgetEntry(fileName, lineNumber, comment);
+		var reserve = new ReserveBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -387,59 +364,17 @@ public class FileReader extends java.io.FileReader {
 		}
 		reserve.name = scanner.nextIdentifier();
 		verifySetIdentifier(reserve.name, IdentifierType.CATEGORY);
-
-		if (!scanner.hasNextAmount()) {
-			return false;
-		}
-		reserve.amount = scanner.nextAmount();
-
-		if (!scanner.hasNextPeriod()) {
-			return false;
-		}
-		reserve.dates = new DateRange(activeBudget.date, scanner.nextPeriod());
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		reserve.owner = scanner.nextIdentifier();
 		verifySetIdentifier(reserve.owner, IdentifierType.OWNER);
-
-		if (scanner.hasNext()) {
-			return false;
-		}
-		activeBudget.entries.add(reserve);
-		return true;
-	}
-
-	private boolean processBudgetReservePercent(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
-		var reserve = new ReservePercentBudgetEntry(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
-
-		if (!scanner.hasNextSeparator()) {
-			return false;
-		}
-
-		if (!scanner.hasNext() || !scanner.next().equals("reserve")) {
-			return false;
-		}
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		reserve.name = scanner.nextIdentifier();
-		verifySetIdentifier(reserve.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextPercentage()) {
 			return false;
 		}
 		reserve.percentage = scanner.nextPercentage();
-
-		if (!scanner.hasNextIdentifier()) {
-			return false;
-		}
-		reserve.owner = scanner.nextIdentifier();
-		verifySetIdentifier(reserve.owner, IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -539,7 +474,7 @@ public class FileReader extends java.io.FileReader {
 			return false;
 		}
 		xact.payee = scanner.nextIdentifier();
-		
+
 		if (scanner.hasNextAmount()) {
 			scanner.nextAmount();
 		}
