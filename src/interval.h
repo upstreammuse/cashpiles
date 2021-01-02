@@ -34,3 +34,4 @@ private:
 };
 
 Date operator+(Date const& left, Interval const& right);
+Date operator-(Date const& left, Interval const& right);

@@ -124,3 +124,17 @@ Date operator+(Date const& left, Interval const& right)
    }
    assert(false);
 }
+
+Date operator-(Date const& left, Interval const& right)
+{
+   switch (right.period())
+   {
+      case Interval::Period::DAYS:
+         return left.addDays(-right.number());
+      case Interval::Period::MONTHS:
+         return left.addMonths(-right.number());
+      case Interval::Period::YEARS:
+         return left.addYears(-right.number());
+   }
+   assert(false);
+}

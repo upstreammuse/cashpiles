@@ -67,6 +67,12 @@ DateRange& DateRange::operator++()
    return *this;
 }
 
+DateRange& DateRange::operator--()
+{
+   m_startDate = m_startDate - m_interval;
+   return *this;
+}
+
 bool DateRange::operator==(DateRange const& other) const
 {
    return m_startDate == other.m_startDate && endDate() == other.endDate();

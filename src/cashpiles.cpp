@@ -11,6 +11,7 @@
 #include "filewriter.h"
 #include "ipaccountbalancer.h"
 #include "ipbudgetallocator.h"
+#include "ipbudgetsummarizer.h"
 #include "ipdatevalidator.h"
 #include "iplogger.h"
 #include "iptransactioncategorizer.h"
@@ -204,6 +205,9 @@ int cashpiles(int argc, char** argv)
 
    if (!convertYnab)
    {
+      IPBudgetSummarizer summarizer(report);
+      ledger.processItems(summarizer);
+
       IPTransactionCategorizer tc;
       ledger.processItems(tc);
 

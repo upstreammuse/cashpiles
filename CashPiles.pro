@@ -14,6 +14,7 @@ HEADERS += \
    src/interval.h \
    src/ipaccountbalancer.h \
    src/ipbudgetallocator.h \
+   src/ipbudgetsummarizer.h \
    src/ipdatevalidator.h \
    src/iplogger.h \
    src/iptransactioncategorizer.h \
@@ -57,6 +58,7 @@ SOURCES += \
    src/interval.cpp \
    src/ipaccountbalancer.cpp \
    src/ipbudgetallocator.cpp \
+   src/ipbudgetsummarizer.cpp \
    src/ipdatevalidator.cpp \
    src/iplogger.cpp \
    src/iptransactioncategorizer.cpp \

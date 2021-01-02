@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
+using std::min;
 using std::string;
 
 int Date::daysInMonth(int month, int year)
@@ -205,22 +206,12 @@ std::string Date::toString(std::string const& format) const
 Date Date::addDays(int days) const
 {
    Date d = *this;
-   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
    // handle positive movement
    for (/*already set*/; days > 0; --days)
    {
-      if (d.m_year % 400 == 0 || (d.m_year % 100 != 0 && d.m_year % 4 == 0))
-      {
-         daysInMonth[2] = 29;
-      }
-      else
-      {
-         daysInMonth[2] = 28;
-      }
-
       ++d.m_day;
-      if (d.m_day > daysInMonth[d.m_month])
+      if (d.m_day > daysInMonth(d.m_month, d.m_year))
       {
          d.m_day = 1;
          ++d.m_month;
@@ -236,15 +227,6 @@ Date Date::addDays(int days) const
    // handle negative movement
    for (/*already set*/; days < 0; ++days)
    {
-      if (d.m_year % 400 == 0 || (d.m_year % 100 != 0 && d.m_year % 4 == 0))
-      {
-         daysInMonth[2] = 29;
-      }
-      else
-      {
-         daysInMonth[2] = 28;
-      }
-
       --d.m_day;
       if (d.m_day < 1)
       {
@@ -254,7 +236,7 @@ Date Date::addDays(int days) const
             d.m_month = 12;
             --d.m_year;
          }
-         d.m_day = daysInMonth[d.m_month];
+         d.m_day = daysInMonth(d.month(), d.year());
       }
    }
    d.assertValid();
@@ -264,25 +246,34 @@ Date Date::addDays(int days) const
 
 Date Date::addMonths(int months) const
 {
-   // TODO figure out if this works for negative months, based on how modulo and division work
    Date d = *this;
-   d.m_month += months % 12;
-   while (d.m_month > 12)
+
+   // handle positive movement
+   for (/*already set*/; months > 0; --months)
    {
-      d.m_month -= 12;
-      d.m_year += 1;
+      ++d.m_month;
+      if (d.m_month > 12)
+      {
+         d.m_month = 1;
+         ++d.m_year;
+      }
    }
-   d.m_year += months / 12;
-   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-   if ((d.m_year % 4 == 0 && d.m_year % 100 != 0) || d.m_year % 400 == 0)
-   {
-      daysInMonth[2] = 29;
-   }
-   if (d.m_day > daysInMonth[d.m_month])
-   {
-      d.m_day = daysInMonth[d.m_month];
-   }
+   d.m_day = min(d.m_day, daysInMonth(d.m_month, d.m_year));
    d.assertValid();
+
+   // handle negative movement
+   for (/*already set*/; months < 0; ++months)
+   {
+      --d.m_month;
+      if (d.m_month < 1)
+      {
+         d.m_month = 12;
+         --d.m_year;
+      }
+   }
+   d.m_day = min(d.m_day, daysInMonth(d.m_month, d.m_year));
+   d.assertValid();
+
    return d;
 }
 
@@ -290,15 +281,7 @@ Date Date::addYears(int years) const
 {
    Date d = *this;
    d.m_year += years;
-   int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-   if ((d.m_year % 4 == 0 && d.m_year % 100 != 0) || d.m_year % 400 == 0)
-   {
-      daysInMonth[2] = 29;
-   }
-   if (d.m_day > daysInMonth[d.m_month])
-   {
-      d.m_day = daysInMonth[d.m_month];
-   }
+   d.m_day = min(d.m_day, daysInMonth(d.m_month, d.m_year));
    d.assertValid();
    return d;
 }
@@ -324,10 +307,6 @@ bool Date::operator!=(Date const& other) const
 
 bool Date::operator<(Date const& other) const
 {
-   return toJulianDayNumber() < other.toJulianDayNumber();
-
-#if 0
-   // TODO or consider this, which may be less computational, but is also more verbose...
    if (m_year < other.m_year)
    {
       return true;
@@ -344,7 +323,6 @@ bool Date::operator<(Date const& other) const
       }
    }
    return false;
-#endif
 }
 
 bool Date::operator<=(Date const& other) const
@@ -363,6 +341,18 @@ Date::Date()
 
 void Date::assertValid() const
 {
+   if (m_month < 1 || m_month > 12)
+   {
+      assert(false);
+   }
+   if (m_year < 1)
+   {
+      assert(false);
+   }
+   if (m_day < 1 || (m_day > 28 && m_day > daysInMonth(m_month, m_year)))
+   {
+      assert(false);
+   }
    assert(m_month >= 1 && m_month <= 12);
    assert(m_year >= 1);
    assert(m_day >= 1 && (m_day <= 28 || m_day <= daysInMonth(m_month, m_year)));
