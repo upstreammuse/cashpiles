@@ -2,6 +2,7 @@ package cashpiles.currency;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.DateTimeException;
 import java.time.Period;
@@ -54,7 +55,7 @@ public class Amount {
 		// days in result
 		var unscaledResult = division[0].multiply(BigInteger.valueOf(resultDates.numberOfDays()))
 				.add(BigInteger.valueOf(numHigherDates));
-		
+
 		// return to negative value if original value was negative
 		if (isNegative()) {
 			unscaledResult = unscaledResult.negate();
@@ -71,13 +72,22 @@ public class Amount {
 		}
 		return value.compareTo(((Amount) other).value) == 0;
 	}
-	
+
 	public boolean isNegative() {
 		return value.compareTo(BigDecimal.ZERO) < 0;
 	}
-	
+
 	public Amount negate() {
 		return new Amount(value.negate());
+	}
+
+	public Amount percentage(BigDecimal percentage) {
+		return new Amount(value.multiply(percentage)
+				.setScale(NumberFormat.getCurrencyInstance().getMaximumFractionDigits(), RoundingMode.HALF_EVEN));
+	}
+
+	public Amount times(int x) {
+		return new Amount(value.multiply(new BigDecimal(x)));
 	}
 
 	public String toString() {

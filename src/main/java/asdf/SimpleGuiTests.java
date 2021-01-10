@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+@SuppressWarnings("serial")
 public class SimpleGuiTests extends JFrame {
 
 	private class Swatch extends JLabel {

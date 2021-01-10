@@ -3,12 +3,18 @@ package cashpiles.budget;
 import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
+import cashpiles.ledger.IncomeBudgetEntry;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
 public class BudgetPeriod {
@@ -45,7 +51,7 @@ public class BudgetPeriod {
 			throw new DateTimeException("Cannot assign a transaction to a period that does not include its date");
 		}
 		if (!owners.containsKey(entry.owner)) {
-			throw new RuntimeException("Cannot use unknown owner");
+			throw new RuntimeException("Cannot use unknown owner " + entry.owner);
 		}
 		owners.put(entry.owner, owners.get(entry.owner).add(entry.amount));
 	}
@@ -75,15 +81,55 @@ public class BudgetPeriod {
 			// errors in the GUI
 			throw new RuntimeException("Cannot close entry that isn't open");
 		}
-		categories.get(entry.category).close();
+		var closed = categories.get(entry.category);
+		closed.close();
+		for (var cat : categories.entrySet()) {
+			closed.unlink(cat.getValue());
+		}
 		categories.remove(entry.category);
 	}
 
-	public void configureCategory(GoalBudgetEntry entry) {
-		if (categories.containsKey(entry.name)) {
+	private void configureCategory(String name, Supplier<BudgetCategory> supplier) {
+		if (categories.containsKey(name)) {
 			throw new RuntimeException("Cannot create category that already exists");
 		}
-		categories.put(entry.name, new GoalsCategory(entry, owners));
+		categories.put(name, supplier.get());
+	}
+
+	public void configureCategory(GoalBudgetEntry entry) {
+		configureCategory(entry.name, () -> new GoalCategory(entry.name, entry, owners));
+	}
+
+	public void configureCategory(IncomeBudgetEntry entry) {
+		configureCategory(entry.name, () -> {
+			var income = new IncomeCategory(entry.name, owners, entry.owner);
+			for (var cat : categories.entrySet()) {
+				income.link(cat.getValue());
+			}
+			return income;
+		});
+	}
+
+	public void configureCategory(ManualGoalBudgetEntry entry) {
+		configureCategory(entry.name, () -> new ManualGoalCategory(entry.name, entry, owners));
+	}
+
+	public void configureCategory(ReserveBudgetEntry entry) {
+		configureCategory(entry.name, () -> {
+			var reserve = new ReserveCategory(entry.name, owners, entry.owner, entry.percentage);
+			for (var cat : categories.entrySet()) {
+				reserve.link(cat.getValue());
+			}
+			return reserve;
+		});
+	}
+
+	public void configureCategory(RoutineBudgetEntry entry) {
+		configureCategory(entry.name, () -> new RoutineCategory(entry.name, entry, owners));
+	}
+
+	public void configureCategory(WithholdingBudgetEntry entry) {
+		configureCategory(entry.name, () -> new WithholdingCategory(entry.name, entry, owners));
 	}
 
 	public DateRange dates() {
@@ -98,6 +144,7 @@ public class BudgetPeriod {
 				// this one
 				nextPeriod.categories.put(cat.getKey(), cat.getValue().clone());
 			}
+			nextPeriod.owners = new HashMap<>(owners);
 		}
 		return nextPeriod;
 	}

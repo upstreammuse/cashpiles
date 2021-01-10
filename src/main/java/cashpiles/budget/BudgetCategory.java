@@ -10,12 +10,14 @@ import cashpiles.time.DateRange;
 
 public abstract class BudgetCategory implements Cloneable {
 
-	String owner;
-	Map<String, Amount> owners;
+	protected final String name;
+	protected final String owner;
+	protected final Map<String, Amount> owners;
 	protected final Amount startBalance;
-	List<CategoryTransactionEntry> transactions = new ArrayList<>();
+	protected final List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
-	public BudgetCategory(Amount startBalance, Map<String, Amount> owners, String owner) {
+	public BudgetCategory(String name, Amount startBalance, Map<String, Amount> owners, String owner) {
+		this.name = name;
 		this.owner = owner;
 		this.owners = owners;
 		this.startBalance = startBalance;
@@ -51,6 +53,30 @@ public abstract class BudgetCategory implements Cloneable {
 
 	public Amount getBalance() {
 		return startBalance.add(getAllocation()).add(getActivity());
+	}
+
+	public void link(BudgetCategory category) {
+		// stop here to avoid infinite dispatch
+	}
+
+	public void link(String name, IncomeCategory category) {
+		// stop here to avoid infinite dispatch
+	}
+
+	public void link(String name, ReserveCategory category) {
+		// stop here to avoid infinite dispatch
+	}
+
+	void unlink(BudgetCategory category) {
+		// stop here to avoid infinite dispatch
+	}
+
+	void unlink(String name, IncomeCategory category) {
+		// stop here to avoid infinite dispatch
+	}
+
+	void unlink(String name, ReserveCategory category) {
+		// stop here to avoid infinite dispatch
 	}
 
 }
