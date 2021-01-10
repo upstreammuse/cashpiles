@@ -13,7 +13,12 @@ import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
+import cashpiles.ledger.IncomeBudgetEntry;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
@@ -54,6 +59,26 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	}
 
 	public void configureCurrentBudget(GoalBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
+	}
+
+	public void configureCurrentBudget(IncomeBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
+	}
+
+	public void configureCurrentBudget(ManualGoalBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
+	}
+
+	public void configureCurrentBudget(ReserveBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
+	}
+
+	public void configureCurrentBudget(RoutineBudgetEntry entry) {
+		Lists.lastOf(periods).configureCategory(entry);
+	}
+
+	public void configureCurrentBudget(WithholdingBudgetEntry entry) {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 

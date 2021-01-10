@@ -9,4 +9,9 @@ public class WithholdingBudgetEntry extends BudgetEntry {
 		super(fileName, lineNumber, comment);
 	}
 
+	@Override
+	public void process(ItemProcessor processor) {
+		processor.process(this);
+	}
+
 }

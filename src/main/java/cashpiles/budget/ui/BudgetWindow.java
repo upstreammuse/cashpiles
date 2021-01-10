@@ -12,8 +12,13 @@ import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
+import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 
 @SuppressWarnings("serial")
 public class BudgetWindow extends JFrame implements ItemProcessor {
@@ -50,8 +55,33 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 	}
 
 	@Override
+	public void process(IncomeBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
+	public void process(ManualGoalBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
 	public void process(OwnerTransactionEntry entry) {
 		table.addTransaction(entry);
+	}
+
+	@Override
+	public void process(ReserveBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
+	public void process(RoutineBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
+	}
+
+	@Override
+	public void process(WithholdingBudgetEntry entry) {
+		table.configureCurrentBudget(entry);
 	}
 
 	private void initUI() {
