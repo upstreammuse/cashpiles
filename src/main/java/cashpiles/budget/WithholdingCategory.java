@@ -4,6 +4,7 @@ import java.util.Map;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.WithholdingBudgetEntry;
+import cashpiles.time.DateRange;
 
 public class WithholdingCategory extends BudgetCategory {
 
@@ -16,7 +17,7 @@ public class WithholdingCategory extends BudgetCategory {
 	}
 
 	@Override
-	public BudgetCategory clone() {
+	public BudgetCategory next(DateRange dates) {
 		return new WithholdingCategory(name, getBalance(), owners, owner);
 	}
 
