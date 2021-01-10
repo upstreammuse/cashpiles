@@ -5,6 +5,7 @@ import java.util.Map;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.time.DateRange;
 
 public class IncomeCategory extends BudgetCategory {
 
@@ -23,16 +24,6 @@ public class IncomeCategory extends BudgetCategory {
 	}
 
 	@Override
-	public BudgetCategory clone() {
-		var clone = new IncomeCategory(name, owners, owner);
-		for (var reserve : reserves.entrySet()) {
-			// TODO this feels so wrong having to do it this way
-			clone.reserves.put(reserve.getKey(), (ReserveCategory) reserve.getValue().clone());
-		}
-		return clone;
-	}
-
-	@Override
 	public Amount getAllocation() {
 		return new Amount();
 	}
@@ -45,6 +36,11 @@ public class IncomeCategory extends BudgetCategory {
 	@Override
 	public void link(String name, ReserveCategory category) {
 		reserves.put(name, category);
+	}
+
+	@Override
+	public BudgetCategory next(DateRange dates) {
+		return new IncomeCategory(name, owners, owner);
 	}
 
 	@Override

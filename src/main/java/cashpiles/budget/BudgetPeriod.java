@@ -140,9 +140,11 @@ public class BudgetPeriod {
 		if (nextPeriod == null) {
 			nextPeriod = new BudgetPeriod(dates.next());
 			for (var cat : categories.entrySet()) {
-				// TODO this isn't really cloning, so maybe this is a 'next()' method just like
-				// this one
-				nextPeriod.categories.put(cat.getKey(), cat.getValue().clone());
+				var next = cat.getValue().next(nextPeriod.dates);
+				for (var otherNext : nextPeriod.categories.entrySet()) {
+					next.link(otherNext.getValue());
+				}
+				nextPeriod.categories.put(cat.getKey(), next);
 			}
 			nextPeriod.owners = new HashMap<>(owners);
 		}

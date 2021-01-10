@@ -8,7 +8,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 
-public abstract class BudgetCategory implements Cloneable {
+public abstract class BudgetCategory {
 
 	protected final String name;
 	protected final String owner;
@@ -30,13 +30,14 @@ public abstract class BudgetCategory implements Cloneable {
 		transactions.add(transaction);
 	}
 
-	@Override
-	public abstract BudgetCategory clone();
-
 	void close() {
 		if (!transactions.isEmpty()) {
 			throw new RuntimeException("Cannot close category that has activity");
 		}
+		// FIXME when a budget period is created, the categories need to allocate from
+		// their owners so that the balance of the next period + the other balance will
+		// still add up correctly. otherwise the allocation factors into the next
+		// category instance, but doesn't cost the owner anything
 		owners.put(owner, owners.get(owner).add(getBalance()));
 	}
 
@@ -66,6 +67,8 @@ public abstract class BudgetCategory implements Cloneable {
 	public void link(String name, ReserveCategory category) {
 		// stop here to avoid infinite dispatch
 	}
+
+	public abstract BudgetCategory next(DateRange dates);
 
 	void unlink(BudgetCategory category) {
 		// stop here to avoid infinite dispatch

@@ -26,7 +26,7 @@ public class RoutineCategory extends BudgetCategory {
 	}
 
 	@Override
-	public BudgetCategory clone() {
+	public BudgetCategory next(DateRange dates) {
 		var clone = new RoutineCategory(name, getBalance(), owners, owner);
 		clone.priorActivity = priorActivity.add(getActivity());
 		clone.priorRange = new DateRange(priorRange.startDate(), currentRange.endDate());

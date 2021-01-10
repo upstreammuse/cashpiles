@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import cashpiles.currency.Amount;
+import cashpiles.time.DateRange;
 
 public class ReserveCategory extends BudgetCategory {
 
@@ -21,7 +22,7 @@ public class ReserveCategory extends BudgetCategory {
 	}
 
 	@Override
-	public BudgetCategory clone() {
+	public BudgetCategory next(DateRange dates) {
 		return new ReserveCategory(name, getBalance(), owners, owner, percentage);
 	}
 

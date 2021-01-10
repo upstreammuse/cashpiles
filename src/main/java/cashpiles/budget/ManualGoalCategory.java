@@ -4,6 +4,7 @@ import java.util.Map;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.ManualGoalBudgetEntry;
+import cashpiles.time.DateRange;
 
 public class ManualGoalCategory extends BudgetCategory {
 
@@ -16,7 +17,7 @@ public class ManualGoalCategory extends BudgetCategory {
 	}
 
 	@Override
-	public BudgetCategory clone() {
+	public BudgetCategory next(DateRange dates) {
 		return new ManualGoalCategory(name, getBalance(), owners, owner);
 	}
 
