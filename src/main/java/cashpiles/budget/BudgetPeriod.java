@@ -3,7 +3,10 @@ package cashpiles.budget;
 import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Supplier;
+
+import javax.swing.JFrame;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
@@ -16,10 +19,12 @@ import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
+import cashpiles.ui.Windowable;
+import cashpiles.ui.Windower;
 
-public class BudgetPeriod {
+public class BudgetPeriod implements Windowable {
 
-	private Map<String, BudgetCategory> categories = new HashMap<>();
+	public Map<String, BudgetCategory> categories = new TreeMap<>();
 	private Map<String, Amount> owners = new HashMap<>();
 	private DateRange dates;
 	private BudgetPeriod nextPeriod = null;
@@ -136,16 +141,22 @@ public class BudgetPeriod {
 		return dates;
 	}
 
+	@Override
+	public JFrame makeWindow(Windower windower) {
+		return windower.makeWindow(this);
+	}
+
 	public BudgetPeriod next() {
 		if (nextPeriod == null) {
 			nextPeriod = new BudgetPeriod(dates.next());
-			for (var cat : categories.entrySet()) {
-				var next = cat.getValue().next(nextPeriod.dates);
-				for (var otherNext : nextPeriod.categories.entrySet()) {
-					next.link(otherNext.getValue());
-				}
-				nextPeriod.categories.put(cat.getKey(), next);
-			}
+
+			categories.forEach((catName, cat) -> {
+				var nextCat = cat.next(nextPeriod.dates);
+				nextPeriod.categories.forEach((otherCatName, otherCat) -> {
+					nextCat.link(otherCat);
+				});
+				nextPeriod.categories.put(catName, nextCat);
+			});
 			nextPeriod.owners = new HashMap<>(owners);
 		}
 		return nextPeriod;

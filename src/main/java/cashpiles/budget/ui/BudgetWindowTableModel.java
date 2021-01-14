@@ -20,6 +20,7 @@ import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
+import cashpiles.ui.WindowMaker;
 import cashpiles.util.Lists;
 
 @SuppressWarnings("serial")
@@ -80,6 +81,12 @@ class BudgetWindowTableModel extends AbstractTableModel {
 
 	public void configureCurrentBudget(WithholdingBudgetEntry entry) {
 		Lists.lastOf(periods).configureCategory(entry);
+	}
+	
+	void makeWindow(int row) {
+		var windower = new WindowMaker();
+		var window = windower.makeWindow(periods.get(row));
+		window.setVisible(true);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package cashpiles;
 
+import java.awt.Color;
 import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -14,6 +15,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 
 import cashpiles.budget.ui.BudgetWindow;
 import cashpiles.file.FileReader;
@@ -79,6 +82,9 @@ class CashPiles extends JFrame {
 
 	public static void main(String[] args) {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+		if (defaults.get("Table.alternateRowColor") == null)
+			defaults.put("Table.alternateRowColor", new Color(240, 240, 240));
 		SwingUtilities.invokeLater(() -> {
 			var cashPiles = new CashPiles();
 			cashPiles.setVisible(true);

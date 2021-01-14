@@ -53,4 +53,9 @@ public class IncomeCategory extends BudgetCategory {
 		reserves.remove(name);
 	}
 
+	@Override
+	public String typeString() {
+		return "Income";
+	}
+
 }

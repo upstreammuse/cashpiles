@@ -26,4 +26,9 @@ public class WithholdingCategory extends BudgetCategory {
 		return getActivity().negate();
 	}
 
+	@Override
+	public String typeString() {
+		return "Withholding";
+	}
+
 }

@@ -26,4 +26,9 @@ public class ManualGoalCategory extends BudgetCategory {
 		return new Amount();
 	}
 
+	@Override
+	public String typeString() {
+		return "Goal";
+	}
+
 }
