@@ -41,4 +41,9 @@ public class RoutineCategory extends BudgetCategory {
 		return perDay.times(currentRange.numberOfDays());
 	}
 
+	@Override
+	public String typeString() {
+		return "Routine";
+	}
+
 }

@@ -1,5 +1,8 @@
 package cashpiles.budget.ui;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -95,8 +98,21 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		layout.setAutoCreateGaps(true);
 
 		var table = new JTable(this.table);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent event) {
+				if (event.getClickCount() != 2) {
+					return;
+				}
+				var row = table.rowAtPoint(event.getPoint());
+				if (row != -1) {
+					BudgetWindow.this.table.makeWindow(row);
+				}
+			}
+		});
 		JScrollPane scrollPane = new JScrollPane(table);
 		table.setFillsViewportHeight(true);
+		// TODO why do I need to add() here, but not for the buttons below?
 		add(scrollPane);
 
 		var newbutton = new JButton("New Period");

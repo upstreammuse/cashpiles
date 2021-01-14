@@ -28,13 +28,19 @@ class GoalCategory extends BudgetCategory {
 
 	@Override
 	public BudgetCategory next(DateRange dates) {
-		// FIXME the calc isn't getting new allocation dates, but should be able to get them here
+		// FIXME the calc isn't getting new allocation dates, but should be able to get
+		// them here
 		return new GoalCategory(name, calc, getBalance(), owners, owner);
 	}
 
 	@Override
 	public Amount getAllocation() {
 		return calc.getAllocationAmount();
+	}
+
+	@Override
+	public String typeString() {
+		return "Goal";
 	}
 
 }

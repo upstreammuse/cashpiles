@@ -45,4 +45,9 @@ public class ReserveCategory extends BudgetCategory {
 		category.unlink(name, this);
 	}
 
+	@Override
+	public String typeString() {
+		return "Reserve";
+	}
+
 }

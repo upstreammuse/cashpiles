@@ -70,6 +70,8 @@ public abstract class BudgetCategory {
 
 	public abstract BudgetCategory next(DateRange dates);
 
+	public abstract String typeString();
+
 	void unlink(BudgetCategory category) {
 		// stop here to avoid infinite dispatch
 	}
