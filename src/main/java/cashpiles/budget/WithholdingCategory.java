@@ -1,24 +1,22 @@
 package cashpiles.budget;
 
-import java.util.Map;
-
 import cashpiles.currency.Amount;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
 public class WithholdingCategory extends BudgetCategory {
 
-	public WithholdingCategory(String name, WithholdingBudgetEntry entry, Map<String, Amount> owners) {
-		this(name, new Amount(), owners, entry.owner);
+	public WithholdingCategory(String name, WithholdingBudgetEntry entry) {
+		this(name, entry.owner, new Amount());
 	}
 
-	public WithholdingCategory(String name, Amount startBalance, Map<String, Amount> owners, String owner) {
-		super(name, startBalance, owners, owner);
+	public WithholdingCategory(String name, String owner, Amount startBalance) {
+		super(name, owner, startBalance);
 	}
 
 	@Override
 	public BudgetCategory next(DateRange dates) {
-		return new WithholdingCategory(name, getBalance(), owners, owner);
+		return new WithholdingCategory(name, owner, getBalance());
 	}
 
 	@Override

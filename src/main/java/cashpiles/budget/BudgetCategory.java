@@ -2,7 +2,6 @@ package cashpiles.budget;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
@@ -12,38 +11,23 @@ public abstract class BudgetCategory {
 
 	protected final String name;
 	protected final String owner;
-	protected final Map<String, Amount> owners;
 	protected final Amount startBalance;
 	protected final List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
-	public BudgetCategory(String name, Amount startBalance, Map<String, Amount> owners, String owner) {
+	protected BudgetCategory(String name, String owner, Amount startBalance) {
 		this.name = name;
 		this.owner = owner;
-		this.owners = owners;
 		this.startBalance = startBalance;
-		if (!owners.containsKey(owner)) {
-			owners.put(owner, new Amount());
-		}
 	}
 
 	void addTransaction(CategoryTransactionEntry transaction) {
 		transactions.add(transaction);
 	}
 
-	void close() {
+	void close() throws BudgetReconfigureException {
 		if (!transactions.isEmpty()) {
-			throw new RuntimeException("Cannot close category that has activity");
+			throw BudgetReconfigureException.forCategoryClosure(name);
 		}
-		// FIXME when a budget period is created, the categories need to allocate from
-		// their owners so that the balance of the next period + the other balance will
-		// still add up correctly. otherwise the allocation factors into the next
-		// category instance, but doesn't cost the owner anything
-		owners.put(owner, owners.get(owner).add(getBalance()));
-	}
-
-	public boolean exceedsDates(DateRange dates) {
-		return transactions.stream().anyMatch(
-				t -> dates.startDate().compareTo(t.parent.date) > 0 || dates.endDate().compareTo(t.parent.date) < 0);
 	}
 
 	public Amount getActivity() {

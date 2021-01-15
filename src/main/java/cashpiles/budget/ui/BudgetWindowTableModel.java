@@ -55,7 +55,7 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		}
 	}
 
-	void configureCurrentBudget(CloseBudgetEntry entry) {
+	void configureCurrentBudget(CloseBudgetEntry entry) throws BudgetReconfigureException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 

@@ -1,6 +1,7 @@
 package cashpiles.budget;
 
 import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,16 +22,19 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 import cashpiles.ui.Windowable;
 import cashpiles.ui.Windower;
+import cashpiles.util.Comparisons;
 
 public class BudgetPeriod implements Windowable {
 
 	public Map<String, BudgetCategory> categories = new TreeMap<>();
 	private Map<String, Amount> owners = new HashMap<>();
 	private DateRange dates;
+	private LocalDate lastTransactionDate;
 	private BudgetPeriod nextPeriod = null;
 
 	public BudgetPeriod(DateRange dates) {
 		this.dates = dates;
+		lastTransactionDate = dates.startDate();
 	}
 
 	public Amount activity() {
@@ -49,6 +53,7 @@ public class BudgetPeriod implements Windowable {
 			throw new RuntimeException("Cannot use unknown category");
 		}
 		categories.get(entry.category).addTransaction(entry);
+		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent.date);
 	}
 
 	public void addTransaction(OwnerTransactionEntry entry) {
@@ -59,6 +64,7 @@ public class BudgetPeriod implements Windowable {
 			throw new RuntimeException("Cannot use unknown owner " + entry.owner);
 		}
 		owners.put(entry.owner, owners.get(entry.owner).add(entry.amount));
+		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent.date);
 	}
 
 	public Amount allocation() {
@@ -80,11 +86,11 @@ public class BudgetPeriod implements Windowable {
 		return balance;
 	}
 
-	public void configureCategory(CloseBudgetEntry entry) {
+	// TODO replace all the REs with something typed so that we can have decent
+	// errors in the GUI
+	public void configureCategory(CloseBudgetEntry entry) throws BudgetReconfigureException {
 		if (!categories.containsKey(entry.category)) {
-			// TODO replace all the REs with something typed so that we can have decent
-			// errors in the GUI
-			throw new RuntimeException("Cannot close entry that isn't open");
+			throw BudgetReconfigureException.forClosedCategory(entry.category);
 		}
 		var closed = categories.get(entry.category);
 		closed.close();
@@ -98,16 +104,20 @@ public class BudgetPeriod implements Windowable {
 		if (categories.containsKey(name)) {
 			throw new RuntimeException("Cannot create category that already exists");
 		}
-		categories.put(name, supplier.get());
+		var category = supplier.get();
+		categories.put(name, category);
+		if (!owners.containsKey(category.owner)) {
+			owners.put(category.owner, new Amount());
+		}
 	}
 
 	public void configureCategory(GoalBudgetEntry entry) {
-		configureCategory(entry.name, () -> new GoalCategory(entry.name, entry, owners));
+		configureCategory(entry.name, () -> new GoalCategory(entry.name, entry));
 	}
 
 	public void configureCategory(IncomeBudgetEntry entry) {
 		configureCategory(entry.name, () -> {
-			var income = new IncomeCategory(entry.name, owners, entry.owner);
+			var income = new IncomeCategory(entry.name, entry.owner);
 			for (var cat : categories.entrySet()) {
 				income.link(cat.getValue());
 			}
@@ -116,12 +126,12 @@ public class BudgetPeriod implements Windowable {
 	}
 
 	public void configureCategory(ManualGoalBudgetEntry entry) {
-		configureCategory(entry.name, () -> new ManualGoalCategory(entry.name, entry, owners));
+		configureCategory(entry.name, () -> new ManualGoalCategory(entry.name, entry));
 	}
 
 	public void configureCategory(ReserveBudgetEntry entry) {
 		configureCategory(entry.name, () -> {
-			var reserve = new ReserveCategory(entry.name, owners, entry.owner, entry.percentage);
+			var reserve = new ReserveCategory(entry.name, entry.owner, entry.percentage);
 			for (var cat : categories.entrySet()) {
 				reserve.link(cat.getValue());
 			}
@@ -130,11 +140,11 @@ public class BudgetPeriod implements Windowable {
 	}
 
 	public void configureCategory(RoutineBudgetEntry entry) {
-		configureCategory(entry.name, () -> new RoutineCategory(entry.name, entry, owners));
+		configureCategory(entry.name, () -> new RoutineCategory(entry.name, entry));
 	}
 
 	public void configureCategory(WithholdingBudgetEntry entry) {
-		configureCategory(entry.name, () -> new WithholdingCategory(entry.name, entry, owners));
+		configureCategory(entry.name, () -> new WithholdingCategory(entry.name, entry));
 	}
 
 	public DateRange dates() {
@@ -149,8 +159,8 @@ public class BudgetPeriod implements Windowable {
 	public BudgetPeriod next() {
 		if (nextPeriod == null) {
 			nextPeriod = new BudgetPeriod(dates.next());
-
 			categories.forEach((catName, cat) -> {
+				owners.put(cat.owner, owners.get(cat.owner).add(cat.getAllocation().negate()));
 				var nextCat = cat.next(nextPeriod.dates);
 				nextPeriod.categories.forEach((otherCatName, otherCat) -> {
 					nextCat.link(otherCat);
@@ -163,10 +173,8 @@ public class BudgetPeriod implements Windowable {
 	}
 
 	public void setDates(DateRange dateRange) throws BudgetReconfigureException {
-		for (var cat : categories.entrySet()) {
-			if (cat.getValue().exceedsDates(dateRange)) {
-				throw new BudgetReconfigureException(dateRange);
-			}
+		if (!dateRange.contains(lastTransactionDate)) {
+			throw new BudgetReconfigureException(dateRange);
 		}
 		dates = dateRange;
 	}
