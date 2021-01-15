@@ -32,13 +32,17 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		initUI();
 	}
 
+	private void error(Exception ex) {
+		JOptionPane.showMessageDialog(this, "Error processing budget.  " + ex.getLocalizedMessage(), "Budget Error",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
 	@Override
 	public void process(Budget budget) {
 		try {
 			table.configureCurrentBudget(budget);
 		} catch (BudgetReconfigureException ex) {
-			JOptionPane.showMessageDialog(this, "Error configuring budget.  " + ex.getLocalizedMessage(),
-					"Budget Configure Error", JOptionPane.ERROR_MESSAGE);
+			error(ex);
 		}
 	}
 
@@ -49,7 +53,11 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 
 	@Override
 	public void process(CloseBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetReconfigureException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
@@ -112,8 +120,6 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		});
 		JScrollPane scrollPane = new JScrollPane(table);
 		table.setFillsViewportHeight(true);
-		// TODO why do I need to add() here, but not for the buttons below?
-		add(scrollPane);
 
 		var newbutton = new JButton("New Period");
 		newbutton.addActionListener(event -> {

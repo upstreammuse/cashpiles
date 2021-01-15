@@ -11,8 +11,8 @@ public class IncomeCategory extends BudgetCategory {
 
 	Map<String, ReserveCategory> reserves = new HashMap<>();
 
-	public IncomeCategory(String name, Map<String, Amount> owners, String owner) {
-		super(name, new Amount(), owners, owner);
+	public IncomeCategory(String name, String owner) {
+		super(name, owner, new Amount());
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public class IncomeCategory extends BudgetCategory {
 
 	@Override
 	public Amount getAllocation() {
-		return new Amount();
+		return getActivity().negate();
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class IncomeCategory extends BudgetCategory {
 
 	@Override
 	public BudgetCategory next(DateRange dates) {
-		return new IncomeCategory(name, owners, owner);
+		return new IncomeCategory(name, owner);
 	}
 
 	@Override

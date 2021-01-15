@@ -1,7 +1,5 @@
 package cashpiles.budget;
 
-import java.util.Map;
-
 import cashpiles.currency.Amount;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.time.DateRange;
@@ -15,30 +13,33 @@ public class RoutineCategory extends BudgetCategory {
 	// to redundantly track it here
 	DateRange currentRange;
 
-	public RoutineCategory(String name, RoutineBudgetEntry entry, Map<String, Amount> owners) {
-		super(name, new Amount(), owners, entry.owner);
+	public RoutineCategory(String name, RoutineBudgetEntry entry) {
+		super(name, entry.owner, new Amount());
 		priorActivity = new Amount();
 		priorRange = currentRange = new DateRange(entry.parent.date, entry.parent.period);
 	}
 
-	private RoutineCategory(String name, Amount amount, Map<String, Amount> owners, String owner) {
-		super(name, amount, owners, owner);
+	private RoutineCategory(String name, String owner, Amount amount) {
+		super(name, owner, amount);
 	}
 
 	@Override
 	public BudgetCategory next(DateRange dates) {
-		var clone = new RoutineCategory(name, getBalance(), owners, owner);
+		var clone = new RoutineCategory(name, owner, getBalance());
 		clone.priorActivity = priorActivity.add(getActivity());
 		clone.priorRange = new DateRange(priorRange.startDate(), currentRange.endDate());
-		clone.currentRange = currentRange.next();
+		clone.currentRange = dates;
 		return clone;
 	}
 
 	@Override
 	public Amount getAllocation() {
-		var perDay = priorActivity.distributeAndAdd(priorRange,
+		// TODO this should be configurable instead of a hard-coded 180-day buffer.
+		// that's too much for a lot of people to handle
+		var perDay = priorActivity.negate().distributeAndAdd(priorRange,
 				new DateRange(priorRange.startDate(), priorRange.startDate()));
-		return perDay.times(currentRange.numberOfDays());
+		var comfortable = perDay.times(180).add(perDay.times(currentRange.numberOfDays()));
+		return comfortable.add(startBalance.negate());
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package cashpiles.budget;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
@@ -11,19 +10,18 @@ public class ReserveCategory extends BudgetCategory {
 	Amount allocation = new Amount();
 	BigDecimal percentage;
 
-	public ReserveCategory(String name, Map<String, Amount> owners, String owner, BigDecimal percentage) {
-		this(name, new Amount(), owners, owner, percentage);
+	public ReserveCategory(String name, String owner, BigDecimal percentage) {
+		this(name, owner, new Amount(), percentage);
 	}
 
-	public ReserveCategory(String name, Amount startBalance, Map<String, Amount> owners, String owner,
-			BigDecimal percentage) {
-		super(name, startBalance, owners, owner);
+	public ReserveCategory(String name, String owner, Amount startBalance, BigDecimal percentage) {
+		super(name, owner, startBalance);
 		this.percentage = percentage;
 	}
 
 	@Override
 	public BudgetCategory next(DateRange dates) {
-		return new ReserveCategory(name, getBalance(), owners, owner, percentage);
+		return new ReserveCategory(name, owner, getBalance(), percentage);
 	}
 
 	@Override
@@ -34,6 +32,11 @@ public class ReserveCategory extends BudgetCategory {
 	@Override
 	public void link(BudgetCategory category) {
 		category.link(name, this);
+	}
+
+	@Override
+	public void link(String name, IncomeCategory category) {
+		category.link(this.name, this);
 	}
 
 	public void reserve(Amount amount) {
