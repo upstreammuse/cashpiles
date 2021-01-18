@@ -3,6 +3,7 @@ package cashpiles.ui;
 import javax.swing.JFrame;
 
 import cashpiles.budget.BudgetPeriod;
+import cashpiles.ui.budget.BudgetPeriodWindow;
 
 public class WindowMaker implements Windower {
 
@@ -13,7 +14,9 @@ public class WindowMaker implements Windower {
 
 	@Override
 	public JFrame makeWindow(BudgetPeriod period) {
-		return new BudgetPeriodWindow(period);
+		var window = new BudgetPeriodWindow();
+		window.setPeriod(period);
+		return window;
 	}
 
 }

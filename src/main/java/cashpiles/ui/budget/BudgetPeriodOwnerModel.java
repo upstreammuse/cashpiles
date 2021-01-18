@@ -1,4 +1,4 @@
-package cashpiles.ui;
+package cashpiles.ui.budget;
 
 import java.util.ArrayList;
 
@@ -7,14 +7,10 @@ import javax.swing.table.AbstractTableModel;
 import cashpiles.budget.BudgetPeriod;
 
 @SuppressWarnings("serial")
-class BudgetPeriodModel extends AbstractTableModel {
+class BudgetPeriodOwnerModel extends AbstractTableModel {
 
-	private static final String[] headers = { "Category", "Type", "Allocation", "Activity", "Balance" };
+	private static final String[] headers = { "Owner", "Balance" };
 	private BudgetPeriod period;
-
-	BudgetPeriodModel(BudgetPeriod period) {
-		this.period = period;
-	}
 
 	@Override
 	public int getColumnCount() {
@@ -28,19 +24,19 @@ class BudgetPeriodModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return period.categories.size();
+		if (period == null) {
+			return 0;
+		}
+		return period.owners.size();
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		var entries = new ArrayList<>(period.categories.entrySet());
+		var entries = new ArrayList<>(period.owners.entrySet());
 		var entry = entries.get(row);
 		return switch (col) {
 		case 0 -> entry.getKey();
-		case 1 -> entry.getValue().typeString();
-		case 2 -> entry.getValue().getAllocation();
-		case 3 -> entry.getValue().getActivity();
-		case 4 -> entry.getValue().getBalance();
+		case 1 -> entry.getValue();
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};
 	}

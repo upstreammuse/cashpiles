@@ -27,7 +27,7 @@ import cashpiles.util.Comparisons;
 public class BudgetPeriod implements Windowable {
 
 	public Map<String, BudgetCategory> categories = new TreeMap<>();
-	private Map<String, Amount> owners = new HashMap<>();
+	public Map<String, Amount> owners = new HashMap<>();
 	private DateRange dates;
 	private LocalDate lastTransactionDate;
 	private BudgetPeriod nextPeriod = null;
