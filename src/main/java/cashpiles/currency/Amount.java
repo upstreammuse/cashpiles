@@ -67,10 +67,18 @@ public class Amount {
 
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof Amount)) {
+		if (other == null) {
+			return false;
+		}
+		if (!getClass().equals(other.getClass())) {
 			return false;
 		}
 		return value.compareTo(((Amount) other).value) == 0;
+	}
+
+	@Override
+	public int hashCode() {
+		return value.setScale(NumberFormat.getCurrencyInstance().getMaximumFractionDigits()).hashCode();
 	}
 
 	public boolean isNegative() {

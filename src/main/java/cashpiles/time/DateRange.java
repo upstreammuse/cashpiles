@@ -35,10 +35,18 @@ public class DateRange {
 
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof DateRange)) {
+		if (other == null) {
+			return false;
+		}
+		if (!getClass().equals(other.getClass())) {
 			return false;
 		}
 		return ((DateRange) other).startDate.equals(startDate) && ((DateRange) other).period.equals(period);
+	}
+
+	@Override
+	public int hashCode() {
+		return startDate.hashCode() ^ period.hashCode();
 	}
 
 	public DateRange intersect(DateRange other) {
