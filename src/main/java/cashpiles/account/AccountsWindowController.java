@@ -13,11 +13,15 @@ import cashpiles.ledger.Account;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.util.Lists;
 
+// TODO this might be doable as separate pieces
 class AccountsWindowController {
 
 	private final Map<String, List<AccountStatement>> accounts = new TreeMap<>();
-	private final AccountsTableModel onBudgetModel = new AccountsTableModel();
-	private final AccountsTableModel offBudgetModel = new AccountsTableModel();
+	private final TransactionTableModel allTransactions = new TransactionTableModel(accounts);
+	private final AccountsTableModel onBudgetModel = new AccountsTableModel(accounts, Account.Status.ON_BUDGET);
+	private final AccountsTableModel offBudgetModel = new AccountsTableModel(accounts, Account.Status.OFF_BUDGET);
+	private JTable statementsUI;
+	private JTable transactionsUI;
 
 	void forOnBudgetAccounts(JTable onBudgetAccounts) {
 		onBudgetAccounts.setModel(onBudgetModel);
@@ -25,6 +29,15 @@ class AccountsWindowController {
 
 	void forOffBudgetAccounts(JTable offBudgetAccounts) {
 		offBudgetAccounts.setModel(offBudgetModel);
+	}
+
+	void forStatements(JTable statements) {
+		statementsUI = statements;
+	}
+
+	void forTransactions(JTable transactions) {
+		transactionsUI = transactions;
+		transactions.setModel(allTransactions);
 	}
 
 	void onOnBudgetBalance(Consumer<Amount> consumer) {
@@ -53,7 +66,7 @@ class AccountsWindowController {
 				}
 				var closer = new AccountStatement(Account.Status.CLOSED, new Amount());
 				accounts.get(account.name).add(closer);
-				onBudgetModel.close(account.name);
+				onBudgetModel.fireTableDataChanged();
 			}
 			}
 		}
@@ -67,7 +80,7 @@ class AccountsWindowController {
 				}
 				var closer = new AccountStatement(Account.Status.CLOSED, new Amount());
 				accounts.get(account.name).add(closer);
-				offBudgetModel.close(account.name);
+				offBudgetModel.fireTableDataChanged();
 			}
 			}
 		}
@@ -76,12 +89,12 @@ class AccountsWindowController {
 			case ON_BUDGET -> {
 				var opener = new AccountStatement(Account.Status.ON_BUDGET, new Amount());
 				accounts.get(account.name).add(opener);
-				onBudgetModel.open(account.name);
+				onBudgetModel.fireTableDataChanged();
 			}
 			case OFF_BUDGET -> {
 				var opener = new AccountStatement(Account.Status.OFF_BUDGET, new Amount());
 				accounts.get(account.name).add(opener);
-				offBudgetModel.open(account.name);
+				offBudgetModel.fireTableDataChanged();
 			}
 			case CLOSED -> throw AccountException.forAlreadyClosed(account);
 			}
@@ -94,15 +107,16 @@ class AccountsWindowController {
 			throw AccountException.forUnknown(entry);
 		}
 
-		// TODO this is clumsy
 		switch (Lists.lastOf(accounts.get(entry.account)).status) {
 		case ON_BUDGET -> {
 			Lists.lastOf(accounts.get(entry.account)).add(entry);
-			onBudgetModel.add(entry);
+			onBudgetModel.fireTableDataChanged();
+			allTransactions.fireTableDataChanged();
 		}
 		case OFF_BUDGET -> {
 			Lists.lastOf(accounts.get(entry.account)).add(entry);
-			offBudgetModel.add(entry);
+			offBudgetModel.fireTableDataChanged();
+			allTransactions.fireTableDataChanged();
 		}
 		case CLOSED -> {
 			throw AccountException.forClosed(entry);
