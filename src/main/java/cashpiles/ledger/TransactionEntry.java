@@ -7,10 +7,18 @@ abstract public class TransactionEntry extends LedgerItem {
 	static class BalanceResult {
 		Amount accountTotal = new Amount();
 		Amount categoryTotal = new Amount();
-		TransactionEntry nullEntry;
+		TransactionEntry nullEntry = null;
 
+		// TODO fix this terrible way of doing things
 		Amount missingAmount() {
-			return accountTotal.add(categoryTotal).negate();
+			// can't answer if there is no missing entry
+			if (nullEntry == null) {
+				return new Amount();
+			} else if (nullEntry instanceof AccountTransactionEntry) {
+				return categoryTotal.add(accountTotal.negate());
+			} else {
+				return accountTotal.add(categoryTotal.negate());
+			}
 		}
 	};
 
@@ -21,6 +29,6 @@ abstract public class TransactionEntry extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
-	abstract void balance(BalanceResult soFar) throws MultipleEmptyEntriesException;
+	abstract void balance(BalanceResult soFar) throws TransactionException;
 
 }

@@ -19,13 +19,24 @@ public class Transaction extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
-	public void balance() throws MultipleEmptyEntriesException {
+	public void balance() throws TransactionException {
 		var balancer = new TransactionEntry.BalanceResult();
 		for (var entry : entries) {
 			entry.balance(balancer);
 		}
 		if (balancer.nullEntry != null) {
 			balancer.nullEntry.amount = balancer.missingAmount();
+
+		}
+
+		// TODO this is crap, but don't have a good way to apply the balance change to
+		// the right place without rerunning the balance check
+		balancer = new TransactionEntry.BalanceResult();
+		for (var entry : entries) {
+			entry.balance(balancer);
+		}
+		if (!balancer.accountTotal.equals(balancer.categoryTotal)) {
+			throw TransactionException.forUnbalanced(this, balancer.accountTotal, balancer.categoryTotal);
 		}
 	}
 

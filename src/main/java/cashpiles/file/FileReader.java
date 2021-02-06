@@ -18,13 +18,13 @@ import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.Ledger;
 import cashpiles.ledger.ManualGoalBudgetEntry;
-import cashpiles.ledger.MultipleEmptyEntriesException;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionEntry;
+import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
@@ -48,7 +48,7 @@ public class FileReader extends java.io.FileReader {
 	}
 
 	public Ledger readAll() throws IOException, UnknownIdentifierException, IdentifierMismatchException,
-			MultipleEmptyEntriesException, InvalidContentException {
+			InvalidContentException, TransactionException {
 		activeLedger = new Ledger();
 		var buf = new BufferedReader(this);
 		for (var line = buf.readLine(); line != null; line = buf.readLine()) {
@@ -59,7 +59,7 @@ public class FileReader extends java.io.FileReader {
 	}
 
 	private void processLine(String line) throws UnknownIdentifierException, IdentifierMismatchException,
-			MultipleEmptyEntriesException, InvalidContentException {
+			InvalidContentException, TransactionException {
 		var comment = "";
 		var split = line.indexOf(';');
 
