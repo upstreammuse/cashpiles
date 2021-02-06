@@ -5,7 +5,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
 
 import cashpiles.ledger.Account;
@@ -20,6 +19,8 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	private final JLabel offBudgetBalance = new JLabel();
 	private final JTable onBudgetAccounts = new JTable();
 	private final JLabel onBudgetBalance = new JLabel();
+	private final JTable statements = new JTable();
+	private final JTable transactions = new JTable();
 
 	public AccountsWindow() {
 		initController();
@@ -52,6 +53,7 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	private void initController() {
 		controller.forOnBudgetAccounts(onBudgetAccounts);
 		controller.forOffBudgetAccounts(offBudgetAccounts);
+		controller.forTransactions(transactions);
 		controller.onOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.onOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 	}
@@ -70,20 +72,35 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 		offBudgetBalance.setMaximumSize(offBudgetBalance.getPreferredSize());
 
 		var scrollPane1 = new JScrollPane(onBudgetAccounts);
-		onBudgetAccounts.setFillsViewportHeight(true);
-		var separator = new JSeparator();
+//		onBudgetAccounts.setFillsViewportHeight(true);
+//		var separator = new JSeparator();
 		var scrollPane2 = new JScrollPane(offBudgetAccounts);
+		var scrollPane3 = new JScrollPane(statements);
+		var scrollPane4 = new JScrollPane(transactions);
 
-		layout.setVerticalGroup(layout.createSequentialGroup()
+		layout.setVerticalGroup(layout.createParallelGroup().addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
-				.addComponent(scrollPane1).addComponent(separator)
+				.addComponent(scrollPane1)
 				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-				.addComponent(scrollPane2));
-		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
+
+		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
-				.addComponent(scrollPane1).addComponent(separator)
+				.addComponent(scrollPane1)
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-				.addComponent(scrollPane2));
+				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
+
+//				layout.createSequentialGroup()
+//				.addGroup(layout.createParallelGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
+//				.addComponent(scrollPane1).addComponent(separator)
+//				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
+//				.addComponent(scrollPane2));
+
+//		layout.setHorizontalGroup(layout.createParallelGroup()
+//				.addGroup(layout.createSequentialGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
+//				.addComponent(scrollPane1).addComponent(separator)
+//				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
+//				.addComponent(scrollPane2));
 		pack();
 	}
 
