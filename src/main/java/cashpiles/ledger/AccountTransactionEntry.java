@@ -21,4 +21,9 @@ public class AccountTransactionEntry extends TransactionEntry {
 		}
 	}
 
+	@Override
+	public void process(ItemProcessor processor) {
+		processor.process(this);
+	}
+
 }

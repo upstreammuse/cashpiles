@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 
+import cashpiles.account.AccountsWindow;
 import cashpiles.budget.ui.BudgetWindow;
 import cashpiles.file.FileReader;
 import cashpiles.file.IdentifierMismatchException;
@@ -68,10 +69,14 @@ class CashPiles extends JFrame {
 		var filename = dialog.getFile();
 		if (filename != null) {
 			try (var reader = new FileReader(dialog.getDirectory() + filename)) {
+				// TODO this should go in an action thread to not hang the gui
 				var ledger = reader.readAll();
-				var window = new BudgetWindow();
-				ledger.process(window);
-				window.setVisible(true);
+				var accountWindow = new AccountsWindow();
+				ledger.process(accountWindow);
+				accountWindow.setVisible(true);
+				var budgetWindow = new BudgetWindow();
+				ledger.process(budgetWindow);
+				budgetWindow.setVisible(true);
 			} catch (IOException | UnknownIdentifierException | IdentifierMismatchException
 					| MultipleEmptyEntriesException | InvalidContentException ex) {
 				JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(),

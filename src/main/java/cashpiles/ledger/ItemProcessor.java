@@ -2,6 +2,12 @@ package cashpiles.ledger;
 
 public interface ItemProcessor {
 
+	default void process(Account account) {
+	}
+
+	default void process(AccountTransactionEntry entry) {
+	}
+
 	default void process(Budget budget) {
 	}
 
