@@ -9,12 +9,12 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	void balance(BalanceResult soFar) throws MultipleEmptyEntriesException {
+	void balance(BalanceResult soFar) throws TransactionException {
 		if (amount == null) {
 			if (soFar.nullEntry == null) {
 				soFar.nullEntry = this;
 			} else {
-				throw new MultipleEmptyEntriesException();
+				throw TransactionException.forMultipleEmptyEntries(this);
 			}
 		} else {
 			soFar.accountTotal = soFar.accountTotal.add(amount);

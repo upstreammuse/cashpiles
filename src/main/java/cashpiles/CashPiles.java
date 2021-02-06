@@ -24,7 +24,7 @@ import cashpiles.file.FileReader;
 import cashpiles.file.IdentifierMismatchException;
 import cashpiles.file.InvalidContentException;
 import cashpiles.file.UnknownIdentifierException;
-import cashpiles.ledger.MultipleEmptyEntriesException;
+import cashpiles.ledger.TransactionException;
 
 @SuppressWarnings("serial")
 class CashPiles extends JFrame {
@@ -77,8 +77,8 @@ class CashPiles extends JFrame {
 				var budgetWindow = new BudgetWindow();
 				ledger.process(budgetWindow);
 				budgetWindow.setVisible(true);
-			} catch (IOException | UnknownIdentifierException | IdentifierMismatchException
-					| MultipleEmptyEntriesException | InvalidContentException ex) {
+			} catch (IOException | UnknownIdentifierException | IdentifierMismatchException | TransactionException
+					| InvalidContentException ex) {
 				JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(),
 						"File Read Error", JOptionPane.ERROR_MESSAGE);
 			}
