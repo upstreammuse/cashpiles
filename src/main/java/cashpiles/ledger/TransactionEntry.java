@@ -1,5 +1,7 @@
 package cashpiles.ledger;
 
+import java.util.Optional;
+
 import cashpiles.currency.Amount;
 
 abstract public class TransactionEntry extends LedgerItem {
@@ -7,18 +9,10 @@ abstract public class TransactionEntry extends LedgerItem {
 	static class BalanceResult {
 		Amount accountTotal = new Amount();
 		Amount categoryTotal = new Amount();
-		TransactionEntry nullEntry = null;
+		Optional<TransactionEntry> emptyEntry = Optional.empty();
 
-		// TODO fix this terrible way of doing things
 		Amount missingAmount() {
-			// can't answer if there is no missing entry
-			if (nullEntry == null) {
-				return new Amount();
-			} else if (nullEntry instanceof AccountTransactionEntry) {
-				return categoryTotal.add(accountTotal.negate());
-			} else {
-				return accountTotal.add(categoryTotal.negate());
-			}
+			return emptyEntry.map(entry -> entry.missingAmount(this)).orElse(new Amount());
 		}
 	};
 
@@ -30,5 +24,7 @@ abstract public class TransactionEntry extends LedgerItem {
 	}
 
 	abstract void balance(BalanceResult soFar) throws TransactionException;
+
+	abstract Amount missingAmount(BalanceResult balanceResult);
 
 }

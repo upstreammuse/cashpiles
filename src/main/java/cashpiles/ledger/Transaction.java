@@ -20,23 +20,24 @@ public class Transaction extends LedgerItem {
 	}
 
 	public void balance() throws TransactionException {
-		var balancer = new TransactionEntry.BalanceResult();
+		// step 1, if there is an entry with an empty amount, calculate it and fill it
+		// in
+		final var balancer = new TransactionEntry.BalanceResult();
 		for (var entry : entries) {
 			entry.balance(balancer);
 		}
-		if (balancer.nullEntry != null) {
-			balancer.nullEntry.amount = balancer.missingAmount();
+		balancer.emptyEntry.ifPresent(entry -> {
+			entry.amount = balancer.missingAmount();
+		});
 
-		}
-
-		// TODO this is crap, but don't have a good way to apply the balance change to
-		// the right place without rerunning the balance check
-		balancer = new TransactionEntry.BalanceResult();
+		// step 2, make sure the accounts and categories match, which isn't guaranteed
+		// if the transaction has everything populated but a number is wrong
+		var balancer2 = new TransactionEntry.BalanceResult();
 		for (var entry : entries) {
-			entry.balance(balancer);
+			entry.balance(balancer2);
 		}
-		if (!balancer.accountTotal.equals(balancer.categoryTotal)) {
-			throw TransactionException.forUnbalanced(this, balancer.accountTotal, balancer.categoryTotal);
+		if (!balancer2.accountTotal.equals(balancer2.categoryTotal)) {
+			throw TransactionException.forUnbalanced(this, balancer2.accountTotal, balancer2.categoryTotal);
 		}
 	}
 
