@@ -6,10 +6,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 
 import cashpiles.ledger.Account;
+import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionEntry;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerException;
+import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.UnbalancedTransaction;
 
 @SuppressWarnings("serial")
 public class AccountsWindow extends JFrame implements ItemProcessor {
@@ -37,22 +43,84 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	}
 
 	@Override
-	public void process(AccountTransactionEntry entry) {
+	public void process(AccountBalance balance) {
 		try {
-			controller.process(entry);
-		} catch (AccountException ex) {
+			controller.process(balance);
+		} catch (LedgerException ex) {
 			error(ex);
 		}
 	}
 
-	private void error(AccountException ex) {
+	@Override
+	public void process(AccountTransactionEntry entry) {
+		try {
+			controller.process(entry);
+		} catch (LedgerException ex) {
+			error(ex);
+		}
+	}
+
+	@Override
+	public void process(CategoryTransactionEntry entry) {
+		try {
+			controller.process(entry);
+		} catch (LedgerException ex) {
+			error(ex);
+		}
+	}
+
+	@Override
+	public void process(OwnerTransactionEntry entry) {
+		try {
+			controller.process(entry);
+		} catch (LedgerException ex) {
+			error(ex);
+		}
+	}
+
+	@Override
+	public void process(UnbalancedTransaction transaction) {
+		try {
+			controller.process(transaction);
+		} catch (LedgerException ex) {
+			error(ex);
+		}
+	}
+
+	private void error(Exception ex) {
 		JOptionPane.showMessageDialog(this, "Error processing accounts.  " + ex.getLocalizedMessage(), "Account Error",
 				JOptionPane.ERROR_MESSAGE);
 	}
 
 	private void initController() {
+		var offModel = offBudgetAccounts.getSelectionModel();
+		offModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		offModel.addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
+				if (((ListSelectionModel) event.getSource()).isSelectedIndex(i)) {
+					onBudgetAccounts.clearSelection();
+					controller.selectOffBudget(i);
+				}
+			}
+		});
+		onBudgetAccounts.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		onBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
+				if (((ListSelectionModel) event.getSource()).isSelectedIndex(i)) {
+					offBudgetAccounts.clearSelection();
+					controller.selectOnBudget(i);
+				}
+			}
+		});
 		controller.forOnBudgetAccounts(onBudgetAccounts);
 		controller.forOffBudgetAccounts(offBudgetAccounts);
+		controller.forStatements(statements);
 		controller.forTransactions(transactions);
 		controller.onOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.onOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
@@ -71,9 +139,9 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 		var offBudgetHeader = new JLabel("<html><b>Off-Budget Accounts:</b></html>");
 		offBudgetBalance.setMaximumSize(offBudgetBalance.getPreferredSize());
 
+		transactions.setAutoCreateRowSorter(true);
+
 		var scrollPane1 = new JScrollPane(onBudgetAccounts);
-//		onBudgetAccounts.setFillsViewportHeight(true);
-//		var separator = new JSeparator();
 		var scrollPane2 = new JScrollPane(offBudgetAccounts);
 		var scrollPane3 = new JScrollPane(statements);
 		var scrollPane4 = new JScrollPane(transactions);
@@ -90,17 +158,6 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
 
-//				layout.createSequentialGroup()
-//				.addGroup(layout.createParallelGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
-//				.addComponent(scrollPane1).addComponent(separator)
-//				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-//				.addComponent(scrollPane2));
-
-//		layout.setHorizontalGroup(layout.createParallelGroup()
-//				.addGroup(layout.createSequentialGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
-//				.addComponent(scrollPane1).addComponent(separator)
-//				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-//				.addComponent(scrollPane2));
 		pack();
 	}
 

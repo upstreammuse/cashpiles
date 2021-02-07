@@ -5,6 +5,9 @@ public interface ItemProcessor {
 	default void process(Account account) {
 	}
 
+	default void process(AccountBalance balance) {
+	}
+
 	default void process(AccountTransactionEntry entry) {
 	}
 
@@ -38,7 +41,13 @@ public interface ItemProcessor {
 	default void process(RoutineBudgetEntry entry) {
 	}
 
+	default void process(TrackingTransactionEntry entry) {
+	}
+
 	default void process(Transaction xact) {
+	}
+
+	default void process(UnbalancedTransaction transaction) {
 	}
 
 	default void process(WithholdingBudgetEntry entry) {
