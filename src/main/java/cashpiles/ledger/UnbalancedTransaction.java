@@ -17,4 +17,9 @@ public class UnbalancedTransaction extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
+	@Override
+	public void process(ItemProcessor processor) {
+		processor.process(this);
+	}
+
 }

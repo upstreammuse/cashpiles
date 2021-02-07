@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
+import cashpiles.currency.Amount;
 import cashpiles.ledger.Account;
 import cashpiles.util.Lists;
 
@@ -21,6 +22,14 @@ class AccountsTableModel extends AbstractTableModel {
 		this.filter = filter;
 	}
 
+	public Amount balance() {
+		var balance = new Amount();
+		for (int i = 0; i < getRowCount(); i++) {
+			balance = balance.add((Amount) getValueAt(i, 1));
+		}
+		return balance;
+	}
+
 	@Override
 	public int getColumnCount() {
 		return 2;
@@ -30,7 +39,7 @@ class AccountsTableModel extends AbstractTableModel {
 	public int getRowCount() {
 		cache.clear();
 		for (var entry : accounts.entrySet()) {
-			if (Lists.lastOf(entry.getValue()).status == filter) {
+			if (Lists.lastOf(entry.getValue()).status() == filter) {
 				cache.add(entry.getKey());
 			}
 		}

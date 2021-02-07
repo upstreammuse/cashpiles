@@ -13,5 +13,9 @@ public class AccountBalance extends LedgerItem {
 	public AccountBalance(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
 	}
+	
+	public void process(ItemProcessor processor) {
+		processor.process(this);
+	}
 
 }

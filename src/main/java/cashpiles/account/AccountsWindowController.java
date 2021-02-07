@@ -10,14 +10,17 @@ import javax.swing.JTable;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Account;
+import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionEntry;
+import cashpiles.ledger.LedgerException;
+import cashpiles.ledger.TrackingTransactionEntry;
+import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.util.Lists;
 
-// TODO this might be doable as separate pieces
 class AccountsWindowController {
 
 	private final Map<String, List<AccountStatement>> accounts = new TreeMap<>();
-	private final TransactionTableModel allTransactions = new TransactionTableModel(accounts);
+	private final AllTransactionsModel allTransactions = new AllTransactionsModel();
 	private final AccountsTableModel onBudgetModel = new AccountsTableModel(accounts, Account.Status.ON_BUDGET);
 	private final AccountsTableModel offBudgetModel = new AccountsTableModel(accounts, Account.Status.OFF_BUDGET);
 	private JTable statementsUI;
@@ -37,25 +40,29 @@ class AccountsWindowController {
 
 	void forTransactions(JTable transactions) {
 		transactionsUI = transactions;
-		transactions.setModel(allTransactions);
+		transactionsUI.setModel(allTransactions);
 	}
 
 	void onOnBudgetBalance(Consumer<Amount> consumer) {
-		// TODO Auto-generated method stub
+		onBudgetModel.addTableModelListener(event -> {
+			consumer.accept(onBudgetModel.balance());
+		});
 	}
 
 	void onOffBudgetBalance(Consumer<Amount> consumer) {
-		// TODO Auto-generated method stub
+		offBudgetModel.addTableModelListener(event -> {
+			consumer.accept(offBudgetModel.balance());
+		});
 	}
 
 	void process(Account account) throws AccountException {
 		if (!accounts.containsKey(account.name)) {
 			accounts.put(account.name, new ArrayList<>());
-			accounts.get(account.name).add(new AccountStatement(Account.Status.CLOSED, new Amount()));
+			accounts.get(account.name).add(new AccountStatement(account.date, Account.Status.CLOSED, new Amount()));
 		}
 
 		var latest = Lists.lastOf(accounts.get(account.name));
-		switch (latest.status) {
+		switch (latest.status()) {
 		case ON_BUDGET -> {
 			switch (account.status) {
 			case ON_BUDGET -> throw AccountException.forAlreadyOpen(account);
@@ -64,7 +71,7 @@ class AccountsWindowController {
 				if (!latest.balance().equals(new Amount())) {
 					throw AccountException.forNonZeroClose(account);
 				}
-				var closer = new AccountStatement(Account.Status.CLOSED, new Amount());
+				var closer = new AccountStatement(latest.endDate(), Account.Status.CLOSED, new Amount());
 				accounts.get(account.name).add(closer);
 				onBudgetModel.fireTableDataChanged();
 			}
@@ -78,7 +85,7 @@ class AccountsWindowController {
 				if (!latest.balance().equals(new Amount())) {
 					throw AccountException.forNonZeroClose(account);
 				}
-				var closer = new AccountStatement(Account.Status.CLOSED, new Amount());
+				var closer = new AccountStatement(latest.endDate(), Account.Status.CLOSED, new Amount());
 				accounts.get(account.name).add(closer);
 				offBudgetModel.fireTableDataChanged();
 			}
@@ -87,12 +94,12 @@ class AccountsWindowController {
 		case CLOSED -> {
 			switch (account.status) {
 			case ON_BUDGET -> {
-				var opener = new AccountStatement(Account.Status.ON_BUDGET, new Amount());
+				var opener = new AccountStatement(latest.endDate(), Account.Status.ON_BUDGET, new Amount());
 				accounts.get(account.name).add(opener);
 				onBudgetModel.fireTableDataChanged();
 			}
 			case OFF_BUDGET -> {
-				var opener = new AccountStatement(Account.Status.OFF_BUDGET, new Amount());
+				var opener = new AccountStatement(latest.endDate(), Account.Status.OFF_BUDGET, new Amount());
 				accounts.get(account.name).add(opener);
 				offBudgetModel.fireTableDataChanged();
 			}
@@ -102,26 +109,69 @@ class AccountsWindowController {
 		}
 	}
 
-	public void process(AccountTransactionEntry entry) throws AccountException {
+	public void process(AccountBalance balance) throws LedgerException {
+		if (!accounts.containsKey(balance.account)) {
+			throw AccountException.forUnknown(balance);
+		}
+
+		var statementList = accounts.get(balance.account);
+		var statement = Lists.lastOf(statementList);
+		if (!statement.balance().equals(balance.amount)) {
+			throw BalanceException.forUnbalanced(balance, statement.balance());
+		}
+
+		statementList.add(new AccountStatement(statement.endDate(), statement.status(), statement.balance()));
+	}
+
+	public void process(AccountTransactionEntry entry) throws LedgerException {
 		if (!accounts.containsKey(entry.account)) {
 			throw AccountException.forUnknown(entry);
 		}
+		Lists.lastOf(accounts.get(entry.account)).add(entry);
+		allTransactions.add(entry);
+		onBudgetModel.fireTableDataChanged();
+	}
 
-		switch (Lists.lastOf(accounts.get(entry.account)).status) {
-		case ON_BUDGET -> {
-			Lists.lastOf(accounts.get(entry.account)).add(entry);
-			onBudgetModel.fireTableDataChanged();
-			allTransactions.fireTableDataChanged();
+	public void process(TrackingTransactionEntry entry) throws LedgerException {
+		if (!entry.trackingAccount.isPresent()) {
+			return;
 		}
-		case OFF_BUDGET -> {
-			Lists.lastOf(accounts.get(entry.account)).add(entry);
-			offBudgetModel.fireTableDataChanged();
-			allTransactions.fireTableDataChanged();
+		if (!accounts.containsKey(entry.trackingAccount.get())) {
+			throw AccountException.forUnknown(entry);
 		}
-		case CLOSED -> {
-			throw AccountException.forClosed(entry);
+		Lists.lastOf(accounts.get(entry.trackingAccount.get())).add(entry);
+		allTransactions.add(entry);
+		offBudgetModel.fireTableDataChanged();
+	}
+
+	public void process(UnbalancedTransaction transaction) throws LedgerException {
+		if (!accounts.containsKey(transaction.account)) {
+			throw AccountException.forUnknown(transaction);
 		}
-		}
+		Lists.lastOf(accounts.get(transaction.account)).add(transaction);
+		allTransactions.add(transaction);
+	}
+
+	public void selectOffBudget(int i) {
+		var model = new StatementModel(accounts.get(offBudgetModel.getValueAt(i, 0)));
+		statementsUI.setModel(model);
+		statementsUI.getSelectionModel().addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			transactionsUI.setModel(model.getStatementModel(event));
+		});
+	}
+
+	public void selectOnBudget(int i) {
+		var model = new StatementModel(accounts.get(onBudgetModel.getValueAt(i, 0)));
+		statementsUI.setModel(model);
+		statementsUI.getSelectionModel().addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			transactionsUI.setModel(model.getStatementModel(event));
+		});
 	}
 
 }
