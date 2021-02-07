@@ -6,12 +6,9 @@ import cashpiles.time.DateRange;
 
 public class RoutineCategory extends BudgetCategory {
 
+	DateRange currentRange;
 	Amount priorActivity;
 	DateRange priorRange;
-
-	// TODO I would rather get this from the parent budget period instead of having
-	// to redundantly track it here
-	DateRange currentRange;
 
 	public RoutineCategory(String name, RoutineBudgetEntry entry) {
 		super(name, entry.owner, new Amount());
