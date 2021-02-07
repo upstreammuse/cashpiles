@@ -20,7 +20,6 @@ import cashpiles.util.Lists;
 class AccountsWindowController {
 
 	private final Map<String, List<AccountStatement>> accounts = new TreeMap<>();
-	private final AllTransactionsModel allTransactions = new AllTransactionsModel();
 	private final AccountsTableModel onBudgetModel = new AccountsTableModel(accounts, Account.Status.ON_BUDGET);
 	private final AccountsTableModel offBudgetModel = new AccountsTableModel(accounts, Account.Status.OFF_BUDGET);
 	private JTable statementsUI;
@@ -40,7 +39,6 @@ class AccountsWindowController {
 
 	void forTransactions(JTable transactions) {
 		transactionsUI = transactions;
-		transactionsUI.setModel(allTransactions);
 	}
 
 	void onOnBudgetBalance(Consumer<Amount> consumer) {
@@ -128,7 +126,6 @@ class AccountsWindowController {
 			throw AccountException.forUnknown(entry);
 		}
 		Lists.lastOf(accounts.get(entry.account)).add(entry);
-		allTransactions.add(entry);
 		onBudgetModel.fireTableDataChanged();
 	}
 
@@ -140,7 +137,6 @@ class AccountsWindowController {
 			throw AccountException.forUnknown(entry);
 		}
 		Lists.lastOf(accounts.get(entry.trackingAccount.get())).add(entry);
-		allTransactions.add(entry);
 		offBudgetModel.fireTableDataChanged();
 	}
 
@@ -149,7 +145,6 @@ class AccountsWindowController {
 			throw AccountException.forUnknown(transaction);
 		}
 		Lists.lastOf(accounts.get(transaction.account)).add(transaction);
-		allTransactions.add(transaction);
 	}
 
 	public void selectOffBudget(int i) {

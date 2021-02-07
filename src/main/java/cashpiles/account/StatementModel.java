@@ -22,6 +22,8 @@ public class StatementModel extends AbstractTableModel {
 				return statements.get(i);
 			}
 		}
+		// TODO make sure there's always at least one statement to select, even if it's
+		// empty
 		return null;
 	}
 
