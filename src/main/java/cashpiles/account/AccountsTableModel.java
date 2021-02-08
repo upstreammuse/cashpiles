@@ -1,23 +1,21 @@
 package cashpiles.account;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
-import cashpiles.ledger.Account;
-import cashpiles.util.Lists;
+import cashpiles.ledger.AccountCommand;
 
 @SuppressWarnings("serial")
 class AccountsTableModel extends AbstractTableModel {
 
-	private final Map<String, List<AccountStatement>> accounts;
+	private final Map<String, Account> accounts;
 	private final ArrayList<String> cache = new ArrayList<>();
-	private final Account.Status filter;
+	private final AccountCommand.Status filter;
 
-	AccountsTableModel(Map<String, List<AccountStatement>> accounts, Account.Status filter) {
+	AccountsTableModel(Map<String, Account> accounts, AccountCommand.Status filter) {
 		this.accounts = accounts;
 		this.filter = filter;
 	}
@@ -39,7 +37,7 @@ class AccountsTableModel extends AbstractTableModel {
 	public int getRowCount() {
 		cache.clear();
 		for (var entry : accounts.entrySet()) {
-			if (Lists.lastOf(entry.getValue()).status() == filter) {
+			if (entry.getValue().status() == filter) {
 				cache.add(entry.getKey());
 			}
 		}
@@ -50,7 +48,7 @@ class AccountsTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
 		case 0 -> cache.get(row);
-		case 1 -> Lists.lastOf(accounts.get(cache.get(row))).balance();
+		case 1 -> accounts.get(cache.get(row)).balance();
 		default -> throw new IllegalArgumentException();
 		};
 	}

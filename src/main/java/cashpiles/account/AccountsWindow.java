@@ -8,7 +8,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
-import cashpiles.ledger.Account;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
@@ -34,7 +34,7 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	}
 
 	@Override
-	public void process(Account account) {
+	public void process(AccountCommand account) {
 		try {
 			controller.process(account);
 		} catch (AccountException ex) {
@@ -92,6 +92,8 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 				JOptionPane.ERROR_MESSAGE);
 	}
 
+	// TODO arguably some of this could go in the controller, since it's managing
+	// the interactions between multiple components
 	private void initController() {
 		var offModel = offBudgetAccounts.getSelectionModel();
 		offModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
