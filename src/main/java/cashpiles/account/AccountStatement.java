@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
-import cashpiles.ledger.Account;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.TrackingTransactionEntry;
@@ -27,10 +27,10 @@ public class AccountStatement extends AbstractTableModel {
 
 	private final Amount startBalance;
 	private final LocalDate startDate;
-	private final Account.Status status;
+	private final AccountCommand.Status status;
 	private final List<Transaction> transactions = new ArrayList<>();
 
-	AccountStatement(LocalDate startDate, Account.Status status, Amount startBalance) {
+	AccountStatement(LocalDate startDate, AccountCommand.Status status, Amount startBalance) {
 		this.startDate = startDate;
 		this.status = status;
 		this.startBalance = startBalance;
@@ -86,7 +86,7 @@ public class AccountStatement extends AbstractTableModel {
 				(total, amount) -> total.add(amount));
 	}
 
-	public Account.Status status() {
+	public AccountCommand.Status status() {
 		return status;
 	}
 
@@ -123,6 +123,11 @@ public class AccountStatement extends AbstractTableModel {
 		case 3 -> xact.amount;
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};
+	}
+
+	public void setEndDate(LocalDate date) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

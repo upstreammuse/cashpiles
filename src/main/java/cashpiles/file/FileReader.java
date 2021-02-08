@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import cashpiles.ledger.Account;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
@@ -95,7 +95,7 @@ public class FileReader extends java.io.FileReader {
 	}
 
 	private boolean processAccount(String line, String comment) throws IdentifierMismatchException {
-		var account = new Account(fileName, lineNumber, comment);
+		var account = new AccountCommand(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextDate()) {
@@ -108,13 +108,13 @@ public class FileReader extends java.io.FileReader {
 		}
 		switch (scanner.next()) {
 		case "on-budget" -> {
-			account.status = Account.Status.ON_BUDGET;
+			account.status = AccountCommand.Status.ON_BUDGET;
 		}
 		case "off-budget" -> {
-			account.status = Account.Status.OFF_BUDGET;
+			account.status = AccountCommand.Status.OFF_BUDGET;
 		}
 		case "close" -> {
-			account.status = Account.Status.CLOSED;
+			account.status = AccountCommand.Status.CLOSED;
 		}
 		default -> {
 			return false;
