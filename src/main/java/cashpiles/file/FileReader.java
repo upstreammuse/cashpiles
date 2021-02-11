@@ -55,6 +55,15 @@ public class FileReader extends java.io.FileReader {
 			lineNumber++;
 			processLine(line);
 		}
+		if (activeBudget != null) {
+			activeLedger.add(activeBudget);
+			activeBudget = null;
+		}
+		if (activeTransaction != null) {
+			activeTransaction.balance();
+			activeLedger.add(activeTransaction);
+			activeTransaction = null;
+		}
 		return activeLedger;
 	}
 
