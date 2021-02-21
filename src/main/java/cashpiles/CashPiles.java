@@ -36,6 +36,8 @@ class CashPiles extends JFrame {
 	private void initUi() {
 		setSize(320, 240);
 		setTitle("CashPiles");
+		// FIXME this should be a dispose on close, but every window needs that set before it works properly
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		var menuBar = new JMenuBar();
 		var fileMenu = new JMenu("File");
