@@ -36,6 +36,16 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>cashpiles.CashPiles</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.22.0</version>
 			</plugin>
