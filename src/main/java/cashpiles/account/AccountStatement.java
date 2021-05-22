@@ -18,7 +18,7 @@ import cashpiles.util.Lists;
 @SuppressWarnings("serial")
 public class AccountStatement extends AbstractTableModel {
 
-	private class Transaction {
+	private static class Transaction {
 		Amount amount;
 		LocalDate date;
 		String payee;
@@ -127,7 +127,7 @@ public class AccountStatement extends AbstractTableModel {
 
 	public void setEndDate(LocalDate date) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
