@@ -1,7 +1,7 @@
 package cashpiles.account;
 
-import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountBalance;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
@@ -31,10 +31,14 @@ class AccountException extends LedgerException {
 		return new AccountException(entry, "Cannot use closed account '" + entry.account + "'");
 	}
 
-	// TODO this will work but is technically wrong since it assumes the account is
-	// set
 	public static AccountException forClosed(TrackingTransactionEntry entry) {
-		return new AccountException(entry, "Cannot use closed account '" + entry.trackingAccount.get() + "'");
+		var builder = new StringBuilder();
+		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
+			builder.append(trackingAccount);
+		}, () -> {
+			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
+		});
+		return new AccountException(entry, "Cannot use closed account '" + builder + "'");
 	}
 
 	public static AccountException forClosed(UnbalancedTransaction transaction) {
@@ -49,10 +53,14 @@ class AccountException extends LedgerException {
 		return new AccountException(entry, "Cannot use unknown account '" + entry.account + "'");
 	}
 
-	// TODO this will work but is technically wrong since it assumes the account is
-	// set
 	public static AccountException forUnknown(TrackingTransactionEntry entry) {
-		return new AccountException(entry, "Cannot use unknown account '" + entry.trackingAccount.get() + "'");
+		var builder = new StringBuilder();
+		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
+			builder.append(trackingAccount);
+		}, () -> {
+			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
+		});
+		return new AccountException(entry, "Cannot use unknown account '" + builder + "'");
 	}
 
 	public static AccountException forUnknown(UnbalancedTransaction transaction) {
