@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountBalance;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
@@ -29,7 +29,7 @@ import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
-public class FileReader extends java.io.FileReader {
+public class LedgerReader extends java.io.FileReader {
 
 	public enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER
@@ -42,7 +42,7 @@ public class FileReader extends java.io.FileReader {
 	private final Map<String, IdentifierType> identifiers = new HashMap<>();
 	private int lineNumber = 0;
 
-	public FileReader(String fileName) throws IOException {
+	public LedgerReader(String fileName) throws IOException {
 		super(fileName, StandardCharsets.UTF_8);
 		this.fileName = fileName;
 	}

@@ -20,7 +20,7 @@ import javax.swing.UIManager;
 
 import cashpiles.account.AccountsWindow;
 import cashpiles.budget.ui.BudgetWindow;
-import cashpiles.file.FileReader;
+import cashpiles.file.LedgerReader;
 import cashpiles.file.IdentifierMismatchException;
 import cashpiles.file.InvalidContentException;
 import cashpiles.file.UnknownIdentifierException;
@@ -70,7 +70,7 @@ class CashPiles extends JFrame {
 		dialog.setVisible(true);
 		var filename = dialog.getFile();
 		if (filename != null) {
-			try (var reader = new FileReader(dialog.getDirectory() + filename)) {
+			try (var reader = new LedgerReader(dialog.getDirectory() + filename)) {
 				// TODO this should go in an action thread to not hang the gui
 				var ledger = reader.readAll();
 				var accountWindow = new AccountsWindow();
