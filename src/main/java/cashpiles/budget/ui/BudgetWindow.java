@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import cashpiles.budget.BudgetReconfigureException;
+import cashpiles.budget.BudgetException;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
@@ -41,7 +41,7 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 	public void process(Budget budget) {
 		try {
 			table.configureCurrentBudget(budget);
-		} catch (BudgetReconfigureException ex) {
+		} catch (BudgetException ex) {
 			error(ex);
 		}
 	}
@@ -55,7 +55,7 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 	public void process(CloseBudgetEntry entry) {
 		try {
 			table.configureCurrentBudget(entry);
-		} catch (BudgetReconfigureException ex) {
+		} catch (BudgetException ex) {
 			error(ex);
 		}
 	}

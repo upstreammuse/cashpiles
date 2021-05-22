@@ -25,9 +25,9 @@ public abstract class BudgetCategory {
 		transactions.add(transaction);
 	}
 
-	void close(CloseBudgetEntry entry) throws BudgetReconfigureException {
+	void close(CloseBudgetEntry entry) throws BudgetException {
 		if (!transactions.isEmpty()) {
-			throw BudgetReconfigureException.forCategoryClosure(entry);
+			throw BudgetException.forCategoryClosure(entry);
 		}
 	}
 
