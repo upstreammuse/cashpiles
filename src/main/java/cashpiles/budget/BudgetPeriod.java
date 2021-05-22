@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import javax.swing.JFrame;
 
 import cashpiles.currency.Amount;
+import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
@@ -90,10 +91,10 @@ public class BudgetPeriod implements Windowable {
 	// errors in the GUI
 	public void configureCategory(CloseBudgetEntry entry) throws BudgetReconfigureException {
 		if (!categories.containsKey(entry.category)) {
-			throw BudgetReconfigureException.forClosedCategory(entry.category);
+			throw BudgetReconfigureException.forClosedCategory(entry);
 		}
 		var closed = categories.get(entry.category);
-		closed.close();
+		closed.close(entry);
 		for (var cat : categories.entrySet()) {
 			closed.unlink(cat.getValue());
 		}
@@ -172,9 +173,10 @@ public class BudgetPeriod implements Windowable {
 		return nextPeriod;
 	}
 
-	public void setDates(DateRange dateRange) throws BudgetReconfigureException {
+	public void setDates(Budget budget) throws BudgetReconfigureException {
+		var dateRange = new DateRange(budget.date, budget.period);
 		if (!dateRange.contains(lastTransactionDate)) {
-			throw BudgetReconfigureException.forDateRange(dateRange);
+			throw BudgetReconfigureException.forDateRange(budget);
 		}
 		dates = dateRange;
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.time.DateRange;
 
 public abstract class BudgetCategory {
@@ -24,9 +25,9 @@ public abstract class BudgetCategory {
 		transactions.add(transaction);
 	}
 
-	void close() throws BudgetReconfigureException {
+	void close(CloseBudgetEntry entry) throws BudgetReconfigureException {
 		if (!transactions.isEmpty()) {
-			throw BudgetReconfigureException.forCategoryClosure(name);
+			throw BudgetReconfigureException.forCategoryClosure(entry);
 		}
 	}
 

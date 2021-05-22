@@ -48,10 +48,10 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	void configureCurrentBudget(Budget budget) throws BudgetReconfigureException {
 		generateToDate(budget.date, budget.period);
 		if (Lists.lastOf(periods).dates().startDate().equals(budget.date)) {
-			Lists.lastOf(periods).setDates(new DateRange(budget.date, budget.period));
+			Lists.lastOf(periods).setDates(budget);
 			fireTableDataChanged();
 		} else {
-			throw BudgetReconfigureException.forReconfigure(Lists.lastOf(periods).dates(), budget.date);
+			throw BudgetReconfigureException.forReconfigure(budget, Lists.lastOf(periods).dates());
 		}
 	}
 
@@ -82,7 +82,7 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	public void configureCurrentBudget(WithholdingBudgetEntry entry) {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
-	
+
 	void makeWindow(int row) {
 		var windower = new WindowMaker();
 		var window = windower.makeWindow(periods.get(row));
