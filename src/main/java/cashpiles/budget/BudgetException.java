@@ -1,9 +1,11 @@
 package cashpiles.budget;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
@@ -27,6 +29,14 @@ public class BudgetException extends LedgerException {
 	public static BudgetException forReconfigure(Budget budget, DateRange dates) {
 		return new BudgetException(budget,
 				"Can only reconfigure budget with dates " + dates + " on first date, not " + budget.date);
+	}
+
+	public static BudgetException forUnknownCategory(CategoryTransactionEntry entry) {
+		return new BudgetException(entry, "Cannot use unknown budget category '" + entry.category + "'");
+	}
+
+	public static BudgetException forUnknownOwner(OwnerTransactionEntry entry) {
+		return new BudgetException(entry, "Cannot use unknown budget category owner '" + entry.owner + "'");
 	}
 
 	private BudgetException(LedgerItem item, String message) {
