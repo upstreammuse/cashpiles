@@ -51,7 +51,7 @@ class BudgetWindowTableModel extends AbstractTableModel {
 			Lists.lastOf(periods).setDates(new DateRange(budget.date, budget.period));
 			fireTableDataChanged();
 		} else {
-			throw new BudgetReconfigureException(Lists.lastOf(periods).dates(), budget.date);
+			throw BudgetReconfigureException.forReconfigure(Lists.lastOf(periods).dates(), budget.date);
 		}
 	}
 
