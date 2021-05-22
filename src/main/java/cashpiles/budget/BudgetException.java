@@ -7,6 +7,7 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
@@ -34,6 +35,11 @@ public class BudgetException extends LedgerException {
 	public static BudgetException forReconfigure(Budget budget, DateRange dates) {
 		return new BudgetException(budget,
 				"Can only reconfigure budget with dates " + dates + " on first date, not " + budget.date);
+	}
+
+	public static BudgetException forTransactionDate(TrackingTransactionEntry entry, DateRange dates) {
+		return new BudgetException(entry, "Cannot add transaction dated " + entry.parent.date
+				+ " to current budget period with dates " + dates.startDate() + " to " + dates.endDate());
 	}
 
 	public static BudgetException forUnknownCategory(CategoryTransactionEntry entry) {

@@ -18,6 +18,7 @@ import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 import cashpiles.ui.WindowMaker;
@@ -28,20 +29,13 @@ class BudgetWindowTableModel extends AbstractTableModel {
 
 	private final List<BudgetPeriod> periods = new ArrayList<>();
 
-	void addTransaction(LocalDate date) {
-		generateToDate(date);
-		if (!Lists.lastOf(periods).dates().contains(date)) {
-			throw new RuntimeException("Cannot add transaction to non-current budget period");
-		}
-	}
-
 	void addTransaction(CategoryTransactionEntry entry) throws BudgetException {
-		addTransaction(entry.parent.date);
+		checkTransactionDate(entry);
 		Lists.lastOf(periods).addTransaction(entry);
 	}
 
 	void addTransaction(OwnerTransactionEntry entry) throws BudgetException {
-		addTransaction(entry.parent.date);
+		checkTransactionDate(entry);
 		Lists.lastOf(periods).addTransaction(entry);
 	}
 
@@ -146,6 +140,13 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		}
 		while (Lists.lastOf(periods).dates().endDate().compareTo(date) < 0) {
 			generateNext();
+		}
+	}
+
+	private void checkTransactionDate(TrackingTransactionEntry entry) throws BudgetException {
+		generateToDate(entry.parent.date);
+		if (!Lists.lastOf(periods).dates().contains(entry.parent.date)) {
+			throw BudgetException.forTransactionDate(entry, Lists.lastOf(periods).dates());
 		}
 	}
 
