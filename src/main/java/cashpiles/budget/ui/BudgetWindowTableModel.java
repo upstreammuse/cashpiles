@@ -120,7 +120,7 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		} else if (col == 4) {
 			return period.balance();
 		} else {
-			throw new RuntimeException("Table index out of bounds");
+			throw new IllegalArgumentException("Table index out of bounds");
 		}
 	}
 
