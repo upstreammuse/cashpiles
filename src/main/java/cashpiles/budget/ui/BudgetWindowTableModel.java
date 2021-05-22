@@ -8,7 +8,7 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.budget.BudgetPeriod;
-import cashpiles.budget.BudgetReconfigureException;
+import cashpiles.budget.BudgetException;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
@@ -45,17 +45,17 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		Lists.lastOf(periods).addTransaction(entry);
 	}
 
-	void configureCurrentBudget(Budget budget) throws BudgetReconfigureException {
+	void configureCurrentBudget(Budget budget) throws BudgetException {
 		generateToDate(budget.date, budget.period);
 		if (Lists.lastOf(periods).dates().startDate().equals(budget.date)) {
 			Lists.lastOf(periods).setDates(budget);
 			fireTableDataChanged();
 		} else {
-			throw BudgetReconfigureException.forReconfigure(budget, Lists.lastOf(periods).dates());
+			throw BudgetException.forReconfigure(budget, Lists.lastOf(periods).dates());
 		}
 	}
 
-	void configureCurrentBudget(CloseBudgetEntry entry) throws BudgetReconfigureException {
+	void configureCurrentBudget(CloseBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 

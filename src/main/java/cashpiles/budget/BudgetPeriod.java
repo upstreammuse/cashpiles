@@ -89,9 +89,9 @@ public class BudgetPeriod implements Windowable {
 
 	// TODO replace all the REs with something typed so that we can have decent
 	// errors in the GUI
-	public void configureCategory(CloseBudgetEntry entry) throws BudgetReconfigureException {
+	public void configureCategory(CloseBudgetEntry entry) throws BudgetException {
 		if (!categories.containsKey(entry.category)) {
-			throw BudgetReconfigureException.forClosedCategory(entry);
+			throw BudgetException.forClosedCategory(entry);
 		}
 		var closed = categories.get(entry.category);
 		closed.close(entry);
@@ -173,10 +173,10 @@ public class BudgetPeriod implements Windowable {
 		return nextPeriod;
 	}
 
-	public void setDates(Budget budget) throws BudgetReconfigureException {
+	public void setDates(Budget budget) throws BudgetException {
 		var dateRange = new DateRange(budget.date, budget.period);
 		if (!dateRange.contains(lastTransactionDate)) {
-			throw BudgetReconfigureException.forDateRange(budget);
+			throw BudgetException.forDateRange(budget);
 		}
 		dates = dateRange;
 	}
