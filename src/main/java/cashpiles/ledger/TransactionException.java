@@ -15,10 +15,15 @@ public class TransactionException extends LedgerException {
 				"Cannot automatically balance a transaction with more than one unspecified amount");
 	}
 
-	// TODO this is technically wrong, assuming tracking account is set
 	public static TransactionException forTrackingWithBudget(TrackingTransactionEntry entry) {
+		var builder = new StringBuilder();
+		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
+			builder.append(trackingAccount);
+		}, () -> {
+			throw new IllegalArgumentException("Tried to create a TransactionException with a missing account name");
+		});
 		return new TransactionException(entry,
-				"Cannot use on-budget account " + entry.trackingAccount.get() + " for category/tracking entries");
+				"Cannot use on-budget account " + builder + " for category/tracking entries");
 	}
 
 	public static TransactionException forUnbalanced(Transaction transaction, Amount accountTotal,
