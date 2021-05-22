@@ -216,7 +216,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetClose(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var close = new CloseBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -230,8 +229,8 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		close.category = scanner.nextIdentifier();
-		verifyIdentifier(close.category, IdentifierType.CATEGORY);
+		var close = new CloseBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
+		verifyIdentifier(close.name, IdentifierType.CATEGORY);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -242,7 +241,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetGoal(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var goal = new GoalBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -256,7 +254,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.name = scanner.nextIdentifier();
+		var goal = new GoalBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
@@ -295,7 +293,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetIncome(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var income = new IncomeBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -309,7 +306,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		income.name = scanner.nextIdentifier();
+		var income = new IncomeBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(income.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
@@ -326,7 +323,6 @@ public class LedgerReader extends java.io.FileReader {
 	}
 
 	private boolean processBudgetManualGoal(String line, String comment) throws IdentifierMismatchException {
-		var goal = new ManualGoalBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -340,7 +336,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.name = scanner.nextIdentifier();
+		var goal = new ManualGoalBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
@@ -358,7 +354,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetReserve(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var reserve = new ReserveBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -372,7 +367,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		reserve.name = scanner.nextIdentifier();
+		var reserve = new ReserveBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(reserve.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
@@ -395,7 +390,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetRoutine(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var routine = new RoutineBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -409,7 +403,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		routine.name = scanner.nextIdentifier();
+		var routine = new RoutineBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(routine.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
@@ -427,7 +421,6 @@ public class LedgerReader extends java.io.FileReader {
 
 	private boolean processBudgetWithholding(String line, String comment)
 			throws UnknownIdentifierException, IdentifierMismatchException {
-		var withholding = new WithholdingBudgetEntry(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -441,7 +434,7 @@ public class LedgerReader extends java.io.FileReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		withholding.name = scanner.nextIdentifier();
+		var withholding = new WithholdingBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
 		verifySetIdentifier(withholding.name, IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {

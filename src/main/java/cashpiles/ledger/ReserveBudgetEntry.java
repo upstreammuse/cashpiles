@@ -4,12 +4,11 @@ import java.math.BigDecimal;
 
 public class ReserveBudgetEntry extends BudgetEntry {
 
-	public String name;
 	public String owner;
 	public BigDecimal percentage;
 
-	public ReserveBudgetEntry(String fileName, int lineNumber, String comment) {
-		super(fileName, lineNumber, comment);
+	public ReserveBudgetEntry(String name, String fileName, int lineNumber, String comment) {
+		super(name, fileName, lineNumber, comment);
 	}
 
 	@Override

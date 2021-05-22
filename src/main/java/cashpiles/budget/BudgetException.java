@@ -1,6 +1,7 @@
 package cashpiles.budget;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.LedgerException;
@@ -13,17 +14,21 @@ public class BudgetException extends LedgerException {
 
 	public static BudgetException forCategoryClosure(CloseBudgetEntry entry) {
 		return new BudgetException(entry,
-				"Cannot close budget category '" + entry.category + "' that already has activity this period");
+				"Cannot close budget category '" + entry.name + "' that already has activity this period");
 	}
 
 	public static BudgetException forClosedCategory(CloseBudgetEntry entry) {
-		return new BudgetException(entry, "Cannot close budget category '" + entry.category + "' that isn't open");
+		return new BudgetException(entry, "Cannot close budget category '" + entry.name + "' that isn't open");
 	}
 
 	public static BudgetException forDateRange(Budget budget) {
 		var dateRange = new DateRange(budget.date, budget.period);
 		return new BudgetException(budget,
 				"Cannot reconfigure budget to dates " + dateRange + " because some dates would no longer be included");
+	}
+
+	public static BudgetException forExistingCategory(BudgetEntry entry) {
+		return new BudgetException(entry, "Cannot create budget category '" + entry.name + "' that already exists");
 	}
 
 	public static BudgetException forReconfigure(Budget budget, DateRange dates) {
