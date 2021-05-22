@@ -49,22 +49,23 @@ public class LedgerReader extends java.io.FileReader {
 
 	public Ledger readAll() throws IOException, UnknownIdentifierException, IdentifierMismatchException,
 			InvalidContentException, TransactionException {
-		activeLedger = new Ledger();
-		var buf = new BufferedReader(this);
-		for (var line = buf.readLine(); line != null; line = buf.readLine()) {
-			lineNumber++;
-			processLine(line);
+		try (var buf = new BufferedReader(this)) {
+			activeLedger = new Ledger();
+			for (var line = buf.readLine(); line != null; line = buf.readLine()) {
+				lineNumber++;
+				processLine(line);
+			}
+			if (activeBudget != null) {
+				activeLedger.add(activeBudget);
+				activeBudget = null;
+			}
+			if (activeTransaction != null) {
+				activeTransaction.balance();
+				activeLedger.add(activeTransaction);
+				activeTransaction = null;
+			}
+			return activeLedger;
 		}
-		if (activeBudget != null) {
-			activeLedger.add(activeBudget);
-			activeBudget = null;
-		}
-		if (activeTransaction != null) {
-			activeTransaction.balance();
-			activeLedger.add(activeTransaction);
-			activeTransaction = null;
-		}
-		return activeLedger;
 	}
 
 	private void processLine(String line) throws UnknownIdentifierException, IdentifierMismatchException,
