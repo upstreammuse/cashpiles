@@ -7,8 +7,8 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.budget.BudgetPeriod;
 import cashpiles.budget.BudgetException;
+import cashpiles.budget.BudgetPeriod;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
@@ -35,12 +35,12 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		}
 	}
 
-	void addTransaction(CategoryTransactionEntry entry) {
+	void addTransaction(CategoryTransactionEntry entry) throws BudgetException {
 		addTransaction(entry.parent.date);
 		Lists.lastOf(periods).addTransaction(entry);
 	}
 
-	void addTransaction(OwnerTransactionEntry entry) {
+	void addTransaction(OwnerTransactionEntry entry) throws BudgetException {
 		addTransaction(entry.parent.date);
 		Lists.lastOf(periods).addTransaction(entry);
 	}
@@ -59,27 +59,27 @@ class BudgetWindowTableModel extends AbstractTableModel {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(GoalBudgetEntry entry) {
+	public void configureCurrentBudget(GoalBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(IncomeBudgetEntry entry) {
+	public void configureCurrentBudget(IncomeBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(ManualGoalBudgetEntry entry) {
+	public void configureCurrentBudget(ManualGoalBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(ReserveBudgetEntry entry) {
+	public void configureCurrentBudget(ReserveBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(RoutineBudgetEntry entry) {
+	public void configureCurrentBudget(RoutineBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 
-	public void configureCurrentBudget(WithholdingBudgetEntry entry) {
+	public void configureCurrentBudget(WithholdingBudgetEntry entry) throws BudgetException {
 		Lists.lastOf(periods).configureCategory(entry);
 	}
 

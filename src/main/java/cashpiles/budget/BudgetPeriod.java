@@ -11,6 +11,7 @@ import javax.swing.JFrame;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
@@ -90,34 +91,37 @@ public class BudgetPeriod implements Windowable {
 	// TODO replace all the REs with something typed so that we can have decent
 	// errors in the GUI
 	public void configureCategory(CloseBudgetEntry entry) throws BudgetException {
-		if (!categories.containsKey(entry.category)) {
+		if (!categories.containsKey(entry.name)) {
 			throw BudgetException.forClosedCategory(entry);
 		}
-		var closed = categories.get(entry.category);
+		var closed = categories.get(entry.name);
 		closed.close(entry);
 		for (var cat : categories.entrySet()) {
 			closed.unlink(cat.getValue());
 		}
-		categories.remove(entry.category);
+		categories.remove(entry.name);
 	}
 
-	private void configureCategory(String name, Supplier<BudgetCategory> supplier) {
-		if (categories.containsKey(name)) {
-			throw new RuntimeException("Cannot create category that already exists");
+	// This method looks ugly, but it allows us to avoid making a new category
+	// object if we should be throwing an error instead, while keeping the error
+	// handling generic
+	private void configureCategory(BudgetEntry entry, Supplier<BudgetCategory> supplier) throws BudgetException {
+		if (categories.containsKey(entry.name)) {
+			throw BudgetException.forExistingCategory(entry);
 		}
 		var category = supplier.get();
-		categories.put(name, category);
+		categories.put(category.getName(), category);
 		if (!owners.containsKey(category.owner)) {
 			owners.put(category.owner, new Amount());
 		}
 	}
 
-	public void configureCategory(GoalBudgetEntry entry) {
-		configureCategory(entry.name, () -> new GoalCategory(entry.name, entry));
+	public void configureCategory(GoalBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> new GoalCategory(entry.name, entry));
 	}
 
-	public void configureCategory(IncomeBudgetEntry entry) {
-		configureCategory(entry.name, () -> {
+	public void configureCategory(IncomeBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> {
 			var income = new IncomeCategory(entry.name, entry.owner);
 			for (var cat : categories.entrySet()) {
 				income.link(cat.getValue());
@@ -126,12 +130,12 @@ public class BudgetPeriod implements Windowable {
 		});
 	}
 
-	public void configureCategory(ManualGoalBudgetEntry entry) {
-		configureCategory(entry.name, () -> new ManualGoalCategory(entry.name, entry));
+	public void configureCategory(ManualGoalBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> new ManualGoalCategory(entry.name, entry));
 	}
 
-	public void configureCategory(ReserveBudgetEntry entry) {
-		configureCategory(entry.name, () -> {
+	public void configureCategory(ReserveBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> {
 			var reserve = new ReserveCategory(entry.name, entry.owner, entry.percentage);
 			for (var cat : categories.entrySet()) {
 				reserve.link(cat.getValue());
@@ -140,12 +144,12 @@ public class BudgetPeriod implements Windowable {
 		});
 	}
 
-	public void configureCategory(RoutineBudgetEntry entry) {
-		configureCategory(entry.name, () -> new RoutineCategory(entry.name, entry));
+	public void configureCategory(RoutineBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> new RoutineCategory(entry.name, entry));
 	}
 
-	public void configureCategory(WithholdingBudgetEntry entry) {
-		configureCategory(entry.name, () -> new WithholdingCategory(entry.name, entry));
+	public void configureCategory(WithholdingBudgetEntry entry) throws BudgetException {
+		configureCategory(entry, () -> new WithholdingCategory(entry.name, entry));
 	}
 
 	public DateRange dates() {

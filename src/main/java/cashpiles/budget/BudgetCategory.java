@@ -40,6 +40,10 @@ public abstract class BudgetCategory {
 	public Amount getBalance() {
 		return startBalance.add(getAllocation()).add(getActivity());
 	}
+	
+	public String getName() {
+		return name;
+	}
 
 	public void link(BudgetCategory category) {
 		// stop here to avoid infinite dispatch

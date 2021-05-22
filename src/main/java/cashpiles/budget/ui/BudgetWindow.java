@@ -48,7 +48,11 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 
 	@Override
 	public void process(CategoryTransactionEntry entry) {
-		table.addTransaction(entry);
+		try {
+			table.addTransaction(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
@@ -62,37 +66,65 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 
 	@Override
 	public void process(GoalBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(IncomeBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(ManualGoalBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(OwnerTransactionEntry entry) {
-		table.addTransaction(entry);
+		try {
+			table.addTransaction(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(ReserveBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(RoutineBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	@Override
 	public void process(WithholdingBudgetEntry entry) {
-		table.configureCurrentBudget(entry);
+		try {
+			table.configureCurrentBudget(entry);
+		} catch (BudgetException ex) {
+			error(ex);
+		}
 	}
 
 	private void initUI() {
