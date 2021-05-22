@@ -174,7 +174,7 @@ public class BudgetPeriod implements Windowable {
 
 	public void setDates(DateRange dateRange) throws BudgetReconfigureException {
 		if (!dateRange.contains(lastTransactionDate)) {
-			throw new BudgetReconfigureException(dateRange);
+			throw BudgetReconfigureException.forDateRange(dateRange);
 		}
 		dates = dateRange;
 	}
