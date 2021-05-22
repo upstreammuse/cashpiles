@@ -1,6 +1,6 @@
 package cashpiles.file;
 
-import cashpiles.file.FileReader.IdentifierType;
+import cashpiles.file.LedgerReader.IdentifierType;
 
 @SuppressWarnings("serial")
 public class UnknownIdentifierException extends Exception {
