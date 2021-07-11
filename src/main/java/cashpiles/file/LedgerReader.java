@@ -1,6 +1,7 @@
 package cashpiles.file;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
-public class LedgerReader extends java.io.FileReader {
+public class LedgerReader extends FileReader {
 
 	public enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER
