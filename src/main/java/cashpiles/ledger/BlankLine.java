@@ -6,4 +6,8 @@ public class BlankLine extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
+	@Override
+	public void process(ItemProcessor processor) {
+	}
+
 }
