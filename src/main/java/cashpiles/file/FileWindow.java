@@ -106,11 +106,12 @@ public class FileWindow extends JFrame {
 					filename = filename + ".txt";
 				}
 				try (var writer = new LedgerWriter(filename)) {
+					ledger.process(writer);
+					System.out.println("ledger saved successfully");
 				} catch (IOException ex) {
 					JOptionPane.showMessageDialog(this, "Error writing file.  " + ex.getLocalizedMessage(),
 							"File Write Error", JOptionPane.ERROR_MESSAGE);
 				}
-				System.out.println("ledger saved successfully");
 			} else {
 				JOptionPane.showMessageDialog(this, "Cowardly refusing to overwrite existing file.", "File Write Error",
 						JOptionPane.ERROR_MESSAGE);
