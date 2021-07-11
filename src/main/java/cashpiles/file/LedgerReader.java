@@ -55,6 +55,8 @@ public class LedgerReader extends java.io.FileReader {
 				lineNumber++;
 				processLine(line);
 			}
+
+			// if a budget or transaction was left "hanging", close them out
 			if (activeBudget != null) {
 				activeLedger.add(activeBudget);
 				activeBudget = null;
@@ -64,6 +66,7 @@ public class LedgerReader extends java.io.FileReader {
 				activeLedger.add(activeTransaction);
 				activeTransaction = null;
 			}
+
 			return activeLedger;
 		}
 	}
