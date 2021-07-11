@@ -1,6 +1,6 @@
 package cashpiles.ledger;
 
-public class LedgerItem {
+public abstract class LedgerItem {
 
 	protected final String comment;
 	protected final String fileName;
@@ -12,8 +12,6 @@ public class LedgerItem {
 		this.lineNumber = lineNumber;
 	}
 
-	public void process(ItemProcessor processor) {
-		processor.process(this);
-	}
+	public abstract void process(ItemProcessor processor);
 
 }
