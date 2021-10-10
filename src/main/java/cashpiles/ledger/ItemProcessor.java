@@ -2,10 +2,10 @@ package cashpiles.ledger;
 
 public interface ItemProcessor {
 
-	default void process(AccountCommand account) {
+	default void process(AccountBalance balance) {
 	}
 
-	default void process(AccountBalance balance) {
+	default void process(AccountCommand account) {
 	}
 
 	default void process(AccountTransactionEntry entry) {
@@ -24,9 +24,6 @@ public interface ItemProcessor {
 	}
 
 	default void process(IncomeBudgetEntry entry) {
-	}
-
-	default void process(LedgerItem item) {
 	}
 
 	default void process(ManualGoalBudgetEntry entry) {
