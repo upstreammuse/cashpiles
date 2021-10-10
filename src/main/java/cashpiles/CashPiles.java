@@ -17,12 +17,13 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import cashpiles.account.AccountsWindow;
 import cashpiles.budget.ui.BudgetWindow;
-import cashpiles.file.LedgerReader;
 import cashpiles.file.IdentifierMismatchException;
 import cashpiles.file.InvalidContentException;
+import cashpiles.file.LedgerReader;
 import cashpiles.file.UnknownIdentifierException;
 import cashpiles.ledger.TransactionException;
 
@@ -36,7 +37,8 @@ class CashPiles extends JFrame {
 	private void initUi() {
 		setSize(320, 240);
 		setTitle("CashPiles");
-		// FIXME this should be a dispose on close, but every window needs that set before it works properly
+		// FIXME this should be a dispose on close, but every window needs that set
+		// before it works properly
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		var menuBar = new JMenuBar();
@@ -88,6 +90,12 @@ class CashPiles extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException ex) {
+			// keep the default if the system L&F fails
+		}
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		UIDefaults defaults = UIManager.getLookAndFeelDefaults();
 		if (defaults.get("Table.alternateRowColor") == null)
