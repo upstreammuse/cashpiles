@@ -21,7 +21,7 @@ import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
-import cashpiles.ui.WindowMaker;
+import cashpiles.ui.budget.BudgetPeriodWindow;
 import cashpiles.util.Lists;
 
 @SuppressWarnings("serial")
@@ -78,8 +78,8 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	}
 
 	void makeWindow(int row) {
-		var windower = new WindowMaker();
-		var window = windower.makeWindow(periods.get(row));
+		var window = new BudgetPeriodWindow();
+		window.setPeriod(periods.get(row));
 		window.setVisible(true);
 	}
 

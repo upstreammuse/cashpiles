@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
-import javax.swing.JFrame;
-
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
@@ -22,11 +20,9 @@ import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
-import cashpiles.ui.Windowable;
-import cashpiles.ui.Windower;
 import cashpiles.util.Comparisons;
 
-public class BudgetPeriod implements Windowable {
+public class BudgetPeriod {
 
 	public Map<String, BudgetCategory> categories = new TreeMap<>();
 	public Map<String, Amount> owners = new HashMap<>();
@@ -154,11 +150,6 @@ public class BudgetPeriod implements Windowable {
 
 	public DateRange dates() {
 		return dates;
-	}
-
-	@Override
-	public JFrame makeWindow(Windower windower) {
-		return windower.makeWindow(this);
 	}
 
 	public BudgetPeriod next() {
