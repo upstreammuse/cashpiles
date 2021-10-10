@@ -109,10 +109,11 @@ class CashPiles extends JFrame {
 			return;
 		}
 
-		// TODO rework the ledgerreader to match the writer
-		try (var reader = new LedgerReader(Paths.get(directory, filename).toString())) {
+		var fullPath = Paths.get(directory, filename);
+		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
+			var ledgerReader = new LedgerReader(reader, fullPath.toString());
 			// TODO this should go in an action thread to not hang the gui
-			ledger = reader.readAll();
+			ledger = ledgerReader.readAll();
 			var accountWindow = new AccountsWindow();
 			ledger.process(accountWindow);
 			accountWindow.setVisible(true);

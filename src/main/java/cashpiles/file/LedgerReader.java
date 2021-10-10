@@ -1,9 +1,7 @@
 package cashpiles.file;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +28,7 @@ import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
-public class LedgerReader extends FileReader {
+public class LedgerReader {
 
 	public enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER
@@ -42,34 +40,33 @@ public class LedgerReader extends FileReader {
 	private final String fileName;
 	private final Map<String, IdentifierType> identifiers = new HashMap<>();
 	private int lineNumber = 0;
+	private BufferedReader reader;
 
-	public LedgerReader(String fileName) throws IOException {
-		super(fileName, StandardCharsets.UTF_8);
-		this.fileName = fileName;
+	public LedgerReader(BufferedReader reader, String filename) {
+		this.reader = reader;
+		this.fileName = filename;
 	}
 
 	public Ledger readAll() throws IOException, UnknownIdentifierException, IdentifierMismatchException,
 			InvalidContentException, TransactionException {
-		try (var buf = new BufferedReader(this)) {
-			activeLedger = new Ledger();
-			for (var line = buf.readLine(); line != null; line = buf.readLine()) {
-				lineNumber++;
-				processLine(line);
-			}
-
-			// if a budget or transaction was left "hanging", close them out
-			if (activeBudget != null) {
-				activeLedger.add(activeBudget);
-				activeBudget = null;
-			}
-			if (activeTransaction != null) {
-				activeTransaction.balance();
-				activeLedger.add(activeTransaction);
-				activeTransaction = null;
-			}
-
-			return activeLedger;
+		activeLedger = new Ledger();
+		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
+			lineNumber++;
+			processLine(line);
 		}
+
+		// if a budget or transaction was left "hanging", close them out
+		if (activeBudget != null) {
+			activeLedger.add(activeBudget);
+			activeBudget = null;
+		}
+		if (activeTransaction != null) {
+			activeTransaction.balance();
+			activeLedger.add(activeTransaction);
+			activeTransaction = null;
+		}
+
+		return activeLedger;
 	}
 
 	private void processLine(String line) throws UnknownIdentifierException, IdentifierMismatchException,
