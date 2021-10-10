@@ -4,8 +4,10 @@ import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
@@ -62,9 +64,7 @@ public class FileWindow extends JFrame {
 
 		menuItem = new JMenuItem("Exit");
 		menuItem.setMnemonic(KeyEvent.VK_X);
-		menuItem.addActionListener(event -> {
-			this.dispose();
-		});
+		menuItem.addActionListener(event -> this.dispose());
 		fileMenu.addSeparator();
 		fileMenu.add(menuItem);
 
@@ -85,7 +85,6 @@ public class FileWindow extends JFrame {
 			newFile(event);
 			try (var reader = new LedgerReader(dialog.getDirectory() + filename)) {
 				ledger = reader.readAll();
-				System.out.println("ledger opened successfully");
 			} catch (IOException | UnknownIdentifierException | IdentifierMismatchException | TransactionException
 					| InvalidContentException ex) {
 				JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(),
@@ -98,24 +97,31 @@ public class FileWindow extends JFrame {
 		var dialog = new FileDialog(this, null, FileDialog.SAVE);
 		dialog.setFilenameFilter((dir, name) -> name.endsWith(".txt"));
 		dialog.setVisible(true);
+		var dirname = dialog.getDirectory();
 		var filename = dialog.getFile();
-		if (filename != null) {
-			filename = dialog.getDirectory() + filename;
-			if (Files.notExists(Paths.get(filename))) {
-				if (!filename.endsWith(".txt")) {
-					filename = filename + ".txt";
-				}
-				try (var writer = new LedgerWriter(filename)) {
-					ledger.process(writer);
-					System.out.println("ledger saved successfully");
-				} catch (IOException ex) {
-					JOptionPane.showMessageDialog(this, "Error writing file.  " + ex.getLocalizedMessage(),
-							"File Write Error", JOptionPane.ERROR_MESSAGE);
-				}
-			} else {
-				JOptionPane.showMessageDialog(this, "Cowardly refusing to overwrite existing file.", "File Write Error",
-						JOptionPane.ERROR_MESSAGE);
-			}
+		if (dirname == null || filename == null) {
+			return;
+		}
+
+		var filenameWithExt = filename;
+		if (!filenameWithExt.endsWith(".txt")) {
+			filenameWithExt += ".txt";
+		}
+
+		var fullPath = Paths.get(dirname, filenameWithExt);
+		if (!Files.notExists(fullPath)) {
+			JOptionPane.showMessageDialog(this, "Cowardly refusing to overwrite existing file.", "File Write Error",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		try (var writer = Files.newBufferedWriter(fullPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW,
+				StandardOpenOption.WRITE)) {
+			var ledgerWriter = new LedgerWriter(writer);
+			ledger.process(ledgerWriter);
+		} catch (IOException ex) {
+			JOptionPane.showMessageDialog(this, "Error writing file.  " + ex.getLocalizedMessage(), "File Write Error",
+					JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

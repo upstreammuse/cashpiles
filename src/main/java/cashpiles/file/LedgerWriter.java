@@ -1,23 +1,21 @@
 package cashpiles.file;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.ItemProcessor;
 
-public class LedgerWriter extends FileWriter implements ItemProcessor {
+public class LedgerWriter implements ItemProcessor {
 
-	public LedgerWriter(String filename) throws IOException {
-		super(filename, StandardCharsets.UTF_8);
+	private BufferedWriter writer;
+
+	public LedgerWriter(BufferedWriter writer) {
+		this.writer = writer;
 	}
 
 	public void write(AccountBalance balance) throws IOException {
-		try (var buf = new BufferedWriter(this)) {
-			buf.write(balance.date.toString());
-		}
+		writer.write(balance.date.toString());
 	}
 
 	@Override
