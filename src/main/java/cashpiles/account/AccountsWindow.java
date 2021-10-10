@@ -8,8 +8,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
-import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountBalance;
+import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
