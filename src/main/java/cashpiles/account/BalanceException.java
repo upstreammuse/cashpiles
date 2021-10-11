@@ -10,7 +10,7 @@ public class BalanceException extends LedgerException {
 
 	public static BalanceException forUnbalanced(AccountBalance balance, Amount calculated) {
 		return new BalanceException(balance,
-				"Statement balance " + balance.amount + " does not match calculated balance " + calculated);
+				"Statement balance " + balance.amount() + " does not match calculated balance " + calculated);
 	}
 
 	private BalanceException(LedgerItem item, String why) {
