@@ -9,6 +9,7 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerItem;
 
 public class LedgerWriter implements ItemProcessor {
 
@@ -26,6 +27,7 @@ public class LedgerWriter implements ItemProcessor {
 			writer.write(balance.account());
 			writer.write("  ");
 			writer.write(balance.amount().toString());
+			writeComment(balance);
 			writer.newLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -45,6 +47,7 @@ public class LedgerWriter implements ItemProcessor {
 			});
 			writer.write(" ");
 			writer.write(command.account());
+			writeComment(command);
 			writer.newLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -55,11 +58,27 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public void process(BlankLine line) {
 		try {
+			writeComment(line, false);
 			writer.newLine();
 		} catch (IOException ex) {
 			// TODO do something
 			ex.printStackTrace();
 		}
+	}
+
+	private void writeComment(LedgerItem item) throws IOException {
+		writeComment(item, true);
+	}
+
+	private void writeComment(LedgerItem item, boolean pad) throws IOException {
+		if (item.comment().isEmpty()) {
+			return;
+		}
+		if (pad) {
+			writer.write(" ");
+		}
+		writer.write("; ");
+		writer.write(item.comment());
 	}
 
 	private void writeDate(LocalDate date) throws IOException {
