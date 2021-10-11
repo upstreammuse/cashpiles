@@ -36,19 +36,19 @@ public class AccountCommand extends LedgerItem {
 	}
 
 	public AccountCommand withAccount(String account) {
-		AccountCommand retval = new AccountCommand(this);
+		var retval = new AccountCommand(this);
 		retval.account = account;
 		return retval;
 	}
 
 	public AccountCommand withDate(LocalDate date) {
-		AccountCommand retval = new AccountCommand(this);
+		var retval = new AccountCommand(this);
 		retval.date = date;
 		return retval;
 	}
 
 	public AccountCommand withStatus(Status status) {
-		AccountCommand retval = new AccountCommand(this);
+		var retval = new AccountCommand(this);
 		retval.status = status;
 		return retval;
 	}

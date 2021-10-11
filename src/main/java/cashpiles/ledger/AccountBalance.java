@@ -34,19 +34,19 @@ public class AccountBalance extends LedgerItem {
 	}
 
 	public AccountBalance withAccount(String account) {
-		AccountBalance retval = new AccountBalance(this);
+		var retval = new AccountBalance(this);
 		retval.account = account;
 		return retval;
 	}
 
 	public AccountBalance withAmount(Amount amount) {
-		AccountBalance retval = new AccountBalance(this);
+		var retval = new AccountBalance(this);
 		retval.amount = amount;
 		return retval;
 	}
 
 	public AccountBalance withDate(LocalDate date) {
-		AccountBalance retval = new AccountBalance(this);
+		var retval = new AccountBalance(this);
 		retval.date = date;
 		return retval;
 	}
