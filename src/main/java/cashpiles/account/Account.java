@@ -53,20 +53,20 @@ public class Account extends AbstractTableModel {
 	public void update(AccountCommand command) throws AccountException {
 		switch (status) {
 		case ON_BUDGET -> {
-			switch (command.status) {
+			switch (command.status()) {
 			case ON_BUDGET -> throw AccountException.forAlreadyOpen(command);
 			case OFF_BUDGET -> throw AccountException.forTypeChange(command);
 			case CLOSED -> {
 				if (!balance().equals(new Amount())) {
 					throw AccountException.forNonZeroClose(command);
 				}
-				Lists.lastOf(statements).setEndDate(command.date);
+				Lists.lastOf(statements).setEndDate(command.date());
 				status = Status.CLOSED;
 			}
 			}
 		}
 		case OFF_BUDGET -> {
-			switch (command.status) {
+			switch (command.status()) {
 			case ON_BUDGET -> throw AccountException.forTypeChange(command);
 			case OFF_BUDGET -> throw AccountException.forAlreadyOpen(command);
 			case CLOSED -> {
@@ -75,20 +75,20 @@ public class Account extends AbstractTableModel {
 					throw AccountException.forNonZeroClose(command);
 
 				}
-				Lists.lastOf(statements).setEndDate(command.date);
+				Lists.lastOf(statements).setEndDate(command.date());
 				status = Status.CLOSED;
 			}
 			}
 		}
 		case CLOSED -> {
-			switch (command.status) {
+			switch (command.status()) {
 			case ON_BUDGET -> {
 				status = Status.ON_BUDGET;
-				statements.add(new AccountStatement(command.date, status, new Amount()));
+				statements.add(new AccountStatement(command.date(), status, new Amount()));
 			}
 			case OFF_BUDGET -> {
 				status = Status.OFF_BUDGET;
-				statements.add(new AccountStatement(command.date, status, new Amount()));
+				statements.add(new AccountStatement(command.date(), status, new Amount()));
 			}
 			case CLOSED -> throw AccountException.forAlreadyClosed(command);
 			}
