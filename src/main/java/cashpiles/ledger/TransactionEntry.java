@@ -23,6 +23,12 @@ abstract public class TransactionEntry extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
+	public TransactionEntry(TransactionEntry other) {
+		super(other);
+		amount = other.amount;
+		parent = other.parent;
+	}
+
 	abstract void balance(BalanceResult soFar) throws TransactionException;
 
 	abstract Amount missingAmount(BalanceResult balanceResult);

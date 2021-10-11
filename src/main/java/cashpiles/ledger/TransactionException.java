@@ -7,7 +7,7 @@ public class TransactionException extends LedgerException {
 
 	public static TransactionException forAccountWithOffBudget(AccountTransactionEntry entry) {
 		return new TransactionException(entry,
-				"Cannot use off-budget account " + entry.account + " for account entries");
+				"Cannot use off-budget account " + entry.account() + " for account entries");
 	}
 
 	public static TransactionException forMultipleEmptyEntries(TransactionEntry entry) {
