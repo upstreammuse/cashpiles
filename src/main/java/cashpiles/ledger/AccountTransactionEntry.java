@@ -6,10 +6,25 @@ import cashpiles.currency.Amount;
 
 public class AccountTransactionEntry extends TransactionEntry {
 
-	public String account;
+	private String account;
 
 	public AccountTransactionEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
+	}
+
+	public AccountTransactionEntry(AccountTransactionEntry other) {
+		super(other);
+		account = other.account;
+	}
+
+	public String account() {
+		return account;
+	}
+
+	public AccountTransactionEntry withAccount(String account) {
+		var retval = new AccountTransactionEntry(this);
+		retval.account = account;
+		return retval;
 	}
 
 	@Override

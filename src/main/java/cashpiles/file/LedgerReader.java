@@ -503,27 +503,18 @@ public class LedgerReader {
 		}
 		var ident = scanner.nextIdentifier();
 		switch (identifierType(ident)) {
-
-		case ACCOUNT -> {
-			entry = new AccountTransactionEntry(fileName, lineNumber, comment);
-			((AccountTransactionEntry) entry).account = ident;
-
-		}
+		case ACCOUNT -> entry = new AccountTransactionEntry(fileName, lineNumber, comment).withAccount(ident);
 		case CATEGORY -> {
 			entry = new CategoryTransactionEntry(fileName, lineNumber, comment);
 			((CategoryTransactionEntry) entry).category = ident;
-
 		}
 		case OWNER -> {
-
 			entry = new OwnerTransactionEntry(fileName, lineNumber, comment);
 			((OwnerTransactionEntry) entry).owner = ident;
-
 		}
 		default -> {
 			return false;
 		}
-
 		}
 
 		if (scanner.hasNextAmount()) {

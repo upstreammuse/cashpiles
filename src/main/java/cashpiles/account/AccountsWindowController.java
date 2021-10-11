@@ -88,10 +88,10 @@ class AccountsWindowController {
 	}
 
 	public void process(AccountTransactionEntry entry) throws LedgerException {
-		if (!accounts.containsKey(entry.account)) {
+		if (!accounts.containsKey(entry.account())) {
 			throw AccountException.forUnknown(entry);
 		}
-		accounts.get(entry.account).add(entry);
+		accounts.get(entry.account()).add(entry);
 		onBudgetModel.fireTableDataChanged();
 	}
 

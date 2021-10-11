@@ -28,7 +28,7 @@ class AccountException extends LedgerException {
 	}
 
 	public static AccountException forClosed(AccountTransactionEntry entry) {
-		return new AccountException(entry, "Cannot use closed account '" + entry.account + "'");
+		return new AccountException(entry, "Cannot use closed account '" + entry.account() + "'");
 	}
 
 	public static AccountException forClosed(TrackingTransactionEntry entry) {
@@ -50,7 +50,7 @@ class AccountException extends LedgerException {
 	}
 
 	public static AccountException forUnknown(AccountTransactionEntry entry) {
-		return new AccountException(entry, "Cannot use unknown account '" + entry.account + "'");
+		return new AccountException(entry, "Cannot use unknown account '" + entry.account() + "'");
 	}
 
 	public static AccountException forUnknown(TrackingTransactionEntry entry) {
