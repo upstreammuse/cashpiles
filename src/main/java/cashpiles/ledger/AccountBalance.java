@@ -15,20 +15,20 @@ public class AccountBalance extends LedgerItem {
 	}
 
 	public AccountBalance(AccountBalance other) {
-		this(other.fileName, other.lineNumber, other.comment);
+		super(other);
 		account = other.account;
 		amount = other.amount;
 		date = other.date;
 	}
-	
+
 	public String account() {
 		return account;
 	}
-	
+
 	public Amount amount() {
 		return amount;
 	}
-	
+
 	public LocalDate date() {
 		return date;
 	}

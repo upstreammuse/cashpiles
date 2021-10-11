@@ -17,7 +17,7 @@ public class AccountCommand extends LedgerItem {
 	}
 
 	public AccountCommand(AccountCommand other) {
-		this(other.fileName, other.lineNumber, other.comment);
+		super(other);
 		account = other.account;
 		date = other.date;
 		status = other.status;

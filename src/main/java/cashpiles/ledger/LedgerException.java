@@ -4,7 +4,7 @@ package cashpiles.ledger;
 public class LedgerException extends Exception {
 
 	protected LedgerException(LedgerItem item, String message) {
-		super(message + " (line " + item.lineNumber + ")");
+		super(message + " (line " + item.lineNumber() + ")");
 	}
 
 }
