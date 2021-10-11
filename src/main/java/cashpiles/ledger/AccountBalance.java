@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
 
-public class AccountBalance extends LedgerItem implements Cloneable {
+public class AccountBalance extends LedgerItem {
 
 	private String account;
 	private Amount amount;
@@ -34,26 +34,21 @@ public class AccountBalance extends LedgerItem implements Cloneable {
 	}
 
 	public AccountBalance withAccount(String account) {
-		AccountBalance retval = clone();
+		AccountBalance retval = new AccountBalance(this);
 		retval.account = account;
 		return retval;
 	}
 
 	public AccountBalance withAmount(Amount amount) {
-		AccountBalance retval = clone();
+		AccountBalance retval = new AccountBalance(this);
 		retval.amount = amount;
 		return retval;
 	}
 
 	public AccountBalance withDate(LocalDate date) {
-		AccountBalance retval = clone();
+		AccountBalance retval = new AccountBalance(this);
 		retval.date = date;
 		return retval;
-	}
-
-	@Override
-	public AccountBalance clone() {
-		return new AccountBalance(this);
 	}
 
 	@Override
