@@ -79,10 +79,10 @@ class AccountsWindowController {
 	}
 
 	public void process(AccountBalance balance) throws LedgerException {
-		if (!accounts.containsKey(balance.account)) {
+		if (!accounts.containsKey(balance.account())) {
 			throw AccountException.forUnknown(balance);
 		}
-		accounts.get(balance.account).closeStatement(balance);
+		accounts.get(balance.account()).closeStatement(balance);
 		onBudgetModel.fireTableDataChanged();
 		offBudgetModel.fireTableDataChanged();
 	}

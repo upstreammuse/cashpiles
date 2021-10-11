@@ -153,7 +153,7 @@ public class LedgerReader {
 		if (!scanner.hasNextDate()) {
 			return false;
 		}
-		balance.date = scanner.nextDate();
+		balance = balance.withDate(scanner.nextDate());
 
 		if (!scanner.hasNext() || !scanner.next().equals("balance")) {
 			return false;
@@ -162,13 +162,13 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		balance.account = scanner.nextIdentifier();
-		verifyIdentifier(balance.account, IdentifierType.ACCOUNT);
+		balance = balance.withAccount(scanner.nextIdentifier());
+		verifyIdentifier(balance.account(), IdentifierType.ACCOUNT);
 
 		if (!scanner.hasNextAmount()) {
 			return false;
 		}
-		balance.amount = scanner.nextAmount();
+		balance = balance.withAmount(scanner.nextAmount());
 
 		if (scanner.hasNext()) {
 			return false;

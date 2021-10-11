@@ -46,7 +46,7 @@ class AccountException extends LedgerException {
 	}
 
 	public static AccountException forUnknown(AccountBalance balance) {
-		return new AccountException(balance, "Cannot use unknown account '" + balance.account + "'");
+		return new AccountException(balance, "Cannot use unknown account '" + balance.account() + "'");
 	}
 
 	public static AccountException forUnknown(AccountTransactionEntry entry) {

@@ -33,17 +33,17 @@ public class Account extends AbstractTableModel {
 
 	// TODO should this be an account exception? Should they all be LedgerException?
 	public void closeStatement(AccountBalance balance) throws BalanceException {
-		if (!balance().equals(balance.amount)) {
+		if (!balance().equals(balance.amount())) {
 			throw BalanceException.forUnbalanced(balance, balance());
 		}
 		// TODO could make it so you can't balance a closed account, which would let
 		// this be an exception instead of making a dummy statement
 		if (statements.isEmpty()) {
-			statements.add(new AccountStatement(balance.date, status, new Amount()));
+			statements.add(new AccountStatement(balance.date(), status, new Amount()));
 		}
 		var lastStatement = Lists.lastOf(statements);
-		lastStatement.setEndDate(balance.date);
-		statements.add(new AccountStatement(balance.date, status, lastStatement.balance()));
+		lastStatement.setEndDate(balance.date());
+		statements.add(new AccountStatement(balance.date(), status, lastStatement.balance()));
 	}
 
 	public Status status() {
