@@ -112,20 +112,20 @@ public class LedgerReader {
 		if (!scanner.hasNextDate()) {
 			return false;
 		}
-		account.date = scanner.nextDate();
+		account = account.withDate(scanner.nextDate());
 
 		if (!scanner.hasNext()) {
 			return false;
 		}
 		switch (scanner.next()) {
 		case "on-budget" -> {
-			account.status = AccountCommand.Status.ON_BUDGET;
+			account = account.withStatus(AccountCommand.Status.ON_BUDGET);
 		}
 		case "off-budget" -> {
-			account.status = AccountCommand.Status.OFF_BUDGET;
+			account = account.withStatus(AccountCommand.Status.OFF_BUDGET);
 		}
 		case "close" -> {
-			account.status = AccountCommand.Status.CLOSED;
+			account = account.withStatus(AccountCommand.Status.CLOSED);
 		}
 		default -> {
 			return false;
@@ -135,8 +135,8 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		account.name = scanner.nextIdentifier();
-		verifySetIdentifier(account.name, IdentifierType.ACCOUNT);
+		account = account.withAccount(scanner.nextIdentifier());
+		verifySetIdentifier(account.account(), IdentifierType.ACCOUNT);
 
 		if (scanner.hasNext()) {
 			return false;

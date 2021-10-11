@@ -12,19 +12,19 @@ import cashpiles.ledger.UnbalancedTransaction;
 class AccountException extends LedgerException {
 
 	public static AccountException forTypeChange(AccountCommand account) {
-		return new AccountException(account, "Cannot change type of account '" + account.name + "'");
+		return new AccountException(account, "Cannot change type of account '" + account.account() + "'");
 	}
 
 	public static AccountException forAlreadyOpen(AccountCommand account) {
-		return new AccountException(account, "Cannot open account '" + account.name + "' that is already open");
+		return new AccountException(account, "Cannot open account '" + account.account() + "' that is already open");
 	}
 
 	public static AccountException forNonZeroClose(AccountCommand account) {
-		return new AccountException(account, "Cannot close account '" + account.name + "' with non-zero balance");
+		return new AccountException(account, "Cannot close account '" + account.account() + "' with non-zero balance");
 	}
 
 	public static AccountException forAlreadyClosed(AccountCommand account) {
-		return new AccountException(account, "Cannot close account '" + account.name + "' that is already closed");
+		return new AccountException(account, "Cannot close account '" + account.account() + "' that is already closed");
 	}
 
 	public static AccountException forClosed(AccountTransactionEntry entry) {

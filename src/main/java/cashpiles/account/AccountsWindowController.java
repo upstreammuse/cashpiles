@@ -70,10 +70,10 @@ class AccountsWindowController {
 	}
 
 	void process(AccountCommand command) throws AccountException {
-		if (!accounts.containsKey(command.name)) {
-			accounts.put(command.name, new Account());
+		if (!accounts.containsKey(command.account())) {
+			accounts.put(command.account(), new Account());
 		}
-		accounts.get(command.name).update(command);
+		accounts.get(command.account()).update(command);
 		onBudgetModel.fireTableDataChanged();
 		offBudgetModel.fireTableDataChanged();
 	}
