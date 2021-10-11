@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
+import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.ItemProcessor;
 
 public class LedgerWriter implements ItemProcessor {
@@ -48,6 +49,16 @@ public class LedgerWriter implements ItemProcessor {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void process(BlankLine line) {
+		try {
+			writer.newLine();
+		} catch (IOException ex) {
+			// TODO do something
+			ex.printStackTrace();
 		}
 	}
 

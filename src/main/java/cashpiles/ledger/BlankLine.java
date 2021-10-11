@@ -8,6 +8,7 @@ public class BlankLine extends LedgerItem {
 
 	@Override
 	public void process(ItemProcessor processor) {
+		processor.process(this);
 	}
 
 }

@@ -11,6 +11,9 @@ public interface ItemProcessor {
 	default void process(AccountTransactionEntry entry) {
 	}
 
+	default void process(BlankLine line) {
+	}
+
 	default void process(Budget budget) {
 	}
 
