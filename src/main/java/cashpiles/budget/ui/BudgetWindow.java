@@ -21,6 +21,7 @@ import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.Transaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 
 @SuppressWarnings("serial")
@@ -118,6 +119,11 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 		} catch (BudgetException ex) {
 			error(ex);
 		}
+	}
+
+	@Override
+	public boolean process(Transaction transaction) {
+		return true;
 	}
 
 	@Override

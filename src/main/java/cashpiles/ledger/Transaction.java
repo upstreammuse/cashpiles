@@ -43,11 +43,12 @@ public class Transaction extends LedgerItem {
 
 	@Override
 	public void process(ItemProcessor processor) {
-		processor.process(this);
-		entries.stream().forEach(e -> {
-			e.parent = this;
-			e.process(processor);
-		});
+		if (processor.process(this)) {
+			entries.stream().forEach(e -> {
+				e.parent = this;
+				e.process(processor);
+			});
+		}
 	}
 
 }

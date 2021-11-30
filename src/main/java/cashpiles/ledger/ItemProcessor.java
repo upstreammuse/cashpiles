@@ -45,7 +45,8 @@ public interface ItemProcessor {
 	default void process(TrackingTransactionEntry entry) {
 	}
 
-	default void process(Transaction xact) {
+	default boolean process(Transaction transaction) {
+		return false;
 	}
 
 	default void process(UnbalancedTransaction transaction) {

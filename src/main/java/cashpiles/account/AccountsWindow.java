@@ -15,6 +15,7 @@ import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.Transaction;
 import cashpiles.ledger.UnbalancedTransaction;
 
 @SuppressWarnings("serial")
@@ -76,6 +77,11 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 		} catch (LedgerException ex) {
 			error(ex);
 		}
+	}
+
+	@Override
+	public boolean process(Transaction transaction) {
+		return true;
 	}
 
 	@Override
