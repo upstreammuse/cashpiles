@@ -193,7 +193,7 @@ public class LedgerReader {
 		var scanner = new Scanner(line);
 
 		if (scanner.hasNextDate()) {
-			budget.date = scanner.nextDate();
+			budget = budget.withDate(scanner.nextDate());
 		} else {
 			return false;
 		}
@@ -203,7 +203,7 @@ public class LedgerReader {
 		}
 
 		if (scanner.hasNextPeriod()) {
-			budget.period = scanner.nextPeriod();
+			budget = budget.withPeriod(scanner.nextPeriod());
 		} else {
 			return false;
 		}
@@ -236,7 +236,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(close);
+		activeBudget = activeBudget.withEntry(close);
 		return true;
 	}
 
@@ -270,9 +270,9 @@ public class LedgerReader {
 		goal.amount = scanner.nextAmount();
 
 		if (scanner.hasNextDate()) {
-			goal.dates = new DateRange(activeBudget.date, scanner.nextDate());
+			goal.dates = new DateRange(activeBudget.date(), scanner.nextDate());
 		} else if (scanner.hasNextPeriod()) {
-			goal.dates = new DateRange(activeBudget.date, scanner.nextPeriod());
+			goal.dates = new DateRange(activeBudget.date(), scanner.nextPeriod());
 		} else {
 			return false;
 		}
@@ -288,7 +288,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(goal);
+		activeBudget = activeBudget.withEntry(goal);
 		return true;
 	}
 
@@ -319,7 +319,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(income);
+		activeBudget = activeBudget.withEntry(income);
 		return true;
 	}
 
@@ -349,7 +349,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(goal);
+		activeBudget = activeBudget.withEntry(goal);
 		return true;
 	}
 
@@ -385,7 +385,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(reserve);
+		activeBudget = activeBudget.withEntry(reserve);
 		return true;
 	}
 
@@ -416,7 +416,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(routine);
+		activeBudget = activeBudget.withEntry(routine);
 		return true;
 	}
 
@@ -447,7 +447,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeBudget.entries.add(withholding);
+		activeBudget = activeBudget.withEntry(withholding);
 		return true;
 	}
 

@@ -16,7 +16,7 @@ class GoalCategory extends BudgetCategory {
 	GoalCategory(String name, GoalBudgetEntry entry) {
 		super(name, entry.owner, new Amount());
 		calc = new GoalCalculator();
-		calc.setAllocationDates(new DateRange(entry.parent.date, entry.parent.period));
+		calc.setAllocationDates(new DateRange(entry.parent.date(), entry.parent.period()));
 		calc.setGoalAmount(entry.amount);
 		calc.setGoalDates(entry.dates);
 		calc.setGoalRepeat(entry.repeat);

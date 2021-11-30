@@ -23,7 +23,7 @@ public class BudgetException extends LedgerException {
 	}
 
 	public static BudgetException forDateRange(Budget budget) {
-		var dateRange = new DateRange(budget.date, budget.period);
+		var dateRange = new DateRange(budget.date(), budget.period());
 		return new BudgetException(budget,
 				"Cannot reconfigure budget to dates " + dateRange + " because some dates would no longer be included");
 	}
@@ -34,7 +34,7 @@ public class BudgetException extends LedgerException {
 
 	public static BudgetException forReconfigure(Budget budget, DateRange dates) {
 		return new BudgetException(budget,
-				"Can only reconfigure budget with dates " + dates + " on first date, not " + budget.date);
+				"Can only reconfigure budget with dates " + dates + " on first date, not " + budget.date());
 	}
 
 	public static BudgetException forTransactionDate(TrackingTransactionEntry entry, DateRange dates) {

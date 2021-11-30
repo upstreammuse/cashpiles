@@ -13,7 +13,7 @@ public class RoutineCategory extends BudgetCategory {
 	public RoutineCategory(String name, RoutineBudgetEntry entry) {
 		super(name, entry.owner, new Amount());
 		priorActivity = new Amount();
-		priorRange = currentRange = new DateRange(entry.parent.date, entry.parent.period);
+		priorRange = currentRange = new DateRange(entry.parent.date(), entry.parent.period());
 	}
 
 	private RoutineCategory(String name, String owner, Amount amount) {
