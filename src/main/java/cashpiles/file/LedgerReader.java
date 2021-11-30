@@ -561,7 +561,7 @@ public class LedgerReader {
 		if (scanner.hasNextAmount()) {
 			entry.amount = scanner.nextAmount();
 		} else if (scanner.hasNextIdentifier()) {
-			entry.trackingAccount = Optional.of(scanner.nextIdentifier());
+			entry = entry.withTrackingAccount(Optional.of(scanner.nextIdentifier()));
 			if (scanner.hasNextAmount()) {
 				entry.amount = scanner.nextAmount();
 			}

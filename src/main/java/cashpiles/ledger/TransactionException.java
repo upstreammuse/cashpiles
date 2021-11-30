@@ -17,9 +17,7 @@ public class TransactionException extends LedgerException {
 
 	public static TransactionException forTrackingWithBudget(TrackingTransactionEntry entry) {
 		var builder = new StringBuilder();
-		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
-			builder.append(trackingAccount);
-		}, () -> {
+		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
 			throw new IllegalArgumentException("Tried to create a TransactionException with a missing account name");
 		});
 		return new TransactionException(entry,
