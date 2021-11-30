@@ -14,7 +14,8 @@ public interface ItemProcessor {
 	default void process(BlankLine line) {
 	}
 
-	default void process(Budget budget) {
+	default boolean process(Budget budget) {
+		return false;
 	}
 
 	default void process(CategoryTransactionEntry entry) {
