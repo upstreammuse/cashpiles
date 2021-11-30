@@ -511,8 +511,7 @@ public class LedgerReader {
 		switch (identifierType(ident)) {
 		case ACCOUNT -> entry = new AccountTransactionEntry(fileName, lineNumber, comment).withAccount(ident);
 		case CATEGORY -> {
-			entry = new CategoryTransactionEntry(fileName, lineNumber, comment);
-			((CategoryTransactionEntry) entry).category = ident;
+			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
 		}
 		case OWNER -> {
 			entry = new OwnerTransactionEntry(fileName, lineNumber, comment);
@@ -550,9 +549,7 @@ public class LedgerReader {
 		switch (identifierType(ident)) {
 
 		case CATEGORY -> {
-			entry = new CategoryTransactionEntry(fileName, lineNumber, comment);
-			((CategoryTransactionEntry) entry).category = ident;
-
+			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
 		}
 		case OWNER -> {
 

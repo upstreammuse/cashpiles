@@ -12,6 +12,11 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 		super(fileName, lineNumber, comment);
 	}
 
+	public TrackingTransactionEntry(TrackingTransactionEntry other) {
+		super(other);
+		trackingAccount = other.trackingAccount;
+	}
+
 	@Override
 	void balance(BalanceResult soFar) throws TransactionException {
 		if (amount == null) {
