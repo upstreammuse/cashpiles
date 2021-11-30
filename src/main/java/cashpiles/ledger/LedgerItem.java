@@ -1,5 +1,6 @@
 package cashpiles.ledger;
 
+// TODO the fileName field is not used by anything, and can be removed if there's no use for it going forward
 public abstract class LedgerItem {
 
 	private final String comment;
