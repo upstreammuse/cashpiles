@@ -230,8 +230,9 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var close = new CloseBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifyIdentifier(close.name, IdentifierType.CATEGORY);
+		var close = new CloseBudgetEntry(fileName, lineNumber, comment);
+		close = close.withName(scanner.nextIdentifier());
+		verifyIdentifier(close.name(), IdentifierType.CATEGORY);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -255,34 +256,34 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var goal = new GoalBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
+		var goal = new GoalBudgetEntry(fileName, lineNumber, comment);
+		goal = goal.withName(scanner.nextIdentifier());
+		verifySetIdentifier(goal.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.owner = scanner.nextIdentifier();
-		verifySetIdentifier(goal.owner, IdentifierType.OWNER);
+		goal = goal.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(goal.owner(), IdentifierType.OWNER);
 
 		if (!scanner.hasNextAmount()) {
 			return false;
 		}
-		goal.amount = scanner.nextAmount();
+		goal = goal.withAmount(scanner.nextAmount());
 
 		if (scanner.hasNextDate()) {
-			goal.dates = new DateRange(activeBudget.date(), scanner.nextDate());
+			goal = goal.withDates(new DateRange(activeBudget.date(), scanner.nextDate()));
 		} else if (scanner.hasNextPeriod()) {
-			goal.dates = new DateRange(activeBudget.date(), scanner.nextPeriod());
+			goal = goal.withDates(new DateRange(activeBudget.date(), scanner.nextPeriod()));
 		} else {
 			return false;
 		}
 
-		goal.repeat = false;
 		if (scanner.hasNext()) {
 			if (!scanner.next().equals("repeat")) {
 				return false;
 			}
-			goal.repeat = true;
+			goal = goal.withRepeat(true);
 		}
 
 		if (scanner.hasNext()) {
@@ -307,14 +308,15 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var income = new IncomeBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(income.name, IdentifierType.CATEGORY);
+		var income = new IncomeBudgetEntry(fileName, lineNumber, comment);
+		income = income.withName(scanner.nextIdentifier());
+		verifySetIdentifier(income.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		income.owner = scanner.nextIdentifier();
-		verifySetIdentifier(income.owner, IdentifierType.OWNER);
+		income = income.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(income.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -337,14 +339,15 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var goal = new ManualGoalBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(goal.name, IdentifierType.CATEGORY);
+		var goal = new ManualGoalBudgetEntry(fileName, lineNumber, comment);
+		goal = goal.withName(scanner.nextIdentifier());
+		verifySetIdentifier(goal.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		goal.owner = scanner.nextIdentifier();
-		verifySetIdentifier(goal.owner, IdentifierType.OWNER);
+		goal = goal.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(goal.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -368,19 +371,20 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var reserve = new ReserveBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(reserve.name, IdentifierType.CATEGORY);
+		var reserve = new ReserveBudgetEntry(fileName, lineNumber, comment);
+		reserve = reserve.withName(scanner.nextIdentifier());
+		verifySetIdentifier(reserve.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		reserve.owner = scanner.nextIdentifier();
-		verifySetIdentifier(reserve.owner, IdentifierType.OWNER);
+		reserve = reserve.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(reserve.owner(), IdentifierType.OWNER);
 
 		if (!scanner.hasNextPercentage()) {
 			return false;
 		}
-		reserve.percentage = scanner.nextPercentage();
+		reserve = reserve.withPercentage(scanner.nextPercentage());
 
 		if (scanner.hasNext()) {
 			return false;
@@ -404,14 +408,15 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var routine = new RoutineBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(routine.name, IdentifierType.CATEGORY);
+		var routine = new RoutineBudgetEntry(fileName, lineNumber, comment);
+		routine = routine.withName(scanner.nextIdentifier());
+		verifySetIdentifier(routine.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		routine.owner = scanner.nextIdentifier();
-		verifySetIdentifier(routine.owner, IdentifierType.OWNER);
+		routine = routine.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(routine.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -435,14 +440,15 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		var withholding = new WithholdingBudgetEntry(scanner.nextIdentifier(), fileName, lineNumber, comment);
-		verifySetIdentifier(withholding.name, IdentifierType.CATEGORY);
+		var withholding = new WithholdingBudgetEntry(fileName, lineNumber, comment);
+		withholding = withholding.withName(scanner.nextIdentifier());
+		verifySetIdentifier(withholding.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		withholding.owner = scanner.nextIdentifier();
-		verifySetIdentifier(withholding.owner, IdentifierType.OWNER);
+		withholding = withholding.withOwner(scanner.nextIdentifier());
+		verifySetIdentifier(withholding.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;

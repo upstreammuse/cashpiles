@@ -7,7 +7,7 @@ import cashpiles.time.DateRange;
 public class WithholdingCategory extends BudgetCategory {
 
 	public WithholdingCategory(String name, WithholdingBudgetEntry entry) {
-		this(name, entry.owner, new Amount());
+		this(name, entry.owner(), new Amount());
 	}
 
 	public WithholdingCategory(String name, String owner, Amount startBalance) {

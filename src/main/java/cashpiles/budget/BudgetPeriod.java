@@ -87,22 +87,22 @@ public class BudgetPeriod {
 	// TODO replace all the REs with something typed so that we can have decent
 	// errors in the GUI
 	public void configureCategory(CloseBudgetEntry entry) throws BudgetException {
-		if (!categories.containsKey(entry.name)) {
+		if (!categories.containsKey(entry.name())) {
 			throw BudgetException.forClosedCategory(entry);
 		}
-		var closed = categories.get(entry.name);
+		var closed = categories.get(entry.name());
 		closed.close(entry);
 		for (var cat : categories.entrySet()) {
 			closed.unlink(cat.getValue());
 		}
-		categories.remove(entry.name);
+		categories.remove(entry.name());
 	}
 
 	// This method looks ugly, but it allows us to avoid making a new category
 	// object if we should be throwing an error instead, while keeping the error
 	// handling generic
-	private void configureCategory(BudgetEntry entry, Supplier<BudgetCategory> supplier) throws BudgetException {
-		if (categories.containsKey(entry.name)) {
+	private void configureCategory(BudgetEntry<?> entry, Supplier<BudgetCategory> supplier) throws BudgetException {
+		if (categories.containsKey(entry.name())) {
 			throw BudgetException.forExistingCategory(entry);
 		}
 		var category = supplier.get();
@@ -113,12 +113,12 @@ public class BudgetPeriod {
 	}
 
 	public void configureCategory(GoalBudgetEntry entry) throws BudgetException {
-		configureCategory(entry, () -> new GoalCategory(entry.name, entry));
+		configureCategory(entry, () -> new GoalCategory(entry.name(), entry));
 	}
 
 	public void configureCategory(IncomeBudgetEntry entry) throws BudgetException {
 		configureCategory(entry, () -> {
-			var income = new IncomeCategory(entry.name, entry.owner);
+			var income = new IncomeCategory(entry.name(), entry.owner());
 			for (var cat : categories.entrySet()) {
 				income.link(cat.getValue());
 			}
@@ -127,12 +127,12 @@ public class BudgetPeriod {
 	}
 
 	public void configureCategory(ManualGoalBudgetEntry entry) throws BudgetException {
-		configureCategory(entry, () -> new ManualGoalCategory(entry.name, entry));
+		configureCategory(entry, () -> new ManualGoalCategory(entry.name(), entry));
 	}
 
 	public void configureCategory(ReserveBudgetEntry entry) throws BudgetException {
 		configureCategory(entry, () -> {
-			var reserve = new ReserveCategory(entry.name, entry.owner, entry.percentage);
+			var reserve = new ReserveCategory(entry.name(), entry.owner(), entry.percentage());
 			for (var cat : categories.entrySet()) {
 				reserve.link(cat.getValue());
 			}
@@ -141,11 +141,11 @@ public class BudgetPeriod {
 	}
 
 	public void configureCategory(RoutineBudgetEntry entry) throws BudgetException {
-		configureCategory(entry, () -> new RoutineCategory(entry.name, entry));
+		configureCategory(entry, () -> new RoutineCategory(entry.name(), entry));
 	}
 
 	public void configureCategory(WithholdingBudgetEntry entry) throws BudgetException {
-		configureCategory(entry, () -> new WithholdingCategory(entry.name, entry));
+		configureCategory(entry, () -> new WithholdingCategory(entry.name(), entry));
 	}
 
 	public DateRange dates() {

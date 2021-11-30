@@ -7,7 +7,7 @@ import cashpiles.time.DateRange;
 public class ManualGoalCategory extends BudgetCategory {
 
 	public ManualGoalCategory(String name, ManualGoalBudgetEntry entry) {
-		this(name, entry.owner, new Amount());
+		this(name, entry.owner(), new Amount());
 	}
 
 	public ManualGoalCategory(String name, String owner, Amount amount) {
