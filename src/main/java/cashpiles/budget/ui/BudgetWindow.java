@@ -38,11 +38,13 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 	}
 
 	@Override
-	public void process(Budget budget) {
+	public boolean process(Budget budget) {
 		try {
 			table.configureCurrentBudget(budget);
+			return true;
 		} catch (BudgetException ex) {
 			error(ex);
+			return false;
 		}
 	}
 
