@@ -40,8 +40,8 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	}
 
 	void configureCurrentBudget(Budget budget) throws BudgetException {
-		generateToDate(budget.date, budget.period);
-		if (Lists.lastOf(periods).dates().startDate().equals(budget.date)) {
+		generateToDate(budget.date(), budget.period());
+		if (Lists.lastOf(periods).dates().startDate().equals(budget.date())) {
 			Lists.lastOf(periods).setDates(budget);
 			fireTableDataChanged();
 		} else {

@@ -7,12 +7,46 @@ import java.util.List;
 
 public class Budget extends LedgerItem {
 
-	public LocalDate date;
-	public List<BudgetEntry> entries = new ArrayList<>();
-	public Period period;
+	private LocalDate date;
+	private List<BudgetEntry> entries = new ArrayList<>();
+	private Period period;
 
 	public Budget(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
+	}
+
+	public Budget(Budget other) {
+		super(other);
+		date = other.date;
+		entries = new ArrayList<BudgetEntry>(other.entries);
+		period = other.period;
+	}
+
+	public LocalDate date() {
+		return date;
+	}
+
+	public Period period() {
+		return period;
+	}
+
+	public Budget withDate(LocalDate date) {
+		var retval = new Budget(this);
+		retval.date = date;
+		return retval;
+	}
+
+	public Budget withEntry(BudgetEntry entry) {
+		var retval = new Budget(this);
+		entry.parent = retval;
+		retval.entries.add(entry);
+		return retval;
+	}
+
+	public Budget withPeriod(Period period) {
+		var retval = new Budget(this);
+		retval.period = period;
+		return retval;
 	}
 
 	@Override

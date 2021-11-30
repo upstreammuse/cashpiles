@@ -169,7 +169,7 @@ public class BudgetPeriod {
 	}
 
 	public void setDates(Budget budget) throws BudgetException {
-		var dateRange = new DateRange(budget.date, budget.period);
+		var dateRange = new DateRange(budget.date(), budget.period());
 		if (!dateRange.contains(lastTransactionDate)) {
 			throw BudgetException.forDateRange(budget);
 		}
