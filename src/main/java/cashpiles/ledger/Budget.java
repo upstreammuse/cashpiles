@@ -8,7 +8,7 @@ import java.util.List;
 public class Budget extends LedgerItem {
 
 	private LocalDate date;
-	private List<BudgetEntry> entries = new ArrayList<>();
+	private List<BudgetEntry<?>> entries = new ArrayList<>();
 	private Period period;
 
 	public Budget(String fileName, int lineNumber, String comment) {
@@ -18,7 +18,7 @@ public class Budget extends LedgerItem {
 	public Budget(Budget other) {
 		super(other);
 		date = other.date;
-		entries = new ArrayList<BudgetEntry>(other.entries);
+		entries = new ArrayList<BudgetEntry<?>>(other.entries);
 		period = other.period;
 	}
 
@@ -36,10 +36,9 @@ public class Budget extends LedgerItem {
 		return retval;
 	}
 
-	public Budget withEntry(BudgetEntry entry) {
+	public Budget withEntry(BudgetEntry<?> entry) {
 		var retval = new Budget(this);
-		entry.parent = retval;
-		retval.entries.add(entry);
+		retval.entries.add(entry.withParent(retval));
 		return retval;
 	}
 
@@ -53,7 +52,6 @@ public class Budget extends LedgerItem {
 	public void process(ItemProcessor processor) {
 		if (processor.process(this)) {
 			entries.stream().forEach(e -> {
-				e.parent = this;
 				e.process(processor);
 			});
 		}
