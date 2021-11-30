@@ -4,9 +4,10 @@ import java.util.Optional;
 
 import cashpiles.currency.Amount;
 
+// TODO I think Cloneable is pretty much exactly what I need for this use case, but if it falls apart, I can use the duplicate() construction like I did with Budget entries.  If it works here, refactor the other ones so they match
 abstract public class TrackingTransactionEntry extends TransactionEntry {
 
-	public Optional<String> trackingAccount = Optional.empty();
+	private Optional<String> trackingAccount = Optional.empty();
 
 	public TrackingTransactionEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
@@ -15,6 +16,18 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	public TrackingTransactionEntry(TrackingTransactionEntry other) {
 		super(other);
 		trackingAccount = other.trackingAccount;
+	}
+
+	public Optional<String> trackingAccount() {
+		return trackingAccount;
+	}
+
+	// TODO consider making this take the string, and using ofnullable to make it
+	// more flexible on input, while still treating the data the same
+	public TrackingTransactionEntry withTrackingAccount(Optional<String> trackingAccount) {
+		var retval = (TrackingTransactionEntry) clone();
+		retval.trackingAccount = trackingAccount;
+		return retval;
 	}
 
 	@Override

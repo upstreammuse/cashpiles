@@ -98,13 +98,13 @@ class AccountsWindowController {
 	// TODO it might be possible to do this without isPresent/get, but don't need to
 	// solve that right now
 	public void process(TrackingTransactionEntry entry) throws LedgerException {
-		if (!entry.trackingAccount.isPresent()) {
+		if (!entry.trackingAccount().isPresent()) {
 			return;
 		}
-		if (!accounts.containsKey(entry.trackingAccount.get())) {
+		if (!accounts.containsKey(entry.trackingAccount().get())) {
 			throw AccountException.forUnknown(entry);
 		}
-		accounts.get(entry.trackingAccount.get()).add(entry);
+		accounts.get(entry.trackingAccount().get()).add(entry);
 		offBudgetModel.fireTableDataChanged();
 	}
 

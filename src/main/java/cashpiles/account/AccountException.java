@@ -33,9 +33,7 @@ class AccountException extends LedgerException {
 
 	public static AccountException forClosed(TrackingTransactionEntry entry) {
 		var builder = new StringBuilder();
-		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
-			builder.append(trackingAccount);
-		}, () -> {
+		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
 			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
 		});
 		return new AccountException(entry, "Cannot use closed account '" + builder + "'");
@@ -55,9 +53,7 @@ class AccountException extends LedgerException {
 
 	public static AccountException forUnknown(TrackingTransactionEntry entry) {
 		var builder = new StringBuilder();
-		entry.trackingAccount.ifPresentOrElse(trackingAccount -> {
-			builder.append(trackingAccount);
-		}, () -> {
+		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
 			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
 		});
 		return new AccountException(entry, "Cannot use unknown account '" + builder + "'");

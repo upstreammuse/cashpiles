@@ -1,7 +1,7 @@
 package cashpiles.ledger;
 
 // TODO the fileName field is not used by anything, and can be removed if there's no use for it going forward
-public abstract class LedgerItem {
+public abstract class LedgerItem implements Cloneable {
 
 	private final String comment;
 	private final String fileName;
@@ -28,5 +28,14 @@ public abstract class LedgerItem {
 	}
 
 	public abstract void process(ItemProcessor processor);
+
+	@Override
+	public LedgerItem clone() {
+		try {
+			return (LedgerItem) super.clone();
+		} catch (CloneNotSupportedException ex) {
+			return null;
+		}
+	}
 
 }
