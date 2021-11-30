@@ -58,10 +58,10 @@ public class BudgetPeriod {
 		if (!dates.contains(entry.parent.date)) {
 			throw new DateTimeException("Cannot assign a transaction to a period that does not include its date");
 		}
-		if (!owners.containsKey(entry.owner)) {
+		if (!owners.containsKey(entry.owner())) {
 			throw BudgetException.forUnknownOwner(entry);
 		}
-		owners.put(entry.owner, owners.get(entry.owner).add(entry.amount));
+		owners.put(entry.owner(), owners.get(entry.owner()).add(entry.amount));
 		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent.date);
 	}
 

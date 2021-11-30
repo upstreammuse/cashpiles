@@ -47,7 +47,7 @@ public class BudgetException extends LedgerException {
 	}
 
 	public static BudgetException forUnknownOwner(OwnerTransactionEntry entry) {
-		return new BudgetException(entry, "Cannot use unknown budget category owner '" + entry.owner + "'");
+		return new BudgetException(entry, "Cannot use unknown budget category owner '" + entry.owner() + "'");
 	}
 
 	private BudgetException(LedgerItem item, String message) {

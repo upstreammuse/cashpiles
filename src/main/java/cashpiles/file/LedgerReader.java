@@ -514,8 +514,7 @@ public class LedgerReader {
 			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
 		}
 		case OWNER -> {
-			entry = new OwnerTransactionEntry(fileName, lineNumber, comment);
-			((OwnerTransactionEntry) entry).owner = ident;
+			entry = new OwnerTransactionEntry(fileName, lineNumber, comment).withOwner(ident);
 		}
 		default -> {
 			return false;
@@ -552,10 +551,7 @@ public class LedgerReader {
 			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
 		}
 		case OWNER -> {
-
-			entry = new OwnerTransactionEntry(fileName, lineNumber, comment);
-			((OwnerTransactionEntry) entry).owner = ident;
-
+			entry = new OwnerTransactionEntry(fileName, lineNumber, comment).withOwner(ident);
 		}
 		default -> {
 			return false;
