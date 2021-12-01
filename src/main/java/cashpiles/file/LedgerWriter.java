@@ -10,6 +10,7 @@ import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CloseBudgetEntry;
+import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerItem;
@@ -105,6 +106,19 @@ public class LedgerWriter implements ItemProcessor {
 		}
 		table.write(0, "  close ");
 		table.write(1, entry.name());
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
+	public void process(GoalBudgetEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  goal ");
+		table.write(1, entry.name() + "  ");
+		table.write(2, entry.owner() + "  ");
+		table.write(3, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}
