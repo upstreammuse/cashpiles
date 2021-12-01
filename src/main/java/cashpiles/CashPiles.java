@@ -26,13 +26,10 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import cashpiles.account.AccountsWindow;
 import cashpiles.budget.ui.BudgetWindow;
-import cashpiles.file.IdentifierMismatchException;
-import cashpiles.file.InvalidContentException;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
-import cashpiles.file.UnknownIdentifierException;
 import cashpiles.ledger.Ledger;
-import cashpiles.ledger.TransactionException;
+import cashpiles.ledger.LedgerException;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
@@ -120,8 +117,7 @@ class CashPiles extends JFrame {
 			var budgetWindow = new BudgetWindow();
 			ledger.process(budgetWindow);
 			budgetWindow.setVisible(true);
-		} catch (IOException | UnknownIdentifierException | IdentifierMismatchException | TransactionException
-				| InvalidContentException ex) {
+		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
 					JOptionPane.ERROR_MESSAGE);
 		}
