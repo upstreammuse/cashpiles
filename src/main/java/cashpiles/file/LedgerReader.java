@@ -105,7 +105,7 @@ public class LedgerReader {
 
 	private boolean processAccount(String line, String comment) throws LedgerException {
 		var account = new AccountCommand(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextDate()) {
 			return false;
@@ -145,7 +145,7 @@ public class LedgerReader {
 
 	private boolean processAccountBalance(String line, String comment) throws LedgerException {
 		var balance = new AccountBalance(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextDate()) {
 			return false;
@@ -176,7 +176,7 @@ public class LedgerReader {
 
 	private boolean processBlank(String line, String comment) {
 		var blank = new BlankLine(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -187,7 +187,7 @@ public class LedgerReader {
 
 	private boolean processBudget(String line, String comment) {
 		var budget = new Budget(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (scanner.hasNextDate()) {
 			budget = budget.withDate(scanner.nextDate());
@@ -213,7 +213,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetClose(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -238,7 +238,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetGoal(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -289,7 +289,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetIncome(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -320,7 +320,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetManualGoal(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -351,7 +351,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetReserve(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -387,7 +387,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetRoutine(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -418,7 +418,7 @@ public class LedgerReader {
 	}
 
 	private boolean processBudgetWithholding(String line, String comment) throws LedgerException {
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -450,7 +450,7 @@ public class LedgerReader {
 
 	private boolean processTransaction(String line, String comment) {
 		var xact = new Transaction(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextDate()) {
 			return false;
@@ -489,7 +489,7 @@ public class LedgerReader {
 
 	private boolean processTransactionLine(String line, String comment) throws LedgerException {
 		TransactionEntry entry;
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -525,7 +525,7 @@ public class LedgerReader {
 
 	private boolean processTransactionTrackingLine(String line, String comment) throws LedgerException {
 		TrackingTransactionEntry entry;
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
 			return false;
@@ -567,7 +567,7 @@ public class LedgerReader {
 
 	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerException {
 		var xact = new UnbalancedTransaction(fileName, lineNumber, comment);
-		var scanner = new Scanner(line);
+		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextDate()) {
 			return false;
