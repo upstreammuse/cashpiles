@@ -32,7 +32,7 @@ public class TransactionException extends LedgerException {
 
 	public static TransactionException forUnbalancedTransactionWithOnBudgetAccount(UnbalancedTransaction transaction) {
 		return new TransactionException(transaction,
-				"Cannot use single-line transaction with on-budget account '" + transaction.account + "'");
+				"Cannot use single-line transaction with on-budget account '" + transaction.account() + "'");
 	}
 
 	private TransactionException(LedgerItem item, String message) {

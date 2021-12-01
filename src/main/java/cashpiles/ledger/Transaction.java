@@ -10,19 +10,55 @@ public class Transaction extends LedgerItem {
 		CLEARED, DISPUTED, PENDING
 	};
 
-	public LocalDate date;
-	public List<TransactionEntry> entries = new ArrayList<>();
-	public String payee;
-	public Status status;
+	private LocalDate date;
+	private List<TransactionEntry> entries = new ArrayList<>();
+	private String payee;
+	private Status status;
 
 	public Transaction(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
 	}
 
+	public LocalDate date() {
+		return date;
+	}
+
+	public String payee() {
+		return payee;
+	}
+
+	public Status status() {
+		return status;
+	}
+
+	public Transaction withDate(LocalDate date) {
+		var retval = clone();
+		retval.date = date;
+		return retval;
+	}
+
+	public Transaction withEntry(TransactionEntry entry) {
+		var retval = clone();
+		retval.entries.add(entry.withParent(retval));
+		return retval;
+	}
+
+	public Transaction withPayee(String payee) {
+		var retval = clone();
+		retval.payee = payee;
+		return retval;
+	}
+
+	public Transaction withStatus(Status status) {
+		var retval = clone();
+		retval.status = status;
+		return retval;
+	}
+
 	public void balance() throws TransactionException {
 		// step 1, if there is an entry with an empty amount, calculate it and fill it
 		// in
-		final var balancer = new TransactionEntry.BalanceResult();
+		var balancer = new TransactionEntry.BalanceResult();
 		for (var entry : entries) {
 			entry.balance(balancer);
 		}
@@ -42,10 +78,16 @@ public class Transaction extends LedgerItem {
 	}
 
 	@Override
+	public Transaction clone() {
+		var retval = (Transaction) super.clone();
+		retval.entries = new ArrayList<>(entries);
+		return retval;
+	}
+
+	@Override
 	public void process(ItemProcessor processor) {
 		if (processor.process(this)) {
 			entries.stream().forEach(e -> {
-				e.parent = this;
 				e.process(processor);
 			});
 		}

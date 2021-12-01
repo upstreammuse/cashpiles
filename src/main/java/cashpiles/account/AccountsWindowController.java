@@ -109,10 +109,10 @@ class AccountsWindowController {
 	}
 
 	public void process(UnbalancedTransaction transaction) throws LedgerException {
-		if (!accounts.containsKey(transaction.account)) {
+		if (!accounts.containsKey(transaction.account())) {
 			throw AccountException.forUnknown(transaction);
 		}
-		accounts.get(transaction.account).add(transaction);
+		accounts.get(transaction.account()).add(transaction);
 		offBudgetModel.fireTableDataChanged();
 	}
 

@@ -32,7 +32,7 @@ public abstract class BudgetCategory {
 	}
 
 	public Amount getActivity() {
-		return transactions.stream().map(t -> t.amount).reduce(new Amount(), Amount::add);
+		return transactions.stream().map(t -> t.amount()).reduce(new Amount(), Amount::add);
 	}
 
 	public abstract Amount getAllocation();
@@ -40,7 +40,7 @@ public abstract class BudgetCategory {
 	public Amount getBalance() {
 		return startBalance.add(getAllocation()).add(getActivity());
 	}
-	
+
 	public String getName() {
 		return name;
 	}

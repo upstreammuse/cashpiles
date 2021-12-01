@@ -44,25 +44,25 @@ public class BudgetPeriod {
 	}
 
 	public void addTransaction(CategoryTransactionEntry entry) throws BudgetException {
-		if (!dates.contains(entry.parent.date)) {
+		if (!dates.contains(entry.parent().date())) {
 			throw new DateTimeException("Cannot assign a transaction to a period that does not include its date");
 		}
 		if (!categories.containsKey(entry.category())) {
 			throw BudgetException.forUnknownCategory(entry);
 		}
 		categories.get(entry.category()).addTransaction(entry);
-		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent.date);
+		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent().date());
 	}
 
 	public void addTransaction(OwnerTransactionEntry entry) throws BudgetException {
-		if (!dates.contains(entry.parent.date)) {
+		if (!dates.contains(entry.parent().date())) {
 			throw new DateTimeException("Cannot assign a transaction to a period that does not include its date");
 		}
 		if (!owners.containsKey(entry.owner())) {
 			throw BudgetException.forUnknownOwner(entry);
 		}
-		owners.put(entry.owner(), owners.get(entry.owner()).add(entry.amount));
-		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent.date);
+		owners.put(entry.owner(), owners.get(entry.owner()).add(entry.amount()));
+		lastTransactionDate = Comparisons.max(lastTransactionDate, entry.parent().date());
 	}
 
 	public Amount allocation() {

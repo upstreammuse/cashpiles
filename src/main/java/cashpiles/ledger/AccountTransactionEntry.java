@@ -29,14 +29,14 @@ public class AccountTransactionEntry extends TransactionEntry {
 
 	@Override
 	void balance(BalanceResult soFar) throws TransactionException {
-		if (amount == null) {
+		if (amount() == null) {
 			if (soFar.emptyEntry.isEmpty()) {
 				soFar.emptyEntry = Optional.of(this);
 			} else {
 				throw TransactionException.forMultipleEmptyEntries(this);
 			}
 		} else {
-			soFar.accountTotal = soFar.accountTotal.add(amount);
+			soFar.accountTotal = soFar.accountTotal.add(amount());
 		}
 	}
 

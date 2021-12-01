@@ -18,6 +18,7 @@ import cashpiles.util.Lists;
 @SuppressWarnings("serial")
 public class AccountStatement extends AbstractTableModel {
 
+	// TODO this should really be able to go away
 	private static class Transaction {
 		Amount amount;
 		LocalDate date;
@@ -44,10 +45,10 @@ public class AccountStatement extends AbstractTableModel {
 		case OFF_BUDGET -> throw TransactionException.forAccountWithOffBudget(entry);
 		}
 		var xact = new Transaction();
-		xact.date = entry.parent.date;
-		xact.status = entry.parent.status;
-		xact.payee = entry.parent.payee;
-		xact.amount = entry.amount;
+		xact.date = entry.parent().date();
+		xact.status = entry.parent().status();
+		xact.payee = entry.parent().payee();
+		xact.amount = entry.amount();
 		transactions.add(xact);
 	}
 
@@ -59,10 +60,10 @@ public class AccountStatement extends AbstractTableModel {
 		}
 		}
 		var xact = new Transaction();
-		xact.date = entry.parent.date;
-		xact.status = entry.parent.status;
-		xact.payee = entry.parent.payee;
-		xact.amount = entry.amount.negate();
+		xact.date = entry.parent().date();
+		xact.status = entry.parent().status();
+		xact.payee = entry.parent().payee();
+		xact.amount = entry.amount().negate();
 		transactions.add(xact);
 	}
 
@@ -74,10 +75,10 @@ public class AccountStatement extends AbstractTableModel {
 		}
 		}
 		var xact = new Transaction();
-		xact.date = transaction.date;
-		xact.status = transaction.status;
-		xact.payee = transaction.payee;
-		xact.amount = transaction.amount;
+		xact.date = transaction.date();
+		xact.status = transaction.status();
+		xact.payee = transaction.payee();
+		xact.amount = transaction.amount();
 		transactions.add(xact);
 	}
 

@@ -144,8 +144,8 @@ class BudgetWindowTableModel extends AbstractTableModel {
 	}
 
 	private void checkTransactionDate(TrackingTransactionEntry entry) throws BudgetException {
-		generateToDate(entry.parent.date);
-		if (!Lists.lastOf(periods).dates().contains(entry.parent.date)) {
+		generateToDate(entry.parent().date());
+		if (!Lists.lastOf(periods).dates().contains(entry.parent().date())) {
 			throw BudgetException.forTransactionDate(entry, Lists.lastOf(periods).dates());
 		}
 	}
