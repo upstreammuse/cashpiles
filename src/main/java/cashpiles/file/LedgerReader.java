@@ -15,6 +15,8 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.Ledger;
+import cashpiles.ledger.LedgerException;
+import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
@@ -22,7 +24,6 @@ import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionEntry;
-import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
@@ -46,8 +47,7 @@ public class LedgerReader {
 		this.fileName = filename;
 	}
 
-	public Ledger readAll() throws IOException, UnknownIdentifierException, IdentifierMismatchException,
-			InvalidContentException, TransactionException {
+	public Ledger readAll() throws IOException, LedgerException {
 		activeLedger = new Ledger();
 		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
 			lineNumber++;
@@ -68,8 +68,7 @@ public class LedgerReader {
 		return activeLedger;
 	}
 
-	private void processLine(String line) throws UnknownIdentifierException, IdentifierMismatchException,
-			InvalidContentException, TransactionException {
+	private void processLine(String line) throws LedgerException {
 		var comment = "";
 		var split = line.indexOf(';');
 
@@ -100,11 +99,11 @@ public class LedgerReader {
 				&& !processBudget(line, comment) && !processTransaction(line, comment)
 				&& !processUnbalancedTransaction(line, comment) && !processAccountBalance(line, comment)
 				&& !processBlank(line, comment)) {
-			throw new InvalidContentException(fileName, lineNumber, line);
+			throw LedgerException.forInvalidContent(line, lineNumber);
 		}
 	}
 
-	private boolean processAccount(String line, String comment) throws IdentifierMismatchException {
+	private boolean processAccount(String line, String comment) throws LedgerException {
 		var account = new AccountCommand(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
@@ -135,7 +134,7 @@ public class LedgerReader {
 			return false;
 		}
 		account = account.withAccount(scanner.nextIdentifier());
-		verifySetIdentifier(account.account(), IdentifierType.ACCOUNT);
+		verifySetIdentifier(account, account.account(), IdentifierType.ACCOUNT);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -144,8 +143,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processAccountBalance(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processAccountBalance(String line, String comment) throws LedgerException {
 		var balance = new AccountBalance(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
@@ -162,7 +160,7 @@ public class LedgerReader {
 			return false;
 		}
 		balance = balance.withAccount(scanner.nextIdentifier());
-		verifyIdentifier(balance.account(), IdentifierType.ACCOUNT);
+		verifyIdentifier(balance, balance.account(), IdentifierType.ACCOUNT);
 
 		if (!scanner.hasNextAmount()) {
 			return false;
@@ -214,8 +212,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetClose(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetClose(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -231,7 +228,7 @@ public class LedgerReader {
 		}
 		var close = new CloseBudgetEntry(fileName, lineNumber, comment);
 		close = close.withName(scanner.nextIdentifier());
-		verifyIdentifier(close.name(), IdentifierType.CATEGORY);
+		verifyIdentifier(close, close.name(), IdentifierType.CATEGORY);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -240,8 +237,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetGoal(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetGoal(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -257,13 +253,13 @@ public class LedgerReader {
 		}
 		var goal = new GoalBudgetEntry(fileName, lineNumber, comment);
 		goal = goal.withName(scanner.nextIdentifier());
-		verifySetIdentifier(goal.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(goal, goal.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		goal = goal.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(goal.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(goal, goal.owner(), IdentifierType.OWNER);
 
 		if (!scanner.hasNextAmount()) {
 			return false;
@@ -292,8 +288,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetIncome(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetIncome(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -309,13 +304,13 @@ public class LedgerReader {
 		}
 		var income = new IncomeBudgetEntry(fileName, lineNumber, comment);
 		income = income.withName(scanner.nextIdentifier());
-		verifySetIdentifier(income.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(income, income.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		income = income.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(income.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(income, income.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -324,7 +319,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetManualGoal(String line, String comment) throws IdentifierMismatchException {
+	private boolean processBudgetManualGoal(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -340,13 +335,13 @@ public class LedgerReader {
 		}
 		var goal = new ManualGoalBudgetEntry(fileName, lineNumber, comment);
 		goal = goal.withName(scanner.nextIdentifier());
-		verifySetIdentifier(goal.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(goal, goal.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		goal = goal.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(goal.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(goal, goal.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -355,8 +350,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetReserve(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetReserve(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -372,13 +366,13 @@ public class LedgerReader {
 		}
 		var reserve = new ReserveBudgetEntry(fileName, lineNumber, comment);
 		reserve = reserve.withName(scanner.nextIdentifier());
-		verifySetIdentifier(reserve.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(reserve, reserve.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		reserve = reserve.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(reserve.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(reserve, reserve.owner(), IdentifierType.OWNER);
 
 		if (!scanner.hasNextPercentage()) {
 			return false;
@@ -392,8 +386,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetRoutine(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetRoutine(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -409,13 +402,13 @@ public class LedgerReader {
 		}
 		var routine = new RoutineBudgetEntry(fileName, lineNumber, comment);
 		routine = routine.withName(scanner.nextIdentifier());
-		verifySetIdentifier(routine.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(routine, routine.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		routine = routine.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(routine.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(routine, routine.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -424,8 +417,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetWithholding(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processBudgetWithholding(String line, String comment) throws LedgerException {
 		var scanner = new Scanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -441,13 +433,13 @@ public class LedgerReader {
 		}
 		var withholding = new WithholdingBudgetEntry(fileName, lineNumber, comment);
 		withholding = withholding.withName(scanner.nextIdentifier());
-		verifySetIdentifier(withholding.name(), IdentifierType.CATEGORY);
+		verifySetIdentifier(withholding, withholding.name(), IdentifierType.CATEGORY);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
 		withholding = withholding.withOwner(scanner.nextIdentifier());
-		verifySetIdentifier(withholding.owner(), IdentifierType.OWNER);
+		verifySetIdentifier(withholding, withholding.owner(), IdentifierType.OWNER);
 
 		if (scanner.hasNext()) {
 			return false;
@@ -495,7 +487,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processTransactionLine(String line, String comment) throws UnknownIdentifierException {
+	private boolean processTransactionLine(String line, String comment) throws LedgerException {
 		TransactionEntry entry;
 		var scanner = new Scanner(line);
 
@@ -507,7 +499,7 @@ public class LedgerReader {
 			return false;
 		}
 		var ident = scanner.nextIdentifier();
-		switch (identifierType(ident)) {
+		switch (identifierType(ident, lineNumber)) {
 		case ACCOUNT -> entry = new AccountTransactionEntry(fileName, lineNumber, comment).withAccount(ident);
 		case CATEGORY -> {
 			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
@@ -531,8 +523,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processTransactionTrackingLine(String line, String comment) throws UnknownIdentifierException {
-
+	private boolean processTransactionTrackingLine(String line, String comment) throws LedgerException {
 		TrackingTransactionEntry entry;
 		var scanner = new Scanner(line);
 
@@ -544,8 +535,7 @@ public class LedgerReader {
 			return false;
 		}
 		var ident = scanner.nextIdentifier();
-		switch (identifierType(ident)) {
-
+		switch (identifierType(ident, lineNumber)) {
 		case CATEGORY -> {
 			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
 		}
@@ -575,8 +565,7 @@ public class LedgerReader {
 
 	}
 
-	private boolean processUnbalancedTransaction(String line, String comment)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerException {
 		var xact = new UnbalancedTransaction(fileName, lineNumber, comment);
 		var scanner = new Scanner(line);
 
@@ -603,7 +592,7 @@ public class LedgerReader {
 			return false;
 		}
 		xact = xact.withAccount(scanner.nextIdentifier());
-		verifySetIdentifier(xact.account(), IdentifierType.ACCOUNT);
+		verifySetIdentifier(xact, xact.account(), IdentifierType.ACCOUNT);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
@@ -622,26 +611,25 @@ public class LedgerReader {
 		return true;
 	}
 
-	private IdentifierType identifierType(String identifier) throws UnknownIdentifierException {
+	private IdentifierType identifierType(String identifier, int lineNumber) throws LedgerException {
 		if (!identifiers.containsKey(identifier)) {
-			throw new UnknownIdentifierException(identifier);
+			throw LedgerException.forUnknownIdentifier(identifier, lineNumber);
 		}
 		return identifiers.get(identifier);
 	}
 
-	private void verifyIdentifier(String identifier, IdentifierType type)
-			throws UnknownIdentifierException, IdentifierMismatchException {
+	private void verifyIdentifier(LedgerItem item, String identifier, IdentifierType type) throws LedgerException {
 		if (!identifiers.containsKey(identifier)) {
-			throw new UnknownIdentifierException(identifier, type);
+			throw LedgerException.forUnknownIdentifier(item, identifier, type);
 		}
 		if (identifiers.get(identifier) != type) {
-			throw new IdentifierMismatchException(identifier, type, identifiers.get(identifier));
+			throw LedgerException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
 		}
 	}
 
-	private void verifySetIdentifier(String identifier, IdentifierType type) throws IdentifierMismatchException {
+	private void verifySetIdentifier(LedgerItem item, String identifier, IdentifierType type) throws LedgerException {
 		if (identifiers.containsKey(identifier) && identifiers.get(identifier) != type) {
-			throw new IdentifierMismatchException(identifier, type, identifiers.get(identifier));
+			throw LedgerException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
 		}
 		identifiers.put(identifier, type);
 	}
