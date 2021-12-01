@@ -8,17 +8,12 @@ public class OwnerTransactionEntry extends TrackingTransactionEntry {
 		super(fileName, lineNumber, comment);
 	}
 
-	public OwnerTransactionEntry(OwnerTransactionEntry other) {
-		super(other);
-		owner = other.owner;
-	}
-
 	public String owner() {
 		return owner;
 	}
 
 	public OwnerTransactionEntry withOwner(String owner) {
-		var retval = new OwnerTransactionEntry(this);
+		var retval = clone();
 		retval.owner = owner;
 		return retval;
 	}
@@ -26,6 +21,11 @@ public class OwnerTransactionEntry extends TrackingTransactionEntry {
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+	}
+
+	@Override
+	public OwnerTransactionEntry clone() {
+		return (OwnerTransactionEntry) super.clone();
 	}
 
 }

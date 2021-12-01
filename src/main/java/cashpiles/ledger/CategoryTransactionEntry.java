@@ -10,13 +10,14 @@ public class CategoryTransactionEntry extends TrackingTransactionEntry {
 		super(fileName, lineNumber, comment);
 	}
 
-	public CategoryTransactionEntry(CategoryTransactionEntry other) {
-		super(other);
-		category = other.category;
-	}
-
 	public String category() {
 		return category;
+	}
+
+	public CategoryTransactionEntry withCategory(String category) {
+		var retval = clone();
+		retval.category = category;
+		return retval;
 	}
 
 	@Override
@@ -24,15 +25,14 @@ public class CategoryTransactionEntry extends TrackingTransactionEntry {
 		return (CategoryTransactionEntry) super.withAmount(amount);
 	}
 
-	public CategoryTransactionEntry withCategory(String category) {
-		var retval = new CategoryTransactionEntry(this);
-		retval.category = category;
-		return retval;
-	}
-
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+	}
+
+	@Override
+	public CategoryTransactionEntry clone() {
+		return (CategoryTransactionEntry) super.clone();
 	}
 
 }

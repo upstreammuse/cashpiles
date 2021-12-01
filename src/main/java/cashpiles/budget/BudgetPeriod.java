@@ -101,7 +101,7 @@ public class BudgetPeriod {
 	// This method looks ugly, but it allows us to avoid making a new category
 	// object if we should be throwing an error instead, while keeping the error
 	// handling generic
-	private void configureCategory(BudgetEntry<?> entry, Supplier<BudgetCategory> supplier) throws BudgetException {
+	private void configureCategory(BudgetEntry entry, Supplier<BudgetCategory> supplier) throws BudgetException {
 		if (categories.containsKey(entry.name())) {
 			throw BudgetException.forExistingCategory(entry);
 		}

@@ -13,14 +13,12 @@ public abstract class LedgerItem implements Cloneable {
 		this.lineNumber = lineNumber;
 	}
 
-	public LedgerItem(LedgerItem other) {
-		comment = other.comment;
-		fileName = other.fileName;
-		lineNumber = other.lineNumber;
-	}
-
 	public String comment() {
 		return comment;
+	}
+
+	public String fileName() {
+		return fileName;
 	}
 
 	public int lineNumber() {

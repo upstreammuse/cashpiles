@@ -16,13 +16,6 @@ public class AccountCommand extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
-	public AccountCommand(AccountCommand other) {
-		super(other);
-		account = other.account;
-		date = other.date;
-		status = other.status;
-	}
-
 	public String account() {
 		return account;
 	}
@@ -36,19 +29,19 @@ public class AccountCommand extends LedgerItem {
 	}
 
 	public AccountCommand withAccount(String account) {
-		var retval = new AccountCommand(this);
+		var retval = clone();
 		retval.account = account;
 		return retval;
 	}
 
 	public AccountCommand withDate(LocalDate date) {
-		var retval = new AccountCommand(this);
+		var retval = clone();
 		retval.date = date;
 		return retval;
 	}
 
 	public AccountCommand withStatus(Status status) {
-		var retval = new AccountCommand(this);
+		var retval = clone();
 		retval.status = status;
 		return retval;
 	}
@@ -56,6 +49,11 @@ public class AccountCommand extends LedgerItem {
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+	}
+
+	@Override
+	public AccountCommand clone() {
+		return (AccountCommand) super.clone();
 	}
 
 }

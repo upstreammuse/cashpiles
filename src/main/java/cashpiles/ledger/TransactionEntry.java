@@ -27,13 +27,6 @@ abstract public class TransactionEntry extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
-	// TODO should be able to eliminate these copy ctors and use clone instead
-	public TransactionEntry(TransactionEntry other) {
-		super(other);
-		amount = other.amount;
-		parent = other.parent;
-	}
-
 	public Amount amount() {
 		return amount;
 	}
@@ -43,13 +36,13 @@ abstract public class TransactionEntry extends LedgerItem {
 	}
 
 	public TransactionEntry withAmount(Amount amount) {
-		var retval = (TransactionEntry) clone();
+		var retval = clone();
 		retval.amount = amount;
 		return retval;
 	}
 
 	public TransactionEntry withParent(Transaction parent) {
-		var retval = (TransactionEntry) clone();
+		var retval = clone();
 		retval.parent = parent;
 		return retval;
 	}
@@ -57,5 +50,10 @@ abstract public class TransactionEntry extends LedgerItem {
 	abstract void balance(BalanceResult soFar) throws TransactionException;
 
 	abstract Amount missingAmount(BalanceResult balanceResult);
+
+	@Override
+	public TransactionEntry clone() {
+		return (TransactionEntry) super.clone();
+	}
 
 }
