@@ -10,14 +10,15 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.NoSuchElementException;
+
 import cashpiles.currency.Amount;
 
 class LedgerScanner {
 
 	// TODO this needs to be controllable by the user
-	DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M/d/yyyy");
-	int index = 0;
-	String source;
+	private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M/d/yyyy");
+	private int index = 0;
+	private String source;
 
 	LedgerScanner(String source) {
 		this.source = source;
@@ -28,7 +29,7 @@ class LedgerScanner {
 		return index < source.length();
 	}
 
-	public boolean hasNextAmount() {
+	boolean hasNextAmount() {
 		var indexBackup = index;
 		boolean success = false;
 		try {
@@ -103,7 +104,7 @@ class LedgerScanner {
 		return builder.toString();
 	}
 
-	public Amount nextAmount() {
+	Amount nextAmount() {
 
 		var indexBackup = index;
 		skipWhitespace();
@@ -175,7 +176,7 @@ class LedgerScanner {
 		return builder.toString();
 	}
 
-	public BigDecimal nextPercentage() {
+	BigDecimal nextPercentage() {
 		var indexBackup = index;
 		skipWhitespace();
 
