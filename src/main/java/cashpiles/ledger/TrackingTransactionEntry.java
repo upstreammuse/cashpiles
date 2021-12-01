@@ -23,26 +23,32 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	public TrackingTransactionEntry withAmount(Amount amount) {
-		return (TrackingTransactionEntry) super.withAmount(amount);
-	}
-
-	@Override
-	void balance(BalanceResult soFar) throws TransactionException {
+	void addToBalance(BalanceResult balancer) throws TransactionException {
 		if (amount() == null) {
-			if (soFar.emptyEntry.isEmpty()) {
-				soFar.emptyEntry = Optional.of(this);
+			if (balancer.emptyEntries < 1) {
+				balancer.emptyEntries++;
 			} else {
 				throw TransactionException.forMultipleEmptyEntries(this);
 			}
 		} else {
-			soFar.categoryTotal = soFar.categoryTotal.add(amount());
+			balancer.categoryTotal = balancer.categoryTotal.add(amount());
 		}
 	}
 
 	@Override
-	Amount missingAmount(BalanceResult balanceResult) {
-		return balanceResult.accountTotal.add(balanceResult.categoryTotal.negate());
+	TrackingTransactionEntry fromBalance(BalanceResult balancer) {
+		if (amount() == null) {
+			var retval = withAmount(balancer.accountTotal.add(balancer.categoryTotal.negate()));
+			balancer.categoryTotal = balancer.accountTotal;
+			return retval;
+		} else {
+			return this;
+		}
+	}
+
+	@Override
+	public TrackingTransactionEntry withAmount(Amount amount) {
+		return (TrackingTransactionEntry) super.withAmount(amount);
 	}
 
 	@Override

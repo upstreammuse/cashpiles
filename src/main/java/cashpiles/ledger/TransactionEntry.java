@@ -1,7 +1,5 @@
 package cashpiles.ledger;
 
-import java.util.Optional;
-
 import cashpiles.currency.Amount;
 
 abstract public class TransactionEntry extends LedgerItem {
@@ -9,18 +7,16 @@ abstract public class TransactionEntry extends LedgerItem {
 	static class BalanceResult {
 		Amount accountTotal = new Amount();
 		Amount categoryTotal = new Amount();
-		Optional<TransactionEntry> emptyEntry = Optional.empty();
+		int emptyEntries = 0;
 
-		Amount missingAmount() {
-			return emptyEntry.map(entry -> entry.missingAmount(this)).orElse(new Amount());
+		void confirmBalanced(Transaction transaction) throws TransactionException {
+			if (!accountTotal.equals(categoryTotal)) {
+				throw TransactionException.forUnbalanced(transaction, accountTotal, categoryTotal);
+			}
 		}
 	};
 
-	// TODO this is package scope so that autobalancing can set it directly. Ideally
-	// this could be private like the rest, but the autobalancing mechanism has to
-	// be rewritten to work with original object references before that can work
-	Amount amount;
-
+	private Amount amount;
 	private Transaction parent;
 
 	public TransactionEntry(String fileName, int lineNumber, String comment) {
@@ -47,9 +43,9 @@ abstract public class TransactionEntry extends LedgerItem {
 		return retval;
 	}
 
-	abstract void balance(BalanceResult soFar) throws TransactionException;
+	abstract void addToBalance(BalanceResult balancer) throws TransactionException;
 
-	abstract Amount missingAmount(BalanceResult balanceResult);
+	abstract TransactionEntry fromBalance(BalanceResult balancer);
 
 	@Override
 	public TransactionEntry clone() {

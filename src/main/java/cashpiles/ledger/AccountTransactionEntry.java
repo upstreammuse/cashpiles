@@ -1,7 +1,5 @@
 package cashpiles.ledger;
 
-import java.util.Optional;
-
 import cashpiles.currency.Amount;
 
 public class AccountTransactionEntry extends TransactionEntry {
@@ -23,21 +21,32 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	void balance(BalanceResult soFar) throws TransactionException {
+	void addToBalance(BalanceResult balancer) throws TransactionException {
 		if (amount() == null) {
-			if (soFar.emptyEntry.isEmpty()) {
-				soFar.emptyEntry = Optional.of(this);
+			if (balancer.emptyEntries < 1) {
+				balancer.emptyEntries++;
 			} else {
 				throw TransactionException.forMultipleEmptyEntries(this);
 			}
 		} else {
-			soFar.accountTotal = soFar.accountTotal.add(amount());
+			balancer.accountTotal = balancer.accountTotal.add(amount());
 		}
 	}
 
 	@Override
-	Amount missingAmount(BalanceResult balanceResult) {
-		return balanceResult.categoryTotal.add(balanceResult.accountTotal.negate());
+	AccountTransactionEntry fromBalance(BalanceResult balancer) {
+		if (amount() == null) {
+			var retval = withAmount(balancer.categoryTotal.add(balancer.accountTotal.negate()));
+			balancer.accountTotal = balancer.categoryTotal;
+			return retval;
+		} else {
+			return this;
+		}
+	}
+
+	@Override
+	public AccountTransactionEntry withAmount(Amount amount) {
+		return (AccountTransactionEntry) super.withAmount(amount);
 	}
 
 	@Override
