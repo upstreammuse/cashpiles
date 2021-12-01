@@ -56,25 +56,16 @@ public class Transaction extends LedgerItem {
 	}
 
 	public void balance() throws TransactionException {
-		// step 1, if there is an entry with an empty amount, calculate it and fill it
-		// in
 		var balancer = new TransactionEntry.BalanceResult();
 		for (var entry : entries) {
-			entry.balance(balancer);
+			entry.addToBalance(balancer);
 		}
-		balancer.emptyEntry.ifPresent(entry -> {
-			entry.amount = balancer.missingAmount();
-		});
-
-		// step 2, make sure the accounts and categories match, which isn't guaranteed
-		// if the transaction has everything populated but a number is wrong
-		var balancer2 = new TransactionEntry.BalanceResult();
+		var entries2 = new ArrayList<TransactionEntry>();
 		for (var entry : entries) {
-			entry.balance(balancer2);
+			entries2.add(entry.fromBalance(balancer));
 		}
-		if (!balancer2.accountTotal.equals(balancer2.categoryTotal)) {
-			throw TransactionException.forUnbalanced(this, balancer2.accountTotal, balancer2.categoryTotal);
-		}
+		entries = entries2;
+		balancer.confirmBalanced(this);
 	}
 
 	@Override
