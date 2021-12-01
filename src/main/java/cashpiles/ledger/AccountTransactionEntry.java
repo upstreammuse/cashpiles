@@ -12,17 +12,12 @@ public class AccountTransactionEntry extends TransactionEntry {
 		super(fileName, lineNumber, comment);
 	}
 
-	public AccountTransactionEntry(AccountTransactionEntry other) {
-		super(other);
-		account = other.account;
-	}
-
 	public String account() {
 		return account;
 	}
 
 	public AccountTransactionEntry withAccount(String account) {
-		var retval = new AccountTransactionEntry(this);
+		var retval = clone();
 		retval.account = account;
 		return retval;
 	}
@@ -48,6 +43,11 @@ public class AccountTransactionEntry extends TransactionEntry {
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+	}
+
+	@Override
+	public AccountTransactionEntry clone() {
+		return (AccountTransactionEntry) super.clone();
 	}
 
 }

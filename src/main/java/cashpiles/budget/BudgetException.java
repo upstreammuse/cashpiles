@@ -28,7 +28,7 @@ public class BudgetException extends LedgerException {
 				"Cannot reconfigure budget to dates " + dateRange + " because some dates would no longer be included");
 	}
 
-	public static BudgetException forExistingCategory(BudgetEntry<?> entry) {
+	public static BudgetException forExistingCategory(BudgetEntry entry) {
 		return new BudgetException(entry, "Cannot create budget category '" + entry.name() + "' that already exists");
 	}
 

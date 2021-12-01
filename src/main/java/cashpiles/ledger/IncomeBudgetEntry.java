@@ -1,6 +1,6 @@
 package cashpiles.ledger;
 
-public class IncomeBudgetEntry extends BudgetEntry<IncomeBudgetEntry> {
+public class IncomeBudgetEntry extends BudgetEntry {
 
 	private String owner;
 
@@ -8,19 +8,19 @@ public class IncomeBudgetEntry extends BudgetEntry<IncomeBudgetEntry> {
 		super(fileName, lineNumber, comment);
 	}
 
-	public IncomeBudgetEntry(IncomeBudgetEntry other) {
-		super(other);
-		owner = other.owner;
-	}
-
 	public String owner() {
 		return owner;
 	}
 
 	public IncomeBudgetEntry withOwner(String owner) {
-		var retval = duplicate();
+		var retval = clone();
 		retval.owner = owner;
 		return retval;
+	}
+
+	@Override
+	public IncomeBudgetEntry withName(String name) {
+		return (IncomeBudgetEntry) super.withName(name);
 	}
 
 	@Override
@@ -29,13 +29,8 @@ public class IncomeBudgetEntry extends BudgetEntry<IncomeBudgetEntry> {
 	}
 
 	@Override
-	IncomeBudgetEntry asChild() {
-		return this;
-	}
-
-	@Override
-	IncomeBudgetEntry duplicate() {
-		return new IncomeBudgetEntry(this);
+	public IncomeBudgetEntry clone() {
+		return (IncomeBudgetEntry) super.clone();
 	}
 
 }

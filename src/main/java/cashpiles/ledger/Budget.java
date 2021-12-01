@@ -8,18 +8,11 @@ import java.util.List;
 public class Budget extends LedgerItem {
 
 	private LocalDate date;
-	private List<BudgetEntry<?>> entries = new ArrayList<>();
+	private List<BudgetEntry> entries = new ArrayList<>();
 	private Period period;
 
 	public Budget(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
-	}
-
-	public Budget(Budget other) {
-		super(other);
-		date = other.date;
-		entries = new ArrayList<BudgetEntry<?>>(other.entries);
-		period = other.period;
 	}
 
 	public LocalDate date() {
@@ -31,19 +24,19 @@ public class Budget extends LedgerItem {
 	}
 
 	public Budget withDate(LocalDate date) {
-		var retval = new Budget(this);
+		var retval = clone();
 		retval.date = date;
 		return retval;
 	}
 
-	public Budget withEntry(BudgetEntry<?> entry) {
-		var retval = new Budget(this);
+	public Budget withEntry(BudgetEntry entry) {
+		var retval = clone();
 		retval.entries.add(entry.withParent(retval));
 		return retval;
 	}
 
 	public Budget withPeriod(Period period) {
-		var retval = new Budget(this);
+		var retval = clone();
 		retval.period = period;
 		return retval;
 	}
@@ -55,6 +48,13 @@ public class Budget extends LedgerItem {
 				e.process(processor);
 			});
 		}
+	}
+
+	@Override
+	public Budget clone() {
+		var retval = (Budget) super.clone();
+		entries = new ArrayList<>(entries);
+		return retval;
 	}
 
 }

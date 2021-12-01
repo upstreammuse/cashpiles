@@ -78,19 +78,19 @@ public class Transaction extends LedgerItem {
 	}
 
 	@Override
-	public Transaction clone() {
-		var retval = (Transaction) super.clone();
-		retval.entries = new ArrayList<>(entries);
-		return retval;
-	}
-
-	@Override
 	public void process(ItemProcessor processor) {
 		if (processor.process(this)) {
 			entries.stream().forEach(e -> {
 				e.process(processor);
 			});
 		}
+	}
+
+	@Override
+	public Transaction clone() {
+		var retval = (Transaction) super.clone();
+		retval.entries = new ArrayList<>(entries);
+		return retval;
 	}
 
 }

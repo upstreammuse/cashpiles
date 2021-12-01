@@ -1,18 +1,12 @@
 package cashpiles.ledger;
 
-public abstract class BudgetEntry<T extends BudgetEntry<T>> extends LedgerItem {
+public abstract class BudgetEntry extends LedgerItem {
 
 	private String name;
 	private Budget parent;
 
 	public BudgetEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
-	}
-
-	public BudgetEntry(BudgetEntry<?> other) {
-		super(other);
-		name = other.name;
-		parent = other.parent;
 	}
 
 	public String name() {
@@ -23,20 +17,21 @@ public abstract class BudgetEntry<T extends BudgetEntry<T>> extends LedgerItem {
 		return parent;
 	}
 
-	public T withName(String name) {
-		var retval = duplicate();
+	public BudgetEntry withName(String name) {
+		var retval = clone();
 		retval.name = name;
-		return retval.asChild();
+		return retval;
 	}
 
-	public T withParent(Budget parent) {
-		var retval = duplicate();
+	public BudgetEntry withParent(Budget parent) {
+		var retval = clone();
 		retval.parent = parent;
-		return retval.asChild();
+		return retval;
 	}
 
-	abstract T asChild();
-
-	abstract BudgetEntry<T> duplicate();
+	@Override
+	public BudgetEntry clone() {
+		return (BudgetEntry) super.clone();
+	}
 
 }

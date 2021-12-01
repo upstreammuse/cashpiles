@@ -14,13 +14,6 @@ public class AccountBalance extends LedgerItem {
 		super(fileName, lineNumber, comment);
 	}
 
-	public AccountBalance(AccountBalance other) {
-		super(other);
-		account = other.account;
-		amount = other.amount;
-		date = other.date;
-	}
-
 	public String account() {
 		return account;
 	}
@@ -34,19 +27,19 @@ public class AccountBalance extends LedgerItem {
 	}
 
 	public AccountBalance withAccount(String account) {
-		var retval = new AccountBalance(this);
+		var retval = clone();
 		retval.account = account;
 		return retval;
 	}
 
 	public AccountBalance withAmount(Amount amount) {
-		var retval = new AccountBalance(this);
+		var retval = clone();
 		retval.amount = amount;
 		return retval;
 	}
 
 	public AccountBalance withDate(LocalDate date) {
-		var retval = new AccountBalance(this);
+		var retval = clone();
 		retval.date = date;
 		return retval;
 	}
@@ -54,6 +47,11 @@ public class AccountBalance extends LedgerItem {
 	@Override
 	public void process(ItemProcessor processor) {
 		processor.process(this);
+	}
+
+	@Override
+	public AccountBalance clone() {
+		return (AccountBalance) super.clone();
 	}
 
 }

@@ -2,19 +2,13 @@ package cashpiles.ledger;
 
 import java.math.BigDecimal;
 
-public class ReserveBudgetEntry extends BudgetEntry<ReserveBudgetEntry> {
+public class ReserveBudgetEntry extends BudgetEntry {
 
 	private String owner;
 	private BigDecimal percentage;
 
 	public ReserveBudgetEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
-	}
-
-	public ReserveBudgetEntry(ReserveBudgetEntry other) {
-		super(other);
-		owner = other.owner;
-		percentage = other.percentage;
 	}
 
 	public String owner() {
@@ -26,15 +20,20 @@ public class ReserveBudgetEntry extends BudgetEntry<ReserveBudgetEntry> {
 	}
 
 	public ReserveBudgetEntry withOwner(String owner) {
-		var retval = duplicate();
+		var retval = clone();
 		retval.owner = owner;
 		return retval;
 	}
 
 	public ReserveBudgetEntry withPercentage(BigDecimal percentage) {
-		var retval = duplicate();
+		var retval = clone();
 		retval.percentage = percentage;
 		return retval;
+	}
+
+	@Override
+	public ReserveBudgetEntry withName(String name) {
+		return (ReserveBudgetEntry) super.withName(name);
 	}
 
 	@Override
@@ -43,13 +42,8 @@ public class ReserveBudgetEntry extends BudgetEntry<ReserveBudgetEntry> {
 	}
 
 	@Override
-	ReserveBudgetEntry asChild() {
-		return this;
-	}
-
-	@Override
-	ReserveBudgetEntry duplicate() {
-		return new ReserveBudgetEntry(this);
+	public ReserveBudgetEntry clone() {
+		return (ReserveBudgetEntry) super.clone();
 	}
 
 }

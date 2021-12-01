@@ -3,7 +3,7 @@ package cashpiles.ledger;
 import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
 
-public class GoalBudgetEntry extends BudgetEntry<GoalBudgetEntry> {
+public class GoalBudgetEntry extends BudgetEntry {
 
 	private Amount amount;
 	private DateRange dates;
@@ -12,14 +12,6 @@ public class GoalBudgetEntry extends BudgetEntry<GoalBudgetEntry> {
 
 	public GoalBudgetEntry(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
-	}
-
-	public GoalBudgetEntry(GoalBudgetEntry other) {
-		super(other);
-		amount = other.amount;
-		dates = other.dates;
-		owner = other.owner;
-		repeat = other.repeat;
 	}
 
 	public Amount amount() {
@@ -39,27 +31,32 @@ public class GoalBudgetEntry extends BudgetEntry<GoalBudgetEntry> {
 	}
 
 	public GoalBudgetEntry withAmount(Amount amount) {
-		var retval = new GoalBudgetEntry(this);
+		var retval = clone();
 		retval.amount = amount;
 		return retval;
 	}
 
 	public GoalBudgetEntry withDates(DateRange dates) {
-		var retval = new GoalBudgetEntry(this);
+		var retval = clone();
 		retval.dates = dates;
 		return retval;
 	}
 
 	public GoalBudgetEntry withOwner(String owner) {
-		var retval = new GoalBudgetEntry(this);
+		var retval = clone();
 		retval.owner = owner;
 		return retval;
 	}
 
 	public GoalBudgetEntry withRepeat(boolean repeat) {
-		var retval = new GoalBudgetEntry(this);
+		var retval = clone();
 		retval.repeat = repeat;
 		return retval;
+	}
+
+	@Override
+	public GoalBudgetEntry withName(String name) {
+		return (GoalBudgetEntry) super.withName(name);
 	}
 
 	@Override
@@ -68,13 +65,8 @@ public class GoalBudgetEntry extends BudgetEntry<GoalBudgetEntry> {
 	}
 
 	@Override
-	GoalBudgetEntry asChild() {
-		return this;
-	}
-
-	@Override
-	GoalBudgetEntry duplicate() {
-		return new GoalBudgetEntry(this);
+	public GoalBudgetEntry clone() {
+		return (GoalBudgetEntry) super.clone();
 	}
 
 }
