@@ -16,11 +16,9 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 		return trackingAccount;
 	}
 
-	// TODO consider making this take the string, and using ofnullable to make it
-	// more flexible on input, while still treating the data the same
-	public TrackingTransactionEntry withTrackingAccount(Optional<String> trackingAccount) {
+	public TrackingTransactionEntry withTrackingAccount(String trackingAccount) {
 		var retval = clone();
-		retval.trackingAccount = trackingAccount;
+		retval.trackingAccount = Optional.ofNullable(trackingAccount);
 		return retval;
 	}
 

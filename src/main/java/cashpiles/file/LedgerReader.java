@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
@@ -561,7 +560,7 @@ public class LedgerReader {
 		if (scanner.hasNextAmount()) {
 			entry = entry.withAmount(scanner.nextAmount());
 		} else if (scanner.hasNextIdentifier()) {
-			entry = entry.withTrackingAccount(Optional.of(scanner.nextIdentifier()));
+			entry = entry.withTrackingAccount(scanner.nextIdentifier());
 			if (scanner.hasNextAmount()) {
 				entry = entry.withAmount(scanner.nextAmount());
 			}
