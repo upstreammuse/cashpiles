@@ -19,7 +19,7 @@ public class IncomeCategory extends BudgetCategory {
 	void addTransaction(CategoryTransactionEntry transaction) {
 		super.addTransaction(transaction);
 		for (var reserve : reserves.entrySet()) {
-			reserve.getValue().reserve(transaction.amount);
+			reserve.getValue().reserve(transaction.amount());
 		}
 	}
 

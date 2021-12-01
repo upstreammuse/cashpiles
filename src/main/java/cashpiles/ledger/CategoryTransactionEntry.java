@@ -1,5 +1,7 @@
 package cashpiles.ledger;
 
+import cashpiles.currency.Amount;
+
 public class CategoryTransactionEntry extends TrackingTransactionEntry {
 
 	private String category;
@@ -15,6 +17,11 @@ public class CategoryTransactionEntry extends TrackingTransactionEntry {
 
 	public String category() {
 		return category;
+	}
+
+	@Override
+	public CategoryTransactionEntry withAmount(Amount amount) {
+		return (CategoryTransactionEntry) super.withAmount(amount);
 	}
 
 	public CategoryTransactionEntry withCategory(String category) {

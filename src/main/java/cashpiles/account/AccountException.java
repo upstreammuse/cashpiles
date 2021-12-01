@@ -40,7 +40,7 @@ class AccountException extends LedgerException {
 	}
 
 	public static AccountException forClosed(UnbalancedTransaction transaction) {
-		return new AccountException(transaction, "Cannot use closed account '" + transaction.account + "'");
+		return new AccountException(transaction, "Cannot use closed account '" + transaction.account() + "'");
 	}
 
 	public static AccountException forUnknown(AccountBalance balance) {
@@ -60,7 +60,7 @@ class AccountException extends LedgerException {
 	}
 
 	public static AccountException forUnknown(UnbalancedTransaction transaction) {
-		return new AccountException(transaction, "Cannot use unknown account '" + transaction.account + "'");
+		return new AccountException(transaction, "Cannot use unknown account '" + transaction.account() + "'");
 	}
 
 	private AccountException(LedgerItem item, String message) {

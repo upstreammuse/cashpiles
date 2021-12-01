@@ -22,6 +22,11 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 		return trackingAccount;
 	}
 
+	@Override
+	public TrackingTransactionEntry withAmount(Amount amount) {
+		return (TrackingTransactionEntry) super.withAmount(amount);
+	}
+
 	// TODO consider making this take the string, and using ofnullable to make it
 	// more flexible on input, while still treating the data the same
 	public TrackingTransactionEntry withTrackingAccount(Optional<String> trackingAccount) {
@@ -32,14 +37,14 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 
 	@Override
 	void balance(BalanceResult soFar) throws TransactionException {
-		if (amount == null) {
+		if (amount() == null) {
 			if (soFar.emptyEntry.isEmpty()) {
 				soFar.emptyEntry = Optional.of(this);
 			} else {
 				throw TransactionException.forMultipleEmptyEntries(this);
 			}
 		} else {
-			soFar.categoryTotal = soFar.categoryTotal.add(amount);
+			soFar.categoryTotal = soFar.categoryTotal.add(amount());
 		}
 	}
 

@@ -38,7 +38,7 @@ public class BudgetException extends LedgerException {
 	}
 
 	public static BudgetException forTransactionDate(TrackingTransactionEntry entry, DateRange dates) {
-		return new BudgetException(entry, "Cannot add transaction dated " + entry.parent.date
+		return new BudgetException(entry, "Cannot add transaction dated " + entry.parent().date()
 				+ " to current budget period with dates " + dates.startDate() + " to " + dates.endDate());
 	}
 

@@ -464,18 +464,18 @@ public class LedgerReader {
 		if (!scanner.hasNextDate()) {
 			return false;
 		}
-		xact.date = scanner.nextDate();
+		xact = xact.withDate(scanner.nextDate());
 
 		if (!scanner.hasNext()) {
 			return false;
 		}
 		try {
-			xact.status = switch (scanner.next()) {
+			xact = xact.withStatus(switch (scanner.next()) {
 			case "*" -> Transaction.Status.CLEARED;
 			case "!" -> Transaction.Status.DISPUTED;
 			case "?" -> Transaction.Status.PENDING;
 			default -> throw new IllegalArgumentException();
-			};
+			});
 		} catch (IllegalArgumentException ex) {
 			return false;
 		}
@@ -483,7 +483,7 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		xact.payee = scanner.nextIdentifier();
+		xact = xact.withPayee(scanner.nextIdentifier());
 
 		if (scanner.hasNextAmount()) {
 			scanner.nextAmount();
@@ -522,13 +522,13 @@ public class LedgerReader {
 		}
 
 		if (scanner.hasNextAmount()) {
-			entry.amount = scanner.nextAmount();
+			entry = entry.withAmount(scanner.nextAmount());
 		}
 
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeTransaction.entries.add(entry);
+		activeTransaction = activeTransaction.withEntry(entry);
 		return true;
 	}
 
@@ -559,11 +559,11 @@ public class LedgerReader {
 		}
 
 		if (scanner.hasNextAmount()) {
-			entry.amount = scanner.nextAmount();
+			entry = entry.withAmount(scanner.nextAmount());
 		} else if (scanner.hasNextIdentifier()) {
 			entry = entry.withTrackingAccount(Optional.of(scanner.nextIdentifier()));
 			if (scanner.hasNextAmount()) {
-				entry.amount = scanner.nextAmount();
+				entry = entry.withAmount(scanner.nextAmount());
 			}
 		}
 
@@ -571,7 +571,7 @@ public class LedgerReader {
 			return false;
 		}
 
-		activeTransaction.entries.add(entry);
+		activeTransaction = activeTransaction.withEntry(entry);
 		return true;
 
 	}
@@ -584,18 +584,18 @@ public class LedgerReader {
 		if (!scanner.hasNextDate()) {
 			return false;
 		}
-		xact.date = scanner.nextDate();
+		xact = xact.withDate(scanner.nextDate());
 
 		if (!scanner.hasNext()) {
 			return false;
 		}
 		try {
-			xact.status = switch (scanner.next()) {
+			xact = xact.withStatus(switch (scanner.next()) {
 			case "*" -> Transaction.Status.CLEARED;
 			case "!" -> Transaction.Status.DISPUTED;
 			case "?" -> Transaction.Status.PENDING;
 			default -> throw new IllegalArgumentException();
-			};
+			});
 		} catch (IllegalArgumentException ex) {
 			return false;
 		}
@@ -603,18 +603,18 @@ public class LedgerReader {
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		xact.account = scanner.nextIdentifier();
-		verifySetIdentifier(xact.account, IdentifierType.ACCOUNT);
+		xact = xact.withAccount(scanner.nextIdentifier());
+		verifySetIdentifier(xact.account(), IdentifierType.ACCOUNT);
 
 		if (!scanner.hasNextIdentifier()) {
 			return false;
 		}
-		xact.payee = scanner.nextIdentifier();
+		xact = xact.withPayee(scanner.nextIdentifier());
 
 		if (!scanner.hasNextAmount()) {
 			return false;
 		}
-		xact.amount = scanner.nextAmount();
+		xact = xact.withAmount(scanner.nextAmount());
 
 		if (scanner.hasNext()) {
 			return false;
