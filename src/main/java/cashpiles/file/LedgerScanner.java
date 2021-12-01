@@ -12,14 +12,14 @@ import java.time.format.DateTimeParseException;
 import java.util.NoSuchElementException;
 import cashpiles.currency.Amount;
 
-class Scanner {
+class LedgerScanner {
 
 	// TODO this needs to be controllable by the user
 	DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M/d/yyyy");
 	int index = 0;
 	String source;
 
-	Scanner(String source) {
+	LedgerScanner(String source) {
 		this.source = source;
 	}
 

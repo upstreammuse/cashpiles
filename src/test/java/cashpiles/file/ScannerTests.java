@@ -19,7 +19,7 @@ class ScannerTests {
 	@Test
 	void testAccount() {
 		var input = "4/11/2012 on-budget My New Account";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextDate());
 		assertEquals(scanner.nextDate(), LocalDate.of(2012, 4, 11));
 		assertTrue(scanner.hasNext());
@@ -32,7 +32,7 @@ class ScannerTests {
 	@Test
 	void testAccountBalance() {
 		var input = "2/29/2000 balance My New Account  $1,512.51";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextDate());
 		assertEquals(scanner.nextDate(), LocalDate.of(2000, 2, 29));
 		assertTrue(scanner.hasNext());
@@ -47,7 +47,7 @@ class ScannerTests {
 	@Test
 	void testBudget() {
 		var input = "11/26/1999 budget P2W";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextDate());
 		assertEquals(scanner.nextDate(), LocalDate.of(1999, 11, 26));
 		assertTrue(scanner.hasNext());
@@ -60,7 +60,7 @@ class ScannerTests {
 	@Test
 	void testGoal() {
 		var input = "  goal    Emergency Fund  Car Maintenance Buffer  $1,000.00 12/31/2019";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextSeparator());
 		assertTrue(scanner.hasNext());
 		assertEquals(scanner.next(), "goal");
@@ -78,7 +78,7 @@ class ScannerTests {
 	@Test
 	void testReservePercent() {
 		var input = "  reserve A category  42% An owner";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextSeparator());
 		assertTrue(scanner.hasNext());
 		assertEquals(scanner.next(), "reserve");
@@ -95,12 +95,12 @@ class ScannerTests {
 	void testCurrency() {
 		var input = "-498718923182412.31";
 		var inputCurr = "-$498718923182412.31";
-		var scanner = new Scanner(inputCurr);
+		var scanner = new LedgerScanner(inputCurr);
 		assertTrue(scanner.hasNextAmount());
 		assertEquals(scanner.nextAmount(), new Amount(new BigDecimal(input)));
 
 		input = "42";
-		scanner = new Scanner("$" + input);
+		scanner = new LedgerScanner("$" + input);
 		assertTrue(scanner.hasNextAmount());
 		assertEquals(scanner.nextAmount(), new Amount(new BigDecimal(input)));
 	}
@@ -108,14 +108,14 @@ class ScannerTests {
 	@Test
 	void testDateBad() {
 		var input = "1-1-10";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertFalse(scanner.hasNextDate());
 	}
 
 	@Test
 	void testDateGood() {
 		var input = "1/1/1910";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextDate());
 		assertEquals(scanner.nextDate(), LocalDate.of(1910, 1, 1));
 	}
@@ -123,7 +123,7 @@ class ScannerTests {
 	@Test
 	void testDateLeading() {
 		var input = " \t\n1/1/1910";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextDate());
 		assertEquals(scanner.nextDate(), LocalDate.of(1910, 1, 1));
 	}
@@ -131,14 +131,14 @@ class ScannerTests {
 	@Test
 	void testGeneralBad() {
 		var input = "\n\n\n\t\t    ";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertFalse(scanner.hasNext());
 	}
 
 	@Test
 	void testGeneralGood() {
 		var input = "some text";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNext());
 		assertEquals(scanner.next(), "some");
 	}
@@ -146,7 +146,7 @@ class ScannerTests {
 	@Test
 	void testGeneralLeading() {
 		var input = "\n\n\t\t   some text";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNext());
 		assertEquals(scanner.next(), "some");
 		assertTrue(scanner.hasNext());
@@ -157,7 +157,7 @@ class ScannerTests {
 	@Test
 	void testIdentifier() {
 		var input = "\t  \n  My Bank  Something Else     A third thing\tA fourth";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextIdentifier());
 		assertEquals(scanner.nextIdentifier(), "My Bank");
 		assertTrue(scanner.hasNextIdentifier());
@@ -172,7 +172,7 @@ class ScannerTests {
 	@Test
 	void testPercent() {
 		var input = "   34%  ";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextPercentage());
 		assertEquals(scanner.nextPercentage(), new BigDecimal(".34"));
 	}
@@ -180,22 +180,22 @@ class ScannerTests {
 	@Test
 	void testPeriod() {
 		var input = "p148d";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextPeriod());
 		assertEquals(scanner.nextPeriod(), Period.ofDays(148));
 
 		input = "p17w";
-		scanner = new Scanner(input);
+		scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextPeriod());
 		assertEquals(scanner.nextPeriod(), Period.ofWeeks(17));
 
 		input = "p58m";
-		scanner = new Scanner(input);
+		scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextPeriod());
 		assertEquals(scanner.nextPeriod(), Period.ofMonths(58));
 
 		input = "p10000y";
-		scanner = new Scanner(input);
+		scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextPeriod());
 		assertEquals(scanner.nextPeriod(), Period.ofYears(10000));
 	}
@@ -203,15 +203,15 @@ class ScannerTests {
 	@Test
 	void testSeparator() {
 		var input = "  ";
-		var scanner = new Scanner(input);
+		var scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextSeparator());
 
 		input = "\t";
-		scanner = new Scanner(input);
+		scanner = new LedgerScanner(input);
 		assertTrue(scanner.hasNextSeparator());
 
 		input = " \n \n ";
-		scanner = new Scanner(input);
+		scanner = new LedgerScanner(input);
 		assertFalse(scanner.hasNextSeparator());
 	}
 
