@@ -34,6 +34,18 @@ public class LedgerWriter implements ItemProcessor {
 	}
 
 	@Override
+	public void finish() {
+		try {
+			if (table != null) {
+				table.flush();
+				table = null;
+			}
+		} catch (IOException ex) {
+			// TODO handle it
+		}
+	}
+
+	@Override
 	public void process(AccountBalance balance) {
 		try {
 			if (table != null) {

@@ -9,6 +9,7 @@ public class Ledger extends ArrayList<LedgerItem> {
 		for (var item : this) {
 			item.process(processor);
 		}
+		processor.finish();
 	}
 
 }
