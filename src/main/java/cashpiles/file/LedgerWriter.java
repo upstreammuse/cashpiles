@@ -229,7 +229,7 @@ public class LedgerWriter implements ItemProcessor {
 		if (pad) {
 			sb.append(' ');
 		}
-		sb.append("; ");
+		sb.append(";");
 		sb.append(item.comment());
 		return sb.toString();
 	}
