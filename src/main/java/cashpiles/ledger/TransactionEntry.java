@@ -9,10 +9,11 @@ abstract public class TransactionEntry extends LedgerItem {
 		Amount categoryTotal = new Amount();
 		int emptyEntries = 0;
 
-		void confirmBalanced(Transaction transaction) throws TransactionException {
+		Amount confirmBalanced(Transaction transaction) throws TransactionException {
 			if (!accountTotal.equals(categoryTotal)) {
 				throw TransactionException.forUnbalanced(transaction, accountTotal, categoryTotal);
 			}
+			return accountTotal;
 		}
 	};
 

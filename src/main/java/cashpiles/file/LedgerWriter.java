@@ -234,7 +234,8 @@ public class LedgerWriter implements ItemProcessor {
 			case DISPUTED -> "!";
 			case PENDING -> "?";
 			});
-			writer.write(" " + xact.payee());
+			writer.write(" " + xact.payee() + "  ");
+			writer.write(xact.total().toString());
 			writeComment(xact);
 			writer.newLine();
 		} catch (IOException ex) {
