@@ -18,6 +18,7 @@ import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.Transaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 
 public class LedgerWriter implements ItemProcessor {
@@ -179,6 +180,29 @@ public class LedgerWriter implements ItemProcessor {
 		table.write(2, entry.owner());
 		table.write(10, formatComment(entry));
 		table.newLine();
+	}
+
+	@Override
+	public boolean process(Transaction xact) {
+		try {
+			if (table != null) {
+				table.flush();
+				table = null;
+			}
+			writeDate(xact.date());
+			writer.write(" ");
+			writer.write(switch (xact.status()) {
+			case CLEARED -> "*";
+			case DISPUTED -> "!";
+			case PENDING -> "?";
+			});
+			writer.write(" " + xact.payee());
+			writeComment(xact);
+			writer.newLine();
+		} catch (IOException ex) {
+			// TODO handle it
+		}
+		return true;
 	}
 
 	@Override
