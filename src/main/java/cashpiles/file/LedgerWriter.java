@@ -2,6 +2,7 @@ package cashpiles.file;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -14,7 +15,10 @@ import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.ManualGoalBudgetEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 
 public class LedgerWriter implements ItemProcessor {
 
@@ -118,7 +122,11 @@ public class LedgerWriter implements ItemProcessor {
 		table.write(0, "  goal ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner() + "  ");
-		table.write(3, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(3, entry.amount().toString() + " ", TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(4, formatDate(entry.dates().endDate()) + " ");
+		if (entry.repeat()) {
+			table.write(5, "repeat");
+		}
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}
@@ -136,11 +144,49 @@ public class LedgerWriter implements ItemProcessor {
 	}
 
 	@Override
+	public void process(ManualGoalBudgetEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  goal ");
+		table.write(1, entry.name() + "  ");
+		table.write(2, entry.owner());
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
+	public void process(ReserveBudgetEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  reserve ");
+		table.write(1, entry.name() + "  ");
+		table.write(2, entry.owner() + "  ");
+		table.write(3, NumberFormat.getPercentInstance().format(entry.percentage()) + " ",
+				TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
 	public void process(RoutineBudgetEntry entry) {
 		if (table == null) {
 			table = new TableWriter(writer);
 		}
 		table.write(0, "  routine ");
+		table.write(1, entry.name() + "  ");
+		table.write(2, entry.owner());
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
+	public void process(WithholdingBudgetEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  withholding ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
 		table.write(10, formatComment(entry));
@@ -164,6 +210,11 @@ public class LedgerWriter implements ItemProcessor {
 		return sb.toString();
 	}
 
+	private String formatDate(LocalDate date) {
+		// TODO get this from the same place as the LedgerReader scanner
+		return date.format(DateTimeFormatter.ofPattern("M/d/yyyy"));
+	}
+
 	private void writeComment(LedgerItem item) throws IOException {
 		writeComment(item, true);
 	}
@@ -174,7 +225,7 @@ public class LedgerWriter implements ItemProcessor {
 
 	private void writeDate(LocalDate date) throws IOException {
 		// TODO get this from the same place as the LedgerReader scanner
-		writer.write(date.format(DateTimeFormatter.ofPattern("M/d/yyyy")));
+		writer.write(formatDate(date));
 	}
 
 }
