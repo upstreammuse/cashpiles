@@ -10,6 +10,7 @@ import cashpiles.util.Comparisons;
 
 public class DateRange {
 
+	private final boolean hasExplicitPeriod;
 	private final Period period;
 	private final LocalDate startDate;
 
@@ -17,12 +18,14 @@ public class DateRange {
 		sortDates(startDate, endDate);
 		this.startDate = startDate;
 		period = Period.ofDays(countDays(startDate, endDate));
+		hasExplicitPeriod = false;
 	}
 
 	public DateRange(LocalDate startDate, Period period) {
 		this.startDate = startDate;
 		this.period = period;
 		sortDates(startDate, endDate());
+		hasExplicitPeriod = true;
 	}
 
 	public boolean contains(LocalDate date) {
@@ -44,6 +47,10 @@ public class DateRange {
 		return ((DateRange) other).startDate.equals(startDate) && ((DateRange) other).period.equals(period);
 	}
 
+	public boolean hasExplicitPeriod() {
+		return hasExplicitPeriod;
+	}
+
 	@Override
 	public int hashCode() {
 		return startDate.hashCode() ^ period.hashCode();
@@ -62,6 +69,10 @@ public class DateRange {
 
 	public int numberOfDays() {
 		return countDays(startDate, endDate());
+	}
+
+	public Period period() {
+		return period;
 	}
 
 	public LocalDate startDate() {

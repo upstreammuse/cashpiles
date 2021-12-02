@@ -162,7 +162,11 @@ public class LedgerWriter implements ItemProcessor {
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner() + "  ");
 		table.write(3, entry.amount().toString() + " ", TableWriter.Alignment.ALIGN_RIGHT);
-		table.write(4, formatDate(entry.dates().endDate()) + " ");
+		if (entry.dates().hasExplicitPeriod()) {
+			table.write(4, entry.dates().period() + " ");
+		} else {
+			table.write(4, formatDate(entry.dates().endDate()) + " ");
+		}
 		if (entry.repeat()) {
 			table.write(5, "repeat");
 		}
