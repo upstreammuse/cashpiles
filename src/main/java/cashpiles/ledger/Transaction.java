@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import cashpiles.currency.Amount;
+
 public class Transaction extends LedgerItem {
 
 	public enum Status {
@@ -14,6 +16,7 @@ public class Transaction extends LedgerItem {
 	private List<TransactionEntry> entries = new ArrayList<>();
 	private String payee;
 	private Status status;
+	private Amount total;
 
 	public Transaction(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
@@ -29,6 +32,10 @@ public class Transaction extends LedgerItem {
 
 	public Status status() {
 		return status;
+	}
+
+	public Amount total() {
+		return total;
 	}
 
 	public Transaction withDate(LocalDate date) {
@@ -65,7 +72,7 @@ public class Transaction extends LedgerItem {
 			entries2.add(entry.fromBalance(balancer));
 		}
 		entries = entries2;
-		balancer.confirmBalanced(this);
+		total = balancer.confirmBalanced(this);
 	}
 
 	@Override
