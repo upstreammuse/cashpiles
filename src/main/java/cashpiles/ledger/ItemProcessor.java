@@ -2,6 +2,9 @@ package cashpiles.ledger;
 
 public interface ItemProcessor {
 
+	default void finish() {
+	}
+
 	default void process(AccountBalance balance) {
 	}
 
