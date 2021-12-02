@@ -8,14 +8,17 @@ import java.time.format.DateTimeFormatter;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
+import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.Transaction;
@@ -73,6 +76,17 @@ public class LedgerWriter implements ItemProcessor {
 	}
 
 	@Override
+	public void process(AccountTransactionEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  " + entry.account() + "  ");
+		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
 	public void process(BlankLine line) {
 		try {
 			if (table != null) {
@@ -102,6 +116,18 @@ public class LedgerWriter implements ItemProcessor {
 			// TODO handle it
 		}
 		return true;
+	}
+
+	@Override
+	public void process(CategoryTransactionEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  " + entry.category() + "  ");
+		entry.trackingAccount().ifPresent(account -> table.write(1, account + "  "));
+		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(10, formatComment(entry));
+		table.newLine();
 	}
 
 	@Override
@@ -152,6 +178,18 @@ public class LedgerWriter implements ItemProcessor {
 		table.write(0, "  goal ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
+		table.write(10, formatComment(entry));
+		table.newLine();
+	}
+
+	@Override
+	public void process(OwnerTransactionEntry entry) {
+		if (table == null) {
+			table = new TableWriter(writer);
+		}
+		table.write(0, "  " + entry.owner() + "  ");
+		entry.trackingAccount().ifPresent(account -> table.write(1, account + "  "));
+		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}
