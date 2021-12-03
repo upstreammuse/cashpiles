@@ -17,9 +17,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.KeyStroke;
 
 import cashpiles.account.AccountsWindow;
@@ -28,14 +25,12 @@ import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.Ledger;
 import cashpiles.ledger.LedgerException;
-import cashpiles.model.Transactions;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
 class MainWindow extends JFrame {
 
 	private Ledger ledger = new Ledger();
-	private JTable t42 = new JTable();
 
 	MainWindow() {
 		initUi();
@@ -91,12 +86,6 @@ class MainWindow extends JFrame {
 		var openButton = new JButton("Open...");
 		openButton.addActionListener(this::openFile);
 
-		var asdf = new JPanel();
-		var scrollPane1 = new JScrollPane(t42);
-		asdf.add(scrollPane1);
-
-		layout.setVerticalGroup(layout.createParallelGroup().addComponent(openButton).addComponent(asdf));
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(openButton).addComponent(asdf));
 		pack();
 	}
 
@@ -115,7 +104,6 @@ class MainWindow extends JFrame {
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
 			// TODO this should go in an action thread to not hang the gui
 			ledger = ledgerReader.readAll();
-			t42.setModel(new Transactions(ledger));
 			var accountWindow = new AccountsWindow();
 			ledger.process(accountWindow);
 			accountWindow.setVisible(true);
