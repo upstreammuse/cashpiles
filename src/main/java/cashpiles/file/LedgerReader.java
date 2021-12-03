@@ -47,8 +47,9 @@ public class LedgerReader {
 		this.fileName = filename;
 	}
 
-	public Ledger readAll() throws IOException, LedgerException {
-		activeLedger = new Ledger();
+	public void readAll(Ledger ledger) throws IOException, LedgerException {
+		activeLedger = ledger;
+		activeLedger.clear();
 		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
 			lineNumber++;
 			processLine(line);
@@ -64,8 +65,6 @@ public class LedgerReader {
 			activeLedger.add(activeTransaction);
 			activeTransaction = null;
 		}
-
-		return activeLedger;
 	}
 
 	private void processLine(String line) throws LedgerException {
