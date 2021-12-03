@@ -30,7 +30,6 @@ class TransactionPanel extends JPanel {
 
 		var newXact = new JButton("New Transaction...");
 		newXact.addActionListener(action -> {
-			System.out.println(action.getActionCommand());
 			controller.newTransaction();
 		});
 
