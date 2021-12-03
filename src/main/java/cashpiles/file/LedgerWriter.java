@@ -22,6 +22,8 @@ import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.Transaction;
+import cashpiles.ledger.Transaction.Status;
+import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 
 public class LedgerWriter implements ItemProcessor {
@@ -245,11 +247,7 @@ public class LedgerWriter implements ItemProcessor {
 			}
 			writeDate(xact.date());
 			writer.write(" ");
-			writer.write(switch (xact.status()) {
-			case CLEARED -> "*";
-			case DISPUTED -> "!";
-			case PENDING -> "?";
-			});
+			writeStatus(xact.status());
 			writer.write(" " + xact.payee() + "  ");
 			writer.write(xact.total().toString());
 			writeComment(xact);
@@ -258,6 +256,26 @@ public class LedgerWriter implements ItemProcessor {
 			// TODO handle it
 		}
 		return true;
+	}
+
+	@Override
+	public void process(UnbalancedTransaction xact) {
+		try {
+			if (table != null) {
+				table.flush();
+				table = null;
+			}
+			writeDate(xact.date());
+			writer.write(" ");
+			writeStatus(xact.status());
+			writer.write(" " + xact.account());
+			writer.write("  " + xact.payee());
+			writer.write("  " + xact.amount().toString());
+			writeComment(xact);
+			writer.newLine();
+		} catch (IOException ex) {
+			// TODO handle it
+		}
 	}
 
 	@Override
@@ -305,6 +323,14 @@ public class LedgerWriter implements ItemProcessor {
 	private void writeDate(LocalDate date) throws IOException {
 		// TODO get this from the same place as the LedgerReader scanner
 		writer.write(formatDate(date));
+	}
+
+	private void writeStatus(Status status) throws IOException {
+		writer.write(switch (status) {
+		case CLEARED -> "*";
+		case DISPUTED -> "!";
+		case PENDING -> "?";
+		});
 	}
 
 }
