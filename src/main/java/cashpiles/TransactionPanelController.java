@@ -12,11 +12,9 @@ import cashpiles.ledger.TransactionException;
 class TransactionPanelController {
 
 	private final Ledger ledger;
-	private final TransactionPanelModel model;
 
 	TransactionPanelController(TransactionPanelModel model, Ledger ledger) {
 		this.ledger = ledger;
-		this.model = model;
 		ledger.addListener(action -> {
 			model.clear();
 			ledger.process(model);
