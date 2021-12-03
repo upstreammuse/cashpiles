@@ -31,11 +31,9 @@ import cashpiles.ledger.LedgerException;
 class MainWindow extends JFrame {
 
 	private final Ledger ledger;
-	private final TransactionPanel xactPanel;
 
 	MainWindow(Ledger ledger) {
 		this.ledger = ledger;
-		xactPanel = new TransactionPanel(ledger);
 		initUi();
 	}
 
@@ -88,6 +86,8 @@ class MainWindow extends JFrame {
 
 		var openButton = new JButton("Open...");
 		openButton.addActionListener(this::openFile);
+
+		var xactPanel = new TransactionPanel(ledger);
 
 		layout.setVerticalGroup(layout.createParallelGroup().addComponent(openButton).addComponent(xactPanel));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(openButton).addComponent(xactPanel));
