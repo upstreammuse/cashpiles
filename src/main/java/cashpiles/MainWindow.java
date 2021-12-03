@@ -30,9 +30,10 @@ import cashpiles.ledger.LedgerException;
 @SuppressWarnings("serial")
 class MainWindow extends JFrame {
 
-	private Ledger ledger = new Ledger();
+	private final Ledger ledger;
 
-	MainWindow() {
+	MainWindow(Ledger ledger) {
+		this.ledger = ledger;
 		initUi();
 	}
 
@@ -102,8 +103,10 @@ class MainWindow extends JFrame {
 		var fullPath = Paths.get(directory, filename);
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
-			// TODO this should go in an action thread to not hang the gui
-			ledger = ledgerReader.readAll();
+			// TODO this should go in an action thread to not hang the gui? would complicate
+			// the thread safety of the ledger, however, and need to be synchronized to each
+			// ledger change it made
+			ledgerReader.readAll(ledger);
 			var accountWindow = new AccountsWindow();
 			ledger.process(accountWindow);
 			accountWindow.setVisible(true);
