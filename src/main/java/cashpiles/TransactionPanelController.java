@@ -1,7 +1,5 @@
 package cashpiles;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -11,7 +9,7 @@ import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionException;
 
-class TransactionPanelController implements ActionListener {
+class TransactionPanelController {
 
 	private final Ledger ledger;
 	private final TransactionPanelModel model;
@@ -19,7 +17,10 @@ class TransactionPanelController implements ActionListener {
 	TransactionPanelController(TransactionPanelModel model, Ledger ledger) {
 		this.ledger = ledger;
 		this.model = model;
-		ledger.addListener(this);
+		ledger.addListener(action -> {
+			model.clear();
+			ledger.process(model);
+		});
 		ledger.process(model);
 	}
 
@@ -37,12 +38,6 @@ class TransactionPanelController implements ActionListener {
 			e.printStackTrace();
 		}
 		ledger.add(xact);
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		model.clear();
-		((Ledger) e.getSource()).process(model);
 	}
 
 }
