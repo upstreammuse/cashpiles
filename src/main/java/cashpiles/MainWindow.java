@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import javax.swing.GroupLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -84,13 +83,10 @@ class MainWindow extends JFrame {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
-		var openButton = new JButton("Open...");
-		openButton.addActionListener(this::openFile);
-
 		var xactPanel = new TransactionPanel(ledger);
 
-		layout.setVerticalGroup(layout.createParallelGroup().addComponent(openButton).addComponent(xactPanel));
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(openButton).addComponent(xactPanel));
+		layout.setVerticalGroup(layout.createParallelGroup().addComponent(xactPanel));
+		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(xactPanel));
 		pack();
 	}
 
