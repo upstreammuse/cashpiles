@@ -37,7 +37,7 @@
 						<configuration>
 							<rules>
 								<requireMavenVersion>
-									<version>3.2.5</version>
+									<version>3.3.9</version>
 								</requireMavenVersion>
 							</rules>
 						</configuration>
@@ -73,7 +73,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.2.3</version>
+				<version>4.5.0.0</version>
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
