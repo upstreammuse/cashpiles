@@ -22,17 +22,17 @@ import cashpiles.account.AccountsWindow;
 import cashpiles.budget.ui.BudgetWindow;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
-import cashpiles.ledger.Ledger;
 import cashpiles.ledger.LedgerException;
+import cashpiles.model.Ledger;
+import cashpiles.model.LedgerBuilder;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
 class MainWindow extends JFrame {
 
-	private final Ledger ledger;
+	private Ledger ledger = new Ledger();
 
-	MainWindow(Ledger ledger) {
-		this.ledger = ledger;
+	MainWindow() {
 		initUi();
 	}
 
@@ -90,6 +90,7 @@ class MainWindow extends JFrame {
 		pack();
 	}
 
+	// TODO this should prompt to save if the ledger is dirty
 	private void openFile(ActionEvent event) {
 		var dialog = new FileDialog(this);
 		dialog.setFilenameFilter((dir, name) -> name.endsWith(".txt"));
@@ -102,11 +103,12 @@ class MainWindow extends JFrame {
 
 		var fullPath = Paths.get(directory, filename);
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
+			ledger = new Ledger();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
 			// TODO this should go in an action thread to not hang the gui? would complicate
 			// the thread safety of the ledger, however, and need to be synchronized to each
 			// ledger change it made
-			ledgerReader.readAll(ledger);
+			ledgerReader.readAll(new LedgerBuilder(ledger));
 			var accountWindow = new AccountsWindow();
 			ledger.process(accountWindow);
 			accountWindow.setVisible(true);

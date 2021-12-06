@@ -7,11 +7,7 @@ import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import cashpiles.ledger.Ledger;
-
 class CashPiles {
-
-	private static final Ledger ledger = new Ledger();
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
@@ -25,7 +21,7 @@ class CashPiles {
 			UIDefaults defaults = UIManager.getLookAndFeelDefaults();
 			if (defaults.get("Table.alternateRowColor") == null)
 				defaults.put("Table.alternateRowColor", new Color(240, 240, 240));
-			var mw = new MainWindow(ledger);
+			var mw = new MainWindow();
 			mw.setVisible(true);
 		});
 	}

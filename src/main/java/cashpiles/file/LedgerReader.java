@@ -14,7 +14,7 @@ import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
-import cashpiles.ledger.Ledger;
+import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
@@ -35,11 +35,11 @@ public class LedgerReader {
 	};
 
 	private Budget activeBudget;
-	private Ledger activeLedger;
 	private Transaction activeTransaction;
 	private final String fileName;
 	private final Map<String, IdentifierType> identifiers = new HashMap<>();
 	private int lineNumber = 0;
+	private ItemProcessor processor;
 	private BufferedReader reader;
 
 	public LedgerReader(BufferedReader reader, String filename) {
@@ -47,9 +47,8 @@ public class LedgerReader {
 		this.fileName = filename;
 	}
 
-	public void readAll(Ledger ledger) throws IOException, LedgerException {
-		activeLedger = ledger;
-		activeLedger.clear();
+	public void readAll(ItemProcessor processor) throws IOException, LedgerException {
+		this.processor = processor;
 		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
 			lineNumber++;
 			processLine(line);
@@ -57,14 +56,15 @@ public class LedgerReader {
 
 		// if a budget or transaction was left "hanging", close them out
 		if (activeBudget != null) {
-			activeLedger.add(activeBudget);
+			processor.process(activeBudget);
 			activeBudget = null;
 		}
 		if (activeTransaction != null) {
 			activeTransaction.balance();
-			activeLedger.add(activeTransaction);
+			processor.process(activeTransaction);
 			activeTransaction = null;
 		}
+		processor.finish();
 	}
 
 	private void processLine(String line) throws LedgerException {
@@ -83,14 +83,14 @@ public class LedgerReader {
 				&& !processBudgetIncome(line, comment) && !processBudgetReserve(line, comment)
 				&& !processBudgetRoutine(line, comment) && !processBudgetWithholding(line, comment)
 				&& !processBudgetManualGoal(line, comment)) {
-			activeLedger.add(activeBudget);
+			processor.process(activeBudget);
 			activeBudget = null;
 		}
 
 		if (activeTransaction != null && !processTransactionLine(line, comment)
 				&& !processTransactionTrackingLine(line, comment)) {
 			activeTransaction.balance();
-			activeLedger.add(activeTransaction);
+			processor.process(activeTransaction);
 			activeTransaction = null;
 		}
 
@@ -138,7 +138,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeLedger.add(account);
+		processor.process(account);
 		return true;
 	}
 
@@ -169,7 +169,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeLedger.add(balance);
+		processor.process(balance);
 		return true;
 	}
 
@@ -180,7 +180,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeLedger.add(blank);
+		processor.process(blank);
 		return true;
 	}
 
@@ -606,7 +606,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		activeLedger.add(xact);
+		processor.process(xact);
 		return true;
 	}
 

@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import cashpiles.ledger.Ledger;
+import cashpiles.model.Ledger;
 
 @SuppressWarnings("serial")
 class TransactionPanel extends JPanel {
