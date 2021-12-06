@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
-import cashpiles.ledger.Ledger;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionException;
+import cashpiles.model.Ledger;
 
 class TransactionPanelController {
 
