@@ -1,5 +1,6 @@
 package cashpiles.account;
 
+import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
@@ -9,29 +10,25 @@ import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.UnbalancedTransaction;
 
 @SuppressWarnings("serial")
-class AccountException extends LedgerException {
+public class AccountException extends LedgerException {
 
-	public static AccountException forTypeChange(AccountCommand account) {
-		return new AccountException(account, "Cannot change type of account '" + account.account() + "'");
+	static AccountException forAccountWithOffBudget(AccountTransactionEntry entry) {
+		return new AccountException(entry, "Cannot use off-budget account " + entry.account() + " for account entries");
 	}
 
-	public static AccountException forAlreadyOpen(AccountCommand account) {
-		return new AccountException(account, "Cannot open account '" + account.account() + "' that is already open");
-	}
-
-	public static AccountException forNonZeroClose(AccountCommand account) {
-		return new AccountException(account, "Cannot close account '" + account.account() + "' with non-zero balance");
-	}
-
-	public static AccountException forAlreadyClosed(AccountCommand account) {
+	static AccountException forAlreadyClosed(AccountCommand account) {
 		return new AccountException(account, "Cannot close account '" + account.account() + "' that is already closed");
 	}
 
-	public static AccountException forClosed(AccountTransactionEntry entry) {
+	static AccountException forAlreadyOpen(AccountCommand account) {
+		return new AccountException(account, "Cannot open account '" + account.account() + "' that is already open");
+	}
+
+	static AccountException forClosed(AccountTransactionEntry entry) {
 		return new AccountException(entry, "Cannot use closed account '" + entry.account() + "'");
 	}
 
-	public static AccountException forClosed(TrackingTransactionEntry entry) {
+	static AccountException forClosed(TrackingTransactionEntry entry) {
 		var builder = new StringBuilder();
 		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
 			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
@@ -39,19 +36,46 @@ class AccountException extends LedgerException {
 		return new AccountException(entry, "Cannot use closed account '" + builder + "'");
 	}
 
-	public static AccountException forClosed(UnbalancedTransaction transaction) {
+	static AccountException forClosed(UnbalancedTransaction transaction) {
 		return new AccountException(transaction, "Cannot use closed account '" + transaction.account() + "'");
 	}
 
-	public static AccountException forUnknown(AccountBalance balance) {
+	static AccountException forNonZeroClose(AccountCommand account) {
+		return new AccountException(account, "Cannot close account '" + account.account() + "' with non-zero balance");
+	}
+
+	static AccountException forTrackingWithBudget(TrackingTransactionEntry entry) {
+		var builder = new StringBuilder();
+		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
+			throw new IllegalArgumentException("Tried to create a TransactionException with a missing account name");
+		});
+		return new AccountException(entry,
+				"Cannot use on-budget account " + builder + " for category/tracking entries");
+	}
+
+	static AccountException forTypeChange(AccountCommand account) {
+		return new AccountException(account, "Cannot change type of account '" + account.account() + "'");
+	}
+
+	static AccountException forUnbalanced(AccountBalance balance, Amount calculated) {
+		return new AccountException(balance,
+				"Statement balance " + balance.amount() + " does not match calculated balance " + calculated);
+	}
+
+	static AccountException forUnbalancedTransactionWithOnBudgetAccount(UnbalancedTransaction transaction) {
+		return new AccountException(transaction,
+				"Cannot use single-line transaction with on-budget account '" + transaction.account() + "'");
+	}
+
+	static AccountException forUnknown(AccountBalance balance) {
 		return new AccountException(balance, "Cannot use unknown account '" + balance.account() + "'");
 	}
 
-	public static AccountException forUnknown(AccountTransactionEntry entry) {
+	static AccountException forUnknown(AccountTransactionEntry entry) {
 		return new AccountException(entry, "Cannot use unknown account '" + entry.account() + "'");
 	}
 
-	public static AccountException forUnknown(TrackingTransactionEntry entry) {
+	static AccountException forUnknown(TrackingTransactionEntry entry) {
 		var builder = new StringBuilder();
 		entry.trackingAccount().ifPresentOrElse(trackingAccount -> builder.append(trackingAccount), () -> {
 			throw new IllegalArgumentException("Tried to create an AccountException with missing account name");
@@ -59,11 +83,11 @@ class AccountException extends LedgerException {
 		return new AccountException(entry, "Cannot use unknown account '" + builder + "'");
 	}
 
-	public static AccountException forUnknown(UnbalancedTransaction transaction) {
+	static AccountException forUnknown(UnbalancedTransaction transaction) {
 		return new AccountException(transaction, "Cannot use unknown account '" + transaction.account() + "'");
 	}
 
-	private AccountException(LedgerItem item, String message) {
+	protected AccountException(LedgerItem item, String message) {
 		super(item, message);
 	}
 

@@ -9,9 +9,7 @@ import javax.swing.table.AbstractTableModel;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
-import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.TrackingTransactionEntry;
-import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.util.Lists;
 
@@ -37,12 +35,12 @@ public class AccountStatement extends AbstractTableModel {
 		this.startBalance = startBalance;
 	}
 
-	public void add(AccountTransactionEntry entry) throws LedgerException {
+	public void add(AccountTransactionEntry entry) throws AccountException {
 		switch (status) {
 		case ON_BUDGET -> {
 		}
 		case CLOSED -> throw AccountException.forClosed(entry);
-		case OFF_BUDGET -> throw TransactionException.forAccountWithOffBudget(entry);
+		case OFF_BUDGET -> throw AccountException.forAccountWithOffBudget(entry);
 		}
 		var xact = new Transaction();
 		xact.date = entry.parent().date();
@@ -52,9 +50,9 @@ public class AccountStatement extends AbstractTableModel {
 		transactions.add(xact);
 	}
 
-	public void add(TrackingTransactionEntry entry) throws LedgerException {
+	public void add(TrackingTransactionEntry entry) throws AccountException {
 		switch (status) {
-		case ON_BUDGET -> throw TransactionException.forTrackingWithBudget(entry);
+		case ON_BUDGET -> throw AccountException.forTrackingWithBudget(entry);
 		case CLOSED -> throw AccountException.forClosed(entry);
 		case OFF_BUDGET -> {
 		}
@@ -67,9 +65,9 @@ public class AccountStatement extends AbstractTableModel {
 		transactions.add(xact);
 	}
 
-	public void add(UnbalancedTransaction transaction) throws LedgerException {
+	public void add(UnbalancedTransaction transaction) throws AccountException {
 		switch (status) {
-		case ON_BUDGET -> throw TransactionException.forUnbalancedTransactionWithOnBudgetAccount(transaction);
+		case ON_BUDGET -> throw AccountException.forUnbalancedTransactionWithOnBudgetAccount(transaction);
 		case CLOSED -> throw AccountException.forClosed(transaction);
 		case OFF_BUDGET -> {
 		}
