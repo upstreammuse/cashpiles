@@ -1,7 +1,5 @@
 package cashpiles.model;
 
-import java.time.LocalDate;
-
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 
@@ -29,11 +27,6 @@ public class LedgerModelException extends LedgerException {
 	}
 
 	static LedgerModelException forUnbalancedStatement() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	static LedgerModelException forUnorderedDate(LocalDate date) {
 		// TODO Auto-generated method stub
 		return null;
 	}

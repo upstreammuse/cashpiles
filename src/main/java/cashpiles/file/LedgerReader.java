@@ -2,6 +2,7 @@ package cashpiles.file;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ public class LedgerReader {
 	private Transaction activeTransaction;
 	private final String fileName;
 	private final Map<String, IdentifierType> identifiers = new HashMap<>();
+	private LocalDate latestDate;
 	private int lineNumber = 0;
 	private ItemProcessor processor;
 	private BufferedReader reader;
@@ -110,6 +112,7 @@ public class LedgerReader {
 			return false;
 		}
 		account = account.withDate(scanner.nextDate());
+		verifyDate(account, account.date());
 
 		if (!scanner.hasNext()) {
 			return false;
@@ -150,6 +153,7 @@ public class LedgerReader {
 			return false;
 		}
 		balance = balance.withDate(scanner.nextDate());
+		verifyDate(balance, balance.date());
 
 		if (!scanner.hasNext() || !scanner.next().equals("balance")) {
 			return false;
@@ -184,7 +188,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudget(String line, String comment) {
+	private boolean processBudget(String line, String comment) throws LedgerReaderException {
 		var budget = new Budget(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -193,6 +197,7 @@ public class LedgerReader {
 		} else {
 			return false;
 		}
+		verifyDate(budget, budget.date());
 
 		if (!scanner.hasNext() || !scanner.next().equals("budget")) {
 			return false;
@@ -447,7 +452,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processTransaction(String line, String comment) {
+	private boolean processTransaction(String line, String comment) throws LedgerReaderException {
 		var xact = new Transaction(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -455,6 +460,7 @@ public class LedgerReader {
 			return false;
 		}
 		xact = xact.withDate(scanner.nextDate());
+		verifyDate(xact, xact.date());
 
 		if (!scanner.hasNext()) {
 			return false;
@@ -572,6 +578,7 @@ public class LedgerReader {
 			return false;
 		}
 		xact = xact.withDate(scanner.nextDate());
+		verifyDate(xact, xact.date());
 
 		if (!scanner.hasNext()) {
 			return false;
@@ -615,6 +622,16 @@ public class LedgerReader {
 			throw LedgerReaderException.forUnknownIdentifier(identifier, lineNumber);
 		}
 		return identifiers.get(identifier);
+	}
+
+	private void verifyDate(LedgerItem item, LocalDate date) throws LedgerReaderException {
+		if (latestDate == null) {
+			latestDate = date;
+		}
+		if (date.compareTo(latestDate) < 0) {
+			throw LedgerReaderException.forUnorderedDate(item);
+		}
+		latestDate = date;
 	}
 
 	private void verifyIdentifier(LedgerItem item, String identifier, IdentifierType type)

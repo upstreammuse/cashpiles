@@ -26,6 +26,10 @@ public class LedgerReaderException extends LedgerException {
 		return new LedgerReaderException(item, "Unknown identifier '" + identifier + "' of type " + type);
 	}
 
+	static LedgerReaderException forUnorderedDate(LedgerItem item) {
+		return new LedgerReaderException(item, "Date out of order");
+	}
+
 	protected LedgerReaderException(LedgerItem item, String message) {
 		super(item, message);
 	}
