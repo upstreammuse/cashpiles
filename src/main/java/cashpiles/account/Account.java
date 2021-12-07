@@ -12,7 +12,6 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountCommand.Status;
 import cashpiles.ledger.AccountTransactionEntry;
-import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.util.Lists;
@@ -31,10 +30,9 @@ public class Account extends AbstractTableModel {
 		return Lists.lastOf(statements).balance();
 	}
 
-	// TODO should this be an account exception? Should they all be LedgerException?
-	public void closeStatement(AccountBalance balance) throws BalanceException {
+	public void closeStatement(AccountBalance balance) throws AccountException {
 		if (!balance().equals(balance.amount())) {
-			throw BalanceException.forUnbalanced(balance, balance());
+			throw AccountException.forUnbalanced(balance, balance());
 		}
 		// TODO could make it so you can't balance a closed account, which would let
 		// this be an exception instead of making a dummy statement
@@ -96,21 +94,21 @@ public class Account extends AbstractTableModel {
 		}
 	}
 
-	public void add(AccountTransactionEntry entry) throws LedgerException {
+	public void add(AccountTransactionEntry entry) throws AccountException {
 		if (statements.isEmpty()) {
 			throw AccountException.forClosed(entry);
 		}
 		Lists.lastOf(statements).add(entry);
 	}
 
-	public void add(TrackingTransactionEntry entry) throws LedgerException {
+	public void add(TrackingTransactionEntry entry) throws AccountException {
 		if (statements.isEmpty()) {
 			throw AccountException.forClosed(entry);
 		}
 		Lists.lastOf(statements).add(entry);
 	}
 
-	public void add(UnbalancedTransaction transaction) throws LedgerException {
+	public void add(UnbalancedTransaction transaction) throws AccountException {
 		if (statements.isEmpty()) {
 			throw AccountException.forClosed(transaction);
 		}

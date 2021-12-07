@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
+import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.Transaction;
-import cashpiles.ledger.TransactionException;
 import cashpiles.model.Ledger;
 
 class TransactionPanelController {
@@ -31,9 +31,9 @@ class TransactionPanelController {
 		xact = xact.withEntry(entry);
 		try {
 			xact.balance();
-		} catch (TransactionException e) {
+		} catch (LedgerException ex) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ex.printStackTrace();
 		}
 		ledger.add(xact);
 	}

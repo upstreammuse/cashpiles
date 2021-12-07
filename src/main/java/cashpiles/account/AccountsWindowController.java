@@ -12,7 +12,6 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
-import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.UnbalancedTransaction;
 
@@ -78,7 +77,7 @@ class AccountsWindowController {
 		offBudgetModel.fireTableDataChanged();
 	}
 
-	public void process(AccountBalance balance) throws LedgerException {
+	public void process(AccountBalance balance) throws AccountException {
 		if (!accounts.containsKey(balance.account())) {
 			throw AccountException.forUnknown(balance);
 		}
@@ -87,7 +86,7 @@ class AccountsWindowController {
 		offBudgetModel.fireTableDataChanged();
 	}
 
-	public void process(AccountTransactionEntry entry) throws LedgerException {
+	public void process(AccountTransactionEntry entry) throws AccountException {
 		if (!accounts.containsKey(entry.account())) {
 			throw AccountException.forUnknown(entry);
 		}
@@ -97,7 +96,7 @@ class AccountsWindowController {
 
 	// TODO it might be possible to do this without isPresent/get, but don't need to
 	// solve that right now
-	public void process(TrackingTransactionEntry entry) throws LedgerException {
+	public void process(TrackingTransactionEntry entry) throws AccountException {
 		if (!entry.trackingAccount().isPresent()) {
 			return;
 		}
@@ -108,7 +107,7 @@ class AccountsWindowController {
 		offBudgetModel.fireTableDataChanged();
 	}
 
-	public void process(UnbalancedTransaction transaction) throws LedgerException {
+	public void process(UnbalancedTransaction transaction) throws AccountException {
 		if (!accounts.containsKey(transaction.account())) {
 			throw AccountException.forUnknown(transaction);
 		}

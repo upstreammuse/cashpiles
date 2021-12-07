@@ -15,7 +15,6 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
-import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
@@ -24,6 +23,7 @@ import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionEntry;
+import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
@@ -47,7 +47,7 @@ public class LedgerReader {
 		this.fileName = filename;
 	}
 
-	public void readAll(ItemProcessor processor) throws IOException, LedgerException {
+	public void readAll(ItemProcessor processor) throws IOException, LedgerReaderException, TransactionException {
 		this.processor = processor;
 		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
 			lineNumber++;
@@ -67,7 +67,7 @@ public class LedgerReader {
 		processor.finish();
 	}
 
-	private void processLine(String line) throws LedgerException {
+	private void processLine(String line) throws LedgerReaderException, TransactionException {
 		var comment = "";
 		var split = line.indexOf(';');
 
@@ -98,11 +98,11 @@ public class LedgerReader {
 				&& !processBudget(line, comment) && !processTransaction(line, comment)
 				&& !processUnbalancedTransaction(line, comment) && !processAccountBalance(line, comment)
 				&& !processBlank(line, comment)) {
-			throw LedgerException.forInvalidContent(line, lineNumber);
+			throw LedgerReaderException.forInvalidContent(line, lineNumber);
 		}
 	}
 
-	private boolean processAccount(String line, String comment) throws LedgerException {
+	private boolean processAccount(String line, String comment) throws LedgerReaderException {
 		var account = new AccountCommand(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -142,7 +142,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processAccountBalance(String line, String comment) throws LedgerException {
+	private boolean processAccountBalance(String line, String comment) throws LedgerReaderException {
 		var balance = new AccountBalance(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -211,7 +211,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetClose(String line, String comment) throws LedgerException {
+	private boolean processBudgetClose(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -236,7 +236,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetGoal(String line, String comment) throws LedgerException {
+	private boolean processBudgetGoal(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -287,7 +287,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetIncome(String line, String comment) throws LedgerException {
+	private boolean processBudgetIncome(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -318,7 +318,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetManualGoal(String line, String comment) throws LedgerException {
+	private boolean processBudgetManualGoal(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -349,7 +349,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetReserve(String line, String comment) throws LedgerException {
+	private boolean processBudgetReserve(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -385,7 +385,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetRoutine(String line, String comment) throws LedgerException {
+	private boolean processBudgetRoutine(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -416,7 +416,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBudgetWithholding(String line, String comment) throws LedgerException {
+	private boolean processBudgetWithholding(String line, String comment) throws LedgerReaderException {
 		var scanner = new LedgerScanner(line);
 
 		if (!scanner.hasNextSeparator()) {
@@ -486,7 +486,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processTransactionLine(String line, String comment) throws LedgerException {
+	private boolean processTransactionLine(String line, String comment) throws LedgerReaderException {
 		TransactionEntry entry;
 		var scanner = new LedgerScanner(line);
 
@@ -522,7 +522,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processTransactionTrackingLine(String line, String comment) throws LedgerException {
+	private boolean processTransactionTrackingLine(String line, String comment) throws LedgerReaderException {
 		TrackingTransactionEntry entry;
 		var scanner = new LedgerScanner(line);
 
@@ -564,7 +564,7 @@ public class LedgerReader {
 
 	}
 
-	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerException {
+	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerReaderException {
 		var xact = new UnbalancedTransaction(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -610,25 +610,27 @@ public class LedgerReader {
 		return true;
 	}
 
-	private IdentifierType identifierType(String identifier, int lineNumber) throws LedgerException {
+	private IdentifierType identifierType(String identifier, int lineNumber) throws LedgerReaderException {
 		if (!identifiers.containsKey(identifier)) {
-			throw LedgerException.forUnknownIdentifier(identifier, lineNumber);
+			throw LedgerReaderException.forUnknownIdentifier(identifier, lineNumber);
 		}
 		return identifiers.get(identifier);
 	}
 
-	private void verifyIdentifier(LedgerItem item, String identifier, IdentifierType type) throws LedgerException {
+	private void verifyIdentifier(LedgerItem item, String identifier, IdentifierType type)
+			throws LedgerReaderException {
 		if (!identifiers.containsKey(identifier)) {
-			throw LedgerException.forUnknownIdentifier(item, identifier, type);
+			throw LedgerReaderException.forUnknownIdentifier(item, identifier, type);
 		}
 		if (identifiers.get(identifier) != type) {
-			throw LedgerException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
+			throw LedgerReaderException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
 		}
 	}
 
-	private void verifySetIdentifier(LedgerItem item, String identifier, IdentifierType type) throws LedgerException {
+	private void verifySetIdentifier(LedgerItem item, String identifier, IdentifierType type)
+			throws LedgerReaderException {
 		if (identifiers.containsKey(identifier) && identifiers.get(identifier) != type) {
-			throw LedgerException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
+			throw LedgerReaderException.forIdentifierMismatch(item, identifier, type, identifiers.get(identifier));
 		}
 		identifiers.put(identifier, type);
 	}
