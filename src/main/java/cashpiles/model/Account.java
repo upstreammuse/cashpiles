@@ -23,7 +23,7 @@ class Account {
 	Amount balance() {
 		var balance = statements.isEmpty() ? new Amount() : Lists.lastOf(statements).balance();
 		for (var particle : looseTransactions) {
-			balance = balance.add(particle.amount);
+			balance = balance.add(particle.amount());
 		}
 		return balance;
 	}

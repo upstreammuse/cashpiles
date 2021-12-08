@@ -12,7 +12,7 @@ import cashpiles.currency.Amount;
 @SuppressWarnings("serial")
 class TransactionsTableModel extends AbstractTableModel {
 
-	// can replace with Transactionparticle from model
+	// TODO can replace with Transactionparticle from model
 	static class DisplayTransaction {
 		Amount amount;
 		LocalDate date;
