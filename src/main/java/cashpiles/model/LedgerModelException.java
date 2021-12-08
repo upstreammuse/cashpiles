@@ -7,6 +7,7 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.TrackingTransactionEntry;
@@ -33,6 +34,10 @@ public class LedgerModelException extends LedgerException {
 	static LedgerModelException forBudgetStartDate(Budget budget, LocalDate startDate) {
 		return new LedgerModelException(budget, "Cannot start new budget period on " + budget.date()
 				+ ".  Next available start date is " + startDate + ".");
+	}
+
+	static LedgerModelException forExistingCategory(BudgetEntry entry) {
+		return new LedgerModelException(entry, "Budget category '" + entry.name() + "' already in use.");
 	}
 
 	static LedgerModelException forNonZeroClose(AccountCommand account) {
