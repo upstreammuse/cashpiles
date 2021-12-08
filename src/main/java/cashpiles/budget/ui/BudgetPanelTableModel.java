@@ -25,7 +25,7 @@ import cashpiles.ui.budget.BudgetPeriodWindow;
 import cashpiles.util.Lists;
 
 @SuppressWarnings("serial")
-class BudgetWindowTableModel extends AbstractTableModel {
+class BudgetPanelTableModel extends AbstractTableModel {
 
 	private final List<BudgetPeriod> periods = new ArrayList<>();
 
