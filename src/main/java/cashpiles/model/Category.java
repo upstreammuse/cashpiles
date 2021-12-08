@@ -13,6 +13,9 @@ class Category extends ModelItem {
 	private List<BudgetPeriod> periods = new ArrayList<>();
 	private final LocalDate startDate;
 
+	// TODO there is a separate start date for the possibility of allowing
+	// categories to exist separately from a budget configuration, in which case the
+	// category does not start on the same day as the budget period
 	Category(LocalDate startDate, DateRange startPeriod) {
 		assert (startPeriod.contains(startDate));
 		this.startDate = startDate;

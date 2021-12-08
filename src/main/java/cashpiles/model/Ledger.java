@@ -16,6 +16,7 @@ import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
@@ -23,6 +24,7 @@ import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.UnbalancedTransaction;
+import cashpiles.time.DateRange;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
 public class Ledger implements ItemProcessor {
@@ -223,6 +225,18 @@ public class Ledger implements ItemProcessor {
 	}
 
 	@Override
+	public void process(IncomeBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
+			return;
+		}
+		category = new IncomeCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
+	}
+
+	@Override
 	public void process(OwnerTransactionEntry entry) {
 		processTracking(entry);
 	}
@@ -242,12 +256,15 @@ public class Ledger implements ItemProcessor {
 		var account = accounts.get(entry.trackingAccount().get());
 		if (account == null) {
 			pendingExceptions.add(LedgerModelException.forUnknown(entry));
+			return;
 		}
 		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
 			pendingExceptions.add(LedgerModelException.forOffBudgetNeeded(entry));
+			return;
 		}
 		if (entry.parent().date().compareTo(account.startDate()) < 0) {
 			pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
+			return;
 		}
 
 		// TODO this is still wrong for exception safety, since we are modifying the
