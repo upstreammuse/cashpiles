@@ -14,6 +14,7 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
+import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
@@ -77,6 +78,24 @@ public class Ledger implements ItemProcessor {
 	public void add(BlankLine blank) {
 		insertEnd(blank);
 		notify("BlankLine");
+	}
+
+	public void add(Budget budget) throws LedgerException {
+		// this gives us the budget again via the process methods, as well as its
+		// entries, so we can validate the whole thing first
+		budget.process(this);
+
+		// if we got any exceptions (since they can't be thrown by a processor), throw
+		// the first one here (the others wouldn't have made it anyway)
+		if (!pendingExceptions.isEmpty()) {
+			var firstEx = pendingExceptions.get(0);
+			pendingExceptions.clear();
+			throw firstEx;
+		}
+
+		// and then we can save it all at once safely
+		insertEndOfDay(budget.date(), budget);
+		notify("Transaction");
 	}
 
 	public void add(Transaction transaction) throws LedgerException {
@@ -181,6 +200,11 @@ public class Ledger implements ItemProcessor {
 		account = account.withTransaction(particle);
 		accounts.put(entry.account(), account);
 		notify("AccountTransactionEntry");
+	}
+
+	@Override
+	public boolean process(Budget budget) {
+		return true;
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.BlankLine;
+import cashpiles.ledger.Budget;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.Transaction;
@@ -39,6 +40,18 @@ public class LedgerBuilder implements ItemProcessor {
 	@Override
 	public void process(BlankLine blank) {
 		ledger.add(blank);
+	}
+
+	@Override
+	public boolean process(Budget budget) {
+		try {
+			ledger.add(budget);
+		} catch (LedgerException ex) {
+			error(ex);
+		}
+		// the ledger will process the entire budget itself, so we don't need to feed it
+		// the entries with the builder
+		return false;
 	}
 
 	@Override
