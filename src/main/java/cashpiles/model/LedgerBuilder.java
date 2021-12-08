@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
+import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
@@ -46,6 +47,11 @@ public class LedgerBuilder implements ItemProcessor {
 		} catch (LedgerModelException ex) {
 			error(ex);
 		}
+	}
+
+	@Override
+	public void process(BlankLine blank) {
+		ledger.add(blank);
 	}
 
 	@Override
