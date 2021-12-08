@@ -19,7 +19,7 @@ class Statement {
 	Amount balance() {
 		var balance = startBalance;
 		for (var particle : transactions) {
-			balance = balance.add(particle.amount);
+			balance = balance.add(particle.amount());
 		}
 		return balance;
 	}

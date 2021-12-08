@@ -60,7 +60,7 @@ public class Ledger {
 //				newLooseTransactions.add(xact);
 //			} else {
 			// only balance against loose transactions that happened before the statement
-			if (xact.date.compareTo(balance.date()) <= 0) {
+			if (xact.date().compareTo(balance.date()) <= 0) {
 				statement.transactions.add(xact);
 			} else {
 				newLooseTransactions.add(xact);
@@ -127,9 +127,7 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle();
-		particle.amount = entry.amount();
-		particle.date = entry.parent().date();
+		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date());
 		account.looseTransactions.add(particle);
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("AccountTransactionEntry");
@@ -152,9 +150,7 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle();
-		particle.amount = entry.amount().negate();
-		particle.date = entry.parent().date();
+		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date());
 		account.looseTransactions.add(particle);
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("TrackingTransactionEntry");
@@ -183,9 +179,7 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle();
-		particle.amount = transaction.amount();
-		particle.date = transaction.date();
+		var particle = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date());
 		account.looseTransactions.add(particle);
 		insertEndOfDay(transaction.date(), transaction);
 		notify("UnbalancedTransaction");
