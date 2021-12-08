@@ -5,37 +5,48 @@ import java.time.LocalDate;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Transaction;
 
-class TransactionParticle extends ModelItem {
+public class TransactionParticle extends ModelItem {
 
 	private Amount amount;
 	private LocalDate date;
+	private String payee;
 	private Transaction.Status status;
 
-	Amount amount() {
+	public Amount amount() {
 		return amount;
 	}
 
-	LocalDate date() {
+	public LocalDate date() {
 		return date;
 	}
 
-	Transaction.Status status() {
+	public String payee() {
+		return payee;
+	}
+
+	public Transaction.Status status() {
 		return status;
 	}
 
-	TransactionParticle withAmount(Amount amount) {
+	public TransactionParticle withAmount(Amount amount) {
 		var retval = clone();
 		retval.amount = amount;
 		return retval;
 	}
 
-	TransactionParticle withDate(LocalDate date) {
+	public TransactionParticle withDate(LocalDate date) {
 		var retval = clone();
 		retval.date = date;
 		return retval;
 	}
 
-	TransactionParticle withStatus(Transaction.Status status) {
+	public TransactionParticle withPayee(String payee) {
+		var retval = clone();
+		retval.payee = payee;
+		return retval;
+	}
+
+	public TransactionParticle withStatus(Transaction.Status status) {
 		var retval = clone();
 		retval.status = status;
 		return retval;
