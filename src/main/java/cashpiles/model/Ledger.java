@@ -23,6 +23,8 @@ import cashpiles.ledger.UnbalancedTransaction;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
 // TODO transactions aren't exception safe because the transaction header could be OK, but one of the sub-entries could fail, leaving a half-processed transaction setup
+// - another part of this is that when a transaction is added to the ledger, the entire transaction is saved into 'items', but the lines of the transaction aren't validated unless they are submitted to the ledger individually
+// --- current thought on this is to have the ledger take on the role of itemprocessor just enough to run itself against incoming transactions, which will fix both issues
 public class Ledger {
 
 	private final Map<String, Account> accounts = new HashMap<>();
@@ -89,7 +91,6 @@ public class Ledger {
 				.withStatus(entry.parent().status());
 		account = account.withTransaction(particle);
 		accounts.put(entry.account(), account);
-		insertEndOfDay(entry.parent().date(), entry);
 		notify("AccountTransactionEntry");
 	}
 
@@ -119,7 +120,6 @@ public class Ledger {
 				.withStatus(entry.parent().status());
 		account = account.withTransaction(particle);
 		accounts.put(entry.trackingAccount().get(), account);
-		insertEndOfDay(entry.parent().date(), entry);
 		notify("TrackingTransactionEntry");
 	}
 
@@ -156,8 +156,8 @@ public class Ledger {
 	}
 
 	public void process(ItemProcessor processor) {
-		items.forEach((day, items) -> {
-			items.forEach(item -> item.process(processor));
+		items.forEach((day, dayItems) -> {
+			dayItems.forEach(item -> item.process(processor));
 		});
 		processor.finish();
 	}
@@ -178,9 +178,7 @@ public class Ledger {
 			items.put(date, dayItems);
 		}
 		if (preDatedItems != null) {
-			for (var preDatedItem : preDatedItems) {
-				dayItems.add(preDatedItem);
-			}
+			dayItems.addAll(preDatedItems);
 			preDatedItems = null;
 		}
 		dayItems.add(item);
