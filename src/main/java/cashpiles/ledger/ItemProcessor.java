@@ -45,9 +45,6 @@ public interface ItemProcessor {
 	default void process(RoutineBudgetEntry entry) {
 	}
 
-	default void process(TrackingTransactionEntry entry) {
-	}
-
 	default boolean process(Transaction transaction) {
 		return false;
 	}

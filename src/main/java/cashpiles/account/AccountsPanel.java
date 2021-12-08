@@ -1,27 +1,18 @@
 package cashpiles.account;
 
 import javax.swing.GroupLayout;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
-import cashpiles.ledger.AccountBalance;
-import cashpiles.ledger.AccountCommand;
-import cashpiles.ledger.AccountTransactionEntry;
-import cashpiles.ledger.CategoryTransactionEntry;
-import cashpiles.ledger.ItemProcessor;
-import cashpiles.ledger.LedgerException;
-import cashpiles.ledger.OwnerTransactionEntry;
-import cashpiles.ledger.Transaction;
-import cashpiles.ledger.UnbalancedTransaction;
+import cashpiles.model.Ledger;
 
 @SuppressWarnings("serial")
-public class AccountsWindow extends JFrame implements ItemProcessor {
+public class AccountsPanel extends JPanel {
 
-	private final AccountsWindowController controller = new AccountsWindowController();
+	private final AccountsPanelController controller = new AccountsPanelController();
 	private final JTable offBudgetAccounts = new JTable();
 	private final JLabel offBudgetBalance = new JLabel();
 	private final JTable onBudgetAccounts = new JTable();
@@ -29,81 +20,20 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	private final JTable statements = new JTable();
 	private final JTable transactions = new JTable();
 
-	public AccountsWindow() {
+	public AccountsPanel() {
 		initController();
 		initUI();
 	}
 
-	@Override
-	public void process(AccountCommand account) {
-		try {
-			controller.process(account);
-		} catch (AccountException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public void process(AccountBalance balance) {
-		try {
-			controller.process(balance);
-		} catch (LedgerException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public void process(AccountTransactionEntry entry) {
-		try {
-			controller.process(entry);
-		} catch (LedgerException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public void process(CategoryTransactionEntry entry) {
-		try {
-			controller.process(entry);
-		} catch (LedgerException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public void process(OwnerTransactionEntry entry) {
-		try {
-			controller.process(entry);
-		} catch (LedgerException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public boolean process(Transaction transaction) {
-		return true;
-	}
-
-	@Override
-	public void process(UnbalancedTransaction transaction) {
-		try {
-			controller.process(transaction);
-		} catch (LedgerException ex) {
-			error(ex);
-		}
-	}
-
-	private void error(Exception ex) {
-		JOptionPane.showMessageDialog(this, "Error processing accounts.  " + ex.getLocalizedMessage(), "Account Error",
-				JOptionPane.ERROR_MESSAGE);
+	public void setLedger(Ledger ledger) {
+		controller.setLedger(ledger);
 	}
 
 	// TODO arguably some of this could go in the controller, since it's managing
 	// the interactions between multiple components
 	private void initController() {
-		var offModel = offBudgetAccounts.getSelectionModel();
-		offModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		offModel.addListSelectionListener(event -> {
+		offBudgetAccounts.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		offBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting()) {
 				return;
 			}
@@ -135,10 +65,8 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 	}
 
 	private void initUI() {
-		setSize(500, 400);
-		var pane = getContentPane();
-		var layout = new GroupLayout(pane);
-		pane.setLayout(layout);
+		var layout = new GroupLayout(this);
+		setLayout(layout);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
@@ -165,8 +93,6 @@ public class AccountsWindow extends JFrame implements ItemProcessor {
 				.addComponent(scrollPane1)
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
-
-		pack();
 	}
 
 }
