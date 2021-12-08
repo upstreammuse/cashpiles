@@ -107,7 +107,7 @@ class MainWindow extends JFrame {
 			ledgerReader.readAll(new LedgerBuilder(ledger));
 			accountsPanel.setLedger(ledger);
 			var budgetWindow = new BudgetWindow();
-//			ledger.process(budgetWindow);
+			ledger.process(budgetWindow);
 			budgetWindow.setVisible(true);
 		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
