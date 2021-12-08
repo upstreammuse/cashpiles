@@ -4,14 +4,10 @@ import javax.swing.JOptionPane;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
-import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
-import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
-import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.Transaction;
-import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 
 public class LedgerBuilder implements ItemProcessor {
@@ -41,45 +37,20 @@ public class LedgerBuilder implements ItemProcessor {
 	}
 
 	@Override
-	public void process(AccountTransactionEntry entry) {
-		try {
-			ledger.add(entry);
-		} catch (LedgerModelException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
 	public void process(BlankLine blank) {
 		ledger.add(blank);
 	}
 
 	@Override
-	public void process(CategoryTransactionEntry entry) {
-		try {
-			ledger.add(entry);
-		} catch (LedgerModelException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
-	public void process(OwnerTransactionEntry entry) {
-		try {
-			ledger.add(entry);
-		} catch (LedgerModelException ex) {
-			error(ex);
-		}
-	}
-
-	@Override
 	public boolean process(Transaction transaction) {
 		try {
-			return ledger.add(transaction);
-		} catch (TransactionException ex) {
+			ledger.add(transaction);
+		} catch (LedgerException ex) {
 			error(ex);
-			return false;
 		}
+		// the ledger will process the entire transaction itself, so we don't need to
+		// feed it the entries with the builder
+		return false;
 	}
 
 	@Override

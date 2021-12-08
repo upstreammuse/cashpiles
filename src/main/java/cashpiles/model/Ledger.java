@@ -14,22 +14,22 @@ import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
-import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
-// TODO transactions aren't exception safe because the transaction header could be OK, but one of the sub-entries could fail, leaving a half-processed transaction setup
-// - another part of this is that when a transaction is added to the ledger, the entire transaction is saved into 'items', but the lines of the transaction aren't validated unless they are submitted to the ledger individually
-// --- current thought on this is to have the ledger take on the role of itemprocessor just enough to run itself against incoming transactions, which will fix both issues
-public class Ledger {
+public class Ledger implements ItemProcessor {
 
 	private final Map<String, Account> accounts = new HashMap<>();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
+	private final List<LedgerException> pendingExceptions = new ArrayList<>();
 	private List<LedgerItem> preDatedItems = new ArrayList<>();
 
 	public void add(AccountBalance balance) throws LedgerModelException {
@@ -74,60 +74,29 @@ public class Ledger {
 		notify("AccountCommand");
 	}
 
-	public void add(AccountTransactionEntry entry) throws LedgerModelException {
-		var account = accounts.get(entry.account());
-		if (account == null) {
-			throw LedgerModelException.forUnknown(entry);
-		}
-		if (account.status() != AccountCommand.Status.ON_BUDGET) {
-			throw LedgerModelException.forBudgetNeeded(entry);
-		}
-		if (entry.parent().date().compareTo(account.startDate()) < 0) {
-			throw LedgerModelException.forTooEarly(entry, account.startDate());
-		}
-
-		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
-				.withStatus(entry.parent().status());
-		account = account.withTransaction(particle);
-		accounts.put(entry.account(), account);
-		notify("AccountTransactionEntry");
-	}
-
 	public void add(BlankLine blank) {
 		insertEnd(blank);
 		notify("BlankLine");
 	}
 
-	public void add(TrackingTransactionEntry entry) throws LedgerModelException {
-		if (entry.trackingAccount().isEmpty()) {
-			return;
-		}
-
-		var account = accounts.get(entry.trackingAccount().get());
-		if (account == null) {
-			throw LedgerModelException.forUnknown(entry);
-		}
-		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
-			throw LedgerModelException.forOffBudgetNeeded(entry);
-		}
-		if (entry.parent().date().compareTo(account.startDate()) < 0) {
-			throw LedgerModelException.forTooEarly(entry, account.startDate());
-		}
-
-		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
-				.withStatus(entry.parent().status());
-		account = account.withTransaction(particle);
-		accounts.put(entry.trackingAccount().get(), account);
-		notify("TrackingTransactionEntry");
-	}
-
-	public boolean add(Transaction transaction) throws TransactionException {
+	public void add(Transaction transaction) throws LedgerException {
 		transaction.balance();
+
+		// this gives us the transaction again via the process methods, as well as its
+		// entries, so we can validate the whole thing first
+		transaction.process(this);
+
+		// if we got any exceptions (since they can't be thrown by a processor), throw
+		// the first one here (the others wouldn't have made it anyway)
+		if (!pendingExceptions.isEmpty()) {
+			var firstEx = pendingExceptions.get(0);
+			pendingExceptions.clear();
+			throw firstEx;
+		}
+
+		// and then we can save it all at once safely
 		insertEndOfDay(transaction.date(), transaction);
 		notify("Transaction");
-		return true;
 	}
 
 	public void add(UnbalancedTransaction transaction) throws LedgerModelException {
@@ -188,6 +157,71 @@ public class Ledger {
 		for (var listener : listeners) {
 			listener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, eventName));
 		}
+	}
+
+	@Override
+	public void process(AccountTransactionEntry entry) {
+		var account = accounts.get(entry.account());
+		if (account == null) {
+			pendingExceptions.add(LedgerModelException.forUnknown(entry));
+			return;
+		}
+		if (account.status() != AccountCommand.Status.ON_BUDGET) {
+			pendingExceptions.add(LedgerModelException.forBudgetNeeded(entry));
+			return;
+		}
+		if (entry.parent().date().compareTo(account.startDate()) < 0) {
+			pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
+			return;
+		}
+
+		// no exceptions past this point
+		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
+				.withStatus(entry.parent().status());
+		account = account.withTransaction(particle);
+		accounts.put(entry.account(), account);
+		notify("AccountTransactionEntry");
+	}
+
+	@Override
+	public void process(CategoryTransactionEntry entry) {
+		processTracking(entry);
+	}
+
+	@Override
+	public void process(OwnerTransactionEntry entry) {
+		processTracking(entry);
+	}
+
+	@Override
+	public boolean process(Transaction transaction) {
+		return true;
+	}
+
+	// TODO this method probably goes away once we need to handle owners and
+	// categories for budget processing
+	private void processTracking(TrackingTransactionEntry entry) {
+		if (entry.trackingAccount().isEmpty()) {
+			return;
+		}
+
+		var account = accounts.get(entry.trackingAccount().get());
+		if (account == null) {
+			pendingExceptions.add(LedgerModelException.forUnknown(entry));
+		}
+		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
+			pendingExceptions.add(LedgerModelException.forOffBudgetNeeded(entry));
+		}
+		if (entry.parent().date().compareTo(account.startDate()) < 0) {
+			pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
+		}
+
+		// no exceptions past this point
+		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
+				.withStatus(entry.parent().status());
+		account = account.withTransaction(particle);
+		accounts.put(entry.trackingAccount().get(), account);
+		notify("TrackingTransactionEntry");
 	}
 
 }
