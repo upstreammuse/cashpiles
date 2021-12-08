@@ -13,6 +13,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
+import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.TrackingTransactionEntry;
@@ -25,8 +26,9 @@ import cashpiles.ledger.UnbalancedTransaction;
 public class Ledger {
 
 	private final Map<String, Account> accounts = new HashMap<>();
-	private final Map<LocalDate, List<LedgerItem>> items = new TreeMap<>();
+	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
+	private List<LedgerItem> preDatedItems = new ArrayList<>();
 
 	public void add(AccountBalance balance) throws LedgerModelException {
 		var account = accounts.get(balance.account());
@@ -89,6 +91,11 @@ public class Ledger {
 		accounts.put(entry.account(), account);
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("AccountTransactionEntry");
+	}
+
+	public void add(BlankLine blank) {
+		insertEnd(blank);
+		notify("BlankLine");
 	}
 
 	public void add(TrackingTransactionEntry entry) throws LedgerModelException {
@@ -155,11 +162,26 @@ public class Ledger {
 		processor.finish();
 	}
 
+	private void insertEnd(LedgerItem item) {
+		if (items.isEmpty()) {
+			assert (preDatedItems != null);
+			preDatedItems.add(item);
+		} else {
+			insertEndOfDay(items.lastKey(), item);
+		}
+	}
+
 	private void insertEndOfDay(LocalDate date, LedgerItem item) {
 		var dayItems = items.get(date);
 		if (dayItems == null) {
 			dayItems = new ArrayList<>();
 			items.put(date, dayItems);
+		}
+		if (preDatedItems != null) {
+			for (var preDatedItem : preDatedItems) {
+				dayItems.add(preDatedItem);
+			}
+			preDatedItems = null;
 		}
 		dayItems.add(item);
 	}
