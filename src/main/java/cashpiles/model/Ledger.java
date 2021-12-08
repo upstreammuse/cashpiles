@@ -19,10 +19,9 @@ import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
-import cashpiles.util.Lists;
 
-// TODO what happens if the last category for a particular owner is closed? and
-// what *should* happen?
+// TODO what happens if the last category for a particular owner is closed? and what *should* happen?
+// TODO transactions aren't exception safe because the transaction header could be OK, but one of the sub-entries could fail, leaving a half-processed transaction setup
 public class Ledger {
 
 	private final Map<String, Account> accounts = new HashMap<>();
@@ -34,13 +33,8 @@ public class Ledger {
 		if (account == null) {
 			throw LedgerModelException.forUnknown(balance);
 		}
-		var reconciled = Lists.lastOf(account.statements).withReconciliation(balance);
-		var remaining = Lists.lastOf(account.statements).withReconciliationRemainder(reconciled);
-
-		// no exceptions past this point
-		account.statements.remove(account.statements.size() - 1);
-		account.statements.add(reconciled);
-		account.statements.add(remaining);
+		account = account.reconciled(balance);
+		accounts.put(balance.account(), account);
 		insertEndOfDay(balance.date(), balance);
 		notify("AccountBalance");
 	}
@@ -50,13 +44,13 @@ public class Ledger {
 		switch (command.status()) {
 		case ON_BUDGET, OFF_BUDGET -> {
 			if (account != null) {
-				if (account.status != command.status()) {
+				if (account.status() != command.status()) {
 					throw LedgerModelException.forTypeChange(command);
 				}
 				throw LedgerModelException.forAlreadyOpen(command);
 			}
 
-			// no exceptions past this point
+			// no validation exceptions past this point
 			account = new Account(command.date(), command.status());
 			accounts.put(command.account(), account);
 		}
@@ -68,7 +62,7 @@ public class Ledger {
 				throw LedgerModelException.forNonZeroClose(command);
 			}
 
-			// no exceptions past this point
+			// no validation exceptions past this point
 			accounts.remove(command.account());
 		}
 		}
@@ -81,18 +75,18 @@ public class Ledger {
 		if (account == null) {
 			throw LedgerModelException.forUnknown(entry);
 		}
-		if (account.status != AccountCommand.Status.ON_BUDGET) {
+		if (account.status() != AccountCommand.Status.ON_BUDGET) {
 			throw LedgerModelException.forBudgetNeeded(entry);
 		}
-		if (entry.parent().date().compareTo(account.startDate) < 0) {
-			throw LedgerModelException.forTooEarly(entry, account.startDate);
+		if (entry.parent().date().compareTo(account.startDate()) < 0) {
+			throw LedgerModelException.forTooEarly(entry, account.startDate());
 		}
 
 		// no exceptions past this point
 		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 				.withStatus(entry.parent().status());
-		var it = account.statements.listIterator(account.statements.size() - 1);
-		it.set(it.next().withTransaction(particle));
+		account = account.withTransaction(particle);
+		accounts.put(entry.account(), account);
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("AccountTransactionEntry");
 	}
@@ -106,25 +100,22 @@ public class Ledger {
 		if (account == null) {
 			throw LedgerModelException.forUnknown(entry);
 		}
-		if (account.status != AccountCommand.Status.OFF_BUDGET) {
+		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
 			throw LedgerModelException.forOffBudgetNeeded(entry);
 		}
-		if (entry.parent().date().compareTo(account.startDate) < 0) {
-			throw LedgerModelException.forTooEarly(entry, account.startDate);
+		if (entry.parent().date().compareTo(account.startDate()) < 0) {
+			throw LedgerModelException.forTooEarly(entry, account.startDate());
 		}
 
 		// no exceptions past this point
 		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
 				.withStatus(entry.parent().status());
-		var it = account.statements.listIterator(account.statements.size() - 1);
-		it.set(it.next().withTransaction(particle));
+		account = account.withTransaction(particle);
+		accounts.put(entry.trackingAccount().get(), account);
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("TrackingTransactionEntry");
 	}
 
-	// TODO transactions arent exception safe because the transaction header could
-	// be OK, but one of the sub-entries could fail, leaving a half-processed
-	// transaction setup
 	public boolean add(Transaction transaction) throws TransactionException {
 		transaction.balance();
 		insertEndOfDay(transaction.date(), transaction);
@@ -137,18 +128,18 @@ public class Ledger {
 		if (account == null) {
 			throw LedgerModelException.forUnknown(transaction);
 		}
-		if (account.status != AccountCommand.Status.OFF_BUDGET) {
+		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
 			throw LedgerModelException.forOffBudgetNeeded(transaction);
 		}
-		if (transaction.date().compareTo(account.startDate) < 0) {
-			throw LedgerModelException.forTooEarly(transaction, account.startDate);
+		if (transaction.date().compareTo(account.startDate()) < 0) {
+			throw LedgerModelException.forTooEarly(transaction, account.startDate());
 		}
 
 		// no exceptions past this point
 		var particle = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
 				.withStatus(transaction.status());
-		var it = account.statements.listIterator(account.statements.size() - 1);
-		it.set(it.next().withTransaction(particle));
+		account = account.withTransaction(particle);
+		accounts.put(transaction.account(), account);
 		insertEndOfDay(transaction.date(), transaction);
 		notify("UnbalancedTransaction");
 	}
