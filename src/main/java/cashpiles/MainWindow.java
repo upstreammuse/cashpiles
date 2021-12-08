@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import cashpiles.account.AccountsPanel;
-import cashpiles.budget.ui.BudgetWindow;
+import cashpiles.budget.ui.BudgetPanel;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
@@ -31,6 +31,7 @@ import cashpiles.model.LedgerBuilder;
 class MainWindow extends JFrame {
 
 	private final AccountsPanel accountsPanel = new AccountsPanel();
+	private final BudgetPanel budgetPanel = new BudgetPanel();
 	private Ledger ledger = new Ledger();
 
 	MainWindow() {
@@ -84,8 +85,8 @@ class MainWindow extends JFrame {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
-		layout.setVerticalGroup(layout.createParallelGroup().addComponent(accountsPanel));
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(accountsPanel));
+		layout.setVerticalGroup(layout.createParallelGroup().addComponent(accountsPanel).addComponent(budgetPanel));
+		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(accountsPanel).addComponent(budgetPanel));
 		pack();
 	}
 
@@ -106,9 +107,7 @@ class MainWindow extends JFrame {
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
 			ledgerReader.readAll(new LedgerBuilder(ledger));
 			accountsPanel.setLedger(ledger);
-			var budgetWindow = new BudgetWindow();
-			ledger.process(budgetWindow);
-			budgetWindow.setVisible(true);
+			ledger.process(budgetPanel);
 		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
 					JOptionPane.ERROR_MESSAGE);

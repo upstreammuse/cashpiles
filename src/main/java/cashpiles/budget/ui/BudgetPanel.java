@@ -5,8 +5,8 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -25,11 +25,11 @@ import cashpiles.ledger.Transaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 
 @SuppressWarnings("serial")
-public class BudgetWindow extends JFrame implements ItemProcessor {
+public class BudgetPanel extends JPanel implements ItemProcessor {
 
 	private final BudgetWindowTableModel table = new BudgetWindowTableModel();
 
-	public BudgetWindow() {
+	public BudgetPanel() {
 		initUI();
 	}
 
@@ -136,12 +136,8 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 	}
 
 	private void initUI() {
-		setSize(500, 400);
-		setTitle("Budget Periods");
-
-		var pane = getContentPane();
-		var layout = new GroupLayout(pane);
-		pane.setLayout(layout);
+		var layout = new GroupLayout(this);
+		setLayout(layout);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
@@ -154,7 +150,7 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 				}
 				var row = table.rowAtPoint(event.getPoint());
 				if (row != -1) {
-					BudgetWindow.this.table.makeWindow(row);
+					BudgetPanel.this.table.makeWindow(row);
 				}
 			}
 		});
@@ -176,7 +172,6 @@ public class BudgetWindow extends JFrame implements ItemProcessor {
 				.addGroup(layout.createParallelGroup().addComponent(newbutton).addComponent(editbutton)));
 		layout.setHorizontalGroup(layout.createParallelGroup().addComponent(scrollPane)
 				.addGroup(layout.createSequentialGroup().addComponent(newbutton).addComponent(editbutton)));
-		pack();
 	}
 
 }
