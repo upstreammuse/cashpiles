@@ -28,6 +28,7 @@ import cashpiles.ledger.UnbalancedTransaction;
 public class Ledger implements ItemProcessor {
 
 	private final Map<String, Account> accounts = new HashMap<>();
+	private final TreeMap<String, Category> categories = new TreeMap<>();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
 	private final List<LedgerException> pendingExceptions = new ArrayList<>();
@@ -205,7 +206,15 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public boolean process(Budget budget) {
-		return true;
+		try {
+			for (var entry : categories.entrySet()) {
+				entry.setValue(entry.getValue().withPeriods(budget));
+			}
+			return true;
+		} catch (LedgerModelException ex) {
+			pendingExceptions.add(ex);
+			return false;
+		}
 	}
 
 	@Override
