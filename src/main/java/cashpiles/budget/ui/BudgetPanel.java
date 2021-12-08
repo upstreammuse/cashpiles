@@ -27,7 +27,7 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 @SuppressWarnings("serial")
 public class BudgetPanel extends JPanel implements ItemProcessor {
 
-	private final BudgetWindowTableModel table = new BudgetWindowTableModel();
+	private final BudgetPanelTableModel table = new BudgetPanelTableModel();
 
 	public BudgetPanel() {
 		initUI();
