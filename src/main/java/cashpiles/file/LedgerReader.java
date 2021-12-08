@@ -58,12 +58,12 @@ public class LedgerReader {
 
 		// if a budget or transaction was left "hanging", close them out
 		if (activeBudget != null) {
-			processor.process(activeBudget);
+			activeBudget.process(processor);
 			activeBudget = null;
 		}
 		if (activeTransaction != null) {
 			activeTransaction.balance();
-			processor.process(activeTransaction);
+			activeTransaction.process(processor);
 			activeTransaction = null;
 		}
 		processor.finish();
@@ -85,14 +85,14 @@ public class LedgerReader {
 				&& !processBudgetIncome(line, comment) && !processBudgetReserve(line, comment)
 				&& !processBudgetRoutine(line, comment) && !processBudgetWithholding(line, comment)
 				&& !processBudgetManualGoal(line, comment)) {
-			processor.process(activeBudget);
+			activeBudget.process(processor);
 			activeBudget = null;
 		}
 
 		if (activeTransaction != null && !processTransactionLine(line, comment)
 				&& !processTransactionTrackingLine(line, comment)) {
 			activeTransaction.balance();
-			processor.process(activeTransaction);
+			activeTransaction.process(processor);
 			activeTransaction = null;
 		}
 
@@ -141,7 +141,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		processor.process(account);
+		account.process(processor);
 		return true;
 	}
 
@@ -173,7 +173,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		processor.process(balance);
+		balance.process(processor);
 		return true;
 	}
 
@@ -184,7 +184,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		processor.process(blank);
+		blank.process(processor);
 		return true;
 	}
 
@@ -613,7 +613,7 @@ public class LedgerReader {
 		if (scanner.hasNext()) {
 			return false;
 		}
-		processor.process(xact);
+		xact.process(processor);
 		return true;
 	}
 
