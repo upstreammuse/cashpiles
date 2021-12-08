@@ -18,6 +18,7 @@ import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.model.Ledger;
+import cashpiles.model.TransactionParticle;
 import cashpiles.util.Lists;
 
 class AccountsPanelController implements ItemProcessor {
@@ -136,11 +137,8 @@ class AccountsPanelController implements ItemProcessor {
 	public void process(AccountTransactionEntry entry) {
 		var statements = onBudgetModel.statements.get(entry.account());
 		var transactions = Lists.lastOf(statements.transactionModels);
-		var dXact = new TransactionsTableModel.DisplayTransaction();
-		dXact.amount = entry.amount();
-		dXact.date = entry.parent().date();
-		dXact.payee = entry.parent().payee();
-		dXact.status = entry.parent().status();
+		var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
+				.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
 		transactions.transactions.add(dXact);
 	}
 
@@ -163,11 +161,8 @@ class AccountsPanelController implements ItemProcessor {
 		entry.trackingAccount().ifPresent(account -> {
 			var statements = offBudgetModel.statements.get(account);
 			var transactions = Lists.lastOf(statements.transactionModels);
-			var dXact = new TransactionsTableModel.DisplayTransaction();
-			dXact.amount = entry.amount();
-			dXact.date = entry.parent().date();
-			dXact.payee = entry.parent().payee();
-			dXact.status = entry.parent().status();
+			var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
+					.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
 			transactions.transactions.add(dXact);
 		});
 	}
@@ -176,11 +171,8 @@ class AccountsPanelController implements ItemProcessor {
 	public void process(UnbalancedTransaction transaction) {
 		var statements = offBudgetModel.statements.get(transaction.account());
 		var transactions = Lists.lastOf(statements.transactionModels);
-		var dXact = new TransactionsTableModel.DisplayTransaction();
-		dXact.amount = transaction.amount();
-		dXact.date = transaction.date();
-		dXact.payee = transaction.payee();
-		dXact.status = transaction.status();
+		var dXact = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
+				.withPayee(transaction.payee()).withStatus(transaction.status());
 		transactions.transactions.add(dXact);
 	}
 
