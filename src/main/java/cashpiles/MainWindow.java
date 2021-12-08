@@ -84,8 +84,6 @@ class MainWindow extends JFrame {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
-//		var xactPanel = new TransactionPanel(ledger);
-
 		layout.setVerticalGroup(layout.createParallelGroup().addComponent(accountsPanel));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(accountsPanel));
 		pack();
@@ -106,9 +104,6 @@ class MainWindow extends JFrame {
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
 			ledger = new Ledger();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
-			// TODO this should go in an action thread to not hang the gui? would complicate
-			// the thread safety of the ledger, however, and need to be synchronized to each
-			// ledger change it made
 			ledgerReader.readAll(new LedgerBuilder(ledger));
 			accountsPanel.setLedger(ledger);
 			var budgetWindow = new BudgetWindow();

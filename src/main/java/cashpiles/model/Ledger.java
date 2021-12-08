@@ -194,12 +194,13 @@ public class Ledger implements ItemProcessor {
 			return;
 		}
 
+		// TODO this is still wrong for exception safety, since we are modifying the
+		// internal state when a following entry may throw an exception
 		// no exceptions past this point
 		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 				.withStatus(entry.parent().status());
 		account = account.withTransaction(particle);
 		accounts.put(entry.account(), account);
-		notify("AccountTransactionEntry");
 	}
 
 	@Override
@@ -240,12 +241,13 @@ public class Ledger implements ItemProcessor {
 			pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
 		}
 
+		// TODO this is still wrong for exception safety, since we are modifying the
+		// internal state when a following entry may throw an exception
 		// no exceptions past this point
 		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
 				.withStatus(entry.parent().status());
 		account = account.withTransaction(particle);
 		accounts.put(entry.trackingAccount().get(), account);
-		notify("TrackingTransactionEntry");
 	}
 
 }
