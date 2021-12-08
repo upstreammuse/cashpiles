@@ -29,56 +29,18 @@ public class Ledger {
 	private final Map<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
 
-	// TODO this needs to deal with status flags to either throw errors if uncleared
-	// items are present, and to automatically clear items that are reconciled
-	// TODO right now this only handles creating statements from the pool of loose
-	// transactions, and it doesn't figure out the deferrals, so adding a statement
-	// before another existing statement will totally break
-	// - needs to allow 'stealing' transactions from following statments that start
-	// before the new end date
-	// - needs to update deferrals for unstolen transactions that fit the date range
-	// - needs mechanism to mark later statements dirty so they can revalidate
-	// themselves
-	// - needs to update deferrals for loose transactions before existing statements
-	// that remain loose
-	// - probably lots of other crazy gotchas that stem from the rather terrible
-	// statement/balance concept
 	public void add(AccountBalance balance) throws LedgerModelException {
-		// make no permanent changes while exceptions can be thrown
 		var account = accounts.get(balance.account());
 		if (account == null) {
 			throw LedgerModelException.forUnknown(balance);
 		}
+		var reconciled = Lists.lastOf(account.statements).withReconciliation(balance);
+		var remaining = Lists.lastOf(account.statements).withReconciliationRemainder(reconciled);
 
-		var statement = new Statement(
-				account.statements.isEmpty() ? new Amount() : Lists.lastOf(account.statements).balance());
-		statement.closingDate = balance.date();
-		List<TransactionParticle> newLooseTransactions = new ArrayList<>();
-		for (var xact : account.looseTransactions) {
-			// TODO need to add deferral to transactions
-//			if (xact.deferral > 0) {
-//				newLooseTransactions.add(xact);
-//			} else {
-			// only balance against loose transactions that happened before the statement
-			if (xact.date().compareTo(balance.date()) <= 0) {
-				statement.transactions.add(xact);
-			} else {
-				newLooseTransactions.add(xact);
-			}
-//			}
-		}
-		if (!statement.balance().equals(balance.amount())) {
-			throw LedgerModelException.forUnbalanced(balance, statement.balance());
-		}
-
-		// make permanent changes without exceptions
-		List<TransactionParticle> updatedLooseTransactions = new ArrayList<>();
-		// TODO need to add deferral to transactions
-//		for (var xact : newLooseTransactions) {
-//			updatedLooseTransactions.add(xact.withDeferral(xact.deferral() - 1));
-//		}
-		account.looseTransactions = updatedLooseTransactions;
-		account.statements.add(statement);
+		// no exceptions past this point
+		account.statements.remove(account.statements.size() - 1);
+		account.statements.add(reconciled);
+		account.statements.add(remaining);
 		insertEndOfDay(balance.date(), balance);
 		notify("AccountBalance");
 	}
@@ -127,8 +89,10 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date());
-		account.looseTransactions.add(particle);
+		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
+				.withStatus(entry.parent().status());
+		var it = account.statements.listIterator(account.statements.size() - 1);
+		it.set(it.next().withTransaction(particle));
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("AccountTransactionEntry");
 	}
@@ -150,8 +114,10 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date());
-		account.looseTransactions.add(particle);
+		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
+				.withStatus(entry.parent().status());
+		var it = account.statements.listIterator(account.statements.size() - 1);
+		it.set(it.next().withTransaction(particle));
 		insertEndOfDay(entry.parent().date(), entry);
 		notify("TrackingTransactionEntry");
 	}
@@ -179,8 +145,10 @@ public class Ledger {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date());
-		account.looseTransactions.add(particle);
+		var particle = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
+				.withStatus(transaction.status());
+		var it = account.statements.listIterator(account.statements.size() - 1);
+		it.set(it.next().withTransaction(particle));
 		insertEndOfDay(transaction.date(), transaction);
 		notify("UnbalancedTransaction");
 	}

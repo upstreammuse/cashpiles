@@ -10,7 +10,6 @@ import cashpiles.util.Lists;
 
 class Account {
 
-	List<TransactionParticle> looseTransactions = new ArrayList<>();
 	final LocalDate startDate;
 	final AccountCommand.Status status;
 	final List<Statement> statements = new ArrayList<>();
@@ -18,14 +17,11 @@ class Account {
 	Account(LocalDate startDate, AccountCommand.Status status) {
 		this.startDate = startDate;
 		this.status = status;
+		statements.add(new Statement(new Amount()));
 	}
 
 	Amount balance() {
-		var balance = statements.isEmpty() ? new Amount() : Lists.lastOf(statements).balance();
-		for (var particle : looseTransactions) {
-			balance = balance.add(particle.amount());
-		}
-		return balance;
+		return Lists.lastOf(statements).balance();
 	}
 
 }
