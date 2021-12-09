@@ -22,10 +22,9 @@ class StatementsTableModel extends AbstractTableModel {
 		transactionModels.add(new TransactionsTableModel(new Amount()));
 	}
 
-	// TODO not sure if this should clear the model for this table when it is set up
-	// initially?
 	void forTransactions(JTable transactionsUI) {
 		this.transactionsUI = Optional.of(transactionsUI);
+		transactionsUI.setModel(new TransactionsTableModel(new Amount()));
 	}
 
 	// TODO maybe move this to the overall controller to match most of the other
