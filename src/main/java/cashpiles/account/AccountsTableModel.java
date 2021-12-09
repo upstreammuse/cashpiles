@@ -11,6 +11,7 @@ import cashpiles.util.Lists;
 @SuppressWarnings("serial")
 class AccountsTableModel extends AbstractTableModel {
 
+	private static final String[] headers = { "Account", "Balance" };
 	final Map<String, StatementsTableModel> statements = new TreeMap<>();
 
 	public Amount balance() {
@@ -29,7 +30,12 @@ class AccountsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 2;
+		return headers.length;
+	}
+
+	@Override
+	public String getColumnName(int index) {
+		return headers[index];
 	}
 
 	@Override
