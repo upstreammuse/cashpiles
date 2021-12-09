@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
@@ -29,17 +28,48 @@ class AccountsPanelController implements ItemProcessor {
 	private JTable statementsUI;
 	private JTable transactionsUI;
 
-	void forOnBudgetAccounts(JTable onBudgetAccounts) {
+	void forAccounts(JTable onBudgetAccounts, JTable offBudgetAccounts) {
 		onBudgetAccounts.setModel(onBudgetModel);
+		offBudgetAccounts.setModel(offBudgetModel);
+		offBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
+				if (offBudgetAccounts.isRowSelected(i)) {
+					onBudgetAccounts.clearSelection();
+					selectOffBudget(i);
+				}
+			}
+		});
+		onBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
+			if (event.getValueIsAdjusting()) {
+				return;
+			}
+			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
+				if (onBudgetAccounts.isRowSelected(i)) {
+					offBudgetAccounts.clearSelection();
+					selectOnBudget(i);
+				}
+			}
+		});
 	}
 
-	void forOffBudgetAccounts(JTable offBudgetAccounts) {
-		offBudgetAccounts.setModel(offBudgetModel);
+	void forOffBudgetBalance(Consumer<Amount> consumer) {
+		offBudgetModel.addTableModelListener(event -> {
+			consumer.accept(offBudgetModel.balance());
+		});
+	}
+
+	void forOnBudgetBalance(Consumer<Amount> consumer) {
+		onBudgetModel.addTableModelListener(event -> {
+			consumer.accept(onBudgetModel.balance());
+		});
 	}
 
 	void forStatements(JTable statements) {
 		statementsUI = statements;
-		statements.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		statements.setModel(new StatementsTableModel());
 		statements.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting()) {
 				return;
@@ -60,37 +90,26 @@ class AccountsPanelController implements ItemProcessor {
 
 	void forTransactions(JTable transactions) {
 		transactionsUI = transactions;
+		transactions.setModel(new TransactionsTableModel(new Amount()));
 	}
 
-	void onOnBudgetBalance(Consumer<Amount> consumer) {
-		onBudgetModel.addTableModelListener(event -> {
-			consumer.accept(onBudgetModel.balance());
-		});
+	void setLedger(Ledger ledger) {
+		ledger.addListener(this::refresh);
+		refresh(ledger);
 	}
 
-	void onOffBudgetBalance(Consumer<Amount> consumer) {
-		offBudgetModel.addTableModelListener(event -> {
-			consumer.accept(offBudgetModel.balance());
-		});
-	}
-
-	public void selectOffBudget(int i) {
+	private void selectOffBudget(int i) {
 		selectedAccount = Optional.of((String) offBudgetModel.getValueAt(i, 0));
 		var statementModel = offBudgetModel.statements.get(selectedAccount.get());
 		statementModel.forTransactions(transactionsUI);
 		statementsUI.setModel(statementModel);
 	}
 
-	public void selectOnBudget(int i) {
+	private void selectOnBudget(int i) {
 		selectedAccount = Optional.of((String) onBudgetModel.getValueAt(i, 0));
 		var statementModel = onBudgetModel.statements.get(selectedAccount.get());
 		statementModel.forTransactions(transactionsUI);
 		statementsUI.setModel(statementModel);
-	}
-
-	void setLedger(Ledger ledger) {
-		ledger.addListener(this::refresh);
-		refresh(ledger);
 	}
 
 	private void refresh(ActionEvent action) {
@@ -157,6 +176,15 @@ class AccountsPanelController implements ItemProcessor {
 		processTracking(entry);
 	}
 
+	@Override
+	public void process(UnbalancedTransaction transaction) {
+		var statements = offBudgetModel.statements.get(transaction.account());
+		var transactions = Lists.lastOf(statements.transactionModels);
+		var dXact = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
+				.withPayee(transaction.payee()).withStatus(transaction.status());
+		transactions.transactions.add(dXact);
+	}
+
 	private void processTracking(TrackingTransactionEntry entry) {
 		entry.trackingAccount().ifPresent(account -> {
 			var statements = offBudgetModel.statements.get(account);
@@ -165,15 +193,6 @@ class AccountsPanelController implements ItemProcessor {
 					.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
 			transactions.transactions.add(dXact);
 		});
-	}
-
-	@Override
-	public void process(UnbalancedTransaction transaction) {
-		var statements = offBudgetModel.statements.get(transaction.account());
-		var transactions = Lists.lastOf(statements.transactionModels);
-		var dXact = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
-				.withPayee(transaction.payee()).withStatus(transaction.status());
-		transactions.transactions.add(dXact);
 	}
 
 }

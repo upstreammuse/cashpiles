@@ -14,6 +14,7 @@ import cashpiles.model.TransactionParticle;
 class TransactionsTableModel extends AbstractTableModel {
 
 	Optional<LocalDate> endDate = Optional.empty();
+	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
 	private final Amount startBalance;
 	final List<TransactionParticle> transactions = new ArrayList<>();
 
@@ -28,7 +29,12 @@ class TransactionsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 4;
+		return headers.length;
+	}
+
+	@Override
+	public String getColumnName(int index) {
+		return headers[index];
 	}
 
 	@Override
