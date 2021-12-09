@@ -73,11 +73,13 @@ class MainWindow extends JFrame {
 		fileMenu.add(menuItem);
 
 		// TODO don't show this on the Mac
-		menuItem = new JMenuItem("Exit");
-		menuItem.setMnemonic(KeyEvent.VK_X);
-		menuItem.addActionListener(event -> this.dispose());
-		fileMenu.addSeparator();
-		fileMenu.add(menuItem);
+		// FIXME this doesn't work all the time, maybe if other windows have been
+		// opened?
+//		menuItem = new JMenuItem("Exit");
+//		menuItem.setMnemonic(KeyEvent.VK_X);
+//		menuItem.addActionListener(event -> this.dispose());
+//		fileMenu.addSeparator();
+//		fileMenu.add(menuItem);
 
 		var pane = getContentPane();
 		var layout = new GroupLayout(pane);
