@@ -1,6 +1,7 @@
 package cashpiles.model;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Transaction;
@@ -63,8 +64,17 @@ public class TransactionParticle extends ModelItem {
 			return false;
 		} else {
 			var rhs = (TransactionParticle) other;
-			return rhs.amount.equals(amount) && rhs.date.equals(date) && rhs.status.equals(status);
+			return Optional.ofNullable(rhs.amount).equals(Optional.ofNullable(amount))
+					&& Optional.ofNullable(rhs.date).equals(Optional.ofNullable(date))
+					&& Optional.ofNullable(rhs.payee).equals(Optional.ofNullable(payee))
+					&& Optional.ofNullable(rhs.status).equals(Optional.ofNullable(status));
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		return Optional.ofNullable(amount).hashCode() ^ Optional.ofNullable(date).hashCode()
+				^ Optional.ofNullable(payee).hashCode() ^ Optional.ofNullable(status).hashCode();
 	}
 
 }
