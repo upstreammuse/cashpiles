@@ -61,7 +61,7 @@ class StatementsTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
 		case 0 -> transactionModels.get(row).endDate.isPresent() ? transactionModels.get(row).endDate.get()
-				: "Unreconciled transactions";
+				: "(Unreconciled transactions)";
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};
 	}
