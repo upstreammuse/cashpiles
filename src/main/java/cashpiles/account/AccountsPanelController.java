@@ -156,7 +156,7 @@ class AccountsPanelController implements ItemProcessor {
 		var transactions = Lists.lastOf(statements.transactionModels);
 		var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 				.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
-		transactions.transactions.add(dXact);
+		transactions.add(dXact);
 	}
 
 	@Override
@@ -180,7 +180,7 @@ class AccountsPanelController implements ItemProcessor {
 		var transactions = Lists.lastOf(statements.transactionModels);
 		var dXact = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
 				.withPayee(transaction.payee()).withStatus(transaction.status());
-		transactions.transactions.add(dXact);
+		transactions.add(dXact);
 	}
 
 	private void processTracking(TrackingTransactionEntry entry) {
@@ -189,7 +189,7 @@ class AccountsPanelController implements ItemProcessor {
 			var transactions = Lists.lastOf(statements.transactionModels);
 			var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 					.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
-			transactions.transactions.add(dXact);
+			transactions.add(dXact);
 		});
 	}
 
