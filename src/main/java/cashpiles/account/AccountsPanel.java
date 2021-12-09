@@ -74,6 +74,8 @@ public class AccountsPanel extends JPanel {
 		onBudgetBalance.setMaximumSize(onBudgetBalance.getPreferredSize());
 		var offBudgetHeader = new JLabel("<html><b>Off-Budget Accounts:</b></html>");
 		offBudgetBalance.setMaximumSize(offBudgetBalance.getPreferredSize());
+		var statementsHeader = new JLabel("<html><b>Statements</b></html>");
+		var transactionsHeader = new JLabel("<html><b>Transactions</b></html>");
 
 		transactions.setAutoCreateRowSorter(true);
 
@@ -86,13 +88,16 @@ public class AccountsPanel extends JPanel {
 				.addGroup(layout.createParallelGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
 				.addComponent(scrollPane1)
 				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
-
+				.addComponent(scrollPane2))
+				.addGroup(layout.createSequentialGroup().addComponent(statementsHeader).addComponent(scrollPane3))
+				.addGroup(layout.createSequentialGroup().addComponent(transactionsHeader).addComponent(scrollPane4)));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
 				.addComponent(scrollPane1)
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
-				.addComponent(scrollPane2)).addComponent(scrollPane3).addComponent(scrollPane4));
+				.addComponent(scrollPane2))
+				.addGroup(layout.createParallelGroup().addComponent(statementsHeader).addComponent(scrollPane3))
+				.addGroup(layout.createParallelGroup().addComponent(transactionsHeader).addComponent(scrollPane4)));
 	}
 
 }
