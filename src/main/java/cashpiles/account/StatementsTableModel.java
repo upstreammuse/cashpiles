@@ -12,6 +12,7 @@ import cashpiles.currency.Amount;
 @SuppressWarnings("serial")
 class StatementsTableModel extends AbstractTableModel {
 
+	private static final String[] headers = { "Statement Date" };
 	final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 
 	// TODO maybe move this to the overall controller
@@ -43,7 +44,12 @@ class StatementsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 1;
+		return headers.length;
+	}
+
+	@Override
+	public String getColumnName(int index) {
+		return headers[index];
 	}
 
 	@Override
