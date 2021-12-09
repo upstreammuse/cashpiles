@@ -14,13 +14,18 @@ import cashpiles.model.TransactionParticle;
 @SuppressWarnings("serial")
 class TransactionsTableModel extends AbstractTableModel {
 
-	private Optional<LocalDate> endDate = Optional.empty();
 	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
+
+	private Optional<LocalDate> endDate = Optional.empty();
 	private final Amount startBalance;
-	final List<TransactionParticle> transactions = new ArrayList<>();
+	private final List<TransactionParticle> transactions = new ArrayList<>();
 
 	TransactionsTableModel(Amount startBalance) {
 		this.startBalance = startBalance;
+	}
+
+	void add(TransactionParticle transaction) {
+		transactions.add(transaction);
 	}
 
 	Amount balance() {
