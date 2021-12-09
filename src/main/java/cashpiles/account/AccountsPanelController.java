@@ -135,9 +135,7 @@ class AccountsPanelController implements ItemProcessor {
 		if (statements == null) {
 			statements = offBudgetModel.statements.get(balance.account());
 		}
-		assert (Lists.lastOf(statements.transactionModels).balance().equals(balance.amount()));
-		Lists.lastOf(statements.transactionModels).endDate = Optional.of(balance.date());
-		statements.transactionModels.add(new TransactionsTableModel(balance.amount()));
+		statements.transactionModels.add(Lists.lastOf(statements.transactionModels).reconcile(balance));
 	}
 
 	@Override

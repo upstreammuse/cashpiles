@@ -8,12 +8,13 @@ import java.util.Optional;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
+import cashpiles.ledger.AccountBalance;
 import cashpiles.model.TransactionParticle;
 
 @SuppressWarnings("serial")
 class TransactionsTableModel extends AbstractTableModel {
 
-	Optional<LocalDate> endDate = Optional.empty();
+	private Optional<LocalDate> endDate = Optional.empty();
 	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
 	private final Amount startBalance;
 	final List<TransactionParticle> transactions = new ArrayList<>();
@@ -25,6 +26,16 @@ class TransactionsTableModel extends AbstractTableModel {
 	Amount balance() {
 		return transactions.stream().map(transaction -> transaction.amount()).reduce(startBalance,
 				(total, amount) -> total.add(amount));
+	}
+
+	Optional<LocalDate> endDate() {
+		return endDate;
+	}
+
+	TransactionsTableModel reconcile(AccountBalance balance) {
+		assert (balance().equals(balance.amount())) : "Account balance was not properly validated";
+		endDate = Optional.of(balance.date());
+		return new TransactionsTableModel(balance.amount());
 	}
 
 	@Override
