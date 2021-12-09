@@ -8,10 +8,12 @@ import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.UnbalancedTransaction;
+import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
 public class LedgerModelException extends LedgerException {
@@ -34,6 +36,11 @@ public class LedgerModelException extends LedgerException {
 	static LedgerModelException forBudgetStartDate(Budget budget, LocalDate startDate) {
 		return new LedgerModelException(budget, "Cannot start new budget period on " + budget.date()
 				+ ".  Next available start date is " + startDate + ".");
+	}
+
+	static LedgerModelException forDateOutOfRange(CategoryTransactionEntry entry, DateRange dates) {
+		return new LedgerModelException(entry, "Transaction dated " + entry.parent().date()
+				+ " does not belong in budget period dated " + dates.startDate() + " to " + dates.endDate() + ".");
 	}
 
 	static LedgerModelException forExistingCategory(BudgetEntry entry) {
@@ -64,6 +71,11 @@ public class LedgerModelException extends LedgerException {
 				+ " is before the account start date of " + startDate + ".");
 	}
 
+	static LedgerModelException forTooEarly(CategoryTransactionEntry entry, LocalDate startDate) {
+		return new LedgerModelException(entry, "Transaction date " + entry.parent().date()
+				+ " is before the category start date of " + startDate + ".");
+	}
+
 	static LedgerModelException forTooEarly(TrackingTransactionEntry entry, LocalDate startDate) {
 		return new LedgerModelException(entry, "Transaction date " + entry.parent().date()
 				+ " is before the account start date of " + startDate + ".");
@@ -91,6 +103,11 @@ public class LedgerModelException extends LedgerException {
 	static LedgerModelException forUnknown(AccountTransactionEntry entry) {
 		return new LedgerModelException(entry,
 				"Cannot use account '" + entry.account() + "' that is not open in a transaction.");
+	}
+
+	static LedgerModelException forUnknown(CategoryTransactionEntry entry) {
+		return new LedgerModelException(entry,
+				"Cannot use unknown category '" + entry.category() + "' in a transaction.");
 	}
 
 	static LedgerModelException forUnknown(TrackingTransactionEntry entry) {

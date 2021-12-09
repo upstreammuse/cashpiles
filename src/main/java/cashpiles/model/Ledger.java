@@ -16,14 +16,19 @@ import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.UnbalancedTransaction;
+import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
@@ -221,7 +226,35 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(CategoryTransactionEntry entry) {
-		processTracking(entry);
+		var category = categories.get(entry.category());
+		if (category == null) {
+			pendingExceptions.add(LedgerModelException.forUnknown(entry));
+			return;
+		}
+
+		try {
+			for (var c : categories.entrySet()) {
+				c.setValue(c.getValue().withDate(entry));
+			}
+			category = category.withTransaction(entry);
+			categories.put(entry.category(), category);
+		} catch (LedgerModelException ex) {
+			pendingExceptions.add(ex);
+			return;
+		}
+		entry.trackingAccount().ifPresent(trackingAccount -> processTracking(entry, trackingAccount));
+	}
+
+	@Override
+	public void process(GoalBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
+			return;
+		}
+		category = new GoalCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
 	}
 
 	@Override
@@ -237,8 +270,44 @@ public class Ledger implements ItemProcessor {
 	}
 
 	@Override
+	public void process(ManualGoalBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
+			return;
+		}
+		category = new ManualGoalCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
+	}
+
+	@Override
+	public void process(ReserveBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
+			return;
+		}
+		category = new ReserveCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
+	}
+
+	@Override
+	public void process(RoutineBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
+			return;
+		}
+		category = new RoutineCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
+	}
+
+	@Override
 	public void process(OwnerTransactionEntry entry) {
-		processTracking(entry);
+		entry.trackingAccount().ifPresent(trackingAccount -> processTracking(entry, trackingAccount));
 	}
 
 	@Override
@@ -246,14 +315,20 @@ public class Ledger implements ItemProcessor {
 		return true;
 	}
 
-	// TODO this method probably goes away once we need to handle owners and
-	// categories for budget processing
-	private void processTracking(TrackingTransactionEntry entry) {
-		if (entry.trackingAccount().isEmpty()) {
+	@Override
+	public void process(WithholdingBudgetEntry entry) {
+		var category = categories.get(entry.name());
+		if (category != null) {
+			pendingExceptions.add(LedgerModelException.forExistingCategory(entry));
 			return;
 		}
+		category = new WithholdingCategory(entry.parent().date(),
+				new DateRange(entry.parent().date(), entry.parent().period()));
+		categories.put(entry.name(), category);
+	}
 
-		var account = accounts.get(entry.trackingAccount().get());
+	private void processTracking(TrackingTransactionEntry entry, String accountName) {
+		var account = accounts.get(accountName);
 		if (account == null) {
 			pendingExceptions.add(LedgerModelException.forUnknown(entry));
 			return;
@@ -273,7 +348,7 @@ public class Ledger implements ItemProcessor {
 		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
 				.withStatus(entry.parent().status());
 		account = account.withTransaction(particle);
-		accounts.put(entry.trackingAccount().get(), account);
+		accounts.put(accountName, account);
 	}
 
 }

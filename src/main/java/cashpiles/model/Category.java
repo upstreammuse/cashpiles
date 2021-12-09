@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
@@ -22,7 +23,18 @@ class Category extends ModelItem {
 		periods.add(new BudgetPeriod(startPeriod));
 	}
 
-	public Category withPeriods(Budget budget) throws LedgerModelException {
+	Category withDate(CategoryTransactionEntry entry) throws LedgerModelException {
+		if (entry.parent().date().compareTo(periods.get(0).dates().startDate()) < 0) {
+			throw LedgerModelException.forTooEarly(entry, periods.get(0).dates().startDate());
+		}
+		var retval = clone();
+		while (Lists.lastOf(retval.periods).dates().endDate().compareTo(entry.parent().date()) < 0) {
+			retval.periods.add(Lists.lastOf(retval.periods).next());
+		}
+		return retval;
+	}
+
+	Category withPeriods(Budget budget) throws LedgerModelException {
 		var retval = clone();
 
 		// make sure new budget will align with current cycle
@@ -43,6 +55,21 @@ class Category extends ModelItem {
 		retval.periods.add(new BudgetPeriod(new DateRange(budget.date(), budget.period())));
 
 		return retval;
+	}
+
+	Category withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {
+		// withDate guarantees that the category contains the requested date or throws,
+		// so we will find a matching period inside the loop
+		var retval = withDate(entry);
+		for (var it = retval.periods.listIterator(); it.hasNext(); /* inside */) {
+			var period = it.next();
+			if (period.dates().contains(entry.parent().date())) {
+				it.set(period.withTransaction(entry));
+				return retval;
+			}
+		}
+		assert (false) : "withTransaction failed to find matching budget period";
+		return null;
 	}
 
 	@Override
