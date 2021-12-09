@@ -29,39 +29,12 @@ public class AccountsPanel extends JPanel {
 		controller.setLedger(ledger);
 	}
 
-	// TODO arguably some of this could go in the controller, since it's managing
-	// the interactions between multiple components
 	private void initController() {
-		offBudgetAccounts.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		offBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
-			if (event.getValueIsAdjusting()) {
-				return;
-			}
-			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
-				if (((ListSelectionModel) event.getSource()).isSelectedIndex(i)) {
-					onBudgetAccounts.clearSelection();
-					controller.selectOffBudget(i);
-				}
-			}
-		});
-		onBudgetAccounts.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		onBudgetAccounts.getSelectionModel().addListSelectionListener(event -> {
-			if (event.getValueIsAdjusting()) {
-				return;
-			}
-			for (int i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
-				if (((ListSelectionModel) event.getSource()).isSelectedIndex(i)) {
-					offBudgetAccounts.clearSelection();
-					controller.selectOnBudget(i);
-				}
-			}
-		});
-		controller.forOnBudgetAccounts(onBudgetAccounts);
-		controller.forOffBudgetAccounts(offBudgetAccounts);
+		controller.forAccounts(onBudgetAccounts, offBudgetAccounts);
+		controller.forOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
+		controller.forOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.forStatements(statements);
 		controller.forTransactions(transactions);
-		controller.onOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
-		controller.onOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 	}
 
 	private void initUI() {
@@ -70,14 +43,17 @@ public class AccountsPanel extends JPanel {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
+		offBudgetAccounts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		onBudgetAccounts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		statements.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		transactions.setAutoCreateRowSorter(true);
+
 		var onBudgetHeader = new JLabel("<html><b>On-Budget Accounts:</b></html>");
 		onBudgetBalance.setMaximumSize(onBudgetBalance.getPreferredSize());
 		var offBudgetHeader = new JLabel("<html><b>Off-Budget Accounts:</b></html>");
 		offBudgetBalance.setMaximumSize(offBudgetBalance.getPreferredSize());
 		var statementsHeader = new JLabel("<html><b>Statements</b></html>");
 		var transactionsHeader = new JLabel("<html><b>Transactions</b></html>");
-
-		transactions.setAutoCreateRowSorter(true);
 
 		var scrollPane1 = new JScrollPane(onBudgetAccounts);
 		var scrollPane2 = new JScrollPane(offBudgetAccounts);
