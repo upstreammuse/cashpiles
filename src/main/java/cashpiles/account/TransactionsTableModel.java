@@ -1,14 +1,14 @@
 package cashpiles.account;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
+import cashpiles.model.LedgerModelException;
+import cashpiles.model.Statement;
 import cashpiles.model.TransactionParticle;
 
 @SuppressWarnings("serial")
@@ -16,31 +16,34 @@ class TransactionsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
 
-	private Optional<LocalDate> endDate = Optional.empty();
-	private final Amount startBalance;
-	private final List<TransactionParticle> transactions = new ArrayList<>();
+	private Statement statement;
 
 	TransactionsTableModel(Amount startBalance) {
-		this.startBalance = startBalance;
+		statement = new Statement(startBalance);
 	}
 
 	void add(TransactionParticle transaction) {
-		transactions.add(transaction);
+		statement = statement.withTransaction(transaction);
 	}
 
 	Amount balance() {
-		return transactions.stream().map(transaction -> transaction.amount()).reduce(startBalance,
-				(total, amount) -> total.add(amount));
+		return statement.balance();
 	}
 
-	Optional<LocalDate> endDate() {
-		return endDate;
+	Optional<LocalDate> closingDate() {
+		return statement.closingDate();
 	}
 
 	TransactionsTableModel reconcile(AccountBalance balance) {
-		assert (balance().equals(balance.amount())) : "Account balance was not properly validated";
-		endDate = Optional.of(balance.date());
-		return new TransactionsTableModel(balance.amount());
+		try {
+			var reconciled = statement.withReconciliation(balance);
+			var retval = new TransactionsTableModel(reconciled.balance());
+			retval.statement = statement.withReconciliationRemainder(reconciled);
+			statement = reconciled;
+			return retval;
+		} catch (LedgerModelException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	@Override
@@ -55,12 +58,12 @@ class TransactionsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return transactions.size();
+		return statement.size();
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		var xact = transactions.get(row);
+		var xact = statement.get(row);
 		return switch (col) {
 		case 0 -> xact.date();
 		case 1 -> xact.status();

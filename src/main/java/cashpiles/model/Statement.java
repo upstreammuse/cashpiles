@@ -8,26 +8,34 @@ import java.util.Optional;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 
-class Statement extends ModelItem {
+public class Statement extends ModelItem {
 
 	private Optional<LocalDate> closingDate = Optional.empty();
 	private final Amount startBalance;
 	private List<TransactionParticle> transactions = new ArrayList<>();
 
-	Statement(Amount startBalance) {
+	public Statement(Amount startBalance) {
 		this.startBalance = startBalance;
 	}
 
-	Amount balance() {
+	public Amount balance() {
 		return transactions.stream().map(particle -> particle.amount()).reduce(startBalance,
 				(total, value) -> total.add(value));
 	}
 
-	Optional<LocalDate> closingDate() {
+	public Optional<LocalDate> closingDate() {
 		return closingDate;
 	}
 
-	Statement withReconciliation(AccountBalance balance) throws LedgerModelException {
+	public TransactionParticle get(int index) {
+		return transactions.get(index);
+	}
+
+	public int size() {
+		return transactions.size();
+	}
+
+	public Statement withReconciliation(AccountBalance balance) throws LedgerModelException {
 		var retval = clone();
 		retval.closingDate = Optional.of(balance.date());
 		retval.transactions.removeIf(x -> x.date().compareTo(balance.date()) > 0);
@@ -42,14 +50,14 @@ class Statement extends ModelItem {
 		return retval;
 	}
 
-	Statement withReconciliationRemainder(Statement other) {
+	public Statement withReconciliationRemainder(Statement other) {
 		var retval = new Statement(other.balance());
 		retval.transactions = new ArrayList<>(transactions);
 		retval.transactions.removeAll(other.transactions);
 		return retval;
 	}
 
-	Statement withTransaction(TransactionParticle particle) {
+	public Statement withTransaction(TransactionParticle particle) {
 		var retval = clone();
 		retval.transactions.add(particle);
 		return retval;
