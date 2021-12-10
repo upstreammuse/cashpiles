@@ -183,7 +183,7 @@ class AccountsPanelController implements ItemProcessor {
 	private void processTracking(TrackingTransactionEntry entry) {
 		entry.trackingAccount().ifPresent(account -> {
 			var statements = offBudgetModel.statements.get(account);
-			var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
+			var dXact = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
 					.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
 			statements.add(dXact);
 		});
