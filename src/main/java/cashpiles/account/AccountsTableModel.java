@@ -13,7 +13,7 @@ class AccountsTableModel extends AbstractTableModel {
 	private static final String[] headers = { "Account", "Balance" };
 	final Map<String, StatementsTableModel> statements = new TreeMap<>();
 
-	public Amount balance() {
+	Amount balance() {
 		var balance = new Amount();
 		for (var entry : statements.entrySet()) {
 			balance = balance.add(entry.getValue().balance());

@@ -18,7 +18,7 @@ class StatementsTableModel extends AbstractTableModel {
 	private static final String[] headers = { "Statement Date" };
 	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 
-	Optional<JTable> transactionsUI = Optional.empty();
+	private Optional<JTable> transactionsUI = Optional.empty();
 
 	StatementsTableModel() {
 		transactionModels.add(new TransactionsTableModel(new Amount()));
