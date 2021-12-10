@@ -42,6 +42,9 @@ class TransactionsTableModel extends AbstractTableModel {
 			statement = reconciled;
 			return retval;
 		} catch (LedgerModelException ex) {
+			// TODO by the time the UI gets this data, it should already be validated by the
+			// main model, so if there is a model exception here, we need to do something to
+			// make it obvious the program is broken
 			throw new RuntimeException(ex);
 		}
 	}
