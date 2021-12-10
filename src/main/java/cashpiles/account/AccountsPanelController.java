@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.swing.JButton;
 import javax.swing.JTable;
 
 import cashpiles.currency.Amount;
@@ -52,6 +53,10 @@ class AccountsPanelController implements ItemProcessor {
 				}
 			}
 		});
+	}
+
+	void forNewTransactions(JButton newTransactions) {
+		// TODO add transaction to ledger
 	}
 
 	void forOffBudgetBalance(Consumer<Amount> consumer) {

@@ -1,6 +1,7 @@
 package cashpiles.account;
 
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,6 +14,7 @@ import cashpiles.model.Ledger;
 public class AccountsPanel extends JPanel {
 
 	private final AccountsPanelController controller = new AccountsPanelController();
+	private final JButton newTransactions = new JButton("New Transaction...");
 	private final JTable offBudgetAccounts = new JTable();
 	private final JLabel offBudgetBalance = new JLabel();
 	private final JTable onBudgetAccounts = new JTable();
@@ -31,6 +33,7 @@ public class AccountsPanel extends JPanel {
 
 	private void initController() {
 		controller.forAccounts(onBudgetAccounts, offBudgetAccounts);
+		controller.forNewTransactions(newTransactions);
 		controller.forOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.forOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.forStatements(statements);
@@ -66,14 +69,16 @@ public class AccountsPanel extends JPanel {
 				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2))
 				.addGroup(layout.createSequentialGroup().addComponent(statementsHeader).addComponent(scrollPane3))
-				.addGroup(layout.createSequentialGroup().addComponent(transactionsHeader).addComponent(scrollPane4)));
+				.addGroup(layout.createSequentialGroup().addComponent(transactionsHeader).addComponent(scrollPane4)
+						.addComponent(newTransactions)));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(onBudgetHeader).addComponent(onBudgetBalance))
 				.addComponent(scrollPane1)
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2))
 				.addGroup(layout.createParallelGroup().addComponent(statementsHeader).addComponent(scrollPane3))
-				.addGroup(layout.createParallelGroup().addComponent(transactionsHeader).addComponent(scrollPane4)));
+				.addGroup(layout.createParallelGroup().addComponent(transactionsHeader).addComponent(scrollPane4)
+						.addComponent(newTransactions)));
 	}
 
 }
