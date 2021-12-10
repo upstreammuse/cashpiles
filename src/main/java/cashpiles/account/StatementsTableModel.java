@@ -16,8 +16,8 @@ import cashpiles.util.Lists;
 class StatementsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Statement Date" };
-	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 
+	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 	private Optional<JTable> transactionsUI = Optional.empty();
 
 	StatementsTableModel() {

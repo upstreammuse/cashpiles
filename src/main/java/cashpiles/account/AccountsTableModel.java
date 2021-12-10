@@ -11,6 +11,7 @@ import cashpiles.currency.Amount;
 class AccountsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Account", "Balance" };
+
 	final Map<String, StatementsTableModel> statements = new TreeMap<>();
 
 	Amount balance() {
