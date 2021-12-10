@@ -18,7 +18,6 @@ class StatementsTableModel extends AbstractTableModel {
 	private static final String[] headers = { "Statement Date" };
 	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 
-	// TODO maybe move this to the overall controller
 	Optional<JTable> transactionsUI = Optional.empty();
 
 	StatementsTableModel() {
@@ -42,8 +41,6 @@ class StatementsTableModel extends AbstractTableModel {
 		transactionModels.add(Lists.lastOf(transactionModels).reconcile(balance));
 	}
 
-	// TODO maybe move this to the overall controller to match most of the other
-	// interaction linkage
 	void selectStatement(int i) {
 		transactionsUI.ifPresent(ui -> {
 			ui.setModel(transactionModels.get(i));
