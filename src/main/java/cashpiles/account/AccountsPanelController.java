@@ -18,7 +18,6 @@ import cashpiles.ledger.Transaction;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.model.Ledger;
 import cashpiles.model.TransactionParticle;
-import cashpiles.util.Lists;
 
 class AccountsPanelController implements ItemProcessor {
 
@@ -135,7 +134,7 @@ class AccountsPanelController implements ItemProcessor {
 		if (statements == null) {
 			statements = offBudgetModel.statements.get(balance.account());
 		}
-		statements.transactionModels.add(Lists.lastOf(statements.transactionModels).reconcile(balance));
+		statements.reconcile(balance);
 	}
 
 	@Override
@@ -153,10 +152,9 @@ class AccountsPanelController implements ItemProcessor {
 	@Override
 	public void process(AccountTransactionEntry entry) {
 		var statements = onBudgetModel.statements.get(entry.account());
-		var transactions = Lists.lastOf(statements.transactionModels);
 		var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 				.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
-		transactions.add(dXact);
+		statements.add(dXact);
 	}
 
 	@Override
@@ -177,19 +175,17 @@ class AccountsPanelController implements ItemProcessor {
 	@Override
 	public void process(UnbalancedTransaction transaction) {
 		var statements = offBudgetModel.statements.get(transaction.account());
-		var transactions = Lists.lastOf(statements.transactionModels);
 		var dXact = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
 				.withPayee(transaction.payee()).withStatus(transaction.status());
-		transactions.add(dXact);
+		statements.add(dXact);
 	}
 
 	private void processTracking(TrackingTransactionEntry entry) {
 		entry.trackingAccount().ifPresent(account -> {
 			var statements = offBudgetModel.statements.get(account);
-			var transactions = Lists.lastOf(statements.transactionModels);
 			var dXact = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
 					.withPayee(entry.parent().payee()).withStatus(entry.parent().status());
-			transactions.add(dXact);
+			statements.add(dXact);
 		});
 	}
 

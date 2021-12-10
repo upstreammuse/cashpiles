@@ -6,7 +6,6 @@ import java.util.TreeMap;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
-import cashpiles.util.Lists;
 
 @SuppressWarnings("serial")
 class AccountsTableModel extends AbstractTableModel {
@@ -17,7 +16,7 @@ class AccountsTableModel extends AbstractTableModel {
 	public Amount balance() {
 		var balance = new Amount();
 		for (var entry : statements.entrySet()) {
-			balance = balance.add(Lists.lastOf(entry.getValue().transactionModels).balance());
+			balance = balance.add(entry.getValue().balance());
 		}
 		return balance;
 	}
@@ -47,7 +46,7 @@ class AccountsTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
 		case 0 -> statements.keySet().toArray()[row];
-		case 1 -> Lists.lastOf(statements.values().stream().skip(row).findFirst().get().transactionModels).balance();
+		case 1 -> statements.values().stream().skip(row).findFirst().get().balance();
 		default -> throw new IllegalArgumentException();
 		};
 	}

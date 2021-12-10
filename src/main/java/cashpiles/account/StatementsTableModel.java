@@ -8,12 +8,15 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
+import cashpiles.ledger.AccountBalance;
+import cashpiles.model.TransactionParticle;
+import cashpiles.util.Lists;
 
 @SuppressWarnings("serial")
 class StatementsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Statement Date" };
-	final List<TransactionsTableModel> transactionModels = new ArrayList<>();
+	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
 
 	// TODO maybe move this to the overall controller
 	Optional<JTable> transactionsUI = Optional.empty();
@@ -22,9 +25,21 @@ class StatementsTableModel extends AbstractTableModel {
 		transactionModels.add(new TransactionsTableModel(new Amount()));
 	}
 
+	void add(TransactionParticle transaction) {
+		Lists.lastOf(transactionModels).add(transaction);
+	}
+
+	Amount balance() {
+		return Lists.lastOf(transactionModels).balance();
+	}
+
 	void forTransactions(JTable transactionsUI) {
 		this.transactionsUI = Optional.of(transactionsUI);
 		transactionsUI.setModel(new TransactionsTableModel(new Amount()));
+	}
+
+	void reconcile(AccountBalance balance) {
+		transactionModels.add(Lists.lastOf(transactionModels).reconcile(balance));
 	}
 
 	// TODO maybe move this to the overall controller to match most of the other
@@ -59,7 +74,7 @@ class StatementsTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
-		case 0 -> transactionModels.get(row).endDate().map(date -> date.toString())
+		case 0 -> transactionModels.get(row).closingDate().map(date -> date.toString())
 				.orElse("(Unreconciled transactions)");
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};
