@@ -6,13 +6,12 @@ import java.util.List;
 
 import cashpiles.currency.Amount;
 
-public class Transaction extends LedgerItem {
+public class Transaction extends DatedLedgerItem {
 
 	public enum Status {
 		CLEARED, DISPUTED, PENDING
 	};
 
-	private LocalDate date;
 	private List<TransactionEntry> entries = new ArrayList<>();
 	private String payee;
 	private Status status;
@@ -20,10 +19,6 @@ public class Transaction extends LedgerItem {
 
 	public Transaction(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
-	}
-
-	public LocalDate date() {
-		return date;
 	}
 
 	public String payee() {
@@ -36,12 +31,6 @@ public class Transaction extends LedgerItem {
 
 	public Amount total() {
 		return total;
-	}
-
-	public Transaction withDate(LocalDate date) {
-		var retval = clone();
-		retval.date = date;
-		return retval;
 	}
 
 	public Transaction withEntry(TransactionEntry entry) {
@@ -73,6 +62,11 @@ public class Transaction extends LedgerItem {
 		}
 		entries = entries2;
 		total = balancer.confirmBalanced(this);
+	}
+
+	@Override
+	public Transaction withDate(LocalDate date) {
+		return (Transaction) super.withDate(date);
 	}
 
 	@Override
