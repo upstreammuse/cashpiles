@@ -2,14 +2,13 @@ package cashpiles.ledger;
 
 import java.time.LocalDate;
 
-public class AccountCommand extends LedgerItem {
+public class AccountCommand extends DatedLedgerItem {
 
 	public enum Status {
 		CLOSED, OFF_BUDGET, ON_BUDGET
 	}
 
 	private String account;
-	private LocalDate date;
 	private Status status;
 
 	public AccountCommand(String fileName, int lineNumber, String comment) {
@@ -18,10 +17,6 @@ public class AccountCommand extends LedgerItem {
 
 	public String account() {
 		return account;
-	}
-
-	public LocalDate date() {
-		return date;
 	}
 
 	public Status status() {
@@ -34,16 +29,15 @@ public class AccountCommand extends LedgerItem {
 		return retval;
 	}
 
-	public AccountCommand withDate(LocalDate date) {
-		var retval = clone();
-		retval.date = date;
-		return retval;
-	}
-
 	public AccountCommand withStatus(Status status) {
 		var retval = clone();
 		retval.status = status;
 		return retval;
+	}
+
+	@Override
+	public AccountCommand withDate(LocalDate date) {
+		return (AccountCommand) super.withDate(date);
 	}
 
 	@Override

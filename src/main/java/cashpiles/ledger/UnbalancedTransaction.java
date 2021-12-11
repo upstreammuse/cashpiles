@@ -5,11 +5,10 @@ import java.time.LocalDate;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Transaction.Status;
 
-public class UnbalancedTransaction extends LedgerItem {
+public class UnbalancedTransaction extends DatedLedgerItem {
 
 	private String account;
 	private Amount amount;
-	private LocalDate date;
 	private String payee;
 	private Status status;
 
@@ -23,10 +22,6 @@ public class UnbalancedTransaction extends LedgerItem {
 
 	public Amount amount() {
 		return amount;
-	}
-
-	public LocalDate date() {
-		return date;
 	}
 
 	public String payee() {
@@ -49,12 +44,6 @@ public class UnbalancedTransaction extends LedgerItem {
 		return retval;
 	}
 
-	public UnbalancedTransaction withDate(LocalDate date) {
-		var retval = clone();
-		retval.date = date;
-		return retval;
-	}
-
 	public UnbalancedTransaction withPayee(String payee) {
 		var retval = clone();
 		retval.payee = payee;
@@ -65,6 +54,11 @@ public class UnbalancedTransaction extends LedgerItem {
 		var retval = clone();
 		retval.status = status;
 		return retval;
+	}
+
+	@Override
+	public UnbalancedTransaction withDate(LocalDate date) {
+		return (UnbalancedTransaction) super.withDate(date);
 	}
 
 	@Override
