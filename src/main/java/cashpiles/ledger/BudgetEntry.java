@@ -31,7 +31,11 @@ public abstract class BudgetEntry extends LedgerItem {
 
 	@Override
 	public BudgetEntry clone() {
-		return (BudgetEntry) super.clone();
+		var retval = (BudgetEntry) super.clone();
+		// cloning removes the parent link because the parent doesn't know about the
+		// clone
+		retval.parent = null;
+		return retval;
 	}
 
 }
