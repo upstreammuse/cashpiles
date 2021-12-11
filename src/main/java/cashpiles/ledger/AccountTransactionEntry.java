@@ -21,6 +21,11 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
+	public AccountTransactionEntry withAmount(Amount amount) {
+		return (AccountTransactionEntry) super.withAmount(amount);
+	}
+
+	@Override
 	void addToBalance(BalanceResult balancer) throws TransactionException {
 		if (amount() == null) {
 			if (balancer.emptyEntries < 1) {
@@ -42,11 +47,6 @@ public class AccountTransactionEntry extends TransactionEntry {
 		} else {
 			return this;
 		}
-	}
-
-	@Override
-	public AccountTransactionEntry withAmount(Amount amount) {
-		return (AccountTransactionEntry) super.withAmount(amount);
 	}
 
 	@Override
