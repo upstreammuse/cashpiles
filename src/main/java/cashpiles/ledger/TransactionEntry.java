@@ -50,7 +50,11 @@ abstract public class TransactionEntry extends LedgerItem {
 
 	@Override
 	public TransactionEntry clone() {
-		return (TransactionEntry) super.clone();
+		var retval = (TransactionEntry) super.clone();
+		// cloning decouples from the parent because the parent doesn't know about the
+		// clone
+		retval.parent = null;
+		return retval;
 	}
 
 }
