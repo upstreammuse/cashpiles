@@ -7,19 +7,20 @@ import java.util.Optional;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
+import cashpiles.ledger.AccountTransactionView;
 
 public class Statement extends ModelItem {
 
 	private Optional<LocalDate> closingDate = Optional.empty();
 	private final Amount startBalance;
-	private List<TransactionParticle> transactions = new ArrayList<>();
+	private List<AccountTransactionView> transactions = new ArrayList<>();
 
 	public Statement(Amount startBalance) {
 		this.startBalance = startBalance;
 	}
 
 	public Amount balance() {
-		return transactions.stream().map(particle -> particle.amount()).reduce(startBalance,
+		return transactions.stream().map(transaction -> transaction.accountAmount()).reduce(startBalance,
 				(total, value) -> total.add(value));
 	}
 
@@ -27,7 +28,7 @@ public class Statement extends ModelItem {
 		return closingDate;
 	}
 
-	public TransactionParticle get(int index) {
+	public AccountTransactionView get(int index) {
 		return transactions.get(index);
 	}
 
@@ -57,9 +58,9 @@ public class Statement extends ModelItem {
 		return retval;
 	}
 
-	public Statement withTransaction(TransactionParticle particle) {
+	public Statement withTransaction(AccountTransactionView transaction) {
 		var retval = clone();
-		retval.transactions.add(particle);
+		retval.transactions.add(transaction);
 		return retval;
 	}
 

@@ -1,10 +1,11 @@
 package cashpiles.ledger;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import cashpiles.currency.Amount;
 
-abstract public class TrackingTransactionEntry extends TransactionEntry {
+abstract public class TrackingTransactionEntry extends TransactionEntry implements AccountTransactionView {
 
 	private Optional<String> trackingAccount = Optional.empty();
 
@@ -49,6 +50,26 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	@Override
 	public TrackingTransactionEntry withAmount(Amount amount) {
 		return (TrackingTransactionEntry) super.withAmount(amount);
+	}
+
+	@Override
+	public Amount accountAmount() {
+		return amount().negate();
+	}
+
+	@Override
+	public LocalDate date() {
+		return parent().date();
+	}
+
+	@Override
+	public String payee() {
+		return parent().payee();
+	}
+
+	@Override
+	public Transaction.Status status() {
+		return parent().status();
 	}
 
 	@Override

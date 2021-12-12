@@ -139,9 +139,7 @@ public class Ledger implements ItemProcessor {
 		}
 
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(transaction.amount()).withDate(transaction.date())
-				.withStatus(transaction.status());
-		account = account.withTransaction(particle);
+		account = account.withTransaction(transaction);
 		accounts.put(transaction.account(), account);
 		insertEndOfDay(transaction.date(), transaction);
 		notify("UnbalancedTransaction");
@@ -205,9 +203,7 @@ public class Ledger implements ItemProcessor {
 		// TODO this is still wrong for exception safety, since we are modifying the
 		// internal state when a following entry may throw an exception
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
-				.withStatus(entry.parent().status());
-		account = account.withTransaction(particle);
+		account = account.withTransaction(entry);
 		accounts.put(entry.account(), account);
 	}
 
@@ -345,9 +341,7 @@ public class Ledger implements ItemProcessor {
 		// TODO this is still wrong for exception safety, since we are modifying the
 		// internal state when a following entry may throw an exception
 		// no exceptions past this point
-		var particle = new TransactionParticle().withAmount(entry.amount().negate()).withDate(entry.parent().date())
-				.withStatus(entry.parent().status());
-		account = account.withTransaction(particle);
+		account = account.withTransaction(entry);
 		accounts.put(accountName, account);
 	}
 
