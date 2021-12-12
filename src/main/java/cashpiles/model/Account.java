@@ -7,6 +7,7 @@ import java.util.List;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
+import cashpiles.ledger.AccountTransactionView;
 import cashpiles.util.Lists;
 
 class Account extends ModelItem {
@@ -43,7 +44,7 @@ class Account extends ModelItem {
 		return retval;
 	}
 
-	Account withTransaction(TransactionParticle transaction) {
+	Account withTransaction(AccountTransactionView transaction) {
 		var retval = clone();
 		var it = retval.statements.listIterator(retval.statements.size() - 1);
 		it.set(it.next().withTransaction(transaction));

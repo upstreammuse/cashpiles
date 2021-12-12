@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Transaction.Status;
 
-public class UnbalancedTransaction extends DatedLedgerItem {
+public class UnbalancedTransaction extends DatedLedgerItem implements AccountTransactionView {
 
 	private String account;
 	private Amount amount;
@@ -59,6 +59,11 @@ public class UnbalancedTransaction extends DatedLedgerItem {
 	@Override
 	public UnbalancedTransaction withDate(LocalDate date) {
 		return (UnbalancedTransaction) super.withDate(date);
+	}
+
+	@Override
+	public Amount accountAmount() {
+		return amount();
 	}
 
 	@Override

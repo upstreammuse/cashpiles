@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cashpiles.ledger.CategoryTransactionEntry;
-import cashpiles.ledger.Transaction;
 import cashpiles.time.DateRange;
 
 class BudgetPeriod extends ModelItem {
 
 	private final DateRange dates;
-	private List<TransactionParticle> transactions = new ArrayList<>();
+	private List<CategoryTransactionEntry> entries = new ArrayList<>();
 
 	BudgetPeriod(DateRange dates) {
 		this.dates = dates;
@@ -29,15 +28,14 @@ class BudgetPeriod extends ModelItem {
 			throw LedgerModelException.forDateOutOfRange(entry, dates);
 		}
 		var retval = clone();
-		retval.transactions.add(new TransactionParticle().withAmount(entry.amount()).withDate(entry.parent().date())
-				.withPayee(entry.parent().payee()).withStatus(Transaction.Status.CLEARED));
+		retval.entries.add(entry);
 		return retval;
 	}
 
 	@Override
 	public BudgetPeriod clone() {
 		var retval = (BudgetPeriod) super.clone();
-		retval.transactions = new ArrayList<>(transactions);
+		retval.entries = new ArrayList<>(entries);
 		return retval;
 	}
 
