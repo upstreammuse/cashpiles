@@ -58,7 +58,7 @@ public class Transaction extends DatedLedgerItem {
 		}
 		var entries2 = new ArrayList<TransactionEntry>();
 		for (var entry : entries) {
-			entries2.add(entry.fromBalance(balancer));
+			entries2.add(entry.fromBalance(balancer).withParent(this));
 		}
 		entries = entries2;
 		total = balancer.confirmBalanced(this);
