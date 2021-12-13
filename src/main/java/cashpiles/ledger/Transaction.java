@@ -62,6 +62,27 @@ public class Transaction extends DatedLedgerItem {
 		}
 		entries = entries2;
 		total = balancer.confirmBalanced(this);
+
+		// do not use status directly, because during the loop, the entries may call
+		// parent().status() if they do not have explicit statuses set
+		var newStatus = switch (status) {
+		case CLEARED -> Status.CLEARED;
+		case DISPUTED -> Status.DISPUTED;
+		case PENDING -> Status.CLEARED;
+		};
+		for (var entry : entries) {
+			newStatus = switch (newStatus) {
+			case CLEARED -> switch (entry.status()) {
+				case CLEARED -> Status.CLEARED;
+				case DISPUTED -> Status.CLEARED;
+				case PENDING -> Status.PENDING;
+				};
+			case DISPUTED -> newStatus;
+			case PENDING -> newStatus;
+			};
+		}
+		// update status once all entries are examined
+		status = newStatus;
 	}
 
 	@Override

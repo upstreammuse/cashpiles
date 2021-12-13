@@ -94,8 +94,28 @@ public class LedgerWriter implements ItemProcessor {
 		if (table == null) {
 			table = new TableWriter(writer);
 		}
-		table.write(0, "  " + entry.account() + "  ");
-		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(0, "  ");
+		var builder = new StringBuilder();
+		builder.append(switch (entry.status()) {
+		case CLEARED -> switch (entry.parent().status()) {
+			case CLEARED -> "";
+			case DISPUTED -> "";
+			case PENDING -> "*";
+			};
+		case DISPUTED -> "!";
+		case PENDING -> switch (entry.parent().status()) {
+			case CLEARED -> "?";
+			case DISPUTED -> "?";
+			case PENDING -> "";
+			};
+		});
+		builder.append(">".repeat(entry.deferral()));
+		if (builder.length() > 0) {
+			builder.append(" ");
+		}
+		table.write(1, builder.toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(2, entry.account() + "  ");
+		table.write(4, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}
@@ -137,9 +157,41 @@ public class LedgerWriter implements ItemProcessor {
 		if (table == null) {
 			table = new TableWriter(writer);
 		}
-		table.write(0, "  " + entry.category() + "  ");
-		entry.trackingAccount().ifPresent(account -> table.write(1, account + "  "));
-		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(0, "  ");
+		var builder = new StringBuilder();
+		builder.append(switch (entry.status()) {
+		case CLEARED -> {
+			if (entry.trackingAccount().isEmpty()) {
+				yield "";
+			} else {
+				yield switch (entry.parent().status()) {
+				case CLEARED -> "";
+				case DISPUTED -> "";
+				case PENDING -> "*";
+				};
+			}
+		}
+		case DISPUTED -> "!";
+		case PENDING -> {
+			if (entry.trackingAccount().isEmpty()) {
+				yield "";
+			} else {
+				yield switch (entry.parent().status()) {
+				case CLEARED -> "?";
+				case DISPUTED -> "?";
+				case PENDING -> "";
+				};
+			}
+		}
+		});
+		builder.append(">".repeat(entry.deferral()));
+		if (builder.length() > 0) {
+			builder.append(" ");
+		}
+		table.write(1, builder.toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(2, entry.category() + "  ");
+		entry.trackingAccount().ifPresent(accountName -> table.write(3, accountName + "  "));
+		table.write(4, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}
@@ -205,9 +257,41 @@ public class LedgerWriter implements ItemProcessor {
 		if (table == null) {
 			table = new TableWriter(writer);
 		}
-		table.write(0, "  " + entry.owner() + "  ");
-		entry.trackingAccount().ifPresent(account -> table.write(1, account + "  "));
-		table.write(2, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(0, "  ");
+		var builder = new StringBuilder();
+		builder.append(switch (entry.status()) {
+		case CLEARED -> {
+			if (entry.trackingAccount().isEmpty()) {
+				yield "";
+			} else {
+				yield switch (entry.parent().status()) {
+				case CLEARED -> "";
+				case DISPUTED -> "";
+				case PENDING -> "*";
+				};
+			}
+		}
+		case DISPUTED -> "!";
+		case PENDING -> {
+			if (entry.trackingAccount().isEmpty()) {
+				yield "";
+			} else {
+				yield switch (entry.parent().status()) {
+				case CLEARED -> "?";
+				case DISPUTED -> "?";
+				case PENDING -> "";
+				};
+			}
+		}
+		});
+		builder.append(">".repeat(entry.deferral()));
+		if (builder.length() > 0) {
+			builder.append(" ");
+		}
+		table.write(1, builder.toString(), TableWriter.Alignment.ALIGN_RIGHT);
+		table.write(2, entry.owner() + "  ");
+		entry.trackingAccount().ifPresent(accountName -> table.write(3, accountName + "  "));
+		table.write(4, entry.amount().toString(), TableWriter.Alignment.ALIGN_RIGHT);
 		table.write(10, formatComment(entry));
 		table.newLine();
 	}

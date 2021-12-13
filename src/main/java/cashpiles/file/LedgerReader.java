@@ -89,8 +89,8 @@ public class LedgerReader {
 			activeBudget = null;
 		}
 
-		if (activeTransaction != null && !processTransactionLine(line, comment)
-				&& !processTransactionTrackingLine(line, comment)) {
+		if (activeTransaction != null && !processStatusedTransactionLine(line, comment)
+				&& !processTransactionLine(line, comment) && !processTransactionTrackingLine(line, comment)) {
 			activeTransaction.balance();
 			activeTransaction.process(processor);
 			activeTransaction = null;
@@ -449,6 +449,65 @@ public class LedgerReader {
 			return false;
 		}
 		activeBudget = activeBudget.withEntry(withholding);
+		return true;
+	}
+
+	private boolean processStatusedTransactionLine(String line, String comment) throws LedgerReaderException {
+		TransactionEntry entry;
+		var scanner = new LedgerScanner(line);
+
+		if (!scanner.hasNextSeparator()) {
+			return false;
+		}
+
+		var status = scanner.next();
+		if (status.codePoints().parallel()
+				.filter(codePoint -> codePoint != '!' && codePoint != '>' && codePoint != '?' && codePoint != '*')
+				.count() > 0) {
+			return false;
+		}
+
+		if (!scanner.hasNextIdentifier()) {
+			return false;
+		}
+		var ident = scanner.nextIdentifier();
+		switch (identifierType(ident, lineNumber)) {
+		case ACCOUNT -> entry = new AccountTransactionEntry(fileName, lineNumber, comment).withAccount(ident);
+		case CATEGORY -> {
+			entry = new CategoryTransactionEntry(fileName, lineNumber, comment).withCategory(ident);
+		}
+		case OWNER -> {
+			entry = new OwnerTransactionEntry(fileName, lineNumber, comment).withOwner(ident);
+		}
+		default -> {
+			return false;
+		}
+		}
+
+		if (status.codePoints().parallel().filter(codePoint -> codePoint == '*' || codePoint == '?' || codePoint == '*')
+				.count() > 1) {
+			throw LedgerReaderException.forMultipleEntryStatus(entry);
+		}
+		if (status.codePoints().parallel().filter(codePoint -> codePoint == '*').count() > 0) {
+			entry = entry.withStatus(Transaction.Status.CLEARED);
+		}
+		if (status.codePoints().parallel().filter(codePoint -> codePoint == '?').count() > 0) {
+			entry = entry.withStatus(Transaction.Status.PENDING);
+		}
+		if (status.codePoints().parallel().filter(codePoint -> codePoint == '!').count() > 0) {
+			entry = entry.withStatus(Transaction.Status.DISPUTED);
+		}
+		entry = entry.withDeferral(Math.toIntExact(
+				entry.deferral() + status.codePoints().parallel().filter(codePoint -> codePoint == '>').count()));
+
+		if (scanner.hasNextAmount()) {
+			entry = entry.withAmount(scanner.nextAmount());
+		}
+
+		if (scanner.hasNext()) {
+			return false;
+		}
+		activeTransaction = activeTransaction.withEntry(entry);
 		return true;
 	}
 
