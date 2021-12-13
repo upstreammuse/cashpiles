@@ -10,7 +10,7 @@ import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionView;
 import cashpiles.util.Lists;
 
-class Account extends ModelItem {
+class Account extends ModelItem implements StatementsView {
 
 	private final LocalDate startDate;
 	private final AccountCommand.Status status;
@@ -49,6 +49,16 @@ class Account extends ModelItem {
 		var it = retval.statements.listIterator(retval.statements.size() - 1);
 		it.set(it.next().withTransaction(transaction));
 		return retval;
+	}
+
+	@Override
+	public Statement get(int index) {
+		return statements.get(index);
+	}
+
+	@Override
+	public int size() {
+		return statements.size();
 	}
 
 	@Override

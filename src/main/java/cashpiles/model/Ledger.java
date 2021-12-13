@@ -4,9 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
@@ -16,6 +14,7 @@ import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
@@ -147,6 +146,18 @@ public class Ledger implements ItemProcessor {
 
 	public void addListener(ActionListener listener) {
 		listeners.add(listener);
+	}
+
+	public AccountsView getAccounts() {
+		return accounts;
+	}
+
+	public StatementsView getStatements(String accountName) {
+		return accounts.get(accountName);
+	}
+
+	public AccountTransactionsView getTransactions(String accountName, int statementNumber) {
+		return accounts.get(accountName).get(statementNumber);
 	}
 
 	public void process(ItemProcessor processor) {

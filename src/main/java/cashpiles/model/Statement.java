@@ -9,7 +9,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionView;
 
-public class Statement extends ModelItem {
+public class Statement extends ModelItem implements AccountTransactionsView {
 
 	private Optional<LocalDate> closingDate = Optional.empty();
 	private final Amount startBalance;
@@ -24,14 +24,17 @@ public class Statement extends ModelItem {
 				(total, value) -> total.add(value));
 	}
 
+	@Override
 	public Optional<LocalDate> closingDate() {
 		return closingDate;
 	}
 
+	@Override
 	public AccountTransactionView get(int index) {
 		return transactions.get(index);
 	}
 
+	@Override
 	public int size() {
 		return transactions.size();
 	}
