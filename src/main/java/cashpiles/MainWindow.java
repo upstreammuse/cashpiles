@@ -30,7 +30,7 @@ import cashpiles.model.LedgerBuilder;
 @SuppressWarnings("serial")
 class MainWindow extends JFrame {
 
-	private final AccountsPanel accountsPanel = new AccountsPanel();
+	private final AccountsPanel accountsPanel = new AccountsPanel(this);
 	private final BudgetPanel budgetPanel = new BudgetPanel();
 	private Ledger ledger = new Ledger();
 

@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JTable;
 
 import cashpiles.currency.Amount;
@@ -13,6 +14,7 @@ import cashpiles.model.Ledger;
 class AccountsPanelController {
 
 	private Ledger ledger = new Ledger();
+	private final JFrame parent;
 	private Optional<String> selectedAccount = Optional.empty();
 	private Optional<Integer> selectedStatement = Optional.empty();
 	private Optional<Consumer<Amount>> offBudgetBalanceUI = Optional.empty();
@@ -21,6 +23,10 @@ class AccountsPanelController {
 	private Optional<JTable> onBudgetUI = Optional.empty();
 	private Optional<JTable> statementsUI = Optional.empty();
 	private Optional<JTable> transactionsUI = Optional.empty();
+
+	AccountsPanelController(JFrame parent) {
+		this.parent = parent;
+	}
 
 	void forAccounts(JTable onBudgetAccounts, JTable offBudgetAccounts) {
 		onBudgetUI = Optional.of(onBudgetAccounts);
