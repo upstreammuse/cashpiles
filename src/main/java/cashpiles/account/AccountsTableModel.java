@@ -1,31 +1,21 @@
 package cashpiles.account;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.currency.Amount;
+import cashpiles.ledger.AccountCommand;
+import cashpiles.model.AccountsView;
 
 @SuppressWarnings("serial")
 class AccountsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Account", "Balance" };
 
-	final Map<String, StatementsTableModel> statements = new TreeMap<>();
+	private final AccountCommand.Status filter;
+	private final AccountsView view;
 
-	Amount balance() {
-		var balance = new Amount();
-		for (var entry : statements.entrySet()) {
-			balance = balance.add(entry.getValue().balance());
-		}
-		return balance;
-	}
-
-	@Override
-	public void fireTableDataChanged() {
-		super.fireTableDataChanged();
-		statements.forEach((k, v) -> v.fireTableDataChanged());
+	AccountsTableModel(AccountsView view, AccountCommand.Status filter) {
+		this.filter = filter;
+		this.view = view;
 	}
 
 	@Override
@@ -40,14 +30,14 @@ class AccountsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return statements.size();
+		return view.size(filter);
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
-		case 0 -> statements.keySet().toArray()[row];
-		case 1 -> statements.values().stream().skip(row).findFirst().get().balance();
+		case 0 -> view.name(filter, row);
+		case 1 -> view.balance(filter, row);
 		default -> throw new IllegalArgumentException();
 		};
 	}

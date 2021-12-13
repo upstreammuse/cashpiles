@@ -1,56 +1,24 @@
 package cashpiles.account;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.currency.Amount;
-import cashpiles.ledger.AccountBalance;
-import cashpiles.model.TransactionParticle;
-import cashpiles.util.Lists;
+import cashpiles.model.StatementsView;
 
 @SuppressWarnings("serial")
 class StatementsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Statement Date" };
 
-	private final List<TransactionsTableModel> transactionModels = new ArrayList<>();
-	private Optional<JTable> transactionsUI = Optional.empty();
+	private final Optional<StatementsView> view;
 
 	StatementsTableModel() {
-		transactionModels.add(new TransactionsTableModel(new Amount()));
+		this.view = Optional.empty();
 	}
 
-	void add(TransactionParticle transaction) {
-		Lists.lastOf(transactionModels).add(transaction);
-	}
-
-	Amount balance() {
-		return Lists.lastOf(transactionModels).balance();
-	}
-
-	void forTransactions(JTable transactionsUI) {
-		this.transactionsUI = Optional.of(transactionsUI);
-		transactionsUI.setModel(new TransactionsTableModel(new Amount()));
-	}
-
-	void reconcile(AccountBalance balance) {
-		transactionModels.add(Lists.lastOf(transactionModels).reconcile(balance));
-	}
-
-	void selectStatement(int i) {
-		transactionsUI.ifPresent(ui -> {
-			ui.setModel(transactionModels.get(i));
-		});
-	}
-
-	@Override
-	public void fireTableDataChanged() {
-		super.fireTableDataChanged();
-		transactionModels.forEach(model -> model.fireTableDataChanged());
+	StatementsTableModel(StatementsView view) {
+		this.view = Optional.of(view);
 	}
 
 	@Override
@@ -65,13 +33,13 @@ class StatementsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return transactionModels.size();
+		return view.map(view -> view.size()).orElse(0);
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
 		return switch (col) {
-		case 0 -> transactionModels.get(row).closingDate().map(date -> date.toString())
+		case 0 -> view.orElseThrow().get(row).closingDate().map(date -> date.toString())
 				.orElse("(Unreconciled transactions)");
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};

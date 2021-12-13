@@ -1,52 +1,24 @@
 package cashpiles.account;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.currency.Amount;
-import cashpiles.ledger.AccountBalance;
-import cashpiles.model.LedgerModelException;
-import cashpiles.model.Statement;
-import cashpiles.model.TransactionParticle;
+import cashpiles.model.AccountTransactionsView;
 
 @SuppressWarnings("serial")
 class TransactionsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
 
-	private Statement statement;
+	private final Optional<AccountTransactionsView> view;
 
-	TransactionsTableModel(Amount startBalance) {
-		statement = new Statement(startBalance);
+	TransactionsTableModel() {
+		view = Optional.empty();
 	}
 
-	void add(TransactionParticle transaction) {
-		statement = statement.withTransaction(transaction);
-	}
-
-	Amount balance() {
-		return statement.balance();
-	}
-
-	Optional<LocalDate> closingDate() {
-		return statement.closingDate();
-	}
-
-	TransactionsTableModel reconcile(AccountBalance balance) {
-		try {
-			var reconciled = statement.withReconciliation(balance);
-			var retval = new TransactionsTableModel(reconciled.balance());
-			retval.statement = statement.withReconciliationRemainder(reconciled);
-			statement = reconciled;
-			return retval;
-		} catch (LedgerModelException ex) {
-			// TODO by the time the UI gets this data, it should already be validated by the
-			// main model, so if there is a model exception here, we need to do something to
-			// make it obvious the program is broken
-			throw new RuntimeException(ex);
-		}
+	TransactionsTableModel(AccountTransactionsView view) {
+		this.view = Optional.of(view);
 	}
 
 	@Override
@@ -61,17 +33,17 @@ class TransactionsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		return statement.size();
+		return view.map(view -> view.size()).orElse(0);
 	}
 
 	@Override
 	public Object getValueAt(int row, int col) {
-		var xact = statement.get(row);
+		var xact = view.orElseThrow().get(row);
 		return switch (col) {
 		case 0 -> xact.date();
 		case 1 -> xact.status();
 		case 2 -> xact.payee();
-		case 3 -> xact.amount();
+		case 3 -> xact.accountAmount();
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);
 		};
 	}
