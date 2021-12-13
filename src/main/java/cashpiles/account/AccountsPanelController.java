@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
 import cashpiles.currency.Amount;
@@ -73,6 +74,13 @@ class AccountsPanelController {
 	}
 
 	public void forReconcile(JButton reconcileButton) {
+		reconcileButton.addActionListener(action -> {
+			selectedAccount.ifPresentOrElse(accountName -> {
+			}, () -> {
+				JOptionPane.showMessageDialog(parent, "No account was selected.", "Reconciliation Error",
+						JOptionPane.ERROR_MESSAGE);
+			});
+		});
 	}
 
 	void forStatements(JTable statements) {
