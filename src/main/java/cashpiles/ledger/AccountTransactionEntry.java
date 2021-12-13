@@ -3,7 +3,6 @@ package cashpiles.ledger;
 import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
-import cashpiles.ledger.Transaction.Status;
 
 public class AccountTransactionEntry extends TransactionEntry implements AccountTransactionView {
 
@@ -65,11 +64,6 @@ public class AccountTransactionEntry extends TransactionEntry implements Account
 	@Override
 	public String payee() {
 		return parent().payee();
-	}
-
-	@Override
-	public Status status() {
-		return parent().status();
 	}
 
 	@Override

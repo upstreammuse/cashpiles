@@ -63,13 +63,28 @@ abstract public class TrackingTransactionEntry extends TransactionEntry implemen
 	}
 
 	@Override
+	public int deferral() {
+		return 0;
+	}
+
+	@Override
 	public String payee() {
 		return parent().payee();
 	}
 
 	@Override
 	public Transaction.Status status() {
-		return parent().status();
+		return switch (super.status()) {
+		case CLEARED -> Transaction.Status.CLEARED;
+		case DISPUTED -> Transaction.Status.DISPUTED;
+		case PENDING -> {
+			if (trackingAccount.isEmpty()) {
+				yield Transaction.Status.CLEARED;
+			} else {
+				yield Transaction.Status.PENDING;
+			}
+		}
+		};
 	}
 
 	@Override
