@@ -67,6 +67,7 @@ class AccountsPanelController {
 	}
 
 	void forStatements(JTable statements) {
+		statementsUI = Optional.of(statements);
 		statements.getSelectionModel().addListSelectionListener(event -> {
 			if (event.getValueIsAdjusting()) {
 				return;
