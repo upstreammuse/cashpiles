@@ -72,6 +72,9 @@ class AccountsPanelController {
 		refreshBalances();
 	}
 
+	public void forReconcile(JButton reconcileButton) {
+	}
+
 	void forStatements(JTable statements) {
 		statementsUI = Optional.of(statements);
 		statements.getSelectionModel().addListSelectionListener(event -> {
