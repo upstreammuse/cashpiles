@@ -14,7 +14,6 @@ import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
-import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
@@ -33,7 +32,7 @@ import cashpiles.time.DateRange;
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
 public class Ledger implements ItemProcessor {
 
-	private final Map<String, Account> accounts = new HashMap<>();
+	private final AccountsMap accounts = new AccountsMap();
 	private final TreeMap<String, Category> categories = new TreeMap<>();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
