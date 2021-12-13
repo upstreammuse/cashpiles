@@ -2,6 +2,7 @@ package cashpiles.account;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,7 +14,7 @@ import cashpiles.model.Ledger;
 @SuppressWarnings("serial")
 public class AccountsPanel extends JPanel {
 
-	private final AccountsPanelController controller = new AccountsPanelController();
+	private final AccountsPanelController controller;
 	private final JButton newTransactions = new JButton("New Transaction...");
 	private final JTable offBudgetAccounts = new JTable();
 	private final JLabel offBudgetBalance = new JLabel();
@@ -22,7 +23,8 @@ public class AccountsPanel extends JPanel {
 	private final JTable statements = new JTable();
 	private final JTable transactions = new JTable();
 
-	public AccountsPanel() {
+	public AccountsPanel(JFrame parent) {
+		controller = new AccountsPanelController(parent);
 		initController();
 		initUI();
 	}
