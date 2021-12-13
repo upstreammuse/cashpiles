@@ -20,6 +20,7 @@ public class AccountsPanel extends JPanel {
 	private final JLabel offBudgetBalance = new JLabel();
 	private final JTable onBudgetAccounts = new JTable();
 	private final JLabel onBudgetBalance = new JLabel();
+	private final JButton reconcileAccount = new JButton("Reconcile Account...");
 	private final JTable statements = new JTable();
 	private final JTable transactions = new JTable();
 
@@ -38,6 +39,7 @@ public class AccountsPanel extends JPanel {
 		controller.forNewTransactions(newTransactions);
 		controller.forOffBudgetBalance(amount -> offBudgetBalance.setText("Balance: " + amount.toString() + "     "));
 		controller.forOnBudgetBalance(amount -> onBudgetBalance.setText("Balance: " + amount.toString() + "     "));
+		controller.forReconcile(reconcileAccount);
 		controller.forStatements(statements);
 		controller.forTransactions(transactions);
 	}
@@ -70,7 +72,8 @@ public class AccountsPanel extends JPanel {
 				.addComponent(scrollPane1)
 				.addGroup(layout.createParallelGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2))
-				.addGroup(layout.createSequentialGroup().addComponent(statementsHeader).addComponent(scrollPane3))
+				.addGroup(layout.createSequentialGroup().addComponent(statementsHeader).addComponent(scrollPane3)
+						.addComponent(reconcileAccount))
 				.addGroup(layout.createSequentialGroup().addComponent(transactionsHeader).addComponent(scrollPane4)
 						.addComponent(newTransactions)));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup()
@@ -78,7 +81,8 @@ public class AccountsPanel extends JPanel {
 				.addComponent(scrollPane1)
 				.addGroup(layout.createSequentialGroup().addComponent(offBudgetHeader).addComponent(offBudgetBalance))
 				.addComponent(scrollPane2))
-				.addGroup(layout.createParallelGroup().addComponent(statementsHeader).addComponent(scrollPane3))
+				.addGroup(layout.createParallelGroup().addComponent(statementsHeader).addComponent(scrollPane3)
+						.addComponent(reconcileAccount))
 				.addGroup(layout.createParallelGroup().addComponent(transactionsHeader).addComponent(scrollPane4)
 						.addComponent(newTransactions)));
 	}
