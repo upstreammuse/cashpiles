@@ -14,6 +14,7 @@ import cashpiles.ledger.AccountTransactionEntry;
 import cashpiles.ledger.BlankLine;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
@@ -46,7 +47,7 @@ public class Ledger implements ItemProcessor {
 		}
 		account = account.reconciled(balance);
 		accounts.put(balance.account(), account);
-		insertEndOfDay(balance.date(), balance);
+		insertEnd(balance);
 		notify("AccountBalance");
 	}
 
@@ -77,7 +78,7 @@ public class Ledger implements ItemProcessor {
 			accounts.remove(command.account());
 		}
 		}
-		insertEndOfDay(command.date(), command);
+		insertEnd(command);
 		notify("AccountCommand");
 	}
 
@@ -100,7 +101,7 @@ public class Ledger implements ItemProcessor {
 		}
 
 		// and then we can save it all at once safely
-		insertEndOfDay(budget.date(), budget);
+		insertEnd(budget);
 		notify("Transaction");
 	}
 
@@ -120,7 +121,7 @@ public class Ledger implements ItemProcessor {
 		}
 
 		// and then we can save it all at once safely
-		insertEndOfDay(transaction.date(), transaction);
+		insertEnd(transaction);
 		notify("Transaction");
 	}
 
@@ -139,7 +140,7 @@ public class Ledger implements ItemProcessor {
 		// no exceptions past this point
 		account = account.withTransaction(transaction);
 		accounts.put(transaction.account(), account);
-		insertEndOfDay(transaction.date(), transaction);
+		insertEnd(transaction);
 		notify("UnbalancedTransaction");
 	}
 
@@ -171,11 +172,15 @@ public class Ledger implements ItemProcessor {
 			assert (preDatedItems != null);
 			preDatedItems.add(item);
 		} else {
-			insertEndOfDay(items.lastKey(), item);
+			insertEnd(items.lastKey(), item);
 		}
 	}
 
-	private void insertEndOfDay(LocalDate date, LedgerItem item) {
+	private void insertEnd(DatedLedgerItem item) {
+		insertEnd(item.date(), item);
+	}
+
+	private void insertEnd(LocalDate date, LedgerItem item) {
 		var dayItems = items.get(date);
 		if (dayItems == null) {
 			dayItems = new ArrayList<>();
