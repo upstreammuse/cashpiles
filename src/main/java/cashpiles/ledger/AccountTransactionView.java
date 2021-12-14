@@ -10,6 +10,8 @@ public interface AccountTransactionView {
 
 	LocalDate date();
 
+	int deferral();
+
 	String payee();
 
 	Transaction.Status status();
