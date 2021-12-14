@@ -46,17 +46,20 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 		var retval = clone();
 		retval.closingDate = Optional.of(balance.date());
 		retval.transactions.removeIf(x -> x.date().compareTo(balance.date()) > 0);
-		retval.transactions.removeIf(x -> switch (x.status()) {
-		case CLEARED -> false;
-		case DISPUTED -> false;
-		case PENDING -> true;
-		});
 		for (var it = retval.transactions.listIterator(); it.hasNext(); /* inside */) {
 			var view = it.next();
 			var remainingDeferrals = retval.deferrals.get(view);
 			if (remainingDeferrals != 0) {
 				retval.deferrals.put(view, remainingDeferrals - 1);
 				it.remove();
+			} else {
+				switch (view.status()) {
+				case CLEARED:
+				case DISPUTED:
+					break;
+				case PENDING:
+					throw LedgerModelException.forUncleared(balance);
+				}
 			}
 		}
 		if (!retval.balance().equals(balance.amount())) {
@@ -72,12 +75,9 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 
 		// TODO this could be consolidated with the code in withReconciliation
 		var toRemove = new ArrayList<>(retval.transactions);
+		// TODO consider a safer alternative to a raw get() here, even though the model
+		// basically requires it to be set
 		toRemove.removeIf(x -> x.date().compareTo(other.closingDate.get()) > 0);
-		toRemove.removeIf(x -> switch (x.status()) {
-		case CLEARED -> false;
-		case DISPUTED -> false;
-		case PENDING -> true;
-		});
 		for (var it = toRemove.listIterator(); it.hasNext(); /* inside */) {
 			var view = it.next();
 			var remainingDeferrals = retval.deferrals.get(view);
@@ -86,6 +86,11 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 				it.remove();
 			}
 		}
+		toRemove.removeIf(x -> switch (x.status()) {
+		case CLEARED -> false;
+		case DISPUTED -> false;
+		case PENDING -> true;
+		});
 
 		retval.transactions.removeAll(toRemove);
 		return retval;
