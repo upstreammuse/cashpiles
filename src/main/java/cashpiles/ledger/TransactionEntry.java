@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import cashpiles.currency.Amount;
 
-abstract public class TransactionEntry extends LedgerItem {
+abstract public class TransactionEntry extends LedgerItem implements AccountTransactionView {
 
 	// TODO move to transaction
 	static class BalanceResult {

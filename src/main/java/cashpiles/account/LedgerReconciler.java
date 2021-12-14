@@ -12,6 +12,7 @@ import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.Transaction;
+import cashpiles.ledger.TransactionEntry;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.model.Ledger;
@@ -59,32 +60,20 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 
 	@Override
 	public void process(AccountTransactionEntry entry) {
-		if (toClear.contains(entry)) {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry.withStatus(Transaction.Status.CLEARED));
-			originalTransaction = null;
-		} else if (toDefer.contains(entry)) {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry.withDeferral(entry.deferral() + 1));
-			originalTransaction = null;
-		} else {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry);
-		}
+		processEntry(entry);
 	}
 
 	@Override
 	public void process(CategoryTransactionEntry entry) {
-		if (toClear.contains(entry)) {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry.withStatus(Transaction.Status.CLEARED));
-			originalTransaction = null;
-		} else if (toDefer.contains(entry)) {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry.withDeferral(entry.deferral() + 1));
-			originalTransaction = null;
-		} else {
-			rebuiltTransaction = rebuiltTransaction.withEntry(entry);
-		}
+		processEntry(entry);
 	}
 
 	@Override
 	public void process(OwnerTransactionEntry entry) {
+		processEntry(entry);
+	}
+
+	private void processEntry(TransactionEntry entry) {
 		if (toClear.contains(entry)) {
 			rebuiltTransaction = rebuiltTransaction.withEntry(entry.withStatus(Transaction.Status.CLEARED));
 			originalTransaction = null;
