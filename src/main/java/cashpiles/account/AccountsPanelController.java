@@ -62,6 +62,10 @@ class AccountsPanelController {
 	}
 
 	void forNewTransactions(JButton newTransactions) {
+		newTransactions.addActionListener(action -> {
+			var dialog = new TransactionDialog(parent);
+			dialog.setVisible(true);
+		});
 		// TODO add transaction to ledger
 	}
 
