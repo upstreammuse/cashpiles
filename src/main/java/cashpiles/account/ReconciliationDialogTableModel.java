@@ -41,6 +41,8 @@ class ReconciliationDialogTableModel extends AbstractTableModel {
 	public Object getValueAt(int row, int col) {
 		var item = filteredView.get(row);
 		return switch (col) {
+		// TODO this feels like a hack, but also maybe a clever one
+		case -1 -> item;
 		case 0 -> item.date();
 		case 1 -> item.status();
 		case 2 -> item.payee();

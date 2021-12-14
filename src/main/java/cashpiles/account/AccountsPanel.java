@@ -2,13 +2,13 @@ package cashpiles.account;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
+import cashpiles.MainWindow;
 import cashpiles.model.Ledger;
 
 @SuppressWarnings("serial")
@@ -24,7 +24,7 @@ public class AccountsPanel extends JPanel {
 	private final JTable statements = new JTable();
 	private final JTable transactions = new JTable();
 
-	public AccountsPanel(JFrame parent) {
+	public AccountsPanel(MainWindow parent) {
 		controller = new AccountsPanelController(parent);
 		initController();
 		initUI();

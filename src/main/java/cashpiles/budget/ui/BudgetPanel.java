@@ -23,10 +23,14 @@ import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
+import cashpiles.model.Ledger;
 
 @SuppressWarnings("serial")
 public class BudgetPanel extends JPanel implements ItemProcessor {
 
+	// TODO this member goes away once the panel can support being set multiple
+	// times with different ledgers
+	private boolean firstTime = true;
 	private final BudgetPanelTableModel table = new BudgetPanelTableModel();
 
 	public BudgetPanel() {
@@ -132,6 +136,13 @@ public class BudgetPanel extends JPanel implements ItemProcessor {
 			table.configureCurrentBudget(entry);
 		} catch (BudgetException ex) {
 			error(ex);
+		}
+	}
+
+	public void setLedger(Ledger ledger) {
+		if (firstTime) {
+			ledger.process(this);
+			firstTime = false;
 		}
 	}
 
