@@ -9,6 +9,7 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 
 	private String account;
 	private Amount amount;
+	int deferral = 0;
 	private String payee;
 	private Status status;
 
@@ -22,6 +23,10 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 
 	public Amount amount() {
 		return amount;
+	}
+
+	public int deferral() {
+		return deferral;
 	}
 
 	public String payee() {

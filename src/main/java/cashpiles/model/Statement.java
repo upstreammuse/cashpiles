@@ -2,7 +2,9 @@ package cashpiles.model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import cashpiles.currency.Amount;
@@ -12,6 +14,7 @@ import cashpiles.ledger.AccountTransactionView;
 public class Statement extends ModelItem implements AccountTransactionsView {
 
 	private Optional<LocalDate> closingDate = Optional.empty();
+	private Map<AccountTransactionView, Integer> deferrals = new HashMap<>();
 	private final Amount startBalance;
 	private List<AccountTransactionView> transactions = new ArrayList<>();
 
@@ -48,6 +51,14 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 		case DISPUTED -> false;
 		case PENDING -> true;
 		});
+		for (var it = retval.transactions.listIterator(); it.hasNext(); /* inside */) {
+			var view = it.next();
+			var remainingDeferrals = retval.deferrals.get(view);
+			if (remainingDeferrals != 0) {
+				retval.deferrals.put(view, remainingDeferrals - 1);
+				it.remove();
+			}
+		}
 		if (!retval.balance().equals(balance.amount())) {
 			throw LedgerModelException.forUnbalanced(balance, retval.balance());
 		}
@@ -56,20 +67,41 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 
 	public Statement withReconciliationRemainder(Statement other) {
 		var retval = new Statement(other.balance());
+		retval.deferrals = new HashMap<>(deferrals);
 		retval.transactions = new ArrayList<>(transactions);
-		retval.transactions.removeAll(other.transactions);
+
+		// TODO this could be consolidated with the code in withReconciliation
+		var toRemove = new ArrayList<>(retval.transactions);
+		toRemove.removeIf(x -> x.date().compareTo(other.closingDate.get()) > 0);
+		toRemove.removeIf(x -> switch (x.status()) {
+		case CLEARED -> false;
+		case DISPUTED -> false;
+		case PENDING -> true;
+		});
+		for (var it = toRemove.listIterator(); it.hasNext(); /* inside */) {
+			var view = it.next();
+			var remainingDeferrals = retval.deferrals.get(view);
+			if (remainingDeferrals != 0) {
+				retval.deferrals.put(view, remainingDeferrals - 1);
+				it.remove();
+			}
+		}
+
+		retval.transactions.removeAll(toRemove);
 		return retval;
 	}
 
 	public Statement withTransaction(AccountTransactionView transaction) {
 		var retval = clone();
 		retval.transactions.add(transaction);
+		retval.deferrals.put(transaction, transaction.deferral());
 		return retval;
 	}
 
 	@Override
 	public Statement clone() {
 		var retval = (Statement) super.clone();
+		retval.deferrals = new HashMap<>(deferrals);
 		retval.transactions = new ArrayList<>(transactions);
 		return retval;
 	}
