@@ -105,9 +105,10 @@ public class MainWindow extends JFrame {
 
 		var fullPath = Paths.get(directory, filename);
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
-			var ledger = new Ledger();
+			var ledgerBuilder = new LedgerBuilder();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
-			ledgerReader.readAll(new LedgerBuilder(ledger));
+			ledgerReader.readAll(ledgerBuilder);
+			var ledger = ledgerBuilder.toLedger();
 			setLedger(ledger);
 		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",

@@ -1,6 +1,6 @@
 package cashpiles.model;
 
-import javax.swing.JOptionPane;
+import java.util.ArrayList;
 
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
@@ -13,18 +13,15 @@ import cashpiles.ledger.UnbalancedTransaction;
 
 public class LedgerBuilder implements ItemProcessor {
 
-	private final Ledger ledger;
-
-	public LedgerBuilder(Ledger ledger) {
-		this.ledger = ledger;
-	}
+	private final Ledger ledger = new Ledger();
+	private final ArrayList<LedgerException> pendingExceptions = new ArrayList<>();
 
 	@Override
 	public void process(AccountBalance balance) {
 		try {
 			ledger.add(balance);
 		} catch (LedgerModelException ex) {
-			error(ex);
+			pendingExceptions.add(ex);
 		}
 	}
 
@@ -33,7 +30,7 @@ public class LedgerBuilder implements ItemProcessor {
 		try {
 			ledger.add(command);
 		} catch (LedgerModelException ex) {
-			error(ex);
+			pendingExceptions.add(ex);
 		}
 	}
 
@@ -47,10 +44,8 @@ public class LedgerBuilder implements ItemProcessor {
 		try {
 			ledger.add(budget);
 		} catch (LedgerException ex) {
-			error(ex);
+			pendingExceptions.add(ex);
 		}
-		// the ledger will process the entire budget itself, so we don't need to feed it
-		// the entries with the builder
 		return false;
 	}
 
@@ -59,10 +54,8 @@ public class LedgerBuilder implements ItemProcessor {
 		try {
 			ledger.add(transaction);
 		} catch (LedgerException ex) {
-			error(ex);
+			pendingExceptions.add(ex);
 		}
-		// the ledger will process the entire transaction itself, so we don't need to
-		// feed it the entries with the builder
 		return false;
 	}
 
@@ -71,13 +64,15 @@ public class LedgerBuilder implements ItemProcessor {
 		try {
 			ledger.add(transaction);
 		} catch (LedgerModelException ex) {
-			error(ex);
+			pendingExceptions.add(ex);
 		}
 	}
 
-	private void error(LedgerException ex) {
-		JOptionPane.showMessageDialog(null, "Error processing ledger file.  " + ex.getLocalizedMessage(),
-				"Ledger File Error", JOptionPane.ERROR_MESSAGE);
+	public Ledger toLedger() throws LedgerException {
+		if (!pendingExceptions.isEmpty()) {
+			throw pendingExceptions.get(0);
+		}
+		return ledger;
 	}
 
 }

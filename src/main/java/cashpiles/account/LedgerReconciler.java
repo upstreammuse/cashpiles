@@ -36,6 +36,7 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 				rebuiltTransaction.balance();
 			} catch (TransactionException ex) {
 				pendingExceptions.add(ex);
+				return;
 			}
 			items.add(rebuiltTransaction);
 		}
@@ -112,19 +113,15 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 		items.add(item);
 	}
 
-	// TODO ledger builder could work in a similar way, although each time we do
-	// this we are less efficient because we keep making all these copies
-	// - as a benefit to doing it this way, the toLedger call could throw,
-	// preventing a bum ledger from making its way through the system
 	public Ledger toLedger() throws LedgerException {
 		if (!pendingExceptions.isEmpty()) {
 			throw pendingExceptions.get(0);
 		}
-		var retval = new Ledger();
-		var builder = new LedgerBuilder(retval);
+		var builder = new LedgerBuilder();
 		for (var item : items) {
 			item.process(builder);
 		}
+		var retval = builder.toLedger();
 		retval.add(statement);
 		return retval;
 	}
