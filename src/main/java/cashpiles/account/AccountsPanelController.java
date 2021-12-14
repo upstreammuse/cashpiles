@@ -4,18 +4,20 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
+import cashpiles.MainWindow;
 import cashpiles.currency.Amount;
+import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
+import cashpiles.ledger.LedgerException;
 import cashpiles.model.Ledger;
 
 class AccountsPanelController {
 
 	private Ledger ledger = new Ledger();
-	private final JFrame parent;
+	private final MainWindow parent;
 	private Optional<String> selectedAccount = Optional.empty();
 	private Optional<Integer> selectedStatement = Optional.empty();
 	private Optional<Consumer<Amount>> offBudgetBalanceUI = Optional.empty();
@@ -25,7 +27,7 @@ class AccountsPanelController {
 	private Optional<JTable> statementsUI = Optional.empty();
 	private Optional<JTable> transactionsUI = Optional.empty();
 
-	AccountsPanelController(JFrame parent) {
+	AccountsPanelController(MainWindow parent) {
 		this.parent = parent;
 	}
 
@@ -76,52 +78,29 @@ class AccountsPanelController {
 	public void forReconcile(JButton reconcileButton) {
 		reconcileButton.addActionListener(action -> {
 			selectedAccount.ifPresentOrElse(accountName -> {
-				var statements = ledger.getStatements(accountName);
-
-				// TODO get last statement from the statements list for the given account, and
-				// give that statement to the dialog to break into a reconciled part and an
-				// unreconciled part by clearing the transactions that belong to the reconciled
-				// part, and excluding/deferring the transactions that belong in the remainder
-				var dialog = new ReconciliationDialog(parent, statements);
+				var dialog = new ReconciliationDialog(parent, ledger.getStatements(accountName));
 				dialog.setVisible(true);
+				if (!dialog.ok()) {
+					return;
+				}
 
-				// TODO for each transaction that the dialog worked on...
-				// - update status to
+				var modifier = new LedgerReconciler();
+				for (var item : dialog.selected()) {
+					modifier = modifier.withClearedTransaction(item);
+				}
+				for (var item : dialog.unselected()) {
+					modifier = modifier.withDeferredTransaction(item);
+				}
+				modifier = modifier.withStatement(new AccountBalance("", 0, "").withAccount(accountName)
+						.withAmount(dialog.selectedTotal()).withDate(dialog.date()));
+				ledger.process(modifier);
 
-				// TODO this view/dialog works on particles, but need to modify whole
-				// transactions in the ledger, so...
-				// - need a link from a particle back to its transaction
-				// - need the ability to replace items in the ledger (or at least transactions)
-				// - when doing this, does the ledger accept a modified transaction and then
-				// figure out which particles to change?
-				// - or does the ledger accept a single particle that modifies a single
-				// transaction? -> this is more doable, assuming each particle and each xact
-				// have IDs that can be used to replace them in-situ
-				// - it isn't, since a particle doesn't point to a transaction entry. if it
-				// does, then we can do it, because a particle = entry -> transaction
-
-				// TODO so the reconcile dialog gets a set of particles and...
-				// - for each particle after a date, ignore it, since balance command will also
-				// ignore it
-				// - for each particle <= date, give user ability to see its current status
-				// (pending/cleared/disputed)
-				// - for each particle <= date, give user ability to change status
-				// (reconciled/notreconciled)
-				// - for each reconciled particle, set its status to cleared if its status is
-				// pending
-				// - for each notreconciled particle, set its status to deferred (increment its
-				// deferral count?)
-				// then once the dialog returns...
-				// - for each particle, modify it in the ledger -> modify xact entry -> modify
-				// xact
-				// - instead of a general item modification, this can be a structured command to
-				// set the status of an item ID, and it can throw errors if you pass an ID of
-				// something that doesn't have .... no, this requires the ledger to discriminate
-				// types, which it doesn't do
-				// - create a balance command for account/amount/date
-				// - add balance command to ledger
-
-				// TODO process the reconciliation results
+				try {
+					parent.setLedger(modifier.toLedger());
+				} catch (LedgerException ex) {
+					JOptionPane.showMessageDialog(parent, "Error while reconciling.  " + ex.getLocalizedMessage(),
+							"Reconciliation Error", JOptionPane.ERROR_MESSAGE);
+				}
 			}, () -> {
 				JOptionPane.showMessageDialog(parent, "No account was selected.", "Reconciliation Error",
 						JOptionPane.ERROR_MESSAGE);

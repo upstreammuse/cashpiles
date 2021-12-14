@@ -42,6 +42,11 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 		return transactions.size();
 	}
 
+	@Override
+	public Amount startingBalance() {
+		return startBalance;
+	}
+
 	public Statement withReconciliation(AccountBalance balance) throws LedgerModelException {
 		var retval = clone();
 		retval.closingDate = Optional.of(balance.date());
