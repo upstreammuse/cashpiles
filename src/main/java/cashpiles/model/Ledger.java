@@ -156,10 +156,6 @@ public class Ledger implements ItemProcessor {
 		return accounts.get(accountName);
 	}
 
-	public AccountTransactionsView getTransactions(String accountName, int statementNumber) {
-		return accounts.get(accountName).get(statementNumber);
-	}
-
 	public void process(ItemProcessor processor) {
 		items.forEach((day, dayItems) -> {
 			dayItems.forEach(item -> item.process(processor));
