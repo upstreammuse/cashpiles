@@ -76,6 +76,52 @@ class AccountsPanelController {
 	public void forReconcile(JButton reconcileButton) {
 		reconcileButton.addActionListener(action -> {
 			selectedAccount.ifPresentOrElse(accountName -> {
+				var statements = ledger.getStatements(accountName);
+
+				// TODO get last statement from the statements list for the given account, and
+				// give that statement to the dialog to break into a reconciled part and an
+				// unreconciled part by clearing the transactions that belong to the reconciled
+				// part, and excluding/deferring the transactions that belong in the remainder
+				var dialog = new ReconciliationDialog(parent, statements);
+				dialog.setVisible(true);
+
+				// TODO for each transaction that the dialog worked on...
+				// - update status to
+
+				// TODO this view/dialog works on particles, but need to modify whole
+				// transactions in the ledger, so...
+				// - need a link from a particle back to its transaction
+				// - need the ability to replace items in the ledger (or at least transactions)
+				// - when doing this, does the ledger accept a modified transaction and then
+				// figure out which particles to change?
+				// - or does the ledger accept a single particle that modifies a single
+				// transaction? -> this is more doable, assuming each particle and each xact
+				// have IDs that can be used to replace them in-situ
+				// - it isn't, since a particle doesn't point to a transaction entry. if it
+				// does, then we can do it, because a particle = entry -> transaction
+
+				// TODO so the reconcile dialog gets a set of particles and...
+				// - for each particle after a date, ignore it, since balance command will also
+				// ignore it
+				// - for each particle <= date, give user ability to see its current status
+				// (pending/cleared/disputed)
+				// - for each particle <= date, give user ability to change status
+				// (reconciled/notreconciled)
+				// - for each reconciled particle, set its status to cleared if its status is
+				// pending
+				// - for each notreconciled particle, set its status to deferred (increment its
+				// deferral count?)
+				// then once the dialog returns...
+				// - for each particle, modify it in the ledger -> modify xact entry -> modify
+				// xact
+				// - instead of a general item modification, this can be a structured command to
+				// set the status of an item ID, and it can throw errors if you pass an ID of
+				// something that doesn't have .... no, this requires the ledger to discriminate
+				// types, which it doesn't do
+				// - create a balance command for account/amount/date
+				// - add balance command to ledger
+
+				// TODO process the reconciliation results
 			}, () -> {
 				JOptionPane.showMessageDialog(parent, "No account was selected.", "Reconciliation Error",
 						JOptionPane.ERROR_MESSAGE);
@@ -142,7 +188,7 @@ class AccountsPanelController {
 				.ifPresent(transactions -> selectedAccount.ifPresentOrElse(
 						accountName -> selectedStatement.ifPresentOrElse(
 								statementIndex -> transactions.setModel(new TransactionsTableModel(
-										ledger.getTransactions(accountName, statementIndex))),
+										ledger.getStatements(accountName).get(statementIndex))),
 								() -> transactions.setModel(new TransactionsTableModel())),
 						() -> transactions.setModel(new TransactionsTableModel())));
 	}

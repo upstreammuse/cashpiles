@@ -10,6 +10,11 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>com.github.lgooddatepicker</groupId>
+			<artifactId>LGoodDatePicker</artifactId>
+			<version>11.2.1</version>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>5.8.2</version>

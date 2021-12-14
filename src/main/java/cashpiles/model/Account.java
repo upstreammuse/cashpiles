@@ -68,4 +68,14 @@ class Account extends ModelItem implements StatementsView {
 		return retval;
 	}
 
+	@Override
+	public LocalDate earliestReconcileDate() {
+		if (statements.size() >= 2) {
+			// TODO consider a safer alternative here
+			return statements.get(statements.size() - 2).closingDate().get();
+		} else {
+			return startDate;
+		}
+	}
+
 }
