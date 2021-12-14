@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
@@ -38,7 +39,7 @@ public class Ledger implements ItemProcessor {
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
 	private final List<LedgerException> pendingExceptions = new ArrayList<>();
-	private List<LedgerItem> preDatedItems = new ArrayList<>();
+	private Optional<List<LedgerItem>> preDatedItems = Optional.of(new ArrayList<>());
 
 	public void add(AccountBalance balance) throws LedgerModelException {
 		var account = accounts.get(balance.account());
@@ -164,12 +165,7 @@ public class Ledger implements ItemProcessor {
 	}
 
 	private void insertEnd(LedgerItem item) {
-		if (items.isEmpty()) {
-			assert (preDatedItems != null);
-			preDatedItems.add(item);
-		} else {
-			insertEnd(items.lastKey(), item);
-		}
+		preDatedItems.ifPresentOrElse(items -> items.add(item), () -> insertEnd(items.lastKey(), item));
 	}
 
 	private void insertEnd(DatedLedgerItem item) {
@@ -177,16 +173,13 @@ public class Ledger implements ItemProcessor {
 	}
 
 	private void insertEnd(LocalDate date, LedgerItem item) {
-		var dayItems = items.get(date);
-		if (dayItems == null) {
-			dayItems = new ArrayList<>();
-			items.put(date, dayItems);
-		}
-		if (preDatedItems != null) {
-			dayItems.addAll(preDatedItems);
-			preDatedItems = null;
-		}
+		var dayItems = items.getOrDefault(date, new ArrayList<>());
+		preDatedItems.ifPresent(items -> {
+			dayItems.addAll(items);
+			preDatedItems = Optional.empty();
+		});
 		dayItems.add(item);
+		items.put(date, dayItems);
 	}
 
 	private void notify(String eventName) {
