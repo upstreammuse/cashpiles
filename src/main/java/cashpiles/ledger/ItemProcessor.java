@@ -2,76 +2,76 @@ package cashpiles.ledger;
 
 public interface ItemProcessor {
 
-	default void finish() {
+	default void finish() throws LedgerException {
 	}
 
-	default void process(AccountBalance balance) {
+	default void process(AccountBalance balance) throws LedgerException {
 		processGeneric(balance);
 	}
 
-	default void process(AccountCommand account) {
+	default void process(AccountCommand account) throws LedgerException {
 		processGeneric(account);
 	}
 
-	default void process(AccountTransactionEntry entry) {
+	default void process(AccountTransactionEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(BlankLine line) {
+	default void process(BlankLine line) throws LedgerException {
 		processGeneric(line);
 	}
 
-	default boolean process(Budget budget) {
+	default boolean process(Budget budget) throws LedgerException {
 		processGeneric(budget);
-		return true;
+		return false;
 	}
 
-	default void process(CategoryTransactionEntry entry) {
+	default void process(CategoryTransactionEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(CloseBudgetEntry entry) {
+	default void process(CloseBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(GoalBudgetEntry entry) {
+	default void process(GoalBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(IncomeBudgetEntry entry) {
+	default void process(IncomeBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(ManualGoalBudgetEntry entry) {
+	default void process(ManualGoalBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(OwnerTransactionEntry entry) {
+	default void process(OwnerTransactionEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(ReserveBudgetEntry entry) {
+	default void process(ReserveBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void process(RoutineBudgetEntry entry) {
+	default void process(RoutineBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default boolean process(Transaction transaction) {
+	default boolean process(Transaction transaction) throws LedgerException {
 		processGeneric(transaction);
-		return true;
+		return false;
 	}
 
-	default void process(UnbalancedTransaction transaction) {
+	default void process(UnbalancedTransaction transaction) throws LedgerException {
 		processGeneric(transaction);
 	}
 
-	default void process(WithholdingBudgetEntry entry) {
+	default void process(WithholdingBudgetEntry entry) throws LedgerException {
 		processGeneric(entry);
 	}
 
-	default void processGeneric(LedgerItem item) {
+	default void processGeneric(LedgerItem item) throws LedgerException {
 	}
 
 }

@@ -72,7 +72,7 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 	}
 
 	@Override
-	public void process(ItemProcessor processor) {
+	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
 

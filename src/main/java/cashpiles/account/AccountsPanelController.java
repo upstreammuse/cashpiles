@@ -97,9 +97,9 @@ class AccountsPanelController {
 				}
 				modifier = modifier.withStatement(new AccountBalance("", 0, "").withAccount(accountName)
 						.withAmount(dialog.selectedTotal()).withDate(dialog.date()));
-				ledger.process(modifier);
 
 				try {
+					ledger.process(modifier);
 					parent.setLedger(modifier.toLedger());
 				} catch (LedgerException ex) {
 					JOptionPane.showMessageDialog(parent, "Error while reconciling.  " + ex.getLocalizedMessage(),

@@ -24,7 +24,6 @@ import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
 import cashpiles.model.Ledger;
-import cashpiles.model.LedgerBuilder;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
@@ -105,10 +104,9 @@ public class MainWindow extends JFrame {
 
 		var fullPath = Paths.get(directory, filename);
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
-			var ledgerBuilder = new LedgerBuilder();
+			var ledger = new Ledger();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
-			ledgerReader.readAll(ledgerBuilder);
-			var ledger = ledgerBuilder.toLedger();
+			ledgerReader.readAll(ledger);
 			setLedger(ledger);
 		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
@@ -142,13 +140,13 @@ public class MainWindow extends JFrame {
 				StandardOpenOption.WRITE)) {
 			var ledgerWriter = new LedgerWriter(writer);
 			ledger.process(ledgerWriter);
-		} catch (IOException ex) {
+		} catch (IOException | LedgerException ex) {
 			JOptionPane.showMessageDialog(this, "Error writing file.  " + ex.getLocalizedMessage(), "File Write Error",
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
-	public void setLedger(Ledger ledger) {
+	public void setLedger(Ledger ledger) throws LedgerException {
 		this.ledger = ledger;
 		accountsPanel.setLedger(ledger);
 		budgetPanel.setLedger(ledger);

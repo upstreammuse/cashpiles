@@ -25,7 +25,7 @@ public abstract class LedgerItem implements Cloneable {
 		return lineNumber;
 	}
 
-	public abstract void process(ItemProcessor processor);
+	public abstract void process(ItemProcessor processor) throws LedgerException;
 
 	@Override
 	public LedgerItem clone() {

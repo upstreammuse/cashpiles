@@ -17,6 +17,7 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
@@ -139,7 +140,7 @@ public class BudgetPanel extends JPanel implements ItemProcessor {
 		}
 	}
 
-	public void setLedger(Ledger ledger) {
+	public void setLedger(Ledger ledger) throws LedgerException {
 		if (firstTime) {
 			ledger.process(this);
 			firstTime = false;

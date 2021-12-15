@@ -7,7 +7,7 @@ public class BlankLine extends LedgerItem {
 	}
 
 	@Override
-	public void process(ItemProcessor processor) {
+	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
 

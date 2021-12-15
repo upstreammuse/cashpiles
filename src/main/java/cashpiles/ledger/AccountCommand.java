@@ -41,7 +41,7 @@ public class AccountCommand extends DatedLedgerItem {
 	}
 
 	@Override
-	public void process(ItemProcessor processor) {
+	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
 
