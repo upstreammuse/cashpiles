@@ -157,13 +157,6 @@ public class Ledger implements ItemProcessor {
 		return accounts.get(accountName);
 	}
 
-	public void process(ItemProcessor processor) {
-		items.forEach((day, dayItems) -> {
-			dayItems.forEach(item -> item.process(processor));
-		});
-		processor.finish();
-	}
-
 	private void insertEnd(LedgerItem item) {
 		preDatedItems.ifPresentOrElse(items -> items.add(item), () -> insertEnd(items.lastKey(), item));
 	}
@@ -267,6 +260,13 @@ public class Ledger implements ItemProcessor {
 		category = new IncomeCategory(entry.parent().date(),
 				new DateRange(entry.parent().date(), entry.parent().period()));
 		categories.put(entry.name(), category);
+	}
+
+	public void process(ItemProcessor processor) {
+		items.forEach((day, dayItems) -> {
+			dayItems.forEach(item -> item.process(processor));
+		});
+		processor.finish();
 	}
 
 	@Override
