@@ -24,7 +24,7 @@ public class WithholdingBudgetEntry extends BudgetEntry {
 	}
 
 	@Override
-	public void process(ItemProcessor processor) {
+	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
 

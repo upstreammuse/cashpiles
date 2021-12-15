@@ -16,28 +16,21 @@ import cashpiles.ledger.TransactionEntry;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.model.Ledger;
-import cashpiles.model.LedgerBuilder;
 
 class LedgerReconciler implements Cloneable, ItemProcessor {
 
 	private List<LedgerItem> items = new ArrayList<>();
 	private Transaction originalTransaction;
-	private List<TransactionException> pendingExceptions = new ArrayList<>();
 	private Transaction rebuiltTransaction;
 	private AccountBalance statement;
 	private List<AccountTransactionView> toClear = new ArrayList<>();
 	private List<AccountTransactionView> toDefer = new ArrayList<>();
 
-	private void addOld() {
+	private void addOld() throws TransactionException {
 		if (originalTransaction != null) {
 			items.add(originalTransaction);
 		} else if (rebuiltTransaction != null) {
-			try {
-				rebuiltTransaction.balance();
-			} catch (TransactionException ex) {
-				pendingExceptions.add(ex);
-				return;
-			}
+			rebuiltTransaction.balance();
 			items.add(rebuiltTransaction);
 		}
 		originalTransaction = null;
@@ -49,7 +42,6 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 		try {
 			var retval = (LedgerReconciler) super.clone();
 			retval.items = new ArrayList<>(items);
-			retval.pendingExceptions = new ArrayList<>(pendingExceptions);
 			retval.toClear = new ArrayList<>(toClear);
 			retval.toDefer = new ArrayList<>(toDefer);
 			return retval;
@@ -87,7 +79,7 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 	}
 
 	@Override
-	public boolean process(Transaction transaction) {
+	public boolean process(Transaction transaction) throws TransactionException {
 		addOld();
 		originalTransaction = transaction;
 		rebuiltTransaction = new Transaction(transaction.fileName(), transaction.lineNumber(), transaction.comment())
@@ -96,7 +88,7 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 	}
 
 	@Override
-	public void process(UnbalancedTransaction transaction) {
+	public void process(UnbalancedTransaction transaction) throws TransactionException {
 		addOld();
 		if (toClear.contains(transaction)) {
 			items.add(transaction.withStatus(Transaction.Status.CLEARED));
@@ -108,21 +100,17 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 	}
 
 	@Override
-	public void processGeneric(LedgerItem item) {
+	public void processGeneric(LedgerItem item) throws TransactionException {
 		addOld();
 		items.add(item);
 	}
 
 	public Ledger toLedger() throws LedgerException {
-		if (!pendingExceptions.isEmpty()) {
-			throw pendingExceptions.get(0);
-		}
-		var builder = new LedgerBuilder();
+		var retval = new Ledger();
 		for (var item : items) {
-			item.process(builder);
+			item.process(retval);
 		}
-		var retval = builder.toLedger();
-		retval.add(statement);
+		retval.process(statement);
 		return retval;
 	}
 

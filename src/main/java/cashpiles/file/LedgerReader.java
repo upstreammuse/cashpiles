@@ -16,6 +16,7 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
+import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
@@ -24,7 +25,6 @@ import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionEntry;
-import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
@@ -49,7 +49,7 @@ public class LedgerReader {
 		this.fileName = filename;
 	}
 
-	public void readAll(ItemProcessor processor) throws IOException, LedgerReaderException, TransactionException {
+	public void readAll(ItemProcessor processor) throws IOException, LedgerException {
 		this.processor = processor;
 		for (var line = reader.readLine(); line != null; line = reader.readLine()) {
 			lineNumber++;
@@ -69,7 +69,7 @@ public class LedgerReader {
 		processor.finish();
 	}
 
-	private void processLine(String line) throws LedgerReaderException, TransactionException {
+	private void processLine(String line) throws LedgerException {
 		var comment = "";
 		var split = line.indexOf(';');
 
@@ -104,7 +104,7 @@ public class LedgerReader {
 		}
 	}
 
-	private boolean processAccount(String line, String comment) throws LedgerReaderException {
+	private boolean processAccount(String line, String comment) throws LedgerException {
 		var account = new AccountCommand(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -145,7 +145,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processAccountBalance(String line, String comment) throws LedgerReaderException {
+	private boolean processAccountBalance(String line, String comment) throws LedgerException {
 		var balance = new AccountBalance(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -177,7 +177,7 @@ public class LedgerReader {
 		return true;
 	}
 
-	private boolean processBlank(String line, String comment) {
+	private boolean processBlank(String line, String comment) throws LedgerException {
 		var blank = new BlankLine(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 
@@ -629,7 +629,7 @@ public class LedgerReader {
 
 	}
 
-	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerReaderException {
+	private boolean processUnbalancedTransaction(String line, String comment) throws LedgerException {
 		var xact = new UnbalancedTransaction(fileName, lineNumber, comment);
 		var scanner = new LedgerScanner(line);
 

@@ -36,11 +36,11 @@ public class Budget extends DatedLedgerItem {
 	}
 
 	@Override
-	public void process(ItemProcessor processor) {
+	public void process(ItemProcessor processor) throws LedgerException {
 		if (processor.process(this)) {
-			entries.stream().forEach(e -> {
-				e.process(processor);
-			});
+			for (var entry : entries) {
+				entry.process(processor);
+			}
 		}
 	}
 
