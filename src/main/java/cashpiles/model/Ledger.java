@@ -103,7 +103,7 @@ public class Ledger implements ItemProcessor {
 
 		// and then we can save it all at once safely
 		insertEnd(budget);
-		notify("Transaction");
+		notify("Budget");
 	}
 
 	public void add(Transaction transaction) throws LedgerException {
