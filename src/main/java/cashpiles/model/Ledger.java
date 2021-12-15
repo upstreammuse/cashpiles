@@ -235,7 +235,7 @@ public class Ledger implements ItemProcessor {
 			pendingExceptions.add(ex);
 			return;
 		}
-		entry.trackingAccount().ifPresent(trackingAccount -> processTracking(entry, trackingAccount));
+		processTracking(entry);
 	}
 
 	@Override
@@ -307,7 +307,7 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(OwnerTransactionEntry entry) {
-		entry.trackingAccount().ifPresent(trackingAccount -> processTracking(entry, trackingAccount));
+		processTracking(entry);
 	}
 
 	@Override
@@ -327,26 +327,28 @@ public class Ledger implements ItemProcessor {
 		categories.put(entry.name(), category);
 	}
 
-	private void processTracking(TrackingTransactionEntry entry, String accountName) {
-		var account = accounts.get(accountName);
-		if (account == null) {
-			pendingExceptions.add(LedgerModelException.forUnknown(entry));
-			return;
-		}
-		if (account.status() != AccountCommand.Status.OFF_BUDGET) {
-			pendingExceptions.add(LedgerModelException.forOffBudgetNeeded(entry));
-			return;
-		}
-		if (entry.parent().date().compareTo(account.startDate()) < 0) {
-			pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
-			return;
-		}
+	private void processTracking(TrackingTransactionEntry entry) {
+		entry.trackingAccount().ifPresent(accountName -> {
+			var account = accounts.get(accountName);
+			if (account == null) {
+				pendingExceptions.add(LedgerModelException.forUnknown(entry));
+				return;
+			}
+			if (account.status() != AccountCommand.Status.OFF_BUDGET) {
+				pendingExceptions.add(LedgerModelException.forOffBudgetNeeded(entry));
+				return;
+			}
+			if (entry.parent().date().compareTo(account.startDate()) < 0) {
+				pendingExceptions.add(LedgerModelException.forTooEarly(entry, account.startDate()));
+				return;
+			}
 
-		// TODO this is still wrong for exception safety, since we are modifying the
-		// internal state when a following entry may throw an exception
-		// no exceptions past this point
-		account = account.withTransaction(entry);
-		accounts.put(accountName, account);
+			// TODO this is still wrong for exception safety, since we are modifying the
+			// internal state when a following entry may throw an exception
+			// no exceptions past this point
+			account = account.withTransaction(entry);
+			accounts.put(accountName, account);
+		});
 	}
 
 }
