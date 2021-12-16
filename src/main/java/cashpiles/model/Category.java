@@ -39,8 +39,18 @@ abstract class Category extends ModelItem implements CategoryView {
 	}
 
 	@Override
+	public PeriodView get(int index) {
+		return periods.get(index);
+	}
+
+	@Override
 	public String owner() {
 		return owner;
+	}
+
+	@Override
+	public int size() {
+		return periods.size();
 	}
 
 	@Override

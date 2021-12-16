@@ -7,7 +7,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 
-class BudgetPeriod extends ModelItem {
+class BudgetPeriod extends ModelItem implements PeriodView {
 
 	private final DateRange dates;
 	private List<CategoryTransactionEntry> entries = new ArrayList<>();
@@ -18,12 +18,25 @@ class BudgetPeriod extends ModelItem {
 		this.startBalance = startBalance;
 	}
 
-	Amount balance() {
-		return startBalance.add(entries.parallelStream().map(entry -> entry.amount()).reduce(new Amount(),
-				(total, amount) -> total.add(amount)));
+	@Override
+	public Amount activity() {
+		return entries.parallelStream().map(entry -> entry.amount()).reduce(new Amount(),
+				(total, amount) -> total.add(amount));
 	}
 
-	DateRange dates() {
+	@Override
+	public Amount allocation() {
+		// TODO
+		return new Amount();
+	}
+
+	@Override
+	public Amount balance() {
+		return startBalance.add(activity());
+	}
+
+	@Override
+	public DateRange dates() {
 		return dates;
 	}
 
