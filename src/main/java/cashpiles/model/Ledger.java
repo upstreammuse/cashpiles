@@ -36,7 +36,7 @@ import cashpiles.time.DateRange;
 public class Ledger implements ItemProcessor {
 
 	private final AccountsMap accounts = new AccountsMap();
-	private final TreeMap<String, Category> categories = new TreeMap<>();
+	private final CategoriesMap categories = new CategoriesMap();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
 	private Optional<List<LedgerItem>> preDatedItems = Optional.of(new ArrayList<>());
@@ -47,6 +47,10 @@ public class Ledger implements ItemProcessor {
 
 	public AccountsView getAccounts() {
 		return accounts;
+	}
+
+	public CategoriesView getCategories() {
+		return categories;
 	}
 
 	public StatementsView getStatements(String accountName) {
@@ -171,7 +175,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new GoalCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
@@ -182,7 +186,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new IncomeCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
@@ -202,7 +206,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new ManualGoalCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
@@ -213,7 +217,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new ReserveCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
@@ -224,7 +228,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new RoutineCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
@@ -266,7 +270,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new WithholdingCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()));
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
 		categories.put(entry.name(), category);
 	}
 

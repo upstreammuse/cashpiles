@@ -6,13 +6,18 @@ import cashpiles.time.DateRange;
 
 class WithholdingCategory extends Category {
 
-	WithholdingCategory(LocalDate startDate, DateRange startPeriod) {
-		super(startDate, startPeriod);
+	WithholdingCategory(LocalDate startDate, DateRange startPeriod, String owner) {
+		super(startDate, startPeriod, owner);
 	}
 
 	@Override
 	public WithholdingCategory clone() {
 		return (WithholdingCategory) super.clone();
+	}
+
+	@Override
+	public String type() {
+		return "Withholding";
 	}
 
 }
