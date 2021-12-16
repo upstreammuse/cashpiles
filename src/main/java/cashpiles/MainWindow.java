@@ -16,10 +16,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 
 import cashpiles.account.AccountsPanel;
-import cashpiles.budget.ui.BudgetPanel;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
@@ -30,7 +30,8 @@ import cashpiles.model.Ledger;
 public class MainWindow extends JFrame {
 
 	private final AccountsPanel accountsPanel = new AccountsPanel(this);
-	private final BudgetPanel budgetPanel = new BudgetPanel();
+	private final cashpiles.budget.ui.BudgetPanel budgetPanel = new cashpiles.budget.ui.BudgetPanel();
+	private final cashpiles.budget.redo.BudgetPanel budgetPanelNew = new cashpiles.budget.redo.BudgetPanel();
 	private Ledger ledger = new Ledger();
 
 	MainWindow() {
@@ -86,8 +87,13 @@ public class MainWindow extends JFrame {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
-		layout.setVerticalGroup(layout.createParallelGroup().addComponent(accountsPanel).addComponent(budgetPanel));
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(accountsPanel).addComponent(budgetPanel));
+		var tabs = new JTabbedPane();
+		tabs.addTab("Accounts", accountsPanel);
+		tabs.addTab("Budget", budgetPanel);
+		tabs.addTab("Budget (new)", budgetPanelNew);
+
+		layout.setVerticalGroup(layout.createParallelGroup().addComponent(tabs));
+		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(tabs));
 		pack();
 	}
 
@@ -150,6 +156,7 @@ public class MainWindow extends JFrame {
 		this.ledger = ledger;
 		accountsPanel.setLedger(ledger);
 		budgetPanel.setLedger(ledger);
+		budgetPanelNew.setLedger(ledger);
 	}
 
 }

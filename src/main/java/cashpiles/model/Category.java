@@ -4,24 +4,47 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
-class Category extends ModelItem {
+abstract class Category extends ModelItem implements CategoryView {
 
+	private final String owner;
 	private List<BudgetPeriod> periods = new ArrayList<>();
 	private final LocalDate startDate;
 
 	// TODO there is a separate start date for the possibility of allowing
 	// categories to exist separately from a budget configuration, in which case the
 	// category does not start on the same day as the budget period
-	Category(LocalDate startDate, DateRange startPeriod) {
+	Category(LocalDate startDate, DateRange startPeriod, String owner) {
 		assert (startPeriod.contains(startDate));
+		this.owner = owner;
 		this.startDate = startDate;
-		periods.add(new BudgetPeriod(startPeriod));
+		periods.add(new BudgetPeriod(startPeriod, new Amount()));
 	}
+
+	@Override
+	public Amount balance() {
+		return Lists.lastOf(periods).balance();
+	}
+
+	@Override
+	public Category clone() {
+		var retval = (Category) super.clone();
+		retval.periods = new ArrayList<>(periods);
+		return retval;
+	}
+
+	@Override
+	public String owner() {
+		return owner;
+	}
+
+	@Override
+	abstract public String type();
 
 	Category withDate(CategoryTransactionEntry entry) throws LedgerModelException {
 		if (entry.parent().date().compareTo(periods.get(0).dates().startDate()) < 0) {
@@ -52,7 +75,8 @@ class Category extends ModelItem {
 		}
 
 		// then configure the new period
-		retval.periods.add(new BudgetPeriod(new DateRange(budget.date(), budget.period())));
+		retval.periods.add(new BudgetPeriod(new DateRange(budget.date(), budget.period()),
+				Lists.lastOf(retval.periods).balance()));
 
 		return retval;
 	}
@@ -70,13 +94,6 @@ class Category extends ModelItem {
 		}
 		assert (false) : "withTransaction failed to find matching budget period";
 		return null;
-	}
-
-	@Override
-	public Category clone() {
-		var retval = (Category) super.clone();
-		retval.periods = new ArrayList<>(periods);
-		return retval;
 	}
 
 }
