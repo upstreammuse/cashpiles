@@ -11,6 +11,15 @@ class IncomeCategory extends Category {
 	}
 
 	@Override
+	BudgetPeriod allocate(BudgetPeriod period) {
+		// FIXME this needs to trigger each of the reserve categories to allocate based
+		// on the transaction amount -> fortunately we know the transaction amount
+		// because we always zero the balance, so whatever the outstanding balance here
+		// is what we have to base the reserve % on
+		return period.withAllocation(period.activity().negate());
+	}
+
+	@Override
 	public IncomeCategory clone() {
 		return (IncomeCategory) super.clone();
 	}

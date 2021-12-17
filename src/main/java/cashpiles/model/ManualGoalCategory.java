@@ -11,6 +11,11 @@ class ManualGoalCategory extends Category {
 	}
 
 	@Override
+	BudgetPeriod allocate(BudgetPeriod period) {
+		return period;
+	}
+
+	@Override
 	public ManualGoalCategory clone() {
 		return (ManualGoalCategory) super.clone();
 	}

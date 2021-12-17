@@ -9,8 +9,9 @@ import cashpiles.time.DateRange;
 
 class BudgetPeriod extends ModelItem implements PeriodView {
 
+	private Amount allocation = new Amount();
 	private final DateRange dates;
-	private List<CategoryTransactionEntry> entries = new ArrayList<>();
+	private List<TransactionView> entries = new ArrayList<>();
 	private final Amount startBalance;
 
 	BudgetPeriod(DateRange dates, Amount startBalance) {
@@ -26,13 +27,12 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 
 	@Override
 	public Amount allocation() {
-		// TODO
-		return new Amount();
+		return allocation;
 	}
 
 	@Override
 	public Amount balance() {
-		return startBalance.add(activity());
+		return startBalance.add(allocation()).add(activity());
 	}
 
 	@Override
@@ -42,6 +42,12 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 
 	BudgetPeriod next() {
 		return new BudgetPeriod(dates.next(), balance());
+	}
+
+	BudgetPeriod withAllocation(Amount allocation) {
+		var retval = clone();
+		retval.allocation = allocation;
+		return retval;
 	}
 
 	BudgetPeriod withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {

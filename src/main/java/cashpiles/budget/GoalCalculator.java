@@ -8,13 +8,14 @@ import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
-class GoalCalculator implements Cloneable {
+// TODO modernize this to match the rest of the program's coding style (make it a value class, do clone correctly, better exceptions, etc.)
+public class GoalCalculator implements Cloneable {
 
 	private DateRange allocationDates;
 	private Amount goalAmount;
 	private DateRange goalDates;
 	private boolean goalRepeat;
-	
+
 	@Override
 	public GoalCalculator clone() {
 		GoalCalculator result = new GoalCalculator();
@@ -25,7 +26,7 @@ class GoalCalculator implements Cloneable {
 		return result;
 	}
 
-	Amount getAllocationAmount() {
+	public Amount getAllocationAmount() {
 		var goals = generateGoals();
 		var result = new Amount();
 		for (var goal : goals) {
@@ -37,11 +38,11 @@ class GoalCalculator implements Cloneable {
 		return result;
 	}
 
-	boolean getCompleted() {
+	public boolean getCompleted() {
 		return !goalRepeat && goalDates.endDate().compareTo(allocationDates.endDate()) <= 0;
 	}
 
-	DateRange getNextGoalDates() {
+	public DateRange getNextGoalDates() {
 		if (getCompleted()) {
 			throw new DateTimeException("Goal dates are completed");
 		}
@@ -53,19 +54,19 @@ class GoalCalculator implements Cloneable {
 		return nextDates;
 	}
 
-	void setAllocationDates(DateRange dates) {
+	public void setAllocationDates(DateRange dates) {
 		allocationDates = dates;
 	}
 
-	void setGoalAmount(Amount amount) {
+	public void setGoalAmount(Amount amount) {
 		goalAmount = amount;
 	}
 
-	void setGoalDates(DateRange dates) {
+	public void setGoalDates(DateRange dates) {
 		goalDates = dates;
 	}
 
-	void setGoalRepeat(boolean repeat) {
+	public void setGoalRepeat(boolean repeat) {
 		goalRepeat = repeat;
 	}
 
