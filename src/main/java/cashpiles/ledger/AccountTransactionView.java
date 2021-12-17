@@ -1,18 +1,13 @@
 package cashpiles.ledger;
 
-import java.time.LocalDate;
-
 import cashpiles.currency.Amount;
+import cashpiles.model.TransactionView;
 
-public interface AccountTransactionView {
+public interface AccountTransactionView extends TransactionView {
 
 	Amount accountAmount();
 
-	LocalDate date();
-
 	int deferral();
-
-	String payee();
 
 	Transaction.Status status();
 

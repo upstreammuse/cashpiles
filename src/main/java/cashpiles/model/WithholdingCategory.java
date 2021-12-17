@@ -11,6 +11,11 @@ class WithholdingCategory extends Category {
 	}
 
 	@Override
+	BudgetPeriod allocate(BudgetPeriod period) {
+		return period.withAllocation(period.activity().negate());
+	}
+
+	@Override
 	public WithholdingCategory clone() {
 		return (WithholdingCategory) super.clone();
 	}
