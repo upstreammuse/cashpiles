@@ -73,8 +73,8 @@ abstract public class TrackingTransactionEntry extends TransactionEntry implemen
 	}
 
 	@Override
-	public Transaction.Status status() {
-		return switch (super.status()) {
+	public Transaction.Status accountStatus() {
+		return switch (super.accountStatus()) {
 		case CLEARED -> Transaction.Status.CLEARED;
 		case DISPUTED -> Transaction.Status.DISPUTED;
 		case PENDING -> {

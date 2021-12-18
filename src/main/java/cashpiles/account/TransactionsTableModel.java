@@ -41,7 +41,7 @@ class TransactionsTableModel extends AbstractTableModel {
 		var xact = view.orElseThrow().get(row);
 		return switch (col) {
 		case 0 -> xact.date();
-		case 1 -> xact.status();
+		case 1 -> xact.accountStatus();
 		case 2 -> xact.payee();
 		case 3 -> xact.accountAmount();
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);

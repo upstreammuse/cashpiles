@@ -72,7 +72,7 @@ public class Transaction extends DatedLedgerItem {
 		};
 		for (var entry : entries) {
 			newStatus = switch (newStatus) {
-			case CLEARED -> switch (entry.status()) {
+			case CLEARED -> switch (entry.accountStatus()) {
 				case CLEARED -> Status.CLEARED;
 				case DISPUTED -> Status.CLEARED;
 				case PENDING -> Status.PENDING;
