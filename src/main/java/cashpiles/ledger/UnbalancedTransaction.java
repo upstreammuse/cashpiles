@@ -3,7 +3,6 @@ package cashpiles.ledger;
 import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
-import cashpiles.ledger.Transaction.Status;
 
 public class UnbalancedTransaction extends DatedLedgerItem implements AccountTransactionView {
 
@@ -11,7 +10,7 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 	private Amount amount;
 	int deferral = 0;
 	private String payee;
-	private Status status;
+	private Transaction.Status status;
 
 	public UnbalancedTransaction(String fileName, int lineNumber, String comment) {
 		super(fileName, lineNumber, comment);
@@ -21,19 +20,27 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 		return account;
 	}
 
+	@Override
+	public Transaction.Status accountStatus() {
+		return status;
+	}
+
+	@Override
 	public Amount amount() {
 		return amount;
 	}
 
+	@Override
 	public int deferral() {
 		return deferral;
 	}
 
+	@Override
 	public String payee() {
 		return payee;
 	}
 
-	public Status status() {
+	public Transaction.Status status() {
 		return status;
 	}
 
@@ -55,7 +62,7 @@ public class UnbalancedTransaction extends DatedLedgerItem implements AccountTra
 		return retval;
 	}
 
-	public UnbalancedTransaction withStatus(Status status) {
+	public UnbalancedTransaction withStatus(Transaction.Status status) {
 		var retval = clone();
 		retval.status = status;
 		return retval;

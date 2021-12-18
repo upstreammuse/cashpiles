@@ -58,7 +58,7 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 				retval.deferrals.put(view, remainingDeferrals - 1);
 				it.remove();
 			} else {
-				switch (view.status()) {
+				switch (view.accountStatus()) {
 				case CLEARED:
 				case DISPUTED:
 					break;
@@ -91,7 +91,7 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 				it.remove();
 			}
 		}
-		toRemove.removeIf(x -> switch (x.status()) {
+		toRemove.removeIf(x -> switch (x.accountStatus()) {
 		case CLEARED -> false;
 		case DISPUTED -> false;
 		case PENDING -> true;

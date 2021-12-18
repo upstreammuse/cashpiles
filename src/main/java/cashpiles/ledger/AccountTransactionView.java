@@ -9,6 +9,6 @@ public interface AccountTransactionView extends TransactionView {
 
 	int deferral();
 
-	Transaction.Status status();
+	Transaction.Status accountStatus();
 
 }

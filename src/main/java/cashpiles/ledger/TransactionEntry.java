@@ -29,6 +29,11 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		super(fileName, lineNumber, comment);
 	}
 
+	@Override
+	public Transaction.Status accountStatus() {
+		return status.orElse(parent.status());
+	}
+
 	public Amount amount() {
 		return amount;
 	}
@@ -41,12 +46,8 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		return parent;
 	}
 
-	public Transaction.Status status() {
-		return status.orElse(switch (parent.status()) {
-		case CLEARED -> Transaction.Status.CLEARED;
-		case DISPUTED -> Transaction.Status.CLEARED;
-		case PENDING -> Transaction.Status.PENDING;
-		});
+	public Optional<Transaction.Status> status() {
+		return status;
 	}
 
 	public TransactionEntry withAmount(Amount amount) {

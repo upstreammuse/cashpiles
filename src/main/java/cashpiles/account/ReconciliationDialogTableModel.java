@@ -44,7 +44,7 @@ class ReconciliationDialogTableModel extends AbstractTableModel {
 		// TODO this feels like a hack, but also maybe a clever one
 		case -1 -> item;
 		case 0 -> item.date();
-		case 1 -> item.status();
+		case 1 -> item.accountStatus();
 		case 2 -> item.payee();
 		case 3 -> item.accountAmount();
 		default -> throw new IllegalArgumentException("Unexpected value: " + col);

@@ -96,18 +96,20 @@ public class LedgerWriter implements ItemProcessor {
 		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
-		builder.append(switch (entry.status()) {
-		case CLEARED -> switch (entry.parent().status()) {
-			case CLEARED -> "";
-			case DISPUTED -> "";
-			case PENDING -> "*";
-			};
-		case DISPUTED -> "!";
-		case PENDING -> switch (entry.parent().status()) {
-			case CLEARED -> "?";
-			case DISPUTED -> "?";
-			case PENDING -> "";
-			};
+		entry.status().ifPresent(status -> {
+			builder.append(switch (status) {
+			case CLEARED -> switch (entry.parent().status()) {
+				case CLEARED -> "";
+				case DISPUTED -> "";
+				case PENDING -> "*";
+				};
+			case DISPUTED -> "!";
+			case PENDING -> switch (entry.parent().status()) {
+				case CLEARED -> "?";
+				case DISPUTED -> "?";
+				case PENDING -> "";
+				};
+			});
 		});
 		builder.append(">".repeat(entry.deferral()));
 		if (builder.length() > 0) {
@@ -159,30 +161,32 @@ public class LedgerWriter implements ItemProcessor {
 		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
-		builder.append(switch (entry.status()) {
-		case CLEARED -> {
-			if (entry.trackingAccount().isEmpty()) {
-				yield "";
-			} else {
-				yield switch (entry.parent().status()) {
-				case CLEARED -> "";
-				case DISPUTED -> "";
-				case PENDING -> "*";
-				};
+		entry.status().ifPresent(status -> {
+			builder.append(switch (status) {
+			case CLEARED -> {
+				if (entry.trackingAccount().isEmpty()) {
+					yield "";
+				} else {
+					yield switch (entry.parent().status()) {
+					case CLEARED -> "";
+					case DISPUTED -> "";
+					case PENDING -> "*";
+					};
+				}
 			}
-		}
-		case DISPUTED -> "!";
-		case PENDING -> {
-			if (entry.trackingAccount().isEmpty()) {
-				yield "";
-			} else {
-				yield switch (entry.parent().status()) {
-				case CLEARED -> "?";
-				case DISPUTED -> "?";
-				case PENDING -> "";
-				};
+			case DISPUTED -> "!";
+			case PENDING -> {
+				if (entry.trackingAccount().isEmpty()) {
+					yield "";
+				} else {
+					yield switch (entry.parent().status()) {
+					case CLEARED -> "?";
+					case DISPUTED -> "?";
+					case PENDING -> "";
+					};
+				}
 			}
-		}
+			});
 		});
 		builder.append(">".repeat(entry.deferral()));
 		if (builder.length() > 0) {
@@ -252,6 +256,8 @@ public class LedgerWriter implements ItemProcessor {
 		table.newLine();
 	}
 
+	// TODO this code is almost identical to CategoryTransactionEntry and should be
+	// dried out
 	@Override
 	public void process(OwnerTransactionEntry entry) {
 		if (table == null) {
@@ -259,30 +265,32 @@ public class LedgerWriter implements ItemProcessor {
 		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
-		builder.append(switch (entry.status()) {
-		case CLEARED -> {
-			if (entry.trackingAccount().isEmpty()) {
-				yield "";
-			} else {
-				yield switch (entry.parent().status()) {
-				case CLEARED -> "";
-				case DISPUTED -> "";
-				case PENDING -> "*";
-				};
+		entry.status().ifPresent(status -> {
+			builder.append(switch (status) {
+			case CLEARED -> {
+				if (entry.trackingAccount().isEmpty()) {
+					yield "";
+				} else {
+					yield switch (entry.parent().status()) {
+					case CLEARED -> "";
+					case DISPUTED -> "";
+					case PENDING -> "*";
+					};
+				}
 			}
-		}
-		case DISPUTED -> "!";
-		case PENDING -> {
-			if (entry.trackingAccount().isEmpty()) {
-				yield "";
-			} else {
-				yield switch (entry.parent().status()) {
-				case CLEARED -> "?";
-				case DISPUTED -> "?";
-				case PENDING -> "";
-				};
+			case DISPUTED -> "!";
+			case PENDING -> {
+				if (entry.trackingAccount().isEmpty()) {
+					yield "";
+				} else {
+					yield switch (entry.parent().status()) {
+					case CLEARED -> "?";
+					case DISPUTED -> "?";
+					case PENDING -> "";
+					};
+				}
 			}
-		}
+			});
 		});
 		builder.append(">".repeat(entry.deferral()));
 		if (builder.length() > 0) {
