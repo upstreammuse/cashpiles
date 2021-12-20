@@ -484,7 +484,7 @@ public class LedgerReader {
 		}
 		}
 
-		if (status.codePoints().parallel().filter(codePoint -> codePoint == '*' || codePoint == '?' || codePoint == '*')
+		if (status.codePoints().parallel().filter(codePoint -> codePoint == '!' || codePoint == '?' || codePoint == '*')
 				.count() > 1) {
 			throw LedgerReaderException.forMultipleEntryStatus(entry);
 		}
