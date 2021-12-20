@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import cashpiles.currency.Amount;
 
-abstract public class TrackingTransactionEntry extends TransactionEntry implements AccountTransactionView {
+abstract public class TrackingTransactionEntry extends TransactionEntry {
 
 	private Optional<String> trackingAccount = Optional.empty();
 

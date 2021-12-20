@@ -1,4 +1,4 @@
-package cashpiles.model;
+package cashpiles.ledger;
 
 import java.time.LocalDate;
 
