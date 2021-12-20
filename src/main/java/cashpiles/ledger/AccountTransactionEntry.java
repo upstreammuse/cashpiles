@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
 
-public class AccountTransactionEntry extends TransactionEntry implements AccountTransactionView {
+public class AccountTransactionEntry extends TransactionEntry {
 
 	private String account;
 

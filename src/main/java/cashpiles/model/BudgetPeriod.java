@@ -5,6 +5,7 @@ import java.util.List;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.ledger.TransactionView;
 import cashpiles.time.DateRange;
 
 class BudgetPeriod extends ModelItem implements PeriodView {
