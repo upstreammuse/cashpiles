@@ -29,11 +29,10 @@ public class BudgetPanel extends JPanel {
 			if (event.getValueIsAdjusting()) {
 				return;
 			}
-			for (var i = event.getFirstIndex(); i <= event.getLastIndex(); i++) {
-				if (categoryTable.isRowSelected(i)) {
-					selectedCategory = Optional.of(i);
-					refreshPeriods();
-				}
+			int[] selection = categoryTable.getSelectedRows();
+			if (selection.length >= 1) {
+				selectedCategory = Optional.of(categoryTable.convertRowIndexToModel(selection[0]));
+				refreshPeriods();
 			}
 		});
 		refresh();
