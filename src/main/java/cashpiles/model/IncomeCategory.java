@@ -2,6 +2,7 @@ package cashpiles.model;
 
 import java.time.LocalDate;
 
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 
 class IncomeCategory extends Category {
@@ -27,6 +28,13 @@ class IncomeCategory extends Category {
 	@Override
 	public String type() {
 		return "Income";
+	}
+
+	@Override
+	public Allocation withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {
+		var retval = super.withTransaction(entry);
+		retval = retval.makeActive();
+		return retval;
 	}
 
 }

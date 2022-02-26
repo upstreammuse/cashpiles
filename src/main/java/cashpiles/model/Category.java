@@ -14,7 +14,7 @@ import cashpiles.util.Lists;
 abstract class Category extends ModelItem implements CategoryView {
 
 	private final String owner;
-	private List<BudgetPeriod> periods = new ArrayList<>();
+	protected List<BudgetPeriod> periods = new ArrayList<>();
 	private final LocalDate startDate;
 	private final DateRange startDates;
 
@@ -67,6 +67,10 @@ abstract class Category extends ModelItem implements CategoryView {
 	@Override
 	abstract public String type();
 
+	Category withAllocation(Allocation allocation) throws LedgerModelException {
+		return this;
+	}
+
 	Category withDate(CategoryTransactionEntry entry) throws LedgerModelException {
 		var retval = clone();
 		if (entry.parent().date().compareTo(retval.periods.get(0).dates().startDate()) < 0) {
@@ -105,14 +109,14 @@ abstract class Category extends ModelItem implements CategoryView {
 		return retval;
 	}
 
-	Category withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {
-		var retval = withDate(entry);
-		var period = Lists.lastOf(retval.periods);
-		retval.periods.remove(retval.periods.size() - 1);
+	Allocation withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {
+		var updated = withDate(entry);
+		var period = Lists.lastOf(updated.periods);
+		updated.periods.remove(updated.periods.size() - 1);
 		period = period.withTransaction(entry);
 		period = allocate(period);
-		retval.periods.add(period);
-		return retval;
+		updated.periods.add(period);
+		return new Allocation(updated, entry);
 	}
 
 }
