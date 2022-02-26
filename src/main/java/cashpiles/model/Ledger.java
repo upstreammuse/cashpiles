@@ -4,9 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
@@ -41,7 +39,6 @@ public class Ledger implements ItemProcessor {
 	private final CategoriesMap categories = new CategoriesMap();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
-	private final Map<String, Amount> owners = new HashMap<>();
 	private Optional<List<LedgerItem>> preDatedItems = Optional.of(new ArrayList<>());
 
 	public void addListener(ActionListener listener) {
@@ -166,8 +163,12 @@ public class Ledger implements ItemProcessor {
 		for (var c : categories.entrySet()) {
 			c.setValue(c.getValue().withDate(entry));
 		}
-		category = category.withTransaction(entry);
-		categories.put(entry.category(), category);
+
+		var allocation = category.withTransaction(entry);
+		categories.put(entry.category(), allocation.category());
+		for (var c : categories.entrySet()) {
+			c.setValue(c.getValue().withAllocation(allocation));
+		}
 		processTracking(entry);
 	}
 
@@ -219,7 +220,7 @@ public class Ledger implements ItemProcessor {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
 		category = new ReserveCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
+				new DateRange(entry.parent().date(), entry.parent().period()), entry.percentage(), entry.owner());
 		categories.put(entry.name(), category);
 	}
 
