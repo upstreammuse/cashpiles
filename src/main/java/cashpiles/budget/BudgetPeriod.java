@@ -84,8 +84,6 @@ public class BudgetPeriod {
 		return balance;
 	}
 
-	// TODO replace all the REs with something typed so that we can have decent
-	// errors in the GUI
 	public void configureCategory(CloseBudgetEntry entry) throws BudgetException {
 		if (!categories.containsKey(entry.name())) {
 			throw BudgetException.forClosedCategory(entry);
