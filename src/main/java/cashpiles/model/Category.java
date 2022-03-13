@@ -14,7 +14,7 @@ import cashpiles.util.Lists;
 abstract class Category extends ModelItem implements CategoryView {
 
 	private final String owner;
-	protected List<BudgetPeriod> periods = new ArrayList<>();
+	private List<BudgetPeriod> periods = new ArrayList<>();
 	private final LocalDate startDate;
 	private final DateRange startDates;
 
@@ -28,7 +28,13 @@ abstract class Category extends ModelItem implements CategoryView {
 		this.startDates = startDates;
 	}
 
-	abstract BudgetPeriod allocate(BudgetPeriod period);
+	Category allocate(Allocation allocation) throws LedgerModelException {
+		return allocation.allocate(this);
+	}
+
+	BudgetPeriod allocate(BudgetPeriod period) {
+		return period;
+	}
 
 	@Override
 	public Amount balance() {
@@ -67,8 +73,12 @@ abstract class Category extends ModelItem implements CategoryView {
 	@Override
 	abstract public String type();
 
-	Category withAllocation(Allocation allocation) throws LedgerModelException {
-		return this;
+	Category withAllocation(Amount amount) throws LedgerModelException {
+		var retval = clone();
+		var lastPeriod = Lists.lastOf(retval.periods);
+		retval.periods.remove(retval.periods.size() - 1);
+		retval.periods.add(lastPeriod.withAllocation(amount));
+		return retval;
 	}
 
 	Category withDate(CategoryTransactionEntry entry) throws LedgerModelException {
@@ -114,6 +124,11 @@ abstract class Category extends ModelItem implements CategoryView {
 		var period = Lists.lastOf(updated.periods);
 		updated.periods.remove(updated.periods.size() - 1);
 		period = period.withTransaction(entry);
+		// FIXME (?) the period under allocation does not exist in the cloned "updated"
+		// var, but it *does* exist in the "this" var. How does this play into the way
+		// the allocate method is used in subclasses? Because if a subclass object
+		// refers back to this object, then they are working with an object that still
+		// has the period under allocation in its working set of periods.
 		period = allocate(period);
 		updated.periods.add(period);
 		return new Allocation(updated, entry);

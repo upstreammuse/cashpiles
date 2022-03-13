@@ -167,7 +167,7 @@ public class Ledger implements ItemProcessor {
 		var allocation = category.withTransaction(entry);
 		categories.put(entry.category(), allocation.category());
 		for (var c : categories.entrySet()) {
-			c.setValue(c.getValue().withAllocation(allocation));
+			c.setValue(c.getValue().allocate(allocation));
 		}
 		processTracking(entry);
 	}

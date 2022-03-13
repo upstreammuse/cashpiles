@@ -13,10 +13,6 @@ class IncomeCategory extends Category {
 
 	@Override
 	BudgetPeriod allocate(BudgetPeriod period) {
-		// FIXME this needs to trigger each of the reserve categories to allocate based
-		// on the transaction amount -> fortunately we know the transaction amount
-		// because we always zero the balance, so whatever the outstanding balance here
-		// is what we have to base the reserve % on
 		return period.withAllocation(period.activity().negate());
 	}
 
@@ -32,9 +28,8 @@ class IncomeCategory extends Category {
 
 	@Override
 	public Allocation withTransaction(CategoryTransactionEntry entry) throws LedgerModelException {
-		var retval = super.withTransaction(entry);
-		retval = retval.makeActive();
-		return retval;
+		var alloc = super.withTransaction(entry);
+		return new IncomeAllocation(alloc.category(), alloc.entry());
 	}
 
 }
