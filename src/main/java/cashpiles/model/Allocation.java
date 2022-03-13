@@ -4,7 +4,6 @@ import cashpiles.ledger.CategoryTransactionEntry;
 
 class Allocation extends ModelItem {
 
-	private boolean active = false;
 	private Category category;
 	private CategoryTransactionEntry entry;
 
@@ -13,8 +12,12 @@ class Allocation extends ModelItem {
 		this.entry = entry;
 	}
 
-	boolean active() {
-		return active;
+	Category allocate(Category category) {
+		return category;
+	}
+
+	Category allocate(ReserveCategory category) throws LedgerModelException {
+		return category;
 	}
 
 	Category category() {
@@ -23,12 +26,6 @@ class Allocation extends ModelItem {
 
 	CategoryTransactionEntry entry() {
 		return entry;
-	}
-
-	Allocation makeActive() {
-		var retval = clone();
-		retval.active = true;
-		return retval;
 	}
 
 	@Override
