@@ -9,7 +9,7 @@ class IncomeAllocation extends Allocation {
 	}
 
 	@Override
-	Category allocate(ReserveCategory category) throws LedgerModelException {
+	ReserveCategory allocate(ReserveCategory category) throws LedgerModelException {
 		return category.allocate(entry());
 	}
 
