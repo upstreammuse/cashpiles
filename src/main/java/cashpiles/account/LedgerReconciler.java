@@ -52,6 +52,11 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 	}
 
 	@Override
+	public void finish() throws TransactionException {
+		addOld();
+	}
+
+	@Override
 	public void process(AccountTransactionEntry entry) {
 		processEntry(entry);
 	}
@@ -59,6 +64,14 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 	@Override
 	public void process(CategoryTransactionEntry entry) {
 		processEntry(entry);
+	}
+
+	public void process(ItemProcessor processor) throws LedgerException {
+		for (var item : items) {
+			item.process(processor);
+		}
+		processor.process(statement);
+		processor.finish();
 	}
 
 	@Override
@@ -107,10 +120,7 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 
 	public Ledger toLedger() throws LedgerException {
 		var retval = new Ledger();
-		for (var item : items) {
-			item.process(retval);
-		}
-		retval.process(statement);
+		process(retval);
 		return retval;
 	}
 
