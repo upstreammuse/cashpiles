@@ -11,8 +11,6 @@ public class ReserveBudgetEntry extends BudgetEntry {
 		super(fileName, lineNumber, comment);
 	}
 
-	// TODO consider an "OwnedBudgetCategory" or similar to parent all the
-	// categories with an owner attached
 	public String owner() {
 		return owner;
 	}
