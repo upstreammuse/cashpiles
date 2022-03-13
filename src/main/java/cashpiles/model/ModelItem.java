@@ -7,7 +7,7 @@ class ModelItem implements Cloneable {
 		try {
 			return (ModelItem) super.clone();
 		} catch (CloneNotSupportedException ex) {
-			return null;
+			throw new RuntimeException(ex);
 		}
 	}
 

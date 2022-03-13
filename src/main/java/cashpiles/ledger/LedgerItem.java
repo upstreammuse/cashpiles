@@ -32,7 +32,7 @@ public abstract class LedgerItem implements Cloneable {
 		try {
 			return (LedgerItem) super.clone();
 		} catch (CloneNotSupportedException ex) {
-			return null;
+			throw new RuntimeException(ex);
 		}
 	}
 

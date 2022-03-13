@@ -46,7 +46,6 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 			retval.toDefer = new ArrayList<>(toDefer);
 			return retval;
 		} catch (CloneNotSupportedException ex) {
-			// TODO have a common system for what to do here for cloneable top level parents
 			throw new RuntimeException(ex);
 		}
 	}
