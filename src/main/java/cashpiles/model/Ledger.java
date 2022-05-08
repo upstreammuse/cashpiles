@@ -242,8 +242,7 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public boolean process(Transaction transaction) throws TransactionException {
-		transaction.balance();
-		insertEnd(transaction);
+		insertEnd(transaction.withBalance());
 		notify("Transaction");
 		return true;
 	}

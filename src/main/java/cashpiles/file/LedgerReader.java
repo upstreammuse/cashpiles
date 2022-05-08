@@ -62,7 +62,7 @@ public class LedgerReader {
 			activeBudget = null;
 		}
 		if (activeTransaction != null) {
-			activeTransaction.balance();
+			activeTransaction = activeTransaction.withBalance();
 			activeTransaction.process(processor);
 			activeTransaction = null;
 		}
@@ -91,7 +91,7 @@ public class LedgerReader {
 
 		if (activeTransaction != null && !processStatusedTransactionLine(line, comment)
 				&& !processTransactionLine(line, comment) && !processTransactionTrackingLine(line, comment)) {
-			activeTransaction.balance();
+			activeTransaction = activeTransaction.withBalance();
 			activeTransaction.process(processor);
 			activeTransaction = null;
 		}

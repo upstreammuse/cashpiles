@@ -30,7 +30,7 @@ class LedgerReconciler implements Cloneable, ItemProcessor {
 		if (originalTransaction != null) {
 			items.add(originalTransaction);
 		} else if (rebuiltTransaction != null) {
-			rebuiltTransaction.balance();
+			rebuiltTransaction = rebuiltTransaction.withBalance();
 			items.add(rebuiltTransaction);
 		}
 		originalTransaction = null;
