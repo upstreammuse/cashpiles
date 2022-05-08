@@ -6,20 +6,6 @@ import cashpiles.currency.Amount;
 
 abstract public class TransactionEntry extends LedgerItem implements AccountTransactionView {
 
-	// TODO move to transaction
-	static class BalanceResult {
-		Amount accountTotal = new Amount();
-		Amount categoryTotal = new Amount();
-		int emptyEntries = 0;
-
-		Amount confirmBalanced(Transaction transaction) throws TransactionException {
-			if (!accountTotal.equals(categoryTotal)) {
-				throw TransactionException.forUnbalanced(transaction, accountTotal, categoryTotal);
-			}
-			return accountTotal;
-		}
-	};
-
 	private Amount amount;
 	private int deferral = 0;
 	private Transaction parent;
@@ -74,9 +60,9 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		return retval;
 	}
 
-	abstract void addToBalance(BalanceResult balancer) throws TransactionException;
+	abstract void addToBalance(Transaction.BalanceResult balancer) throws TransactionException;
 
-	abstract TransactionEntry fromBalance(BalanceResult balancer);
+	abstract TransactionEntry fromBalance(Transaction.BalanceResult balancer);
 
 	@Override
 	public TransactionEntry clone() {

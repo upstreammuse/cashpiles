@@ -24,7 +24,7 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	void addToBalance(BalanceResult balancer) throws TransactionException {
+	void addToBalance(Transaction.BalanceResult balancer) throws TransactionException {
 		if (amount() == null) {
 			if (balancer.emptyEntries < 1) {
 				balancer.emptyEntries++;
@@ -37,7 +37,7 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	TrackingTransactionEntry fromBalance(BalanceResult balancer) {
+	TrackingTransactionEntry fromBalance(Transaction.BalanceResult balancer) {
 		if (amount() == null) {
 			var retval = withAmount(balancer.accountTotal.add(balancer.categoryTotal.negate()));
 			balancer.categoryTotal = balancer.accountTotal;
