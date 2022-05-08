@@ -33,6 +33,43 @@ public class Transaction extends DatedLedgerItem {
 		return total;
 	}
 
+	public Transaction withBalance() throws TransactionException {
+		var retval = clone();
+		var balancer = new TransactionEntry.BalanceResult();
+		for (var entry : retval.entries) {
+			entry.addToBalance(balancer);
+		}
+		var entries2 = new ArrayList<TransactionEntry>();
+		for (var entry : retval.entries) {
+			entries2.add(entry.fromBalance(balancer).withParent(retval));
+		}
+		retval.entries = entries2;
+		retval.total = balancer.confirmBalanced(retval);
+
+		// do not use status directly, because during the loop, the entries may call
+		// parent().status() if they do not have explicit statuses set
+		var newStatus = switch (retval.status) {
+		case CLEARED -> Status.CLEARED;
+		case DISPUTED -> Status.DISPUTED;
+		case PENDING -> Status.CLEARED;
+		};
+		for (var entry : retval.entries) {
+			newStatus = switch (newStatus) {
+			case CLEARED -> switch (entry.accountStatus()) {
+			case CLEARED -> Status.CLEARED;
+			case DISPUTED -> Status.CLEARED;
+			case PENDING -> Status.PENDING;
+			};
+			case DISPUTED -> newStatus;
+			case PENDING -> newStatus;
+			};
+		}
+		// update status once all entries are examined
+		retval.status = newStatus;
+
+		return retval;
+	}
+
 	public Transaction withEntry(TransactionEntry entry) {
 		var retval = clone();
 		retval.entries.add(entry.withParent(retval));
@@ -49,40 +86,6 @@ public class Transaction extends DatedLedgerItem {
 		var retval = clone();
 		retval.status = status;
 		return retval;
-	}
-
-	public void balance() throws TransactionException {
-		var balancer = new TransactionEntry.BalanceResult();
-		for (var entry : entries) {
-			entry.addToBalance(balancer);
-		}
-		var entries2 = new ArrayList<TransactionEntry>();
-		for (var entry : entries) {
-			entries2.add(entry.fromBalance(balancer).withParent(this));
-		}
-		entries = entries2;
-		total = balancer.confirmBalanced(this);
-
-		// do not use status directly, because during the loop, the entries may call
-		// parent().status() if they do not have explicit statuses set
-		var newStatus = switch (status) {
-		case CLEARED -> Status.CLEARED;
-		case DISPUTED -> Status.DISPUTED;
-		case PENDING -> Status.CLEARED;
-		};
-		for (var entry : entries) {
-			newStatus = switch (newStatus) {
-			case CLEARED -> switch (entry.accountStatus()) {
-				case CLEARED -> Status.CLEARED;
-				case DISPUTED -> Status.CLEARED;
-				case PENDING -> Status.PENDING;
-				};
-			case DISPUTED -> newStatus;
-			case PENDING -> newStatus;
-			};
-		}
-		// update status once all entries are examined
-		status = newStatus;
 	}
 
 	@Override
