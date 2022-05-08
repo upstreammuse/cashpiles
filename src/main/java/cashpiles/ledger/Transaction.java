@@ -8,6 +8,19 @@ import cashpiles.currency.Amount;
 
 public class Transaction extends DatedLedgerItem {
 
+	static class BalanceResult {
+		Amount accountTotal = new Amount();
+		Amount categoryTotal = new Amount();
+		int emptyEntries = 0;
+
+		Amount confirmBalanced(Transaction transaction) throws TransactionException {
+			if (!accountTotal.equals(categoryTotal)) {
+				throw TransactionException.forUnbalanced(transaction, accountTotal, categoryTotal);
+			}
+			return accountTotal;
+		}
+	};
+
 	public enum Status {
 		CLEARED, DISPUTED, PENDING
 	};
@@ -35,7 +48,7 @@ public class Transaction extends DatedLedgerItem {
 
 	public Transaction withBalance() throws TransactionException {
 		var retval = clone();
-		var balancer = new TransactionEntry.BalanceResult();
+		var balancer = new BalanceResult();
 		for (var entry : retval.entries) {
 			entry.addToBalance(balancer);
 		}
