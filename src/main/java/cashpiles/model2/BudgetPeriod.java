@@ -5,6 +5,7 @@ import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.time.DateRange;
 
@@ -62,6 +63,16 @@ class BudgetPeriod extends ModelItem {
 		for (var entry : retval.categories.entrySet()) {
 			entry.setValue(entry.getValue().reset());
 		}
+		return retval;
+	}
+
+	BudgetPeriod withTransaction(CategoryTransactionEntry entry) throws ModelException {
+		var retval = clone();
+		if (!retval.categories.containsKey(entry.category())) {
+			throw ModelException.forUnknownCategory(entry);
+		}
+		var category = retval.categories.get(entry.category());
+		retval.categories.put(entry.category(), category.withTransaction(entry));
 		return retval;
 	}
 
