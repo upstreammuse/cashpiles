@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
+import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.util.Lists;
@@ -61,10 +63,29 @@ class Ledger implements ItemProcessor {
 	}
 
 	@Override
+	public void process(CategoryTransactionEntry entry) throws ModelException {
+		ensurePeriod(entry.parent());
+		var period = Lists.lastOf(periods);
+		periods.remove(period);
+		periods.add(period.withTransaction(entry));
+	}
+
+	@Override
 	public void process(CloseBudgetEntry entry) throws LedgerException {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
+	}
+
+	// make sure there's at least one budget period, and that the budget covers the
+	// latest date
+	private void ensurePeriod(DatedLedgerItem item) throws ModelException {
+		if (periods.isEmpty()) {
+			throw ModelException.forNoBudget(item);
+		}
+		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
+			periods.add(Lists.lastOf(periods).next());
+		}
 	}
 
 	// make sure there's at least one budget period, using the current Budget entry

@@ -1,12 +1,17 @@
 package cashpiles.model2;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 
 @SuppressWarnings("serial")
 class ModelException extends LedgerException {
+
+	static ModelException forNoBudget(LedgerItem item) {
+		return new ModelException(item, "Cannot use budget features without a budget configured");
+	}
 
 	static ModelException forNonZeroBalance(CloseBudgetEntry entry) {
 		return new ModelException(entry, "Cannot close budget category with nonzero balance");
@@ -18,6 +23,10 @@ class ModelException extends LedgerException {
 
 	static ModelException forOutOfSyncBudget(Budget budget) {
 		return new ModelException(budget, "Cannot start new budget period here");
+	}
+
+	static ModelException forUnknownCategory(CategoryTransactionEntry entry) {
+		return new ModelException(entry, "Cannot use unknown budget category");
 	}
 
 	ModelException(LedgerItem item, String message) {
