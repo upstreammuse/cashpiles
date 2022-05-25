@@ -36,6 +36,17 @@ class Ledger implements ItemProcessor {
 	private ItemProcessor budgetEntryProcessor = new NullProcessor();
 	private List<BudgetPeriod> periods = new ArrayList<>();
 
+	// make sure there's at least one budget period, and that the budget covers the
+	// latest date
+	private void ensurePeriod(DatedLedgerItem item) throws ModelException {
+		if (periods.isEmpty()) {
+			throw ModelException.forNoBudget(item);
+		}
+		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
+			periods.add(Lists.lastOf(periods).next());
+		}
+	}
+
 	@Override
 	public boolean process(Budget budget) throws ModelException {
 		// if no periods yet, the provided budget entry can be the first one as-is
@@ -76,17 +87,6 @@ class Ledger implements ItemProcessor {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
-	}
-
-	// make sure there's at least one budget period, and that the budget covers the
-	// latest date
-	private void ensurePeriod(DatedLedgerItem item) throws ModelException {
-		if (periods.isEmpty()) {
-			throw ModelException.forNoBudget(item);
-		}
-		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
-			periods.add(Lists.lastOf(periods).next());
-		}
 	}
 
 }
