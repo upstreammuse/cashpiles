@@ -1,6 +1,7 @@
 package cashpiles.model2;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.LedgerException;
@@ -9,11 +10,15 @@ import cashpiles.ledger.LedgerItem;
 @SuppressWarnings("serial")
 class ModelException extends LedgerException {
 
+	static ModelException forExistingCategory(BudgetEntry entry) {
+		return new ModelException(entry, "Budget category already exists");
+	}
+
 	static ModelException forNoBudget(LedgerItem item) {
 		return new ModelException(item, "Cannot use budget features without a budget configured");
 	}
 
-	static ModelException forOrphanBudgetEntry(CloseBudgetEntry entry) {
+	static ModelException forOrphanBudgetEntry(BudgetEntry entry) {
 		return new ModelException(entry, "Cannot have partial budget entry");
 	}
 
