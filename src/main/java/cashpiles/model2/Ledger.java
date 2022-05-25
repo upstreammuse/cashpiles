@@ -14,14 +14,6 @@ import cashpiles.util.Lists;
 // this is *not* a data class, and mutates as data is fed to it for processing
 class Ledger implements ItemProcessor {
 
-	private class NullProcessor implements ItemProcessor {
-
-		public void process(CloseBudgetEntry entry) throws ModelException {
-			throw ModelException.forOrphanBudgetEntry(entry);
-		}
-
-	}
-
 	private class BudgetEntryProcessor implements ItemProcessor {
 
 		public void process(CloseBudgetEntry entry) throws ModelException {
@@ -33,8 +25,15 @@ class Ledger implements ItemProcessor {
 
 	}
 
-	private ItemProcessor budgetEntryProcessor = new NullProcessor();
+	private class NullProcessor implements ItemProcessor {
 
+		public void process(CloseBudgetEntry entry) throws ModelException {
+			throw ModelException.forOrphanBudgetEntry(entry);
+		}
+
+	}
+
+	private ItemProcessor budgetEntryProcessor = new NullProcessor();
 	private List<BudgetPeriod> periods = new ArrayList<>();
 
 	@Override
@@ -64,6 +63,8 @@ class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(CategoryTransactionEntry entry) throws ModelException {
+		// TODO do the same thing with transaction management as with budget management,
+		// with an internal processor that either throws errors or does this work
 		ensurePeriod(entry.parent());
 		var period = Lists.lastOf(periods);
 		periods.remove(period);
@@ -85,14 +86,6 @@ class Ledger implements ItemProcessor {
 		}
 		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
 			periods.add(Lists.lastOf(periods).next());
-		}
-	}
-
-	// make sure there's at least one budget period, using the current Budget entry
-	// to create one if not
-	private void ensurePeriod(Budget budget) {
-		if (periods.isEmpty()) {
-			periods.add(new BudgetPeriod(budget));
 		}
 	}
 

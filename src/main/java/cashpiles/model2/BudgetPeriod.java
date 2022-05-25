@@ -1,6 +1,7 @@
 package cashpiles.model2;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
@@ -18,21 +19,30 @@ class BudgetPeriod extends ModelItem {
 	// the dates covered by this period
 	private DateRange dates;
 
+	// the unallocated balances of each owner as of this budget period
+	private Map<String, Amount> owners = new TreeMap<>();
+
 	// create the first budget period
 	BudgetPeriod(Budget budget) {
 		dates = new DateRange(budget.date(), budget.period());
 	}
 
-	// remove the category if it has a zero balance, which is safe because it only
-	// happens in the context of a budget, which can only happen at the beginning of
-	// a new budget period
 	BudgetPeriod close(CloseBudgetEntry entry) throws ModelException {
-		var retval = clone();
-		var category = retval.categories.get(entry.name());
-		if (!category.balance().equals(new Amount())) {
-			throw ModelException.forNonZeroBalance(entry);
+		// make the new value if we have what is needed
+		if (!categories.containsKey(entry.name())) {
+			throw ModelException.forUnknownCategory(entry);
 		}
-		retval.categories.remove(entry.name());
+		var retval = clone();
+
+		// clear the category out of the new value
+		var category = retval.categories.remove(entry.name());
+
+		// modify the owner balance of the new value
+		var ownerBalance = Optional.ofNullable(retval.owners.get(category.owner())).orElse(new Amount());
+		ownerBalance = ownerBalance.add(category.balance());
+		retval.owners.put(category.owner(), ownerBalance);
+
+		// provide the new value
 		return retval;
 	}
 
@@ -67,10 +77,10 @@ class BudgetPeriod extends ModelItem {
 	}
 
 	BudgetPeriod withTransaction(CategoryTransactionEntry entry) throws ModelException {
-		var retval = clone();
-		if (!retval.categories.containsKey(entry.category())) {
+		if (!categories.containsKey(entry.category())) {
 			throw ModelException.forUnknownCategory(entry);
 		}
+		var retval = clone();
 		var category = retval.categories.get(entry.category());
 		retval.categories.put(entry.category(), category.withTransaction(entry));
 		return retval;
@@ -80,6 +90,7 @@ class BudgetPeriod extends ModelItem {
 	public BudgetPeriod clone() {
 		var retval = (BudgetPeriod) super.clone();
 		retval.categories = new TreeMap<>(retval.categories);
+		retval.owners = new TreeMap<>(retval.owners);
 		return retval;
 	}
 

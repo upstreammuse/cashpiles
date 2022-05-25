@@ -6,8 +6,12 @@ import cashpiles.ledger.CategoryTransactionEntry;
 // this is an immutable data class
 class Category extends ModelItem {
 
-	public Amount balance() {
+	Amount balance() {
 		return new Amount();
+	}
+
+	String owner() {
+		return "";
 	}
 
 	Category reset() {
