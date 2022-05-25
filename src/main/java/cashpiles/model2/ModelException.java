@@ -13,10 +13,6 @@ class ModelException extends LedgerException {
 		return new ModelException(item, "Cannot use budget features without a budget configured");
 	}
 
-	static ModelException forNonZeroBalance(CloseBudgetEntry entry) {
-		return new ModelException(entry, "Cannot close budget category with nonzero balance");
-	}
-
 	static ModelException forOrphanBudgetEntry(CloseBudgetEntry entry) {
 		return new ModelException(entry, "Cannot have partial budget entry");
 	}
@@ -26,6 +22,10 @@ class ModelException extends LedgerException {
 	}
 
 	static ModelException forUnknownCategory(CategoryTransactionEntry entry) {
+		return new ModelException(entry, "Cannot use unknown budget category");
+	}
+
+	static ModelException forUnknownCategory(CloseBudgetEntry entry) {
 		return new ModelException(entry, "Cannot use unknown budget category");
 	}
 
