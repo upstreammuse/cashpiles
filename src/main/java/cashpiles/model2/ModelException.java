@@ -4,6 +4,7 @@ import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
+import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
 import cashpiles.ledger.TransactionEntry;
@@ -25,6 +26,10 @@ class ModelException extends LedgerException {
 
 	static ModelException forOrphan(TransactionEntry entry) {
 		return new ModelException(entry, "Cannot have partial transaction entry");
+	}
+
+	static ModelException forOutOfRange(DatedLedgerItem item) {
+		return new ModelException(item, "Item does not occur during current budget period");
 	}
 
 	static ModelException forOutOfSync(Budget budget) {
