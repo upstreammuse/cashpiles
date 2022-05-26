@@ -31,7 +31,7 @@ class BudgetPeriod extends ModelItem {
 	BudgetPeriod close(CloseBudgetEntry entry) throws ModelException {
 		// make the new value if we have what is needed
 		if (!categories.containsKey(entry.name())) {
-			throw ModelException.forUnknownCategory(entry);
+			throw ModelException.forUnknown(entry);
 		}
 		var retval = clone();
 
@@ -69,7 +69,7 @@ class BudgetPeriod extends ModelItem {
 		var retval = clone();
 		retval.dates = new DateRange(retval.dates.next().startDate(), budget.period());
 		if (!retval.dates.startDate().equals(budget.date())) {
-			throw ModelException.forOutOfSyncBudget(budget);
+			throw ModelException.forOutOfSync(budget);
 		}
 		for (var entry : retval.categories.entrySet()) {
 			entry.setValue(entry.getValue().reset());
@@ -79,7 +79,7 @@ class BudgetPeriod extends ModelItem {
 
 	BudgetPeriod withCategory(GoalBudgetEntry entry) throws ModelException {
 		if (categories.containsKey(entry.name())) {
-			throw ModelException.forExistingCategory(entry);
+			throw ModelException.forExisting(entry);
 		}
 		var retval = clone();
 		retval.categories.put(entry.name(), new GoalCategory(entry));
@@ -88,7 +88,7 @@ class BudgetPeriod extends ModelItem {
 
 	BudgetPeriod withTransaction(CategoryTransactionEntry entry) throws ModelException {
 		if (!categories.containsKey(entry.category())) {
-			throw ModelException.forUnknownCategory(entry);
+			throw ModelException.forUnknown(entry);
 		}
 		var retval = clone();
 		var category = retval.categories.get(entry.category());
