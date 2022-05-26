@@ -92,7 +92,11 @@ class BudgetPeriod extends ModelItem {
 		}
 		var retval = clone();
 		var category = retval.categories.get(entry.category());
-		retval.categories.put(entry.category(), category.withTransaction(entry));
+		var allocation = category.withTransaction(entry);
+		retval.categories.put(entry.category(), allocation.category());
+		for (var c : retval.categories.entrySet()) {
+			c.setValue(c.getValue().withAllocation(allocation));
+		}
 		return retval;
 	}
 

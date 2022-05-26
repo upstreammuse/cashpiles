@@ -92,6 +92,8 @@ class Ledger implements ItemProcessor {
 	public void process(CategoryTransactionEntry entry) throws ModelException {
 		// TODO do the same thing with transaction management as with budget management,
 		// with an internal processor that either throws errors or does this work
+		// TODO make sure the date of the transaction falls within the date range of the
+		// most recent period
 		ensurePeriod(entry.parent());
 		var period = Lists.lastOf(periods);
 		periods.remove(period);

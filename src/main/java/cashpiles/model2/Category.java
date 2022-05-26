@@ -18,8 +18,12 @@ class Category extends ModelItem {
 		return this;
 	}
 
-	Category withTransaction(CategoryTransactionEntry entry) {
+	Category withAllocation(Allocation allocation) {
 		return this;
+	}
+
+	Allocation withTransaction(CategoryTransactionEntry entry) {
+		return new Allocation(this);
 	}
 
 }
