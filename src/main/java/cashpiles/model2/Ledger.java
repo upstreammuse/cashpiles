@@ -10,6 +10,7 @@ import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
+import cashpiles.ledger.Transaction;
 import cashpiles.util.Lists;
 
 // this is *not* a data class, and mutates as data is fed to it for processing
@@ -38,19 +39,40 @@ class Ledger implements ItemProcessor {
 	private class NullProcessor implements ItemProcessor {
 
 		@Override
+		public void process(CategoryTransactionEntry entry) throws ModelException {
+			throw ModelException.forOrphan(entry);
+		}
+
+		@Override
 		public void process(CloseBudgetEntry entry) throws ModelException {
-			throw ModelException.forOrphanBudgetEntry(entry);
+			throw ModelException.forOrphan(entry);
 		}
 
 		@Override
 		public void process(GoalBudgetEntry entry) throws ModelException {
-			throw ModelException.forOrphanBudgetEntry(entry);
+			throw ModelException.forOrphan(entry);
+		}
+
+	}
+
+	private class TransactionEntryProcessor implements ItemProcessor {
+
+		@Override
+		public void process(CategoryTransactionEntry entry) throws ModelException {
+			// TODO make sure the date of the transaction falls within the date range of the
+			// most recent period
+			ensurePeriod(entry.parent());
+			var period = Lists.lastOf(periods);
+			periods.remove(period);
+			periods.add(period.withTransaction(entry));
+
 		}
 
 	}
 
 	private ItemProcessor budgetEntryProcessor = new NullProcessor();
 	private List<BudgetPeriod> periods = new ArrayList<>();
+	private ItemProcessor transactionEntryProcessor = new NullProcessor();
 
 	// make sure there's at least one budget period, and that the budget covers the
 	// latest date
@@ -79,7 +101,7 @@ class Ledger implements ItemProcessor {
 			// budget entry, which is an error meaning the provided entry doesn't match the
 			// existing cadence of budget periods
 			if (!Lists.lastOf(periods).dates().next().startDate().equals(budget.date())) {
-				throw ModelException.forOutOfSyncBudget(budget);
+				throw ModelException.forOutOfSync(budget);
 			} else {
 				periods.add(Lists.lastOf(periods).next(budget));
 			}
@@ -89,15 +111,10 @@ class Ledger implements ItemProcessor {
 	}
 
 	@Override
-	public void process(CategoryTransactionEntry entry) throws ModelException {
-		// TODO do the same thing with transaction management as with budget management,
-		// with an internal processor that either throws errors or does this work
-		// TODO make sure the date of the transaction falls within the date range of the
-		// most recent period
-		ensurePeriod(entry.parent());
-		var period = Lists.lastOf(periods);
-		periods.remove(period);
-		periods.add(period.withTransaction(entry));
+	public void process(CategoryTransactionEntry entry) throws LedgerException {
+		// if a transaction is active, this will be processed, and if not, this will
+		// throw an exception
+		transactionEntryProcessor.process(entry);
 	}
 
 	@Override
@@ -112,6 +129,12 @@ class Ledger implements ItemProcessor {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
+	}
+
+	@Override
+	public boolean process(Transaction transaction) {
+		transactionEntryProcessor = new TransactionEntryProcessor();
+		return true;
 	}
 
 }
