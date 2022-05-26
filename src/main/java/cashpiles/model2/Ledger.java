@@ -59,13 +59,10 @@ class Ledger implements ItemProcessor {
 
 		@Override
 		public void process(CategoryTransactionEntry entry) throws ModelException {
-			// TODO make sure the date of the transaction falls within the date range of the
-			// most recent period
 			ensurePeriod(entry.parent());
 			var period = Lists.lastOf(periods);
 			periods.remove(period);
 			periods.add(period.withTransaction(entry));
-
 		}
 
 	}
@@ -82,6 +79,9 @@ class Ledger implements ItemProcessor {
 		}
 		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
 			periods.add(Lists.lastOf(periods).next());
+		}
+		if (!Lists.lastOf(periods).dates().contains(item.date())) {
+			throw ModelException.forOutOfRange(item);
 		}
 	}
 
@@ -107,6 +107,7 @@ class Ledger implements ItemProcessor {
 			}
 		}
 		budgetEntryProcessor = new BudgetEntryProcessor();
+		transactionEntryProcessor = new NullProcessor();
 		return true;
 	}
 
@@ -132,7 +133,9 @@ class Ledger implements ItemProcessor {
 	}
 
 	@Override
-	public boolean process(Transaction transaction) {
+	public boolean process(Transaction transaction) throws ModelException {
+		ensurePeriod(transaction);
+		budgetEntryProcessor = new NullProcessor();
 		transactionEntryProcessor = new TransactionEntryProcessor();
 		return true;
 	}
