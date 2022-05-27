@@ -5,10 +5,12 @@ import java.util.List;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.CategoryTransactionEntry;
+import cashpiles.time.DateRange;
 
 // this is an immutable data class
 abstract class Category extends ModelItem {
 
+	protected Amount allocation = new Amount();
 	private final String owner;
 	private List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
@@ -17,20 +19,21 @@ abstract class Category extends ModelItem {
 	}
 
 	Amount balance() {
-		var retval = new Amount();
+		var retval = allocation;
 		for (var xact : transactions) {
 			retval = retval.add(xact.amount());
 		}
 		return retval;
 	}
 
-	String owner() {
-		return owner;
+	Category next(DateRange dates) {
+		var retval = clone();
+		retval.transactions.clear();
+		return retval;
 	}
 
-	Category reset() {
-		transactions.clear();
-		return this;
+	String owner() {
+		return owner;
 	}
 
 	Category withAllocation(CrossAllocator allocation) {
