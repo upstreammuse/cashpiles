@@ -13,7 +13,7 @@ class IncomeCategory extends Category {
 	@Override
 	CrossAllocator withTransaction(CategoryTransactionEntry entry) {
 		var alloc = super.withTransaction(entry);
-		return new IncomeAllocator(alloc.category());
+		return new IncomeAllocator(alloc.category(), entry.amount());
 	}
 
 }
