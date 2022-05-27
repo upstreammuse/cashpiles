@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.GoalBudgetEntry;
+import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.Transaction;
@@ -18,19 +20,28 @@ class Ledger implements ItemProcessor {
 
 	private class BudgetEntryProcessor implements ItemProcessor {
 
-		@Override
-		public void process(CloseBudgetEntry entry) throws ModelException {
+		private BudgetPeriod common(BudgetEntry entry) throws ModelException {
 			ensurePeriod(entry.parent());
 			var period = Lists.lastOf(periods);
 			periods.remove(period);
+			return period;
+		}
+
+		@Override
+		public void process(CloseBudgetEntry entry) throws ModelException {
+			var period = common(entry);
 			periods.add(period.close(entry));
 		}
 
 		@Override
 		public void process(GoalBudgetEntry entry) throws ModelException {
-			ensurePeriod(entry.parent());
-			var period = Lists.lastOf(periods);
-			periods.remove(period);
+			var period = common(entry);
+			periods.add(period.withCategory(entry));
+		}
+
+		@Override
+		public void process(IncomeBudgetEntry entry) throws ModelException {
+			var period = common(entry);
 			periods.add(period.withCategory(entry));
 		}
 
@@ -50,6 +61,11 @@ class Ledger implements ItemProcessor {
 
 		@Override
 		public void process(GoalBudgetEntry entry) throws ModelException {
+			throw ModelException.forOrphan(entry);
+		}
+
+		@Override
+		public void process(IncomeBudgetEntry entry) throws ModelException {
 			throw ModelException.forOrphan(entry);
 		}
 
@@ -127,6 +143,13 @@ class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(GoalBudgetEntry entry) throws LedgerException {
+		// if a budget command is active, this will be processed, and if not, this will
+		// throw an exception
+		budgetEntryProcessor.process(entry);
+	}
+
+	@Override
+	public void process(IncomeBudgetEntry entry) throws LedgerException {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
