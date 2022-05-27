@@ -58,7 +58,7 @@ class BudgetPeriod extends ModelItem {
 		var retval = clone();
 		retval.dates = retval.dates.next();
 		for (var entry : retval.categories.entrySet()) {
-			entry.setValue(entry.getValue().reset());
+			entry.setValue(entry.getValue().next(retval.dates));
 		}
 		return retval;
 	}
@@ -72,7 +72,7 @@ class BudgetPeriod extends ModelItem {
 			throw ModelException.forOutOfSync(budget);
 		}
 		for (var entry : retval.categories.entrySet()) {
-			entry.setValue(entry.getValue().reset());
+			entry.setValue(entry.getValue().next(retval.dates));
 		}
 		return retval;
 	}
