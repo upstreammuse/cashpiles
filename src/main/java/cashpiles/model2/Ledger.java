@@ -68,7 +68,7 @@ class Ledger implements ItemProcessor {
 	}
 
 	private ItemProcessor budgetEntryProcessor = new NullProcessor();
-	private List<BudgetPeriod> periods = new ArrayList<>();
+	private final List<BudgetPeriod> periods = new ArrayList<>();
 	private ItemProcessor transactionEntryProcessor = new NullProcessor();
 
 	// make sure there's at least one budget period, and that the budget covers the

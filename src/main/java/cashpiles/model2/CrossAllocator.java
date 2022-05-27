@@ -1,12 +1,16 @@
 package cashpiles.model2;
 
 // this is an immutable data class
-class Allocation extends ModelItem {
+class CrossAllocator extends ModelItem {
 
 	private final Category category;
 
-	Allocation(Category category) {
+	CrossAllocator(Category category) {
 		this.category = category;
+	}
+
+	Category allocate(Category category) {
+		return category;
 	}
 
 	Category category() {

@@ -6,6 +6,7 @@ import cashpiles.ledger.GoalBudgetEntry;
 class GoalCategory extends Category {
 
 	GoalCategory(GoalBudgetEntry entry) {
+		super(entry.owner());
 	}
 
 }
