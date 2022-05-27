@@ -13,6 +13,10 @@ class CrossAllocator extends ModelItem {
 		return category;
 	}
 
+	ReserveCategory allocate(ReserveCategory category) {
+		return category;
+	}
+
 	Category category() {
 		return category;
 	}

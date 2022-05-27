@@ -10,6 +10,7 @@ import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
+import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.time.DateRange;
 
 // this is an immutable data class
@@ -93,6 +94,15 @@ class BudgetPeriod extends ModelItem {
 		}
 		var retval = clone();
 		retval.categories.put(entry.name(), new IncomeCategory(entry));
+		return retval;
+	}
+
+	public BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
+		if (categories.containsKey(entry.name())) {
+			throw ModelException.forExisting(entry);
+		}
+		var retval = clone();
+		retval.categories.put(entry.name(), new ReserveCategory(entry));
 		return retval;
 	}
 
