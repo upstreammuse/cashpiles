@@ -97,7 +97,7 @@ class BudgetPeriod extends ModelItem {
 		return retval;
 	}
 
-	public BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
+	BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
 		if (categories.containsKey(entry.name())) {
 			throw ModelException.forExisting(entry);
 		}
