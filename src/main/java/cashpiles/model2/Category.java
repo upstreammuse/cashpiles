@@ -12,7 +12,7 @@ abstract class Category extends ModelItem {
 
 	protected Amount allocation = new Amount();
 	private final String owner;
-	private List<CategoryTransactionEntry> transactions = new ArrayList<>();
+	protected List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
 	Category(String owner) {
 		this.owner = owner;
