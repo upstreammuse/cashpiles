@@ -56,6 +56,13 @@ class RoutineCategory extends Category {
 	}
 
 	@Override
+	public RoutineCategory clone() {
+		var retval = (RoutineCategory) super.clone();
+		retval.oldTransactions = new ArrayList<>(oldTransactions);
+		return retval;
+	}
+
+	@Override
 	RoutineCategory next(DateRange dates) {
 		var retval = (RoutineCategory) super.next(dates);
 
@@ -98,13 +105,6 @@ class RoutineCategory extends Category {
 			retval.allocation = sixMonthTotal;
 		}
 
-		return retval;
-	}
-
-	@Override
-	public RoutineCategory clone() {
-		var retval = (RoutineCategory) super.clone();
-		retval.oldTransactions = new ArrayList<>(oldTransactions);
 		return retval;
 	}
 

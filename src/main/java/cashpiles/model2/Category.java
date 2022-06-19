@@ -26,6 +26,13 @@ abstract class Category extends ModelItem {
 		return retval;
 	}
 
+	@Override
+	public Category clone() {
+		var retval = (Category) super.clone();
+		retval.transactions = new ArrayList<>(retval.transactions);
+		return retval;
+	}
+
 	Category next(DateRange dates) {
 		var retval = clone();
 		retval.transactions.clear();
@@ -44,13 +51,6 @@ abstract class Category extends ModelItem {
 		var retval = clone();
 		retval.transactions.add(entry);
 		return new CrossAllocator(retval);
-	}
-
-	@Override
-	public Category clone() {
-		var retval = (Category) super.clone();
-		retval.transactions = new ArrayList<>(retval.transactions);
-		return retval;
 	}
 
 }

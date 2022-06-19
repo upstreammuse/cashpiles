@@ -34,6 +34,14 @@ class BudgetPeriod extends ModelItem {
 		dates = new DateRange(budget.date(), budget.period());
 	}
 
+	@Override
+	public BudgetPeriod clone() {
+		var retval = (BudgetPeriod) super.clone();
+		retval.categories = new TreeMap<>(retval.categories);
+		retval.owners = new TreeMap<>(retval.owners);
+		return retval;
+	}
+
 	BudgetPeriod close(CloseBudgetEntry entry) throws ModelException {
 		// make the new value if we have what is needed
 		if (!categories.containsKey(entry.name())) {
@@ -140,14 +148,6 @@ class BudgetPeriod extends ModelItem {
 		}
 		var retval = clone();
 		retval.owners.put(entry.owner(), retval.owners.get(entry.owner()).add(entry.amount()));
-		return retval;
-	}
-
-	@Override
-	public BudgetPeriod clone() {
-		var retval = (BudgetPeriod) super.clone();
-		retval.categories = new TreeMap<>(retval.categories);
-		retval.owners = new TreeMap<>(retval.owners);
 		return retval;
 	}
 
