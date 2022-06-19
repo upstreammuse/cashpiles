@@ -19,7 +19,7 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
 // this is an immutable data class
-class BudgetPeriod extends ModelItem {
+class BudgetPeriod extends ModelItem implements CategoriesView {
 
 	// the categories in this budget period
 	private Map<String, Category> categories = new TreeMap<>();
@@ -33,6 +33,33 @@ class BudgetPeriod extends ModelItem {
 	// create the first budget period
 	BudgetPeriod(Budget budget) {
 		dates = new DateRange(budget.date(), budget.period());
+	}
+
+	@Override
+	public Amount activity() {
+		var total = new Amount();
+		for (var cat : categories.entrySet()) {
+			total = total.add(cat.getValue().activity());
+		}
+		return total;
+	}
+
+	@Override
+	public Amount allocation() {
+		var total = new Amount();
+		for (var cat : categories.entrySet()) {
+			total = total.add(cat.getValue().allocation());
+		}
+		return total;
+	}
+
+	@Override
+	public Amount balance() {
+		var total = new Amount();
+		for (var cat : categories.entrySet()) {
+			total = total.add(cat.getValue().balance());
+		}
+		return total;
 	}
 
 	@Override
@@ -63,7 +90,8 @@ class BudgetPeriod extends ModelItem {
 	}
 
 	// get the dates of the period
-	DateRange dates() {
+	@Override
+	public DateRange dates() {
 		return dates;
 	}
 
