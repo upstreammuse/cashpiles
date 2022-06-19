@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
+import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
@@ -81,39 +82,34 @@ class BudgetPeriod extends ModelItem {
 	}
 
 	BudgetPeriod withCategory(GoalBudgetEntry entry) throws ModelException {
-		if (categories.containsKey(entry.name())) {
-			throw ModelException.forExisting(entry);
-		}
-		var retval = clone();
+		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new GoalCategory(entry));
 		return retval;
 	}
 
 	BudgetPeriod withCategory(IncomeBudgetEntry entry) throws ModelException {
-		if (categories.containsKey(entry.name())) {
-			throw ModelException.forExisting(entry);
-		}
-		var retval = clone();
+		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new IncomeCategory(entry));
 		return retval;
 	}
 
 	BudgetPeriod withCategory(ManualGoalBudgetEntry entry) throws ModelException {
-		if (categories.containsKey(entry.name())) {
-			throw ModelException.forExisting(entry);
-		}
-		var retval = clone();
+		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new ManualGoalCategory(entry));
 		return retval;
 	}
 
 	BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
+		var retval = withCategoryCommon(entry);
+		retval.categories.put(entry.name(), new ReserveCategory(entry));
+		return retval;
+	}
+
+	private BudgetPeriod withCategoryCommon(BudgetEntry entry) throws ModelException {
 		if (categories.containsKey(entry.name())) {
 			throw ModelException.forExisting(entry);
 		}
-		var retval = clone();
-		retval.categories.put(entry.name(), new ReserveCategory(entry));
-		return retval;
+		return clone();
 	}
 
 	BudgetPeriod withTransaction(CategoryTransactionEntry entry) throws ModelException {
