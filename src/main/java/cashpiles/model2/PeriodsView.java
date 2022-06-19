@@ -4,6 +4,6 @@ public interface PeriodsView {
 
 	int size();
 
-	CategoriesView get(int row);
+	PeriodView get(int row);
 
 }
