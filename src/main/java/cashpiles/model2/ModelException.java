@@ -7,6 +7,7 @@ import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.DatedLedgerItem;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.LedgerItem;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.TransactionEntry;
 
 @SuppressWarnings("serial")
@@ -42,6 +43,10 @@ class ModelException extends LedgerException {
 
 	static ModelException forUnknown(CloseBudgetEntry entry) {
 		return new ModelException(entry, "Cannot use unknown budget category");
+	}
+
+	static ModelException forUnknown(OwnerTransactionEntry entry) {
+		return new ModelException(entry, "Cannot use unknown budget category owner");
 	}
 
 	ModelException(LedgerItem item, String message) {
