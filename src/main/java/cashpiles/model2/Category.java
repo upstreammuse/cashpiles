@@ -43,6 +43,7 @@ abstract class Category extends ModelItem {
 
 	Category next(DateRange dates) {
 		var retval = clone();
+		retval.allocation = new Amount();
 		retval.transactions.clear();
 		return retval;
 	}
