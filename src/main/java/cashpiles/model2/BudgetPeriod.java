@@ -15,6 +15,7 @@ import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.time.DateRange;
 
 // this is an immutable data class
@@ -94,34 +95,53 @@ class BudgetPeriod extends ModelItem {
 	BudgetPeriod withCategory(GoalBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new GoalCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
+		}
 		return retval;
 	}
 
 	BudgetPeriod withCategory(IncomeBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new IncomeCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
+		}
 		return retval;
 	}
 
 	BudgetPeriod withCategory(ManualGoalBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new ManualGoalCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
+		}
 		return retval;
 	}
 
 	BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new ReserveCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
+		}
 		return retval;
 	}
 
 	BudgetPeriod withCategory(RoutineBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new RoutineCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
+		}
+		return retval;
+	}
 
 	BudgetPeriod withCategory(WithholdingBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new WithholdingCategory(entry));
+		if (!retval.owners.containsKey(entry.owner())) {
+			retval.owners.put(entry.owner(), new Amount());
 		}
 		return retval;
 	}
