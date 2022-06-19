@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.ReserveBudgetEntry;
 
+//this is an immutable data class
 class ReserveCategory extends Category {
 
 	private final BigDecimal percentage;
