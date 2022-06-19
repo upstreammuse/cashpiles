@@ -2,6 +2,7 @@ package cashpiles.model2;
 
 import cashpiles.currency.Amount;
 
+//this is an immutable data class
 class IncomeAllocator extends CrossAllocator {
 
 	private final Amount amount;
