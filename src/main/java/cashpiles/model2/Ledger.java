@@ -13,9 +13,11 @@ import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.ManualGoalBudgetEntry;
+import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.Transaction;
+import cashpiles.ledger.TransactionEntry;
 import cashpiles.util.Lists;
 
 // this is *not* a data class, and mutates as data is fed to it for processing
@@ -101,6 +103,11 @@ class Ledger implements ItemProcessor {
 		}
 
 		@Override
+		public void process(OwnerTransactionEntry entry) throws ModelException {
+			throw ModelException.forOrphan(entry);
+		}
+
+		@Override
 		public void process(RoutineBudgetEntry entry) throws ModelException {
 			throw ModelException.forOrphan(entry);
 		}
@@ -109,11 +116,22 @@ class Ledger implements ItemProcessor {
 
 	private class TransactionEntryProcessor implements ItemProcessor {
 
-		@Override
-		public void process(CategoryTransactionEntry entry) throws ModelException {
+		private BudgetPeriod common(TransactionEntry entry) throws ModelException {
 			ensurePeriod(entry.parent());
 			var period = Lists.lastOf(periods);
 			periods.remove(period);
+			return period;
+		}
+
+		@Override
+		public void process(CategoryTransactionEntry entry) throws ModelException {
+			var period = common(entry);
+			periods.add(period.withTransaction(entry));
+		}
+
+		@Override
+		public void process(OwnerTransactionEntry entry) throws ModelException {
+			var period = common(entry);
 			periods.add(period.withTransaction(entry));
 		}
 
@@ -196,6 +214,13 @@ class Ledger implements ItemProcessor {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
+	}
+
+	@Override
+	public void process(OwnerTransactionEntry entry) throws LedgerException {
+		// if a transaction is active, this will be processed, and if not, this will
+		// throw an exception
+		transactionEntryProcessor.process(entry);
 	}
 
 	@Override
