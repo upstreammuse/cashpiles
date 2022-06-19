@@ -84,6 +84,11 @@ class Ledger implements ItemProcessor {
 		}
 
 		@Override
+		public void process(ManualGoalBudgetEntry entry) throws ModelException {
+			throw ModelException.forOrphan(entry);
+		}
+
+		@Override
 		public void process(ReserveBudgetEntry entry) throws ModelException {
 			throw ModelException.forOrphan(entry);
 		}
