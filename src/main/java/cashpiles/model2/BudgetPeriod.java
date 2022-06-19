@@ -57,22 +57,22 @@ class BudgetPeriod extends ModelItem {
 	// generate the next budget period based on the current one, which allows us to
 	// continue the budget cycle without explicit budget entries in the file
 	BudgetPeriod next() {
-		var retval = clone();
-		retval.dates = retval.dates.next();
-		for (var entry : retval.categories.entrySet()) {
-			entry.setValue(entry.getValue().next(retval.dates));
-		}
-		return retval;
+		return next(dates.next());
 	}
 
 	// generate the next budget period based on the current one, but use a different
 	// duration for the new period
 	BudgetPeriod next(Budget budget) throws ModelException {
-		var retval = clone();
-		retval.dates = new DateRange(retval.dates.next().startDate(), budget.period());
-		if (!retval.dates.startDate().equals(budget.date())) {
+		if (!dates.next().startDate().equals(budget.date())) {
 			throw ModelException.forOutOfSync(budget);
 		}
+		return next(new DateRange(budget.date(), budget.period()));
+	}
+
+	// common code for both instances of next period generation
+	private BudgetPeriod next(DateRange dates) {
+		var retval = clone();
+		retval.dates = dates;
 		for (var entry : retval.categories.entrySet()) {
 			entry.setValue(entry.getValue().next(retval.dates));
 		}
