@@ -42,7 +42,7 @@ import cashpiles.ledger.RoutineBudgetEntry;
  */
 class RoutineCategory extends Category {
 
-	public RoutineCategory(RoutineBudgetEntry entry) {
+	RoutineCategory(RoutineBudgetEntry entry) {
 		super(entry.owner());
 	}
 
