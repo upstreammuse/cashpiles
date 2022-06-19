@@ -1,6 +1,13 @@
 package cashpiles.model2;
 
+import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
+
+import cashpiles.currency.Amount;
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.RoutineBudgetEntry;
+import cashpiles.time.DateRange;
 
 //this is an immutable data class
 /**
@@ -42,8 +49,63 @@ import cashpiles.ledger.RoutineBudgetEntry;
  */
 class RoutineCategory extends Category {
 
+	private List<CategoryTransactionEntry> oldTransactions = new ArrayList<>();
+
 	RoutineCategory(RoutineBudgetEntry entry) {
 		super(entry.owner());
+	}
+
+	@Override
+	RoutineCategory next(DateRange dates) {
+		var retval = (RoutineCategory) super.next(dates);
+
+		// keep any old transactions that are within a year of the new period start date
+		var oldTransactions = new ArrayList<CategoryTransactionEntry>();
+		for (var xact : transactions) {
+			if (xact.date().plus(Period.ofYears(1)).compareTo(dates.startDate()) >= 0) {
+				oldTransactions.add(xact);
+			}
+		}
+		for (var xact : this.oldTransactions) {
+			if (xact.date().plus(Period.ofYears(1)).compareTo(dates.startDate()) >= 0) {
+				oldTransactions.add(xact);
+			}
+		}
+		retval.oldTransactions = oldTransactions;
+
+		// get the total of the old transactions
+		var yearTotal = new Amount();
+		for (var xact : retval.oldTransactions) {
+			yearTotal = yearTotal.add(xact.amount());
+		}
+
+		// distribute the yearly total over a single day to determine the daily average
+		var dayAverage = yearTotal.distributeAndAdd(
+				new DateRange(dates.startDate().minus(Period.ofYears(1)), dates.startDate()),
+				new DateRange(dates.startDate(), dates.startDate()));
+
+		// allocate based on the new period duration
+		// FIXME make sure other category allocations don't add to existing allocation,
+		// since it doesn't get reset during a clone of a category
+		retval.allocation = dayAverage.times(dates.numberOfDays());
+
+		// If the balance is below the 6 month average, pull it up to be at least the 6
+		// month average. This lets the balance get larger than the 6 month average, for
+		// routine expenses that happen less frequently (like annual bills), but ensures
+		// that at least the next 6 months are covered.
+		var sixMonthTotal = dayAverage.times(180);
+		if (retval.allocation.add(sixMonthTotal.negate()).isNegative()) {
+			retval.allocation = sixMonthTotal;
+		}
+
+		return retval;
+	}
+
+	@Override
+	public RoutineCategory clone() {
+		var retval = (RoutineCategory) super.clone();
+		retval.oldTransactions = new ArrayList<>(oldTransactions);
+		return retval;
 	}
 
 }
