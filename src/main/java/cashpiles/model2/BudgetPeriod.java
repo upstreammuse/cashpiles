@@ -118,6 +118,11 @@ class BudgetPeriod extends ModelItem {
 	BudgetPeriod withCategory(RoutineBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new RoutineCategory(entry));
+
+	BudgetPeriod withCategory(WithholdingBudgetEntry entry) throws ModelException {
+		var retval = withCategoryCommon(entry);
+		retval.categories.put(entry.name(), new WithholdingCategory(entry));
+		}
 		return retval;
 	}
 
