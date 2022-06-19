@@ -1,7 +1,6 @@
 package cashpiles.model2;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
@@ -126,6 +125,10 @@ class Ledger implements ItemProcessor {
 
 	}
 
+	@SuppressWarnings("serial")
+	private class PeriodsList extends ArrayList<BudgetPeriod> implements PeriodsView {
+	}
+
 	private class TransactionEntryProcessor implements ItemProcessor {
 
 		private BudgetPeriod common(TransactionEntry entry) throws ModelException {
@@ -150,7 +153,7 @@ class Ledger implements ItemProcessor {
 	}
 
 	private ItemProcessor budgetEntryProcessor = new NullProcessor();
-	private final List<BudgetPeriod> periods = new ArrayList<>();
+	private final PeriodsList periods = new PeriodsList();
 	private ItemProcessor transactionEntryProcessor = new NullProcessor();
 
 	// make sure there's at least one budget period, and that the budget covers the
@@ -165,6 +168,10 @@ class Ledger implements ItemProcessor {
 		if (!Lists.lastOf(periods).dates().contains(item.date())) {
 			throw ModelException.forOutOfRange(item);
 		}
+	}
+
+	public PeriodsView getPeriods() {
+		return periods;
 	}
 
 	@Override
