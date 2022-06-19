@@ -10,6 +10,7 @@ import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.CloseBudgetEntry;
 import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
+import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
 import cashpiles.time.DateRange;
 
@@ -94,6 +95,15 @@ class BudgetPeriod extends ModelItem {
 		}
 		var retval = clone();
 		retval.categories.put(entry.name(), new IncomeCategory(entry));
+		return retval;
+	}
+
+	BudgetPeriod withCategory(ManualGoalBudgetEntry entry) throws ModelException {
+		if (categories.containsKey(entry.name())) {
+			throw ModelException.forExisting(entry);
+		}
+		var retval = clone();
+		retval.categories.put(entry.name(), new ManualGoalCategory(entry));
 		return retval;
 	}
 
