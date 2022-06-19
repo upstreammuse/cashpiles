@@ -13,6 +13,7 @@ import cashpiles.ledger.GoalBudgetEntry;
 import cashpiles.ledger.IncomeBudgetEntry;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.time.DateRange;
 
 // this is an immutable data class
@@ -102,6 +103,12 @@ class BudgetPeriod extends ModelItem {
 	BudgetPeriod withCategory(ReserveBudgetEntry entry) throws ModelException {
 		var retval = withCategoryCommon(entry);
 		retval.categories.put(entry.name(), new ReserveCategory(entry));
+		return retval;
+	}
+
+	BudgetPeriod withCategory(RoutineBudgetEntry entry) throws ModelException {
+		var retval = withCategoryCommon(entry);
+		retval.categories.put(entry.name(), new RoutineCategory(entry));
 		return retval;
 	}
 

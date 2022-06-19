@@ -14,6 +14,7 @@ import cashpiles.ledger.ItemProcessor;
 import cashpiles.ledger.LedgerException;
 import cashpiles.ledger.ManualGoalBudgetEntry;
 import cashpiles.ledger.ReserveBudgetEntry;
+import cashpiles.ledger.RoutineBudgetEntry;
 import cashpiles.ledger.Transaction;
 import cashpiles.util.Lists;
 
@@ -59,6 +60,12 @@ class Ledger implements ItemProcessor {
 			periods.add(period.withCategory(entry));
 		}
 
+		@Override
+		public void process(RoutineBudgetEntry entry) throws ModelException {
+			var period = common(entry);
+			periods.add(period.withCategory(entry));
+		}
+
 	}
 
 	private class NullProcessor implements ItemProcessor {
@@ -90,6 +97,11 @@ class Ledger implements ItemProcessor {
 
 		@Override
 		public void process(ReserveBudgetEntry entry) throws ModelException {
+			throw ModelException.forOrphan(entry);
+		}
+
+		@Override
+		public void process(RoutineBudgetEntry entry) throws ModelException {
 			throw ModelException.forOrphan(entry);
 		}
 
@@ -188,6 +200,13 @@ class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(ReserveBudgetEntry entry) throws LedgerException {
+		// if a budget command is active, this will be processed, and if not, this will
+		// throw an exception
+		budgetEntryProcessor.process(entry);
+	}
+
+	@Override
+	public void process(RoutineBudgetEntry entry) throws LedgerException {
 		// if a budget command is active, this will be processed, and if not, this will
 		// throw an exception
 		budgetEntryProcessor.process(entry);
