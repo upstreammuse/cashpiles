@@ -18,12 +18,20 @@ abstract class Category extends ModelItem {
 		this.owner = owner;
 	}
 
-	Amount balance() {
-		var retval = allocation;
+	Amount activity() {
+		var total = new Amount();
 		for (var xact : transactions) {
-			retval = retval.add(xact.amount());
+			total = total.add(xact.amount());
 		}
-		return retval;
+		return total;
+	}
+
+	Amount allocation() {
+		return allocation;
+	}
+
+	Amount balance() {
+		return allocation.add(activity());
 	}
 
 	@Override
