@@ -12,10 +12,12 @@ abstract class Category extends ModelItem implements CategoryView {
 
 	protected Amount allocation = new Amount();
 	private final String owner;
+	private Amount startBalance;
 	protected List<CategoryTransactionEntry> transactions = new ArrayList<>();
 
 	Category(String owner) {
 		this.owner = owner;
+		this.startBalance = new Amount();
 	}
 
 	@Override
@@ -34,7 +36,7 @@ abstract class Category extends ModelItem implements CategoryView {
 
 	@Override
 	public Amount balance() {
-		return allocation.add(activity());
+		return startBalance.add(allocation).add(activity());
 	}
 
 	@Override
@@ -47,6 +49,7 @@ abstract class Category extends ModelItem implements CategoryView {
 	Category next(DateRange dates) {
 		var retval = clone();
 		retval.allocation = new Amount();
+		retval.startBalance = balance();
 		retval.transactions.clear();
 		return retval;
 	}
