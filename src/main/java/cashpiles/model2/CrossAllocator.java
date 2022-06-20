@@ -13,6 +13,7 @@ class CrossAllocator extends ModelItem {
 		return category;
 	}
 
+	// TODO try removing this to see if Java can work out the correct method call
 	ReserveCategory allocate(ReserveCategory category) {
 		return category;
 	}
