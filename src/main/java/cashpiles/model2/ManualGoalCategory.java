@@ -9,4 +9,9 @@ class ManualGoalCategory extends Category {
 		super(entry.owner());
 	}
 
+	@Override
+	public String type() {
+		return "Manual";
+	}
+
 }

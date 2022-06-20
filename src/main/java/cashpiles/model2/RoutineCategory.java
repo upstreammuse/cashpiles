@@ -108,4 +108,9 @@ class RoutineCategory extends Category {
 		return retval;
 	}
 
+	@Override
+	public String type() {
+		return "Routine";
+	}
+
 }

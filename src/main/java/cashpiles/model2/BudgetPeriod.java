@@ -1,8 +1,10 @@
 package cashpiles.model2;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
@@ -30,6 +32,16 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 
 		CategoryMap(CategoryMap other) {
 			super(other);
+		}
+
+		@Override
+		public CategoryView get(String name) {
+			return super.get(name);
+		}
+
+		@Override
+		public List<String> names() {
+			return keySet().stream().collect(Collectors.toList());
 		}
 
 	}
@@ -204,7 +216,7 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 			throw ModelException.forUnknown(entry);
 		}
 		var retval = clone();
-		var category = retval.categories.get(entry.category());
+		var category = (Category) retval.categories.get(entry.category());
 		var allocation = category.withTransaction(entry);
 		retval.categories.put(entry.category(), allocation.category());
 		for (var c : retval.categories.entrySet()) {
