@@ -1,5 +1,6 @@
 package cashpiles.model2;
 
+import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.WithholdingBudgetEntry;
 
 class WithholdingCategory extends Category {
@@ -11,6 +12,14 @@ class WithholdingCategory extends Category {
 	@Override
 	public String type() {
 		return "Withholding";
+	}
+
+	@Override
+	CrossAllocator withTransaction(CategoryTransactionEntry entry) {
+		var alloc = super.withTransaction(entry);
+		var category = alloc.category();
+		category.allocation = category.allocation.add(category.balance().negate());
+		return new CrossAllocator(category);
 	}
 
 }
