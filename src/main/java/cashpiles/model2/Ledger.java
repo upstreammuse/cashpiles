@@ -21,7 +21,7 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 import cashpiles.util.Lists;
 
 // this is *not* a data class, and mutates as data is fed to it for processing
-class Ledger implements ItemProcessor {
+public class Ledger implements ItemProcessor {
 
 	private class BudgetEntryProcessor implements ItemProcessor {
 
