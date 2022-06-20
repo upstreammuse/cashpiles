@@ -36,4 +36,9 @@ class GoalCategory extends Category {
 		return retval;
 	}
 
+	@Override
+	public String type() {
+		return "Goal";
+	}
+
 }

@@ -11,6 +11,11 @@ class IncomeCategory extends Category {
 	}
 
 	@Override
+	public String type() {
+		return "Income";
+	}
+
+	@Override
 	CrossAllocator withTransaction(CategoryTransactionEntry entry) {
 		var alloc = super.withTransaction(entry);
 		return new IncomeAllocator(alloc.category(), entry.amount());

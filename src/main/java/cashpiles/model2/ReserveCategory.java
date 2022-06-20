@@ -20,6 +20,11 @@ class ReserveCategory extends Category {
 		return (ReserveCategory) super.clone();
 	}
 
+	@Override
+	public String type() {
+		return "Reserve";
+	}
+
 	ReserveCategory withIncomeAllocation(Amount amount) {
 		var retval = clone();
 		retval.allocation = retval.allocation.add(amount.percentage(percentage));

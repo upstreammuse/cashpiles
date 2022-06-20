@@ -8,7 +8,7 @@ import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.time.DateRange;
 
 // this is an immutable data class
-abstract class Category extends ModelItem {
+abstract class Category extends ModelItem implements CategoryView {
 
 	protected Amount allocation = new Amount();
 	private final String owner;
@@ -18,7 +18,8 @@ abstract class Category extends ModelItem {
 		this.owner = owner;
 	}
 
-	Amount activity() {
+	@Override
+	public Amount activity() {
 		var total = new Amount();
 		for (var xact : transactions) {
 			total = total.add(xact.amount());
@@ -26,11 +27,13 @@ abstract class Category extends ModelItem {
 		return total;
 	}
 
-	Amount allocation() {
+	@Override
+	public Amount allocation() {
 		return allocation;
 	}
 
-	Amount balance() {
+	@Override
+	public Amount balance() {
 		return allocation.add(activity());
 	}
 
@@ -48,7 +51,8 @@ abstract class Category extends ModelItem {
 		return retval;
 	}
 
-	String owner() {
+	@Override
+	public String owner() {
 		return owner;
 	}
 
