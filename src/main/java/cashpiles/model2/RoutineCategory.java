@@ -94,15 +94,16 @@ class RoutineCategory extends Category {
 		// allocate based on the new period duration
 		// FIXME make sure other category allocations don't add to existing allocation,
 		// since it doesn't get reset during a clone of a category
-		retval.allocation = dayAverage.times(dates.numberOfDays());
+		retval.allocation = dayAverage.times(dates.numberOfDays()).negate();
 
 		// If the balance is below the 6 month average, pull it up to be at least the 6
 		// month average. This lets the balance get larger than the 6 month average, for
 		// routine expenses that happen less frequently (like annual bills), but ensures
 		// that at least the next 6 months are covered.
 		var sixMonthTotal = dayAverage.times(180);
-		if (retval.allocation.add(sixMonthTotal.negate()).isNegative()) {
-			retval.allocation = sixMonthTotal;
+		var shortfall = retval.balance().add(sixMonthTotal);
+		if (shortfall.isNegative()) {
+			retval.allocation = retval.allocation.add(shortfall.negate());
 		}
 
 		return retval;
