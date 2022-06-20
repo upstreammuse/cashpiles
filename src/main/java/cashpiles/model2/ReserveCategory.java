@@ -25,6 +25,11 @@ class ReserveCategory extends Category {
 		return "Reserve";
 	}
 
+	@Override
+	Category withAllocation(CrossAllocator allocation) {
+		return allocation.allocate(this);
+	}
+
 	ReserveCategory withIncomeAllocation(Amount amount) {
 		var retval = clone();
 		retval.allocation = retval.allocation.add(amount.percentage(percentage));
