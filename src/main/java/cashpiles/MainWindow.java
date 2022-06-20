@@ -32,6 +32,7 @@ public class MainWindow extends JFrame {
 	private final AccountsPanel accountsPanel = new AccountsPanel(this);
 	private final cashpiles.budget.ui.BudgetPanel budgetPanel = new cashpiles.budget.ui.BudgetPanel();
 	private final cashpiles.budget.redo.BudgetPanel budgetPanelNew = new cashpiles.budget.redo.BudgetPanel();
+	private final cashpiles.budget.redo2.BudgetPanel budgetPanelNew2 = new cashpiles.budget.redo2.BudgetPanel();
 	private Ledger ledger = new Ledger();
 
 	MainWindow() {
@@ -91,6 +92,7 @@ public class MainWindow extends JFrame {
 		tabs.addTab("Accounts", accountsPanel);
 		tabs.addTab("Budget", budgetPanel);
 		tabs.addTab("Budget (new)", budgetPanelNew);
+		tabs.addTab("Budget (new 2)", budgetPanelNew2);
 
 		layout.setVerticalGroup(layout.createParallelGroup().addComponent(tabs));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(tabs));
@@ -109,6 +111,15 @@ public class MainWindow extends JFrame {
 		}
 
 		var fullPath = Paths.get(directory, filename);
+		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
+			var ledger = new cashpiles.model2.Ledger();
+			var ledgerReader = new LedgerReader(reader, fullPath.toString());
+			ledgerReader.readAll(ledger);
+			setLedger(ledger);
+		} catch (IOException | LedgerException ex) {
+			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
 			var ledger = new Ledger();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
@@ -157,6 +168,10 @@ public class MainWindow extends JFrame {
 		accountsPanel.setLedger(ledger);
 		budgetPanel.setLedger(ledger);
 		budgetPanelNew.setLedger(ledger);
+	}
+
+	private void setLedger(cashpiles.model2.Ledger ledger) {
+		budgetPanelNew2.setLedger(ledger);
 	}
 
 }
