@@ -7,7 +7,7 @@ import cashpiles.model2.PeriodsView;
 @SuppressWarnings("serial")
 class PeriodTableModel extends AbstractTableModel {
 
-	public static final String[] headers = { "Start Date", "End Date", "Allocation", "Activity", "Balance" };
+	private static final String[] headers = { "Start Date", "End Date", "Allocation", "Activity", "Balance" };
 
 	private final PeriodsView view;
 

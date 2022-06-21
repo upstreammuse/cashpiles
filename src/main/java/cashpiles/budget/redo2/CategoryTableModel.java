@@ -9,7 +9,7 @@ import cashpiles.model2.CategoriesView;
 @SuppressWarnings("serial")
 class CategoryTableModel extends AbstractTableModel {
 
-	public static final String[] headers = { "Category", "Type", "Owner", "Allocation", "Activity", "Balance" };
+	private static final String[] headers = { "Category", "Type", "Owner", "Allocation", "Activity", "Balance" };
 
 	private final Optional<CategoriesView> view;
 
