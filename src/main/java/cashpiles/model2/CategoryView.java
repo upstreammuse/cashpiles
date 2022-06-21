@@ -10,6 +10,8 @@ public interface CategoryView {
 
 	Amount balance();
 
+	Amount lifetimeAllocation();
+
 	String owner();
 
 	String type();

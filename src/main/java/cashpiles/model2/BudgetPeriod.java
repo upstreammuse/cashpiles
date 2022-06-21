@@ -1,7 +1,6 @@
 package cashpiles.model2;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -133,9 +132,8 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 		var category = retval.categories.remove(entry.name());
 
 		// modify the owner balance of the new value
-		var ownerBalance = Optional.ofNullable(retval.owners.get(category.owner())).orElse(new Amount());
-		ownerBalance = ownerBalance.add(category.balance());
-		retval.owners.put(category.owner(), ownerBalance);
+		retval.owners.put(category.owner(), retval.owners.get(category.owner())
+				.add(category.lifetimeAllocation().negate().add(category.balance())));
 
 		// provide the new value
 		return retval;

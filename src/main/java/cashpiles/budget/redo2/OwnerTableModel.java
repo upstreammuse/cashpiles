@@ -27,7 +27,7 @@ class OwnerTableModel extends AbstractTableModel {
 		for (var categoryName : categories.names()) {
 			var category = categories.get(categoryName);
 			var owner = category.owner();
-			this.owners.put(owner, this.owners.get(owner).add(category.allocation().negate()));
+			this.owners.put(owner, this.owners.get(owner).add(category.lifetimeAllocation().negate()));
 		}
 	}
 
