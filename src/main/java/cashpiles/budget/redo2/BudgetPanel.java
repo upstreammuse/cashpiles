@@ -17,6 +17,7 @@ public class BudgetPanel extends JPanel {
 
 	private final JTable categoryTable = new JTable();
 	private Ledger ledger = new Ledger();
+	private final JTable ownerTable = new JTable();
 	private final JTable periodTable = new JTable();
 	private Optional<PeriodView> selectedPeriod = Optional.empty();
 
@@ -34,6 +35,7 @@ public class BudgetPanel extends JPanel {
 			if (selection.length >= 1) {
 				selectedPeriod = Optional.of(ledger.getPeriods().get(periodTable.convertRowIndexToModel(selection[0])));
 				refreshCategories();
+				refreshOwners();
 			}
 		});
 		refresh();
@@ -47,6 +49,8 @@ public class BudgetPanel extends JPanel {
 
 		var catLabel = new JLabel("Categories");
 		var catScroller = new JScrollPane(categoryTable);
+		var ownerLabel = new JLabel("Category Owners");
+		var ownerScroller = new JScrollPane(ownerTable);
 		var periodLabel = new JLabel("Budget Periods");
 		var periodScroller = new JScrollPane(periodTable);
 		categoryTable.setAutoCreateRowSorter(true);
@@ -54,21 +58,30 @@ public class BudgetPanel extends JPanel {
 
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup().addComponent(periodLabel).addComponent(periodScroller))
-				.addGroup(layout.createParallelGroup().addComponent(catLabel).addComponent(catScroller)));
+				.addGroup(layout.createParallelGroup().addComponent(catLabel).addComponent(catScroller)
+						.addComponent(ownerLabel).addComponent(ownerScroller)));
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup().addComponent(periodLabel).addComponent(periodScroller))
-				.addGroup(layout.createSequentialGroup().addComponent(catLabel).addComponent(catScroller)));
+				.addGroup(layout.createSequentialGroup().addComponent(catLabel).addComponent(catScroller)
+						.addComponent(ownerLabel).addComponent(ownerScroller)));
 	}
 
 	private void refresh() {
 		periodTable.setModel(new PeriodTableModel(ledger.getPeriods()));
 		selectedPeriod = Optional.empty();
 		refreshCategories();
+		refreshOwners();
 	}
 
 	private void refreshCategories() {
 		selectedPeriod.ifPresentOrElse(period -> categoryTable.setModel(new CategoryTableModel(period.categories())),
 				() -> categoryTable.setModel(new CategoryTableModel()));
+	}
+
+	private void refreshOwners() {
+		selectedPeriod.ifPresentOrElse(
+				period -> ownerTable.setModel(new OwnerTableModel(period.categories(), period.owners())),
+				() -> ownerTable.setModel(new OwnerTableModel()));
 	}
 
 	public void setLedger(Ledger ledger) {

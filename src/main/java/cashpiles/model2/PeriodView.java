@@ -15,4 +15,6 @@ public interface PeriodView {
 
 	DateRange dates();
 
+	OwnersView owners();
+
 }

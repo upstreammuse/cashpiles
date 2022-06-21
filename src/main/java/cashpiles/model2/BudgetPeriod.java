@@ -1,7 +1,6 @@
 package cashpiles.model2;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -46,6 +45,29 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 
 	}
 
+	@SuppressWarnings("serial")
+	private class OwnerMap extends TreeMap<String, Amount> implements OwnersView {
+
+		OwnerMap() {
+			super();
+		}
+
+		OwnerMap(OwnerMap other) {
+			super(other);
+		}
+
+		@Override
+		public Amount get(String name) {
+			return super.get(name);
+		}
+
+		@Override
+		public List<String> names() {
+			return keySet().stream().collect(Collectors.toList());
+		}
+
+	}
+
 	// the categories in this budget period
 	private CategoryMap categories = new CategoryMap();
 
@@ -53,7 +75,7 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 	private DateRange dates;
 
 	// the unallocated balances of each owner as of this budget period
-	private Map<String, Amount> owners = new TreeMap<>();
+	private OwnerMap owners = new OwnerMap();
 
 	// create the first budget period
 	BudgetPeriod(Budget budget) {
@@ -96,7 +118,7 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 	public BudgetPeriod clone() {
 		var retval = (BudgetPeriod) super.clone();
 		retval.categories = new CategoryMap(retval.categories);
-		retval.owners = new TreeMap<>(retval.owners);
+		retval.owners = new OwnerMap(retval.owners);
 		return retval;
 	}
 
@@ -148,6 +170,11 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 			entry.setValue(entry.getValue().next(retval.dates));
 		}
 		return retval;
+	}
+
+	@Override
+	public OwnersView owners() {
+		return owners;
 	}
 
 	BudgetPeriod withCategory(GoalBudgetEntry entry) throws ModelException {
