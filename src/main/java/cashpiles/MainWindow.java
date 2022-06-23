@@ -30,8 +30,6 @@ import cashpiles.model.Ledger;
 public class MainWindow extends JFrame {
 
 	private final AccountsPanel accountsPanel = new AccountsPanel(this);
-	private final cashpiles.budget.ui.BudgetPanel budgetPanel = new cashpiles.budget.ui.BudgetPanel();
-	private final cashpiles.budget.redo.BudgetPanel budgetPanelNew = new cashpiles.budget.redo.BudgetPanel();
 	private final cashpiles.budget.redo2.BudgetPanel budgetPanelNew2 = new cashpiles.budget.redo2.BudgetPanel();
 	private Ledger ledger = new Ledger();
 
@@ -90,8 +88,6 @@ public class MainWindow extends JFrame {
 
 		var tabs = new JTabbedPane();
 		tabs.addTab("Accounts", accountsPanel);
-		tabs.addTab("Budget", budgetPanel);
-		tabs.addTab("Budget (new)", budgetPanelNew);
 		tabs.addTab("Budget (new 2)", budgetPanelNew2);
 
 		layout.setVerticalGroup(layout.createParallelGroup().addComponent(tabs));
@@ -166,8 +162,6 @@ public class MainWindow extends JFrame {
 	public void setLedger(Ledger ledger) throws LedgerException {
 		this.ledger = ledger;
 		accountsPanel.setLedger(ledger);
-		budgetPanel.setLedger(ledger);
-		budgetPanelNew.setLedger(ledger);
 	}
 
 	private void setLedger(cashpiles.model2.Ledger ledger) {
