@@ -20,6 +20,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 
 import cashpiles.account.AccountsPanel;
+import cashpiles.budget.BudgetPanel;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
@@ -30,7 +31,7 @@ import cashpiles.model.Ledger;
 public class MainWindow extends JFrame {
 
 	private final AccountsPanel accountsPanel = new AccountsPanel(this);
-	private final cashpiles.budget.redo2.BudgetPanel budgetPanelNew2 = new cashpiles.budget.redo2.BudgetPanel();
+	private final BudgetPanel budgetPanel = new BudgetPanel();
 	private Ledger ledger = new Ledger();
 
 	MainWindow() {
@@ -88,7 +89,7 @@ public class MainWindow extends JFrame {
 
 		var tabs = new JTabbedPane();
 		tabs.addTab("Accounts", accountsPanel);
-		tabs.addTab("Budget (new 2)", budgetPanelNew2);
+		tabs.addTab("Budget", budgetPanel);
 
 		layout.setVerticalGroup(layout.createParallelGroup().addComponent(tabs));
 		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(tabs));
@@ -165,7 +166,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void setLedger(cashpiles.model2.Ledger ledger) {
-		budgetPanelNew2.setLedger(ledger);
+		budgetPanel.setLedger(ledger);
 	}
 
 }

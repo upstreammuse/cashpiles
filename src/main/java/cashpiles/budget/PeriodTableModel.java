@@ -1,4 +1,4 @@
-package cashpiles.budget.redo2;
+package cashpiles.budget;
 
 import javax.swing.table.AbstractTableModel;
 
