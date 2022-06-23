@@ -47,11 +47,11 @@ public class BudgetPanel extends JPanel {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 
-		var catLabel = new JLabel("Categories");
+		var catLabel = new JLabel("<html><b>Categories</b></html>");
 		var catScroller = new JScrollPane(categoryTable);
-		var ownerLabel = new JLabel("Category Owners");
+		var ownerLabel = new JLabel("<html><b>Category Owners</b></html>");
 		var ownerScroller = new JScrollPane(ownerTable);
-		var periodLabel = new JLabel("Budget Periods");
+		var periodLabel = new JLabel("<html><b>Budget Periods</b></html>");
 		var periodScroller = new JScrollPane(periodTable);
 		categoryTable.setAutoCreateRowSorter(true);
 		periodTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
