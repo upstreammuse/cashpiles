@@ -1,4 +1,4 @@
-package cashpiles.model;
+package cashpiles.model2;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountCommand;

@@ -3,7 +3,7 @@ package cashpiles.account;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.ledger.AccountCommand;
-import cashpiles.model.AccountsView;
+import cashpiles.model2.AccountsView;
 
 @SuppressWarnings("serial")
 class AccountsTableModel extends AbstractTableModel {

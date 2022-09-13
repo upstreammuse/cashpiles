@@ -10,6 +10,7 @@ import java.util.Optional;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionView;
+import cashpiles.model2.AccountTransactionsView;
 
 public class Statement extends ModelItem implements AccountTransactionsView {
 

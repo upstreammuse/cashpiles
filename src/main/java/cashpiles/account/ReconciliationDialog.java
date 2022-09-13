@@ -18,7 +18,7 @@ import com.github.lgooddatepicker.components.DatePickerSettings;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountTransactionView;
-import cashpiles.model.StatementsView;
+import cashpiles.model2.StatementsView;
 
 @SuppressWarnings("serial")
 class ReconciliationDialog extends JDialog {

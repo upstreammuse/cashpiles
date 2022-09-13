@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.model.AccountTransactionsView;
+import cashpiles.model2.AccountTransactionsView;
 
 @SuppressWarnings("serial")
 class TransactionsTableModel extends AbstractTableModel {

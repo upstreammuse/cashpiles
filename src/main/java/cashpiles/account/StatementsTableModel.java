@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.model.StatementsView;
+import cashpiles.model2.StatementsView;
 
 @SuppressWarnings("serial")
 class StatementsTableModel extends AbstractTableModel {
