@@ -1,7 +1,5 @@
 package cashpiles.model;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,12 +37,7 @@ public class Ledger implements ItemProcessor {
 	private final AccountsMap accounts = new AccountsMap();
 	private final Set<String> categories = new TreeSet<>();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
-	private final List<ActionListener> listeners = new ArrayList<>();
 	private Optional<List<LedgerItem>> preDatedItems = Optional.of(new ArrayList<>());
-
-	public void addListener(ActionListener listener) {
-		listeners.add(listener);
-	}
 
 	public AccountsView getAccounts() {
 		return accounts;
@@ -72,12 +65,6 @@ public class Ledger implements ItemProcessor {
 		items.put(date, dayItems);
 	}
 
-	private void notify(String eventName) {
-		for (var listener : listeners) {
-			listener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, eventName));
-		}
-	}
-
 	@Override
 	public void process(AccountBalance balance) throws LedgerModelException {
 		var account = accounts.get(balance.account());
@@ -87,7 +74,6 @@ public class Ledger implements ItemProcessor {
 		account = account.reconciled(balance);
 		accounts.put(balance.account(), account);
 		insertEnd(balance);
-		notify("AccountBalance");
 	}
 
 	@Override
@@ -115,7 +101,6 @@ public class Ledger implements ItemProcessor {
 		}
 		}
 		insertEnd(command);
-		notify("AccountCommand");
 	}
 
 	@Override
@@ -137,13 +122,11 @@ public class Ledger implements ItemProcessor {
 	@Override
 	public void process(BlankLine blank) {
 		insertEnd(blank);
-		notify("BlankLine");
 	}
 
 	@Override
 	public boolean process(Budget budget) throws LedgerModelException {
 		insertEnd(budget);
-		notify("Budget");
 		return true;
 	}
 
@@ -212,7 +195,6 @@ public class Ledger implements ItemProcessor {
 	@Override
 	public boolean process(Transaction transaction) throws TransactionException {
 		insertEnd(transaction.withBalance());
-		notify("Transaction");
 		return true;
 	}
 
@@ -231,7 +213,6 @@ public class Ledger implements ItemProcessor {
 		account = account.withTransaction(transaction);
 		accounts.put(transaction.account(), account);
 		insertEnd(transaction);
-		notify("UnbalancedTransaction");
 	}
 
 	@Override
