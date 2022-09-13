@@ -7,8 +7,8 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.ledger.AccountTransactionView;
-import cashpiles.model.AccountTransactionsView;
-import cashpiles.model.StatementsView;
+import cashpiles.model2.AccountTransactionsView;
+import cashpiles.model2.StatementsView;
 
 @SuppressWarnings("serial")
 class ReconciliationDialogTableModel extends AbstractTableModel {

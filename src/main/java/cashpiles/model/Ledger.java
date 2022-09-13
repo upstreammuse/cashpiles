@@ -30,6 +30,8 @@ import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
+import cashpiles.model2.AccountsView;
+import cashpiles.model2.StatementsView;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
 public class Ledger implements ItemProcessor {

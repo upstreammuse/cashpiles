@@ -8,6 +8,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionView;
+import cashpiles.model2.StatementsView;
 import cashpiles.util.Lists;
 
 class Account extends ModelItem implements StatementsView {
