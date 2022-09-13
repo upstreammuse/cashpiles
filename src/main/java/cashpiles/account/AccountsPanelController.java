@@ -137,7 +137,6 @@ class AccountsPanelController {
 
 	void setLedger(Ledger ledger) {
 		this.ledger = ledger;
-		ledger.addListener(action -> refresh());
 		refresh();
 	}
 
