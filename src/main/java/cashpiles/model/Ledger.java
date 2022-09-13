@@ -30,7 +30,6 @@ import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
 import cashpiles.ledger.WithholdingBudgetEntry;
-import cashpiles.time.DateRange;
 
 // TODO what happens if the last category for a particular owner is closed? and what *should* happen?
 public class Ledger implements ItemProcessor {
@@ -47,10 +46,6 @@ public class Ledger implements ItemProcessor {
 
 	public AccountsView getAccounts() {
 		return accounts;
-	}
-
-	public CategoriesView getCategories() {
-		return categories;
 	}
 
 	public StatementsView getStatements(String accountName) {
@@ -145,9 +140,6 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public boolean process(Budget budget) throws LedgerModelException {
-		for (var entry : categories.entrySet()) {
-			entry.setValue(entry.getValue().withPeriods(budget));
-		}
 		insertEnd(budget);
 		notify("Budget");
 		return true;
@@ -155,42 +147,26 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(CategoryTransactionEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.category());
-		if (category == null) {
+		if (!categories.contains(entry.category())) {
 			throw LedgerModelException.forUnknown(entry);
-		}
-
-		for (var c : categories.entrySet()) {
-			c.setValue(c.getValue().withDate(entry));
-		}
-
-		var allocation = category.withTransaction(entry);
-		categories.put(entry.category(), allocation.category());
-		for (var c : categories.entrySet()) {
-			c.setValue(c.getValue().allocate(allocation));
 		}
 		processTracking(entry);
 	}
 
 	@Override
 	public void process(GoalBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new GoalCategory(entry);
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	@Override
 	public void process(IncomeBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new IncomeCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	public void process(ItemProcessor processor) throws LedgerException {
@@ -204,35 +180,26 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(ManualGoalBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new ManualGoalCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	@Override
 	public void process(ReserveBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new ReserveCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.percentage(), entry.owner());
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	@Override
 	public void process(RoutineBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new RoutineCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	@Override
@@ -267,13 +234,10 @@ public class Ledger implements ItemProcessor {
 
 	@Override
 	public void process(WithholdingBudgetEntry entry) throws LedgerModelException {
-		var category = categories.get(entry.name());
-		if (category != null) {
+		if (categories.contains(entry.name())) {
 			throw LedgerModelException.forExistingCategory(entry);
 		}
-		category = new WithholdingCategory(entry.parent().date(),
-				new DateRange(entry.parent().date(), entry.parent().period()), entry.owner());
-		categories.put(entry.name(), category);
+		categories.add(entry.name());
 	}
 
 	private void processTracking(TrackingTransactionEntry entry) throws LedgerModelException {
