@@ -1,18 +1,12 @@
 package cashpiles.model;
 
-import java.util.TreeMap;
+import java.util.TreeSet;
 
 @SuppressWarnings("serial")
-class CategoriesMap extends TreeMap<String, Category> implements CategoriesView {
+class CategoriesMap extends TreeSet<String> {
 
-	@Override
-	public CategoryView get(int index) {
-		return this.entrySet().stream().skip(index).findFirst().get().getValue();
-	}
-
-	@Override
 	public String name(int index) {
-		return this.entrySet().stream().skip(index).findFirst().get().getKey();
+		return this.stream().skip(index).findFirst().get();
 	}
 
 }
