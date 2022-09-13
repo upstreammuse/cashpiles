@@ -6,7 +6,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
@@ -35,7 +37,7 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 public class Ledger implements ItemProcessor {
 
 	private final AccountsMap accounts = new AccountsMap();
-	private final CategoriesMap categories = new CategoriesMap();
+	private final Set<String> categories = new TreeSet<>();
 	private final TreeMap<LocalDate, List<LedgerItem>> items = new TreeMap<>();
 	private final List<ActionListener> listeners = new ArrayList<>();
 	private Optional<List<LedgerItem>> preDatedItems = Optional.of(new ArrayList<>());
