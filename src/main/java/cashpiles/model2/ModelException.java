@@ -115,7 +115,7 @@ class ModelException extends LedgerException {
 	}
 
 	static ModelException forUnknown(CategoryTransactionEntry entry) {
-		return new ModelException(entry, "Cannot use unknown budget category");
+		return new ModelException(entry, "Cannot use unknown category '" + entry.category() + "' in a transaction.");
 	}
 
 	static ModelException forUnknown(CloseBudgetEntry entry) {
