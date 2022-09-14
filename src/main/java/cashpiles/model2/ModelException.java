@@ -17,6 +17,7 @@ import cashpiles.ledger.OwnerTransactionEntry;
 import cashpiles.ledger.TrackingTransactionEntry;
 import cashpiles.ledger.TransactionEntry;
 import cashpiles.ledger.UnbalancedTransaction;
+import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
 class ModelException extends LedgerException {
@@ -73,8 +74,9 @@ class ModelException extends LedgerException {
 		return new ModelException(entry, "Cannot have partial transaction entry");
 	}
 
-	static ModelException forOutOfRange(DatedLedgerItem item) {
-		return new ModelException(item, "Item does not occur during current budget period");
+	static ModelException forOutOfRange(DatedLedgerItem item, DateRange dates) {
+		return new ModelException(item, "Item dated " + item.date() + " does not occur in current budget period dated "
+				+ dates.startDate() + " to " + dates.endDate() + ".");
 	}
 
 	static ModelException forTooEarly(AccountTransactionEntry entry, LocalDate startDate) {
