@@ -1,4 +1,4 @@
-package cashpiles.model;
+package cashpiles.model2;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -10,7 +10,6 @@ import java.util.Optional;
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountTransactionView;
-import cashpiles.model2.AccountTransactionsView;
 
 public class Statement extends ModelItem implements AccountTransactionsView {
 
@@ -48,7 +47,7 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 		return startBalance;
 	}
 
-	public Statement withReconciliation(AccountBalance balance) throws LedgerModelException {
+	public Statement withReconciliation(AccountBalance balance) throws ModelException {
 		var retval = clone();
 		retval.closingDate = Optional.of(balance.date());
 		retval.transactions.removeIf(x -> x.date().compareTo(balance.date()) > 0);
@@ -64,12 +63,12 @@ public class Statement extends ModelItem implements AccountTransactionsView {
 				case DISPUTED:
 					break;
 				case PENDING:
-					throw LedgerModelException.forUncleared(balance);
+					throw ModelException.forUncleared(balance);
 				}
 			}
 		}
 		if (!retval.balance().equals(balance.amount())) {
-			throw LedgerModelException.forUnbalanced(balance, retval.balance());
+			throw ModelException.forUnbalanced(balance, retval.balance());
 		}
 		return retval;
 	}

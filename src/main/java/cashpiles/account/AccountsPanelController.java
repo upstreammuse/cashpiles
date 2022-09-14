@@ -12,7 +12,7 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.LedgerException;
-import cashpiles.model.Ledger;
+import cashpiles.model2.Ledger;
 
 class AccountsPanelController {
 

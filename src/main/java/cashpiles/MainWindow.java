@@ -24,7 +24,7 @@ import cashpiles.budget.BudgetPanel;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
-import cashpiles.model.Ledger;
+import cashpiles.model2.Ledger;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
@@ -161,9 +161,6 @@ public class MainWindow extends JFrame {
 	public void setLedger(Ledger ledger) throws LedgerException {
 		this.ledger = ledger;
 		accountsPanel.setLedger(ledger);
-	}
-
-	private void setLedger(cashpiles.model2.Ledger ledger) {
 		budgetPanel.setLedger(ledger);
 	}
 
