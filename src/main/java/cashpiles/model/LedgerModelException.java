@@ -36,11 +36,6 @@ public class LedgerModelException extends LedgerException {
 		return new LedgerModelException(balance, "Account balance includes uncleared transactions.");
 	}
 
-	static LedgerModelException forUnknown(CategoryTransactionEntry entry) {
-		return new LedgerModelException(entry,
-				"Cannot use unknown category '" + entry.category() + "' in a transaction.");
-	}
-
 	protected LedgerModelException(LedgerItem item, String message) {
 		super(item, message);
 	}
