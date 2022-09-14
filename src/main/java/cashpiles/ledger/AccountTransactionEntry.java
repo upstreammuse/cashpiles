@@ -1,7 +1,5 @@
 package cashpiles.ledger;
 
-import java.time.LocalDate;
-
 import cashpiles.currency.Amount;
 
 public class AccountTransactionEntry extends TransactionEntry {
@@ -54,11 +52,6 @@ public class AccountTransactionEntry extends TransactionEntry {
 	@Override
 	public Amount accountAmount() {
 		return amount();
-	}
-
-	@Override
-	public LocalDate date() {
-		return parent().date();
 	}
 
 	@Override

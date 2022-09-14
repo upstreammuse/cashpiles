@@ -1,6 +1,5 @@
 package cashpiles.ledger;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import cashpiles.currency.Amount;
@@ -55,11 +54,6 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	@Override
 	public Amount accountAmount() {
 		return amount().negate();
-	}
-
-	@Override
-	public LocalDate date() {
-		return parent().date();
 	}
 
 	@Override

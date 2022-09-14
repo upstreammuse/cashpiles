@@ -1,5 +1,6 @@
 package cashpiles.ledger;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import cashpiles.currency.Amount;
@@ -33,6 +34,11 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		// clone
 		retval.parent = null;
 		return retval;
+	}
+
+	@Override
+	public LocalDate date() {
+		return parent.date();
 	}
 
 	public int deferral() {
