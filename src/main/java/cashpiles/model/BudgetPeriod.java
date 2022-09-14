@@ -1,9 +1,5 @@
 package cashpiles.model;
 
-import java.util.List;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 import cashpiles.currency.Amount;
 import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
@@ -20,52 +16,6 @@ import cashpiles.time.DateRange;
 
 // this is an immutable data class
 class BudgetPeriod extends ModelItem implements PeriodView {
-
-	@SuppressWarnings("serial")
-	private class CategoryMap extends TreeMap<String, Category> implements CategoriesView {
-
-		CategoryMap() {
-			super();
-		}
-
-		CategoryMap(CategoryMap other) {
-			super(other);
-		}
-
-		@Override
-		public CategoryView get(String name) {
-			return super.get(name);
-		}
-
-		@Override
-		public List<String> names() {
-			return keySet().stream().collect(Collectors.toList());
-		}
-
-	}
-
-	@SuppressWarnings("serial")
-	private class OwnerMap extends TreeMap<String, Amount> implements OwnersView {
-
-		OwnerMap() {
-			super();
-		}
-
-		OwnerMap(OwnerMap other) {
-			super(other);
-		}
-
-		@Override
-		public Amount get(String name) {
-			return super.get(name);
-		}
-
-		@Override
-		public List<String> names() {
-			return keySet().stream().collect(Collectors.toList());
-		}
-
-	}
 
 	// the categories in this budget period
 	private CategoryMap categories = new CategoryMap();
