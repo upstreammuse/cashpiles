@@ -1,7 +1,5 @@
 package cashpiles.model;
 
-import java.time.LocalDate;
-
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.BudgetEntry;
@@ -20,11 +18,6 @@ public class LedgerModelException extends LedgerException {
 
 	static LedgerModelException forExistingCategory(BudgetEntry entry) {
 		return new LedgerModelException(entry, "Budget category '" + entry.name() + "' already in use.");
-	}
-
-	static LedgerModelException forTooEarly(CategoryTransactionEntry entry, LocalDate startDate) {
-		return new LedgerModelException(entry, "Transaction date " + entry.parent().date()
-				+ " is before the category start date of " + startDate + ".");
 	}
 
 	static LedgerModelException forUnbalanced(AccountBalance balance, Amount calculated) {
