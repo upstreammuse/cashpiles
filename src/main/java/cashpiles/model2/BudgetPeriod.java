@@ -154,8 +154,9 @@ class BudgetPeriod extends ModelItem implements PeriodView {
 	// generate the next budget period based on the current one, but use a different
 	// duration for the new period
 	BudgetPeriod next(Budget budget) throws ModelException {
-		if (!dates.next().startDate().equals(budget.date())) {
-			throw ModelException.forOutOfSync(budget);
+		var nextDate = dates.next().startDate();
+		if (!nextDate.equals(budget.date())) {
+			throw ModelException.forBudgetStartDate(budget, nextDate);
 		}
 		return next(new DateRange(budget.date(), budget.period()));
 	}

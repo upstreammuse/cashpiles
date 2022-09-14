@@ -328,8 +328,9 @@ public class Ledger implements ItemProcessor {
 			// budget entry, which is allowed, or the next period starts after the provided
 			// budget entry, which is an error meaning the provided entry doesn't match the
 			// existing cadence of budget periods
-			if (!Lists.lastOf(periods).dates().next().startDate().equals(budget.date())) {
-				throw ModelException.forOutOfSync(budget);
+			var nextDate = Lists.lastOf(periods).dates().next().startDate();
+			if (!nextDate.equals(budget.date())) {
+				throw ModelException.forBudgetStartDate(budget, nextDate);
 			} else {
 				periods.add(Lists.lastOf(periods).next(budget));
 			}
