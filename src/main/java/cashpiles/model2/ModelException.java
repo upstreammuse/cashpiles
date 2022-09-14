@@ -41,7 +41,7 @@ class ModelException extends LedgerException {
 	}
 
 	static ModelException forExisting(BudgetEntry entry) {
-		return new ModelException(entry, "Budget category already exists");
+		return new ModelException(entry, "Budget category '" + entry.name() + "' already in use.");
 	}
 
 	static ModelException forNoBudget(LedgerItem item) {
