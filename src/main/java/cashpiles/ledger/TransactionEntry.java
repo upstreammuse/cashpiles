@@ -15,6 +15,8 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		super(fileName, lineNumber, comment);
 	}
 
+	abstract void addToBalance(Transaction.BalanceResult balancer) throws TransactionException;
+
 	@Override
 	public Transaction.Status accountStatus() {
 		return status.orElse(parent.status());
@@ -24,9 +26,20 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		return amount;
 	}
 
+	@Override
+	public TransactionEntry clone() {
+		var retval = (TransactionEntry) super.clone();
+		// cloning decouples from the parent because the parent doesn't know about the
+		// clone
+		retval.parent = null;
+		return retval;
+	}
+
 	public int deferral() {
 		return deferral;
 	}
+
+	abstract TransactionEntry fromBalance(Transaction.BalanceResult balancer);
 
 	public Transaction parent() {
 		return parent;
@@ -57,19 +70,6 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 	public TransactionEntry withStatus(Transaction.Status status) {
 		var retval = clone();
 		retval.status = Optional.of(status);
-		return retval;
-	}
-
-	abstract void addToBalance(Transaction.BalanceResult balancer) throws TransactionException;
-
-	abstract TransactionEntry fromBalance(Transaction.BalanceResult balancer);
-
-	@Override
-	public TransactionEntry clone() {
-		var retval = (TransactionEntry) super.clone();
-		// cloning decouples from the parent because the parent doesn't know about the
-		// clone
-		retval.parent = null;
 		return retval;
 	}
 
