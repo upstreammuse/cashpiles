@@ -88,7 +88,7 @@ public class Ledger implements ItemProcessor {
 
 	}
 
-	private class NullProcessor implements ItemProcessor {
+	private static class NullProcessor implements ItemProcessor {
 
 		@Override
 		public void process(AccountTransactionEntry entry) throws ModelException {
@@ -140,10 +140,6 @@ public class Ledger implements ItemProcessor {
 			throw ModelException.forOrphan(entry);
 		}
 
-	}
-
-	@SuppressWarnings("serial")
-	private class PeriodsList extends ArrayList<BudgetPeriod> implements PeriodsView {
 	}
 
 	private class TransactionEntryProcessor implements ItemProcessor {
