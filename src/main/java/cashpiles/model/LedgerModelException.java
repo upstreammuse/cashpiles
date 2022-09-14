@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
-import cashpiles.ledger.Budget;
 import cashpiles.ledger.BudgetEntry;
 import cashpiles.ledger.CategoryTransactionEntry;
 import cashpiles.ledger.LedgerException;
@@ -13,11 +12,6 @@ import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
 public class LedgerModelException extends LedgerException {
-
-	static LedgerModelException forBudgetStartDate(Budget budget, LocalDate startDate) {
-		return new LedgerModelException(budget, "Cannot start new budget period on " + budget.date()
-				+ ".  Next available start date is " + startDate + ".");
-	}
 
 	static LedgerModelException forDateOutOfRange(CategoryTransactionEntry entry, DateRange dates) {
 		return new LedgerModelException(entry, "Transaction dated " + entry.parent().date()

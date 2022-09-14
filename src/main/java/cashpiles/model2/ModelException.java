@@ -34,6 +34,11 @@ class ModelException extends LedgerException {
 				"Account '" + entry.account() + "' is not on-budget, which is needed for account entries.");
 	}
 
+	static ModelException forBudgetStartDate(Budget budget, LocalDate startDate) {
+		return new ModelException(budget, "Cannot start new budget period on " + budget.date()
+				+ ".  Next available start date is " + startDate + ".");
+	}
+
 	static ModelException forExisting(BudgetEntry entry) {
 		return new ModelException(entry, "Budget category already exists");
 	}
@@ -70,10 +75,6 @@ class ModelException extends LedgerException {
 
 	static ModelException forOutOfRange(DatedLedgerItem item) {
 		return new ModelException(item, "Item does not occur during current budget period");
-	}
-
-	static ModelException forOutOfSync(Budget budget) {
-		return new ModelException(budget, "Cannot start new budget period here");
 	}
 
 	static ModelException forTooEarly(AccountTransactionEntry entry, LocalDate startDate) {
