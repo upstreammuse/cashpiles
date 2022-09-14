@@ -22,6 +22,7 @@ class CashPiles {
 			if (defaults.get("Table.alternateRowColor") == null)
 				defaults.put("Table.alternateRowColor", new Color(240, 240, 240));
 			var mw = new MainWindow();
+			mw.initUi();
 			mw.setVisible(true);
 		});
 	}

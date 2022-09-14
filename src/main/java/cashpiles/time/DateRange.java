@@ -32,7 +32,7 @@ public class DateRange {
 		return startDate.compareTo(date) <= 0 && endDate().compareTo(date) >= 0;
 	}
 
-	public LocalDate endDate() {
+	public final LocalDate endDate() {
 		return startDate.plus(period).minus(Period.ofDays(1));
 	}
 
