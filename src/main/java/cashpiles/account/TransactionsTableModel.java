@@ -11,7 +11,7 @@ class TransactionsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Date", "Status", "Payee", "Amount" };
 
-	private final Optional<AccountTransactionsView> view;
+	private transient final Optional<AccountTransactionsView> view;
 
 	TransactionsTableModel() {
 		view = Optional.empty();

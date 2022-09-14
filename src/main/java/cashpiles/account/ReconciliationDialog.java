@@ -28,9 +28,9 @@ class ReconciliationDialog extends JDialog {
 	private final ReconciliationDialogTableModel model;
 	private boolean ok = false;
 	private final JButton okButton = new JButton("Reconcile");
-	private final Amount startBalance;
+	private transient final Amount startBalance;
 	private final JLabel selectedBalance = new JLabel(new Amount().toString());
-	private Amount selectedTotal = new Amount();
+	private transient Amount selectedTotal = new Amount();
 	private final JTable table;
 
 	ReconciliationDialog(JFrame parent, StatementsView view) {

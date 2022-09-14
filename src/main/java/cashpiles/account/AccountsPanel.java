@@ -14,7 +14,7 @@ import cashpiles.model.Ledger;
 @SuppressWarnings("serial")
 public class AccountsPanel extends JPanel {
 
-	private final AccountsPanelController controller;
+	private transient final AccountsPanelController controller;
 	private final JButton newTransactions = new JButton("New Transaction...");
 	private final JTable offBudgetAccounts = new JTable();
 	private final JLabel offBudgetBalance = new JLabel();
