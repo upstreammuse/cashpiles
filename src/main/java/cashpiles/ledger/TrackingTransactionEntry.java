@@ -12,53 +12,9 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 		super(fileName, lineNumber, comment);
 	}
 
-	public Optional<String> trackingAccount() {
-		return trackingAccount;
-	}
-
-	public TrackingTransactionEntry withTrackingAccount(String trackingAccount) {
-		var retval = clone();
-		retval.trackingAccount = Optional.ofNullable(trackingAccount);
-		return retval;
-	}
-
-	@Override
-	void addToBalance(Transaction.BalanceResult balancer) throws TransactionException {
-		if (amount() == null) {
-			if (balancer.emptyEntries < 1) {
-				balancer.emptyEntries++;
-			} else {
-				throw TransactionException.forMultipleEmptyEntries(this);
-			}
-		} else {
-			balancer.categoryTotal = balancer.categoryTotal.add(amount());
-		}
-	}
-
-	@Override
-	TrackingTransactionEntry fromBalance(Transaction.BalanceResult balancer) {
-		if (amount() == null) {
-			var retval = withAmount(balancer.accountTotal.add(balancer.categoryTotal.negate()));
-			balancer.categoryTotal = balancer.accountTotal;
-			return retval;
-		} else {
-			return this;
-		}
-	}
-
-	@Override
-	public TrackingTransactionEntry withAmount(Amount amount) {
-		return (TrackingTransactionEntry) super.withAmount(amount);
-	}
-
 	@Override
 	public Amount accountAmount() {
 		return amount().negate();
-	}
-
-	@Override
-	public int deferral() {
-		return 0;
 	}
 
 	@Override
@@ -77,8 +33,52 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
+	void addToBalance(Transaction.BalanceResult balancer) throws TransactionException {
+		if (amount() == null) {
+			if (balancer.emptyEntries < 1) {
+				balancer.emptyEntries++;
+			} else {
+				throw TransactionException.forMultipleEmptyEntries(this);
+			}
+		} else {
+			balancer.categoryTotal = balancer.categoryTotal.add(amount());
+		}
+	}
+
+	@Override
 	public TrackingTransactionEntry clone() {
 		return (TrackingTransactionEntry) super.clone();
+	}
+
+	@Override
+	public int deferral() {
+		return 0;
+	}
+
+	@Override
+	TrackingTransactionEntry fromBalance(Transaction.BalanceResult balancer) {
+		if (amount() == null) {
+			var retval = withAmount(balancer.accountTotal.add(balancer.categoryTotal.negate()));
+			balancer.categoryTotal = balancer.accountTotal;
+			return retval;
+		} else {
+			return this;
+		}
+	}
+
+	public Optional<String> trackingAccount() {
+		return trackingAccount;
+	}
+
+	@Override
+	public TrackingTransactionEntry withAmount(Amount amount) {
+		return (TrackingTransactionEntry) super.withAmount(amount);
+	}
+
+	public TrackingTransactionEntry withTrackingAccount(String trackingAccount) {
+		var retval = clone();
+		retval.trackingAccount = Optional.ofNullable(trackingAccount);
+		return retval;
 	}
 
 }
