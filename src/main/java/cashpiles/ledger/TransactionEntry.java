@@ -15,12 +15,12 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		super(fileName, lineNumber, comment);
 	}
 
-	abstract void addToBalance(Transaction.BalanceResult balancer) throws TransactionException;
-
 	@Override
 	public Transaction.Status accountStatus() {
 		return status.orElse(parent.status());
 	}
+
+	abstract void addToBalance(Transaction.BalanceResult balancer) throws TransactionException;
 
 	public Amount amount() {
 		return amount;
