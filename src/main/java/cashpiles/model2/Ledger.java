@@ -222,8 +222,9 @@ public class Ledger implements ItemProcessor {
 		while (Lists.lastOf(periods).dates().endDate().compareTo(item.date()) < 0) {
 			periods.add(Lists.lastOf(periods).next());
 		}
-		if (!Lists.lastOf(periods).dates().contains(item.date())) {
-			throw ModelException.forOutOfRange(item);
+		var lastDates = Lists.lastOf(periods).dates();
+		if (!lastDates.contains(item.date())) {
+			throw ModelException.forOutOfRange(item, lastDates);
 		}
 	}
 
