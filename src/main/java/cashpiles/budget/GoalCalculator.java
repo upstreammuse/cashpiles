@@ -1,6 +1,8 @@
 package cashpiles.budget;
 
 import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,25 +10,15 @@ import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
 import cashpiles.util.Lists;
 
-// TODO modernize this to match the rest of the program's coding style (make it a value class, do clone correctly, better exceptions, etc.)
+// this is an immutable data class
 public class GoalCalculator implements Cloneable {
 
-	private DateRange allocationDates;
-	private Amount goalAmount;
-	private DateRange goalDates;
-	private boolean goalRepeat;
+	private DateRange allocationDates = new DateRange(LocalDate.now(), Period.ofDays(1));
+	private Amount goalAmount = new Amount();
+	private DateRange goalDates = new DateRange(LocalDate.now(), Period.ofDays(1));;
+	private boolean goalRepeat = false;
 
-	@Override
-	public GoalCalculator clone() {
-		GoalCalculator result = new GoalCalculator();
-		result.setAllocationDates(allocationDates);
-		result.setGoalAmount(goalAmount);
-		result.setGoalDates(goalDates);
-		result.setGoalRepeat(goalRepeat);
-		return result;
-	}
-
-	public Amount getAllocationAmount() {
+	public Amount allocationAmount() {
 		var goals = generateGoals();
 		var result = new Amount();
 		for (var goal : goals) {
@@ -38,12 +30,30 @@ public class GoalCalculator implements Cloneable {
 		return result;
 	}
 
-	public boolean getCompleted() {
+	@Override
+	public GoalCalculator clone() {
+		try {
+			return (GoalCalculator) super.clone();
+		} catch (CloneNotSupportedException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public boolean completed() {
 		return !goalRepeat && goalDates.endDate().compareTo(allocationDates.endDate()) <= 0;
 	}
 
-	public DateRange getNextGoalDates() {
-		if (getCompleted()) {
+	private List<DateRange> generateGoals() {
+		var goals = new ArrayList<DateRange>();
+		goals.add(goalDates);
+		while (goalRepeat && Lists.lastOf(goals).endDate().compareTo(allocationDates.endDate()) < 0) {
+			goals.add(Lists.lastOf(goals).next());
+		}
+		return goals;
+	}
+
+	public DateRange nextGoalDates() {
+		if (completed()) {
 			throw new DateTimeException("Goal dates are completed");
 		}
 		var goals = generateGoals();
@@ -54,29 +64,28 @@ public class GoalCalculator implements Cloneable {
 		return nextDates;
 	}
 
-	public void setAllocationDates(DateRange dates) {
-		allocationDates = dates;
+	public GoalCalculator withAllocationDates(DateRange dates) {
+		var retval = clone();
+		retval.allocationDates = dates;
+		return retval;
 	}
 
-	public void setGoalAmount(Amount amount) {
-		goalAmount = amount;
+	public GoalCalculator withGoalAmount(Amount amount) {
+		var retval = clone();
+		retval.goalAmount = amount;
+		return retval;
 	}
 
-	public void setGoalDates(DateRange dates) {
-		goalDates = dates;
+	public GoalCalculator withGoalDates(DateRange dates) {
+		var retval = clone();
+		retval.goalDates = dates;
+		return retval;
 	}
 
-	public void setGoalRepeat(boolean repeat) {
-		goalRepeat = repeat;
-	}
-
-	private List<DateRange> generateGoals() {
-		var goals = new ArrayList<DateRange>();
-		goals.add(goalDates);
-		while (goalRepeat && Lists.lastOf(goals).endDate().compareTo(allocationDates.endDate()) < 0) {
-			goals.add(Lists.lastOf(goals).next());
-		}
-		return goals;
+	public GoalCalculator withGoalRepeat(boolean repeat) {
+		var retval = clone();
+		retval.goalRepeat = repeat;
+		return retval;
 	}
 
 }

@@ -22,11 +22,11 @@ class GoalCategory extends Category {
 
 	private Amount allocation(DateRange dates) {
 		var calc = new GoalCalculator();
-		calc.setAllocationDates(dates);
-		calc.setGoalAmount(amount);
-		calc.setGoalDates(goalDates);
-		calc.setGoalRepeat(repeat);
-		return calc.getAllocationAmount();
+		calc = calc.withAllocationDates(dates);
+		calc = calc.withGoalAmount(amount);
+		calc = calc.withGoalDates(goalDates);
+		calc = calc.withGoalRepeat(repeat);
+		return calc.allocationAmount();
 	}
 
 	@Override
