@@ -9,7 +9,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import cashpiles.MainWindow;
-import cashpiles.model2.Ledger;
+import cashpiles.model.Ledger;
 
 @SuppressWarnings("serial")
 public class AccountsPanel extends JPanel {

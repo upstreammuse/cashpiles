@@ -1,18 +1,17 @@
-package cashpiles.model2;
+package cashpiles.model;
 
 import cashpiles.ledger.CategoryTransactionEntry;
-import cashpiles.ledger.IncomeBudgetEntry;
+import cashpiles.ledger.WithholdingBudgetEntry;
 
-// this is an immutable data class
-class IncomeCategory extends Category {
+class WithholdingCategory extends Category {
 
-	IncomeCategory(IncomeBudgetEntry entry) {
+	WithholdingCategory(WithholdingBudgetEntry entry) {
 		super(entry.owner());
 	}
 
 	@Override
 	public String type() {
-		return "Income";
+		return "Withholding";
 	}
 
 	@Override
@@ -20,7 +19,7 @@ class IncomeCategory extends Category {
 		var alloc = super.withTransaction(entry);
 		var category = alloc.category();
 		category.allocation = category.allocation.add(category.balance().negate());
-		return new IncomeAllocator(category, entry.amount());
+		return new CrossAllocator(category);
 	}
 
 }

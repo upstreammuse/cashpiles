@@ -1,4 +1,4 @@
-package cashpiles.model2;
+package cashpiles.model;
 
 // this is an immutable data class
 class ModelItem implements Cloneable {

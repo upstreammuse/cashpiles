@@ -9,8 +9,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
-import cashpiles.model2.Ledger;
-import cashpiles.model2.PeriodView;
+import cashpiles.model.Ledger;
+import cashpiles.model.PeriodView;
 
 @SuppressWarnings("serial")
 public class BudgetPanel extends JPanel {

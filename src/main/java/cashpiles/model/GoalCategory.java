@@ -1,4 +1,4 @@
-package cashpiles.model2;
+package cashpiles.model;
 
 import cashpiles.budget.GoalCalculator;
 import cashpiles.currency.Amount;
