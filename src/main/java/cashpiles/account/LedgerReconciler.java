@@ -15,7 +15,7 @@ import cashpiles.ledger.Transaction;
 import cashpiles.ledger.TransactionEntry;
 import cashpiles.ledger.TransactionException;
 import cashpiles.ledger.UnbalancedTransaction;
-import cashpiles.model.Ledger;
+import cashpiles.model2.Ledger;
 
 class LedgerReconciler implements Cloneable, ItemProcessor {
 

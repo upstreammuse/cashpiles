@@ -1,10 +1,9 @@
-package cashpiles.model;
+package cashpiles.model2;
 
 import java.util.TreeMap;
 
 import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountCommand.Status;
-import cashpiles.model2.AccountsView;
 
 @SuppressWarnings("serial")
 class AccountsMap extends TreeMap<String, Account> implements AccountsView {

@@ -1,4 +1,4 @@
-package cashpiles.model;
+package cashpiles.model2;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -8,7 +8,6 @@ import cashpiles.currency.Amount;
 import cashpiles.ledger.AccountBalance;
 import cashpiles.ledger.AccountCommand;
 import cashpiles.ledger.AccountTransactionView;
-import cashpiles.model2.StatementsView;
 import cashpiles.util.Lists;
 
 class Account extends ModelItem implements StatementsView {
@@ -35,7 +34,7 @@ class Account extends ModelItem implements StatementsView {
 		return status;
 	}
 
-	Account reconciled(AccountBalance balance) throws LedgerModelException {
+	Account reconciled(AccountBalance balance) throws ModelException {
 		var retval = clone();
 		var reconciled = Lists.lastOf(retval.statements).withReconciliation(balance);
 		var remaining = Lists.lastOf(retval.statements).withReconciliationRemainder(reconciled);
