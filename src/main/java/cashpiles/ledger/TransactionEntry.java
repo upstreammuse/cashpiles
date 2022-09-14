@@ -45,6 +45,11 @@ abstract public class TransactionEntry extends LedgerItem implements AccountTran
 		return parent;
 	}
 
+	@Override
+	public String payee() {
+		return parent.payee();
+	}
+
 	public Optional<Transaction.Status> status() {
 		return status;
 	}

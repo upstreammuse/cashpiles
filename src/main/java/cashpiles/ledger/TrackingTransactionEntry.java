@@ -68,11 +68,6 @@ abstract public class TrackingTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	public String payee() {
-		return parent().payee();
-	}
-
-	@Override
 	public Transaction.Status accountStatus() {
 		return switch (super.accountStatus()) {
 		case CLEARED -> Transaction.Status.CLEARED;

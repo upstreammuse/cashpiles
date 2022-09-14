@@ -62,11 +62,6 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	public String payee() {
-		return parent().payee();
-	}
-
-	@Override
 	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
