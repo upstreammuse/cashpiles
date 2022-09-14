@@ -32,7 +32,7 @@ public class MainWindow extends JFrame {
 
 	private final AccountsPanel accountsPanel = new AccountsPanel(this);
 	private final BudgetPanel budgetPanel = new BudgetPanel();
-	private Ledger ledger = new Ledger();
+	private transient Ledger ledger = new Ledger();
 
 	MainWindow() {
 		initUi();

@@ -16,10 +16,10 @@ import cashpiles.model.PeriodView;
 public class BudgetPanel extends JPanel {
 
 	private final JTable categoryTable = new JTable();
-	private Ledger ledger = new Ledger();
+	private transient Ledger ledger = new Ledger();
 	private final JTable ownerTable = new JTable();
 	private final JTable periodTable = new JTable();
-	private Optional<PeriodView> selectedPeriod = Optional.empty();
+	private transient Optional<PeriodView> selectedPeriod = Optional.empty();
 
 	public BudgetPanel() {
 		initController();

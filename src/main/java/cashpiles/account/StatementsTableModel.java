@@ -11,7 +11,7 @@ class StatementsTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Statement Date" };
 
-	private final Optional<StatementsView> view;
+	private transient final Optional<StatementsView> view;
 
 	StatementsTableModel() {
 		this.view = Optional.empty();

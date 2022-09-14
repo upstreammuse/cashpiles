@@ -11,7 +11,7 @@ class CategoryTableModel extends AbstractTableModel {
 
 	private static final String[] headers = { "Category", "Type", "Owner", "Allocation", "Activity", "Balance" };
 
-	private final Optional<CategoriesView> view;
+	private transient final Optional<CategoriesView> view;
 
 	CategoryTableModel() {
 		view = Optional.empty();
