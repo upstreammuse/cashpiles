@@ -2,7 +2,7 @@ package cashpiles.budget;
 
 import javax.swing.table.AbstractTableModel;
 
-import cashpiles.model2.PeriodsView;
+import cashpiles.model.PeriodsView;
 
 @SuppressWarnings("serial")
 class PeriodTableModel extends AbstractTableModel {

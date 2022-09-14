@@ -1,4 +1,4 @@
-package cashpiles.model2;
+package cashpiles.model;
 
 import java.time.Period;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package cashpiles.model2;
+package cashpiles.model;
 
 public interface PeriodsView {
 

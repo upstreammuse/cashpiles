@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 
 import cashpiles.currency.Amount;
-import cashpiles.model2.CategoriesView;
-import cashpiles.model2.OwnersView;
+import cashpiles.model.CategoriesView;
+import cashpiles.model.OwnersView;
 
 @SuppressWarnings("serial")
 class OwnerTableModel extends AbstractTableModel {

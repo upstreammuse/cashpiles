@@ -24,7 +24,7 @@ import cashpiles.budget.BudgetPanel;
 import cashpiles.file.LedgerReader;
 import cashpiles.file.LedgerWriter;
 import cashpiles.ledger.LedgerException;
-import cashpiles.model2.Ledger;
+import cashpiles.model.Ledger;
 
 // TODO look into the Preferences class to store user settings in a platform-matching way
 @SuppressWarnings("serial")
@@ -107,7 +107,7 @@ public class MainWindow extends JFrame {
 
 		var fullPath = Paths.get(directory, filename);
 		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
-			var ledger = new cashpiles.model2.Ledger();
+			var ledger = new Ledger();
 			var ledgerReader = new LedgerReader(reader, fullPath.toString());
 			ledgerReader.readAll(ledger);
 			setLedger(ledger);
