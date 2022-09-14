@@ -18,10 +18,6 @@ public class LedgerModelException extends LedgerException {
 				"Statement balance " + balance.amount() + " and calculated balance " + calculated + " do not match.");
 	}
 
-	static LedgerModelException forUncleared(AccountBalance balance) {
-		return new LedgerModelException(balance, "Account balance includes uncleared transactions.");
-	}
-
 	protected LedgerModelException(LedgerItem item, String message) {
 		super(item, message);
 	}
