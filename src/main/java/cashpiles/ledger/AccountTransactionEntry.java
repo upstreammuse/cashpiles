@@ -14,15 +14,9 @@ public class AccountTransactionEntry extends TransactionEntry {
 		return account;
 	}
 
-	public AccountTransactionEntry withAccount(String account) {
-		var retval = clone();
-		retval.account = account;
-		return retval;
-	}
-
 	@Override
-	public AccountTransactionEntry withAmount(Amount amount) {
-		return (AccountTransactionEntry) super.withAmount(amount);
+	public Amount accountAmount() {
+		return amount();
 	}
 
 	@Override
@@ -39,6 +33,11 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
+	public AccountTransactionEntry clone() {
+		return (AccountTransactionEntry) super.clone();
+	}
+
+	@Override
 	AccountTransactionEntry fromBalance(Transaction.BalanceResult balancer) {
 		if (amount() == null) {
 			var retval = withAmount(balancer.categoryTotal.add(balancer.accountTotal.negate()));
@@ -50,18 +49,19 @@ public class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	public Amount accountAmount() {
-		return amount();
-	}
-
-	@Override
 	public void process(ItemProcessor processor) throws LedgerException {
 		processor.process(this);
 	}
 
+	public AccountTransactionEntry withAccount(String account) {
+		var retval = clone();
+		retval.account = account;
+		return retval;
+	}
+
 	@Override
-	public AccountTransactionEntry clone() {
-		return (AccountTransactionEntry) super.clone();
+	public AccountTransactionEntry withAmount(Amount amount) {
+		return (AccountTransactionEntry) super.withAmount(amount);
 	}
 
 }
