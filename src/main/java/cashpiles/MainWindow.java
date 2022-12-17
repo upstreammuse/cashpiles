@@ -34,7 +34,7 @@ public class MainWindow extends JFrame {
 	private final BudgetPanel budgetPanel = new BudgetPanel();
 	private Ledger ledger = new Ledger();
 
-	public void initUi() {
+	void initUi() {
 		setSize(320, 240);
 		setTitle("CashPiles");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
