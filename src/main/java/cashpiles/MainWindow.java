@@ -111,15 +111,6 @@ public class MainWindow extends JFrame {
 			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		try (var reader = Files.newBufferedReader(fullPath, StandardCharsets.UTF_8)) {
-			var ledger = new Ledger();
-			var ledgerReader = new LedgerReader(reader, fullPath.toString());
-			ledgerReader.readAll(ledger);
-			setLedger(ledger);
-		} catch (IOException | LedgerException ex) {
-			JOptionPane.showMessageDialog(this, "Error reading file.  " + ex.getLocalizedMessage(), "File Read Error",
-					JOptionPane.ERROR_MESSAGE);
-		}
 	}
 
 	private void saveFile(ActionEvent event) {
