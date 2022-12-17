@@ -225,11 +225,11 @@ public class Ledger implements ItemProcessor {
 	}
 
 	public AccountsView getAccounts() {
-		return accounts;
+		return new AccountsMap(accounts);
 	}
 
 	public PeriodsView getPeriods() {
-		return periods;
+		return new PeriodsList(periods);
 	}
 
 	public StatementsView getStatements(String accountName) {

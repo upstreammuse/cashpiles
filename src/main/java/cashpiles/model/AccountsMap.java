@@ -8,6 +8,13 @@ import cashpiles.ledger.AccountCommand.Status;
 @SuppressWarnings("serial")
 class AccountsMap extends TreeMap<String, Account> implements AccountsView {
 
+	AccountsMap() {
+	}
+
+	AccountsMap(AccountsMap other) {
+		super(other);
+	}
+
 	@Override
 	public Amount balance(Status status) {
 		return entrySet().parallelStream().map(entry -> entry.getValue()).filter(account -> account.status() == status)
