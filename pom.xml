@@ -90,6 +90,7 @@
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>4.5.0.0</version>
 				<configuration>
+					<excludeFilterFile>spotbugs-ignore.xml</excludeFilterFile>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
 					<failOnError>true</failOnError>
