@@ -30,10 +30,6 @@ public class AccountsPanel extends JPanel {
 		initUI();
 	}
 
-	public void setLedger(Ledger ledger) {
-		controller.setLedger(ledger);
-	}
-
 	private void initController() {
 		controller.forAccounts(onBudgetAccounts, offBudgetAccounts);
 		controller.forNewTransactions(newTransactions);
@@ -85,6 +81,10 @@ public class AccountsPanel extends JPanel {
 						.addComponent(reconcileAccount))
 				.addGroup(layout.createParallelGroup().addComponent(transactionsHeader).addComponent(scrollPane4)
 						.addComponent(newTransactions)));
+	}
+
+	public void setLedger(Ledger ledger) {
+		controller.setLedger(ledger);
 	}
 
 }
