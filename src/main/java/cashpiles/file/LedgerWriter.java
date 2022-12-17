@@ -28,20 +28,18 @@ import cashpiles.ledger.WithholdingBudgetEntry;
 
 public class LedgerWriter implements ItemProcessor {
 
-	private TableWriter table;
-	private BufferedWriter writer;
+	private final TableWriter table;
+	private final BufferedWriter writer;
 
 	public LedgerWriter(BufferedWriter writer) {
+		table = new TableWriter(writer);
 		this.writer = writer;
 	}
 
 	@Override
 	public void finish() {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 		} catch (IOException ex) {
 			// TODO handle it
 		}
@@ -50,10 +48,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public void process(AccountBalance balance) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeDate(balance.date());
 			writer.write(" balance ");
 			writer.write(balance.account());
@@ -69,10 +64,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public void process(AccountCommand command) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeDate(command.date());
 			writer.write(" ");
 			writer.write(switch (command.status()) {
@@ -91,24 +83,21 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(AccountTransactionEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
 		entry.status().ifPresent(status -> {
 			builder.append(switch (status) {
 			case CLEARED -> switch (entry.parent().status()) {
-				case CLEARED -> "";
-				case DISPUTED -> "";
-				case PENDING -> "*";
-				};
+			case CLEARED -> "";
+			case DISPUTED -> "";
+			case PENDING -> "*";
+			};
 			case DISPUTED -> "!";
 			case PENDING -> switch (entry.parent().status()) {
-				case CLEARED -> "?";
-				case DISPUTED -> "?";
-				case PENDING -> "";
-				};
+			case CLEARED -> "?";
+			case DISPUTED -> "?";
+			case PENDING -> "";
+			};
 			});
 		});
 		builder.append(">".repeat(entry.deferral()));
@@ -125,10 +114,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public void process(BlankLine line) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeComment(line, false);
 			writer.newLine();
 		} catch (IOException ex) {
@@ -139,10 +125,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public boolean process(Budget budget) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeDate(budget.date());
 			writer.write(" budget ");
 			writer.write(budget.period().toString());
@@ -156,9 +139,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(CategoryTransactionEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
 		entry.status().ifPresent(status -> {
@@ -202,9 +182,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(CloseBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  close ");
 		table.write(1, entry.name());
 		table.write(10, formatComment(entry));
@@ -213,9 +190,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(GoalBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  goal ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner() + "  ");
@@ -234,9 +208,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(IncomeBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  income ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
@@ -246,9 +217,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(ManualGoalBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  goal ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
@@ -260,9 +228,6 @@ public class LedgerWriter implements ItemProcessor {
 	// dried out
 	@Override
 	public void process(OwnerTransactionEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  ");
 		var builder = new StringBuilder();
 		entry.status().ifPresent(status -> {
@@ -306,9 +271,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(ReserveBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  reserve ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner() + "  ");
@@ -320,9 +282,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(RoutineBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  routine ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
@@ -333,10 +292,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public boolean process(Transaction xact) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeDate(xact.date());
 			writer.write(" ");
 			writeStatus(xact.status());
@@ -353,10 +309,7 @@ public class LedgerWriter implements ItemProcessor {
 	@Override
 	public void process(UnbalancedTransaction xact) {
 		try {
-			if (table != null) {
-				table.flush();
-				table = null;
-			}
+			table.flush();
 			writeDate(xact.date());
 			writer.write(" ");
 			writeStatus(xact.status());
@@ -372,9 +325,6 @@ public class LedgerWriter implements ItemProcessor {
 
 	@Override
 	public void process(WithholdingBudgetEntry entry) {
-		if (table == null) {
-			table = new TableWriter(writer);
-		}
 		table.write(0, "  withholding ");
 		table.write(1, entry.name() + "  ");
 		table.write(2, entry.owner());
