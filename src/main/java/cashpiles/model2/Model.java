@@ -7,7 +7,7 @@ class Model extends ModelBase {
 
 	private Map<String, Account> accounts = new TreeMap<>();
 
-	Model hideAccount(String name) throws ModelException {
+	Model withHiddenAccount(String name) throws ModelException {
 		if (!accounts.containsKey(name)) {
 			throw ModelException.accountNotExist(name);
 		}
@@ -20,7 +20,7 @@ class Model extends ModelBase {
 		return model;
 	}
 
-	Model openAccount(String name, boolean onBudget) throws ModelException {
+	Model withOpenAccount(String name, boolean onBudget) throws ModelException {
 		var exists = accounts.containsKey(name);
 		if (exists) {
 			if (!accounts.get(name).hidden()) {
