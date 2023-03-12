@@ -16,7 +16,7 @@ class Model extends ModelBase {
 		}
 
 		var model = clone();
-		model.accounts.put(name, model.accounts.get(name).hide());
+		model.accounts.put(name, model.accounts.get(name).asHidden());
 		return model;
 	}
 
@@ -33,7 +33,7 @@ class Model extends ModelBase {
 
 		var model = clone();
 		if (exists) {
-			model.accounts.put(name, model.accounts.get(name).unhide());
+			model.accounts.put(name, model.accounts.get(name).asUnhidden());
 		} else {
 			model.accounts.put(name, new Account(name, onBudget));
 		}

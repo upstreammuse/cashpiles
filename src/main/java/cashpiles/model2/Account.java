@@ -11,14 +11,20 @@ class Account extends ModelBase {
 		this.onBudget = onBudget;
 	}
 
-	boolean hidden() {
-		return hidden;
-	}
-
-	Account hide() {
+	Account asHidden() {
 		var account = clone();
 		account.hidden = true;
 		return account;
+	}
+
+	Account asUnhidden() {
+		var account = clone();
+		account.hidden = false;
+		return account;
+	}
+
+	boolean hidden() {
+		return hidden;
 	}
 
 	String name() {
@@ -27,12 +33,6 @@ class Account extends ModelBase {
 
 	boolean onBudget() {
 		return onBudget;
-	}
-
-	Account unhide() {
-		var account = clone();
-		account.hidden = false;
-		return account;
 	}
 
 	// @Override
