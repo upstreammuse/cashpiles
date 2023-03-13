@@ -50,11 +50,11 @@ class Model extends ModelBase {
 			var manualPeriod = periodIt.next().getValue();
 
 			// if the next manual period does not exist, we are done iterating
-			var nextPeriodIt = periodIt;
-			if (!nextPeriodIt.hasNext()) {
+			var nextEntry = model.budgetPeriods.ceilingEntry(manualPeriod.dates().startDate().plusDays(1));
+			if (nextEntry == null) {
 				break;
 			}
-			var nextPeriod = nextPeriodIt.next().getValue();
+			var nextPeriod = nextEntry.getValue();
 
 			// create automatic periods based on the current manual period as long as their
 			// start dates are prior to the next manual period start date
