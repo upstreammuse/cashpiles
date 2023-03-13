@@ -8,8 +8,13 @@ import java.util.TreeMap;
 
 class Model extends ModelBase {
 
+	private enum Type {
+		ACCOUNT, CATEGORY, OWNER
+	}
+
 	private Map<String, Account> accounts = new TreeMap<>();
 	private NavigableMap<LocalDate, BudgetPeriod> budgetPeriods = new TreeMap<>();
+	private Map<String, Type> identifiers = new TreeMap<>();
 
 	Model withHiddenAccount(String name) throws ModelException {
 		if (!accounts.containsKey(name)) {
@@ -20,6 +25,7 @@ class Model extends ModelBase {
 		}
 
 		var model = clone();
+		model.checkSetIdentifier(name, Type.ACCOUNT);
 		model.accounts.put(name, model.accounts.get(name).asHidden());
 		return model;
 	}
@@ -91,6 +97,7 @@ class Model extends ModelBase {
 		}
 
 		var model = clone();
+		model.checkSetIdentifier(name, Type.ACCOUNT);
 		if (exists) {
 			model.accounts.put(name, model.accounts.get(name).asUnhidden());
 		} else {
@@ -106,6 +113,15 @@ class Model extends ModelBase {
 		model.budgetPeriods = new TreeMap<>(budgetPeriods);
 		model.identifiers = new TreeMap<>(identifiers);
 		return model;
+	}
+
+	private void checkSetIdentifier(String identifier, Type type) throws ModelException {
+		var idType = identifiers.get(identifier);
+		if (idType == null) {
+			identifiers.put(identifier, type);
+		} else if (!idType.equals(type)) {
+			throw ModelException.identifierMismatch(identifier, idType.toString(), type.toString());
+		}
 	}
 
 }
