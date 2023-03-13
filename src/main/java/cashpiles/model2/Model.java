@@ -103,6 +103,8 @@ class Model extends ModelBase {
 	protected Model clone() {
 		var model = (Model) super.clone();
 		model.accounts = new TreeMap<>(accounts);
+		model.budgetPeriods = new TreeMap<>(budgetPeriods);
+		model.identifiers = new TreeMap<>(identifiers);
 		return model;
 	}
 
