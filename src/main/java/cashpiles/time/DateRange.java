@@ -33,7 +33,7 @@ public class DateRange {
 	}
 
 	public final LocalDate endDate() {
-		return startDate.plus(period).minus(Period.ofDays(1));
+		return startDate.plus(period).minusDays(1);
 	}
 
 	@Override
@@ -69,6 +69,12 @@ public class DateRange {
 
 	public int numberOfDays() {
 		return countDays(startDate, endDate());
+	}
+
+	public boolean overlaps(DateRange other) {
+		var newStart = Comparisons.max(startDate, other.startDate);
+		var newEnd = Comparisons.min(endDate(), other.endDate());
+		return newStart.compareTo(newEnd) <= 0;
 	}
 
 	public Period period() {

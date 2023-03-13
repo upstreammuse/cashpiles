@@ -1,6 +1,5 @@
 package cashpiles.model2;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Map;
@@ -37,11 +36,8 @@ class Model extends ModelBase {
 
 		// make sure none of the remaining (manual) periods overlap
 		for (var entry : model.budgetPeriods.entrySet()) {
-			try {
-				entry.getValue().dates().intersect(period.dates());
+			if (entry.getValue().dates().overlaps(period.dates())) {
 				throw ModelException.budgetPeriodOverlap(period.dates(), entry.getValue().dates());
-			} catch (DateTimeException ex) {
-				// we want this, because it means there is no overlap
 			}
 		}
 

@@ -1,6 +1,10 @@
 package cashpiles.time;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -145,6 +149,46 @@ class DateRangeTests {
 		start1 = LocalDate.of(2004, 2, 15);
 		range1 = new DateRange(start1, Period.ofMonths(1));
 		assertEquals(range1.numberOfDays(), 29);
+	}
+
+	@Test
+	void testOverlap() {
+		// |----|
+		// |----|
+		var start1 = LocalDate.of(2020, 3, 1);
+		var end1 = LocalDate.of(2020, 3, 31);
+		var range1 = new DateRange(start1, end1);
+		assertTrue(range1.overlaps(range1));
+
+		// |----|
+		// ...|----|
+		start1 = LocalDate.of(2020, 3, 1);
+		end1 = LocalDate.of(2020, 3, 27);
+		var start2 = LocalDate.of(2020, 3, 10);
+		var end2 = LocalDate.of(2020, 4, 3);
+		range1 = new DateRange(start1, end1);
+		var range2 = new DateRange(start2, end2);
+		assertTrue(range1.overlaps(range2));
+
+		// |----|
+		// .....|----|
+		start1 = LocalDate.of(2020, 3, 1);
+		end1 = LocalDate.of(2020, 3, 27);
+		range1 = new DateRange(start1, end1);
+		start2 = LocalDate.of(2020, 3, 27);
+		end2 = LocalDate.of(2020, 4, 3);
+		range2 = new DateRange(start2, end2);
+		assertTrue(range1.overlaps(range2));
+
+		// |----|
+		// .......|----|
+		start1 = LocalDate.of(2020, 3, 1);
+		end1 = LocalDate.of(2020, 3, 22);
+		range1 = new DateRange(start1, end1);
+		start2 = LocalDate.of(2020, 3, 27);
+		end2 = LocalDate.of(2020, 4, 3);
+		range2 = new DateRange(start2, end2);
+		assertFalse(range1.overlaps(range2));
 	}
 
 }
