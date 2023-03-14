@@ -26,9 +26,13 @@ class ModelException extends Exception {
 				"Budget period with dates " + newDates + " would overlap budget period with dates " + existingDates);
 	}
 
-	static ModelException identifierMismatch(String identifier, String establishedType, String mismatchedType) {
+	static ModelException identifierMismatch(String identifier, Model.IdentifierType establishedType, Model.IdentifierType mismatchedType) {
 		return new ModelException("Cannot reuse name '" + identifier + "' for " + mismatchedType
 				+ " when it is already used for " + establishedType);
+	}
+
+	static ModelException unknownIdentifier(String identifier) {
+		return new ModelException("Unknown name '" + identifier + "'");
 	}
 
 	private ModelException(String text) {

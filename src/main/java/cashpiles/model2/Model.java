@@ -8,15 +8,34 @@ import java.util.TreeMap;
 
 class Model extends ModelBase {
 
-	private enum Type {
+	enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER
 	}
 
 	private Map<String, Account> accounts = new TreeMap<>();
 	private NavigableMap<LocalDate, BudgetPeriod> budgetPeriods = new TreeMap<>();
-	private Map<String, Type> identifiers = new TreeMap<>();
+	private Map<String, IdentifierType> identifiers = new TreeMap<>();
+
+	void checkIdentifierType(String identifier, IdentifierType type) throws ModelException {
+		var idType = identifiers.get(identifier);
+		if (idType == null) {
+			throw ModelException.unknownIdentifier(identifier);
+		} else if (!idType.equals(type)) {
+			throw ModelException.identifierMismatch(identifier, idType, type);
+		}
+	}
+
+	IdentifierType getIdentifierType(String identifier) throws ModelException {
+		var idType = identifiers.get(identifier);
+		if (idType == null) {
+			throw ModelException.unknownIdentifier(identifier);
+		} else {
+			return idType;
+		}
+	}
 
 	Model withHiddenAccount(String name) throws ModelException {
+		checkIdentifierType(name, IdentifierType.ACCOUNT);
 		if (!accounts.containsKey(name)) {
 			throw ModelException.accountNotExist(name);
 		}
@@ -25,7 +44,6 @@ class Model extends ModelBase {
 		}
 
 		var model = clone();
-		model.checkSetIdentifier(name, Type.ACCOUNT);
 		model.accounts.put(name, model.accounts.get(name).asHidden());
 		return model;
 	}
@@ -97,7 +115,7 @@ class Model extends ModelBase {
 		}
 
 		var model = clone();
-		model.checkSetIdentifier(name, Type.ACCOUNT);
+		model.checkSetIdentifierType(name, IdentifierType.ACCOUNT);
 		if (exists) {
 			model.accounts.put(name, model.accounts.get(name).asUnhidden());
 		} else {
@@ -115,12 +133,12 @@ class Model extends ModelBase {
 		return model;
 	}
 
-	private void checkSetIdentifier(String identifier, Type type) throws ModelException {
+	private void checkSetIdentifierType(String identifier, IdentifierType type) throws ModelException {
 		var idType = identifiers.get(identifier);
 		if (idType == null) {
 			identifiers.put(identifier, type);
 		} else if (!idType.equals(type)) {
-			throw ModelException.identifierMismatch(identifier, idType.toString(), type.toString());
+			throw ModelException.identifierMismatch(identifier, idType, type);
 		}
 	}
 
