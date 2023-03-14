@@ -2,9 +2,12 @@ package cashpiles.model2;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.UUID;
 
 class Model extends ModelItem {
 
@@ -15,6 +18,46 @@ class Model extends ModelItem {
 	private Map<String, Account> accounts = new TreeMap<>();
 	private NavigableMap<LocalDate, BudgetPeriod> budgetPeriods = new TreeMap<>();
 	private Map<String, IdentifierType> identifiers = new TreeMap<>();
+	private Map<UUID, Transaction> transactions = new HashMap<>();
+
+	/*
+	 * Or.... transactions contain entries that are a polymorphic set of entry
+	 * types. Each of those types can be passed the main model in order to
+	 * manipulate it as part of adding the transaction to the model. Model creates a
+	 * clone of itself, clone is passed into transaction addition code that passes
+	 * it to each entry, and returns the eventual chain of modificiations after each
+	 * entry is through with it. The final copy passes out of the transaction code,
+	 * back to the Model code, where the transaction is finally added, and then the
+	 * final model copy is returned.
+	 * 
+	 * The process of adding the transaction can incrementally adjust accounts,
+	 * categories, etc., because it is only when the process is complete that the
+	 * user gets back a new model reference that has all the changes made. If there
+	 * are problems before that, they get an exception instead, and the integrity of
+	 * the model is preserved.
+	 * 
+	 * In this approach each entry is responsible for adding itself to the account
+	 * or category or whatever it is associated with. These additions need to come
+	 * with a way to link back to the transaction, so that editing from an account
+	 * view can also allow changes to the associated category entry to maintain
+	 * balance. So transaction entries have links to their parent transaction, and
+	 * that linkage needs to remain consistent as the evolving set of immutable crap
+	 * gets churned through. Transactions may need UUIDs behind the scenes to keep
+	 * them identifiable.
+	 * 
+	 * Each account, cat., etc. then is able to find the xact for each of its
+	 * entries, and the xact is able to handle modifications to its entries, and
+	 * then the xact is able to run a set of updates on the model based on its
+	 * entries to purge old entires and account for new ones. So removing an entry
+	 * from a xact needs to be accounted for, but this can be done because the model
+	 * knows the entries of the prior version of that xact UUID, and can remove them
+	 * all, then process the new entries as provided by the updated xact.
+	 * 
+	 * When renaming an account, all xacts with entries that reference it need to be
+	 * updated, but it is a name-only change, so does not need any remove/add cycle
+	 * that recalculates balances. xacts and their entries need to support such
+	 * behavior.
+	 */
 
 	void checkIdentifierType(String identifier, IdentifierType type) throws ModelException {
 		var idType = identifiers.get(identifier);
@@ -121,6 +164,31 @@ class Model extends ModelItem {
 		} else {
 			model.accounts.put(name, new Account(name, onBudget));
 		}
+		return model;
+	}
+
+	Model withoutTransaction(UUID id) {
+		var xact = transactions.get(id);
+		var model = xact.removeFromModel(this);
+		model.transactions.remove(id);
+		return model;
+	}
+
+	Model withTransaction(Transaction xact) throws ModelException {
+		var xactOrig = transactions.get(xact.id());
+		var model = withoutTransaction(xactOrig.id());
+		xact = xact.balanced();
+		model = xact.addToModel(model);
+		model.transactions.put(xact.id(), xact);
+		return model;
+	}
+
+	Model withTransactionEntry(AccountTransactionEntry entry) throws ModelException {
+		checkIdentifierType(entry.account(), IdentifierType.ACCOUNT);
+		var account = Optional.ofNullable(accounts.get(entry.account()))
+				.orElseThrow(() -> ModelException.accountNotExist(entry.account()));
+		var model = clone();
+		model.accounts.put(account.name(), account.withEntry(entry));
 		return model;
 	}
 

@@ -26,9 +26,14 @@ class ModelException extends Exception {
 				"Budget period with dates " + newDates + " would overlap budget period with dates " + existingDates);
 	}
 
-	static ModelException identifierMismatch(String identifier, Model.IdentifierType establishedType, Model.IdentifierType mismatchedType) {
+	static ModelException identifierMismatch(String identifier, Model.IdentifierType establishedType,
+			Model.IdentifierType mismatchedType) {
 		return new ModelException("Cannot reuse name '" + identifier + "' for " + mismatchedType
 				+ " when it is already used for " + establishedType);
+	}
+
+	static ModelException multipleBlankAmounts() {
+		return new ModelException("Transaction cannot have multiple blank amounts");
 	}
 
 	static ModelException unknownIdentifier(String identifier) {

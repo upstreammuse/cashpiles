@@ -35,6 +35,11 @@ class Account extends ModelItem {
 		return onBudget;
 	}
 
+	Account withEntry(AccountTransactionEntry entry) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	// @Override
 	protected Account clone() {
 		return (Account) super.clone();
