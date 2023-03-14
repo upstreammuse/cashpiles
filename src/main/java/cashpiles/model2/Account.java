@@ -1,6 +1,6 @@
 package cashpiles.model2;
 
-class Account extends ModelBase {
+class Account extends ModelItem {
 
 	private boolean hidden = false;
 	private final String name;

@@ -1,11 +1,11 @@
 package cashpiles.model2;
 
-class ModelBase implements Cloneable {
+class ModelItem implements Cloneable {
 
 	// @Override
-	protected ModelBase clone() {
+	protected ModelItem clone() {
 		try {
-			return (ModelBase) super.clone();
+			return (ModelItem) super.clone();
 		} catch (CloneNotSupportedException ex) {
 			throw new RuntimeException("Model clone failure");
 		}

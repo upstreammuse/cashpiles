@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-class Model extends ModelBase {
+class Model extends ModelItem {
 
 	enum IdentifierType {
 		ACCOUNT, CATEGORY, OWNER

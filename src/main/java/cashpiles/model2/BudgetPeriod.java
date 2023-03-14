@@ -5,7 +5,7 @@ import java.time.Period;
 
 import cashpiles.time.DateRange;
 
-class BudgetPeriod extends ModelBase {
+class BudgetPeriod extends ModelItem {
 
 	private DateRange dates;
 	private boolean manual = false;
