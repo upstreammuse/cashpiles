@@ -83,7 +83,7 @@ class Transaction extends ModelItem {
 		return status;
 	}
 
-	Transaction withEntry(TransactionEntry entry) throws ModelException {
+	Transaction withEntry(TransactionEntry entry) {
 		var xact = clone();
 		xact.entries.add(entry.withParent(xact));
 		return xact;
@@ -92,7 +92,10 @@ class Transaction extends ModelItem {
 	@Override
 	protected Transaction clone() {
 		var xact = (Transaction) super.clone();
-		xact.entries = new ArrayList<>(entries);
+		xact.entries.clear();
+		for (var entry : entries) {
+			xact = xact.withEntry(entry);
+		}
 		return xact;
 	}
 
