@@ -2,12 +2,16 @@ package cashpiles.model2;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+
+import cashpiles.currency.Amount;
 
 class Model extends ModelItem {
 
@@ -58,6 +62,29 @@ class Model extends ModelItem {
 	 * that recalculates balances. xacts and their entries need to support such
 	 * behavior.
 	 */
+
+	Amount accountBalance(String accountName, boolean clearedOnly) throws ModelException {
+		checkIdentifierType(accountName, IdentifierType.ACCOUNT);
+		var account = accounts.get(accountName);
+		if (account == null) {
+			throw ModelException.accountNotExist(accountName);
+		}
+		assert (account.name().equals(accountName));
+		return account.balance(clearedOnly);
+	}
+
+	List<String> accountNames(boolean onBudget) throws ModelException {
+		var names = new ArrayList<String>();
+		for (var accountEntry : accounts.entrySet()) {
+			var account = accountEntry.getValue();
+			assert (account.name().equals(accountEntry.getKey()));
+			checkIdentifierType(account.name(), IdentifierType.ACCOUNT);
+			if (account.onBudget() == onBudget) {
+				names.add(account.name());
+			}
+		}
+		return names;
+	}
 
 	void checkIdentifierType(String identifier, IdentifierType type) throws ModelException {
 		var idType = identifiers.get(identifier);
@@ -184,9 +211,14 @@ class Model extends ModelItem {
 	}
 
 	Model withTransaction(Transaction xact) throws ModelException {
-		var xactOrig = transactions.get(xact.id());
-		var model = withoutTransaction(xactOrig.id());
 		xact = xact.balanced();
+		var xactOrig = transactions.get(xact.id());
+		Model model;
+		if (xactOrig != null) {
+			model = withoutTransaction(xactOrig.id());
+		} else {
+			model = clone();
+		}
 		model = xact.addToModel(model);
 		model.transactions.put(xact.id(), xact);
 		return model;

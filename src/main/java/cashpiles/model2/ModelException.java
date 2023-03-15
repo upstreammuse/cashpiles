@@ -1,5 +1,6 @@
 package cashpiles.model2;
 
+import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
 
 @SuppressWarnings("serial")
@@ -34,6 +35,11 @@ class ModelException extends Exception {
 
 	static ModelException multipleBlankAmounts() {
 		return new ModelException("Transaction cannot have multiple blank amounts");
+	}
+
+	static ModelException transactionUnbalanced(Amount accountBalance, Amount categoryBalance) {
+		return new ModelException("Transaction account balance " + accountBalance + " and category balance "
+				+ categoryBalance + " do not match");
 	}
 
 	static ModelException unknownIdentifier(String identifier) {

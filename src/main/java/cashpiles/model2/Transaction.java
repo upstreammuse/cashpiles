@@ -52,6 +52,11 @@ class Transaction extends ModelItem {
 			entry.addToBalance(balancer);
 		}
 
+		// make sure the entries are balanced
+		if (!balancer.blankEntry && !balancer.accountBalance.equals(balancer.categoryBalance)) {
+			throw ModelException.transactionUnbalanced(balancer.accountBalance, balancer.categoryBalance);
+		}
+
 		// create new entries from the balancer and give them to the clone
 		for (var entry : entries) {
 			xact.withEntry(entry.getFromBalance(balancer));

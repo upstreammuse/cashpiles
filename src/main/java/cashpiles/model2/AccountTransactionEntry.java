@@ -4,6 +4,10 @@ class AccountTransactionEntry extends TransactionEntry {
 
 	private String account;
 
+	AccountTransactionEntry(String account) {
+		this.account = account;
+	}
+
 	String account() {
 		return account;
 	}

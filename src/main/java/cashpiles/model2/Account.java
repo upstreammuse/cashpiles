@@ -26,6 +26,11 @@ class Account extends ModelItem {
 		return account;
 	}
 
+	Amount balance(boolean clearedOnly) {
+		// TODO support cleared and uncleared balances
+		return balance;
+	}
+
 	boolean hidden() {
 		return hidden;
 	}
