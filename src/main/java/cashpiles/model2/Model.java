@@ -167,10 +167,19 @@ class Model extends ModelItem {
 		return model;
 	}
 
-	Model withoutTransaction(UUID id) {
+	Model withoutTransaction(UUID id) throws ModelException {
 		var xact = transactions.get(id);
 		var model = xact.removeFromModel(this);
 		model.transactions.remove(id);
+		return model;
+	}
+
+	Model withoutTransactionEntry(AccountTransactionEntry entry) throws ModelException {
+		checkIdentifierType(entry.account(), IdentifierType.ACCOUNT);
+		var account = Optional.ofNullable(accounts.get(entry.account()))
+				.orElseThrow(() -> ModelException.accountNotExist(entry.account()));
+		var model = clone();
+		model.accounts.put(account.name(), account.withoutEntry(entry));
 		return model;
 	}
 

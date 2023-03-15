@@ -71,7 +71,7 @@ class Transaction extends ModelItem {
 		return payee;
 	}
 
-	Model removeFromModel(Model model) {
+	Model removeFromModel(Model model) throws ModelException {
 		var m = model;
 		for (var entry : entries) {
 			m = entry.removeFromModel(m);

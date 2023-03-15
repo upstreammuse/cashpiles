@@ -37,9 +37,8 @@ class AccountTransactionEntry extends TransactionEntry {
 	}
 
 	@Override
-	Model removeFromModel(Model m) {
-		// TODO Auto-generated method stub
-		return null;
+	Model removeFromModel(Model model) throws ModelException {
+		return model.withoutTransactionEntry(this);
 	}
 
 }

@@ -19,7 +19,7 @@ abstract class TransactionEntry extends ModelItem {
 
 	abstract TransactionEntry getFromBalance(TransactionBalancer balancer);
 
-	abstract Model removeFromModel(Model m);
+	abstract Model removeFromModel(Model m) throws ModelException;
 
 	TransactionEntry withAmount(Amount amount) {
 		var entry = clone();

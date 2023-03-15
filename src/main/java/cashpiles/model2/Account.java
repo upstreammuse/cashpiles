@@ -1,7 +1,10 @@
 package cashpiles.model2;
 
+import cashpiles.currency.Amount;
+
 class Account extends ModelItem {
 
+	private Amount balance = new Amount();
 	private boolean hidden = false;
 	private final String name;
 	private final boolean onBudget;
@@ -36,8 +39,21 @@ class Account extends ModelItem {
 	}
 
 	Account withEntry(AccountTransactionEntry entry) {
-		// TODO Auto-generated method stub
-		return null;
+		assert (entry.account().equals(name));
+		var amount = entry.amount();
+		assert (amount.isPresent());
+		var account = clone();
+		account.balance = account.balance.add(amount.get());
+		return account;
+	}
+
+	Account withoutEntry(AccountTransactionEntry entry) {
+		assert (entry.account().equals(name));
+		var amount = entry.amount();
+		assert (amount.isPresent());
+		var account = clone();
+		account.balance = account.balance.add(amount.get().negate());
+		return account;
 	}
 
 	// @Override
