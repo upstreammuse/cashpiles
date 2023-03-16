@@ -59,7 +59,7 @@ class Transaction extends ModelItem {
 
 		// create new entries from the balancer and give them to the clone
 		for (var entry : entries) {
-			xact.withEntry(entry.getFromBalance(balancer));
+			xact = xact.withEntry(entry.getFromBalance(balancer));
 		}
 		return xact;
 	}
@@ -97,7 +97,7 @@ class Transaction extends ModelItem {
 	@Override
 	protected Transaction clone() {
 		var xact = (Transaction) super.clone();
-		xact.entries.clear();
+		xact.entries = new ArrayList<>();
 		for (var entry : entries) {
 			xact = xact.withEntry(entry);
 		}
