@@ -73,12 +73,11 @@ class Model extends ModelItem {
 		return account.balance(clearedOnly);
 	}
 
-	List<String> accountNames(boolean onBudget) throws ModelException {
+	List<String> accountNames(boolean onBudget) {
 		var names = new ArrayList<String>();
 		for (var accountEntry : accounts.entrySet()) {
 			var account = accountEntry.getValue();
 			assert (account.name().equals(accountEntry.getKey()));
-			checkIdentifierType(account.name(), IdentifierType.ACCOUNT);
 			if (account.onBudget() == onBudget) {
 				names.add(account.name());
 			}

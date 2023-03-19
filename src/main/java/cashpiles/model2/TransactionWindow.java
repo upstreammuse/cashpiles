@@ -15,9 +15,12 @@ class TransactionWindow extends JFrame {
 	private ParallelGroup col1;
 	private ParallelGroup col2;
 	private ParallelGroup col3;
+	private ParallelGroup col4;
+	private Model model;
 	private SequentialGroup rows;
 
-	TransactionWindow() {
+	TransactionWindow(Model model) {
+		this.model = model;
 		initUI();
 	}
 
@@ -25,18 +28,44 @@ class TransactionWindow extends JFrame {
 		var pane = getContentPane();
 		var layout = (GroupLayout) pane.getLayout();
 
-		var asdf1 = new JComboBox<String>();
-		var asdf2 = new JComboBox<String>();
-		var asdf3 = new JTextField();
-		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(asdf1).addComponent(asdf2)
-				.addComponent(asdf3);
+		var info = new JLabel();
+		var acctCat = new JComboBox<String>();
+		for (var accountName : model.accountNames(true)) {
+			acctCat.addItem(accountName);
+		}
+		var trackingAcct = new JComboBox<String>();
+		var amount = new JTextField();
+		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(info).addComponent(acctCat)
+				.addComponent(trackingAcct).addComponent(amount);
+
+		acctCat.addActionListener(event -> {
+			try {
+				switch (model.getIdentifierType((String) acctCat.getSelectedItem())) {
+				case ACCOUNT -> {
+					info.setText("(account)");
+					trackingAcct.setVisible(false);
+				}
+				case CATEGORY -> {
+					info.setText("(category)");
+					trackingAcct.setVisible(true);
+				}
+				case OWNER -> {
+					info.setText("(owner)");
+					trackingAcct.setVisible(true);
+				}
+				}
+			} catch (ModelException ex) {
+			}
+		});
 
 		rows.addGroup(row);
-		col1.addComponent(asdf1);
-		col2.addComponent(asdf2);
-		col3.addComponent(asdf3);
+		col1.addComponent(info);
+		col2.addComponent(acctCat);
+		col3.addComponent(trackingAcct);
+		col4.addComponent(amount);
 
 		pack();
+
 	}
 
 	void initUI() {
@@ -53,24 +82,30 @@ class TransactionWindow extends JFrame {
 		col1 = layout.createParallelGroup();
 		col2 = layout.createParallelGroup();
 		col3 = layout.createParallelGroup();
+		col4 = layout.createParallelGroup();
 		rows = layout.createSequentialGroup();
-		layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3));
-		layout.setVerticalGroup(layout.createSequentialGroup().addGroup(rows));
+		layout.setHorizontalGroup(
+				layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4));
+		layout.setVerticalGroup(rows);
 
-		var asdf1 = new JLabel("Account / Category");
-		var asdf2 = new JLabel("Off-budget Account");
-		var asdf3 = new JLabel("Amount");
+		var label1 = new JLabel("Account / Category");
+		var label2 = new JLabel("Off-budget Account");
+		var label3 = new JLabel("Amount");
 
-		rows.addGroup(layout.createParallelGroup().addComponent(asdf1).addComponent(asdf2).addComponent(asdf3));
-		col1.addComponent(asdf1);
-		col2.addComponent(asdf2);
-		col3.addComponent(asdf3);
+		rows.addGroup(layout.createParallelGroup().addComponent(label1).addComponent(label2).addComponent(label3));
+		col2.addComponent(label1);
+		col3.addComponent(label2);
+		col4.addComponent(label3);
 
 		pack();
 	}
 
-	public static void main(String[] args) {
-		var asdf = new TransactionWindow();
+	public static void main(String[] args) throws ModelException {
+		var model = new Model();
+		model = model.withOpenAccount("Savings", true);
+		model = model.withOpenAccount("Checking", true);
+		model = model.withOpenAccount("Retirement", false);
+		var asdf = new TransactionWindow(model);
 		asdf.setVisible(true);
 		asdf.addRow();
 		asdf.addRow();

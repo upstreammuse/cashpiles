@@ -28,11 +28,7 @@ class AccountsTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount() {
-		try {
-			return model.accountNames(onBudget).size();
-		} catch (ModelException ex) {
-			return 0;
-		}
+		return model.accountNames(onBudget).size();
 	}
 
 	@Override
