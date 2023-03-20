@@ -209,6 +209,17 @@ class Model extends ModelItem {
 		return model;
 	}
 
+	Model withoutTransactionEntry(CategoryTransactionEntry entry) throws ModelException {
+		checkIdentifierType(entry.category(), IdentifierType.CATEGORY);
+		var model = clone();
+		var budgetPeriodEntry = Optional.ofNullable(model.budgetPeriods.floorEntry(entry.parent.date()))
+				.orElseThrow(() -> ModelException.budgetPeriodNotExist(entry.parent.date()));
+		var budgetPeriod = budgetPeriodEntry.getValue().withoutEntry(entry);
+		assert (budgetPeriodEntry.getKey().equals(budgetPeriod.dates().startDate()));
+		model.budgetPeriods.put(budgetPeriodEntry.getKey(), budgetPeriod);
+		return model;
+	}
+
 	Model withTransaction(Transaction xact) throws ModelException {
 		xact = xact.balanced();
 		var xactOrig = transactions.get(xact.id());
@@ -229,6 +240,17 @@ class Model extends ModelItem {
 				.orElseThrow(() -> ModelException.accountNotExist(entry.account()));
 		var model = clone();
 		model.accounts.put(account.name(), account.withEntry(entry));
+		return model;
+	}
+
+	Model withTransactionEntry(CategoryTransactionEntry entry) throws ModelException {
+		checkIdentifierType(entry.category(), IdentifierType.CATEGORY);
+		var model = clone();
+		var budgetPeriodEntry = Optional.ofNullable(model.budgetPeriods.floorEntry(entry.parent.date()))
+				.orElseThrow(() -> ModelException.budgetPeriodNotExist(entry.parent.date()));
+		var budgetPeriod = budgetPeriodEntry.getValue().withEntry(entry);
+		assert (budgetPeriodEntry.getKey().equals(budgetPeriod.dates().startDate()));
+		model.budgetPeriods.put(budgetPeriodEntry.getKey(), budgetPeriod);
 		return model;
 	}
 

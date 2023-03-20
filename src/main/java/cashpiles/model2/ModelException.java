@@ -1,5 +1,7 @@
 package cashpiles.model2;
 
+import java.time.LocalDate;
+
 import cashpiles.currency.Amount;
 import cashpiles.time.DateRange;
 
@@ -20,6 +22,10 @@ class ModelException extends Exception {
 
 	static ModelException accountTypeMismatch(String name) {
 		return new ModelException("Cannot reopen account '" + name + "' with different type");
+	}
+
+	static ModelException budgetPeriodNotExist(LocalDate date) {
+		return new ModelException("No budget period exists for date " + date);
 	}
 
 	static ModelException budgetPeriodOverlap(DateRange newDates, DateRange existingDates) {

@@ -41,6 +41,16 @@ class BudgetPeriod extends ModelItem {
 		return period;
 	}
 
+	BudgetPeriod withEntry(CategoryTransactionEntry entry) {
+		// TODO this needs to do something once we have categories
+		return this;
+	}
+
+	BudgetPeriod withoutEntry(CategoryTransactionEntry entry) {
+		// TODO this needs to do something once we have categories
+		return this;
+	}
+
 	// @Override
 	protected BudgetPeriod clone() {
 		return (BudgetPeriod) super.clone();
