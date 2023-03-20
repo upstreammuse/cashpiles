@@ -9,6 +9,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import com.github.lgooddatepicker.components.DatePicker;
 
@@ -106,14 +107,18 @@ class TransactionWindow extends JFrame {
 		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
 		var addRowButton = new JButton("+");
 		addRowButton.addActionListener(event -> addRow());
-		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.TRAILING).addGroup(rowH).addGroup(colsH)
-				.addComponent(addRowButton));
+		var okButton = new JButton("OK");
+		var cancelButton = new JButton("Cancel");
+		var dlgRowH = layout.createSequentialGroup().addComponent(okButton).addComponent(cancelButton);
+		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.TRAILING).addGroup(rowH)
+				.addComponent(addRowButton).addGroup(colsH).addGroup(dlgRowH));
 
 		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel).addComponent(datePick)
 				.addComponent(payeeLabel).addComponent(payee);
-		rows.addGroup(rowV);
-		rows.addComponent(addRowButton);
-		layout.setVerticalGroup(rows);
+		var dlgRowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(okButton)
+				.addComponent(cancelButton);
+		layout.setVerticalGroup(layout.createSequentialGroup().addGroup(rowV).addComponent(addRowButton).addGroup(rows)
+				.addGroup(dlgRowV));
 
 		var label1 = new JLabel("Account / Category");
 		var label2 = new JLabel("Off-budget Account");
@@ -124,6 +129,7 @@ class TransactionWindow extends JFrame {
 		col3.addComponent(label2);
 		col4.addComponent(label3);
 
+		SwingUtilities.getRootPane(okButton).setDefaultButton(okButton);
 		pack();
 		setMinimumSize(getPreferredSize());
 	}
