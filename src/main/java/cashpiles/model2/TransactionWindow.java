@@ -34,6 +34,7 @@ class TransactionWindow extends JFrame {
 	private ParallelGroup col4;
 	private List<DataGroup> data = new ArrayList<>();
 	private DatePicker datePicker;
+	private JLabel errorMsg;
 	private Model model;
 	private JTextField payee;
 	private SequentialGroup rows;
@@ -117,27 +118,32 @@ class TransactionWindow extends JFrame {
 
 		var dateLabel = new JLabel("Date:");
 		datePicker = new DatePicker();
+
 		var payeeLabel = new JLabel("Payee:");
 		payee = new JTextField();
 		payee.setColumns(30);
-		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePicker)
-				.addComponent(payeeLabel).addComponent(payee);
-		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
+
+		errorMsg = new JLabel("   ");
+
 		var addRowButton = new JButton("+");
 		addRowButton.addActionListener(event -> addRow());
 		var okButton = new JButton("OK");
 		okButton.addActionListener(event -> render());
 		var cancelButton = new JButton("Cancel");
+
+		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePicker)
+				.addComponent(payeeLabel).addComponent(payee);
+		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
 		var dlgRowH = layout.createSequentialGroup().addComponent(okButton).addComponent(cancelButton);
 		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.TRAILING).addGroup(rowH)
-				.addComponent(addRowButton).addGroup(colsH).addGroup(dlgRowH));
+				.addComponent(addRowButton).addGroup(colsH).addComponent(errorMsg).addGroup(dlgRowH));
 
 		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel)
 				.addComponent(datePicker).addComponent(payeeLabel).addComponent(payee);
 		var dlgRowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(okButton)
 				.addComponent(cancelButton);
 		layout.setVerticalGroup(layout.createSequentialGroup().addGroup(rowV).addComponent(addRowButton).addGroup(rows)
-				.addGroup(dlgRowV));
+				.addComponent(errorMsg).addGroup(dlgRowV));
 
 		var label1 = new JLabel("Account / Category");
 		var label2 = new JLabel("Off-budget Account");
@@ -170,8 +176,10 @@ class TransactionWindow extends JFrame {
 				}
 			}
 			model = model.withTransaction(xact);
-		} catch (ModelException ex) {
-			ex.printStackTrace();
+		} catch (Exception ex) {
+			errorMsg.setText(ex.getLocalizedMessage());
+			pack();
+			setMinimumSize(getPreferredSize());
 		}
 		System.out.println("render done");
 	}
