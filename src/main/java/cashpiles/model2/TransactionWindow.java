@@ -1,5 +1,9 @@
 package cashpiles.model2;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
@@ -13,14 +17,25 @@ import javax.swing.SwingUtilities;
 
 import com.github.lgooddatepicker.components.DatePicker;
 
+import cashpiles.currency.Amount;
+
 @SuppressWarnings("serial")
 class TransactionWindow extends JFrame {
+
+	private static class DataGroup {
+		JComboBox<String> acctCat;
+		JComboBox<String> trackingAcct;
+		JTextField amount;
+	}
 
 	private ParallelGroup col1;
 	private ParallelGroup col2;
 	private ParallelGroup col3;
 	private ParallelGroup col4;
+	private List<DataGroup> data = new ArrayList<>();
+	private DatePicker datePicker;
 	private Model model;
+	private JTextField payee;
 	private SequentialGroup rows;
 
 	TransactionWindow(Model model) {
@@ -33,48 +48,51 @@ class TransactionWindow extends JFrame {
 		var layout = (GroupLayout) pane.getLayout();
 
 		var info = new JLabel();
-		var acctCat = new JComboBox<String>();
-		acctCat.addItem("");
-		for (var accountName : model.accountNames(true)) {
-			acctCat.addItem(accountName);
-		}
-		var trackingAcct = new JComboBox<String>();
-		trackingAcct.setVisible(false);
-		var amount = new JTextField();
-		amount.setColumns(10);
-		amount.setVisible(false);
-		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(info).addComponent(acctCat)
-				.addComponent(trackingAcct).addComponent(amount);
+		var group = new DataGroup();
+		group.acctCat = new JComboBox<String>();
+		group.trackingAcct = new JComboBox<String>();
+		group.amount = new JTextField();
+		data.add(group);
 
-		acctCat.addActionListener(event -> {
+		group.acctCat.addItem("");
+		for (var accountName : model.accountNames(true)) {
+			group.acctCat.addItem(accountName);
+		}
+		group.trackingAcct.setVisible(false);
+		group.amount.setColumns(10);
+		group.amount.setVisible(false);
+		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(info).addComponent(group.acctCat)
+				.addComponent(group.trackingAcct).addComponent(group.amount);
+
+		group.acctCat.addActionListener(event -> {
 			try {
-				switch (model.getIdentifierType((String) acctCat.getSelectedItem())) {
+				switch (model.getIdentifierType((String) group.acctCat.getSelectedItem())) {
 				case ACCOUNT -> {
 					info.setText("(account)");
-					trackingAcct.setVisible(false);
+					group.trackingAcct.setVisible(false);
 				}
 				case CATEGORY -> {
 					info.setText("(category)");
-					trackingAcct.setVisible(true);
+					group.trackingAcct.setVisible(true);
 				}
 				case OWNER -> {
 					info.setText("(owner)");
-					trackingAcct.setVisible(true);
+					group.trackingAcct.setVisible(true);
 				}
 				}
-				amount.setVisible(true);
+				group.amount.setVisible(true);
 			} catch (ModelException ex) {
 				info.setText("");
-				trackingAcct.setVisible(false);
-				amount.setVisible(false);
+				group.trackingAcct.setVisible(false);
+				group.amount.setVisible(false);
 			}
 		});
 
 		rows.addGroup(row);
 		col1.addComponent(info);
-		col2.addComponent(acctCat);
-		col3.addComponent(trackingAcct);
-		col4.addComponent(amount);
+		col2.addComponent(group.acctCat);
+		col3.addComponent(group.trackingAcct);
+		col4.addComponent(group.amount);
 
 		pack();
 		setMinimumSize(getPreferredSize());
@@ -98,23 +116,24 @@ class TransactionWindow extends JFrame {
 		rows = layout.createSequentialGroup();
 
 		var dateLabel = new JLabel("Date:");
-		var datePick = new DatePicker();
+		datePicker = new DatePicker();
 		var payeeLabel = new JLabel("Payee:");
-		var payee = new JTextField();
+		payee = new JTextField();
 		payee.setColumns(30);
-		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePick)
+		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePicker)
 				.addComponent(payeeLabel).addComponent(payee);
 		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
 		var addRowButton = new JButton("+");
 		addRowButton.addActionListener(event -> addRow());
 		var okButton = new JButton("OK");
+		okButton.addActionListener(event -> render());
 		var cancelButton = new JButton("Cancel");
 		var dlgRowH = layout.createSequentialGroup().addComponent(okButton).addComponent(cancelButton);
 		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.TRAILING).addGroup(rowH)
 				.addComponent(addRowButton).addGroup(colsH).addGroup(dlgRowH));
 
-		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel).addComponent(datePick)
-				.addComponent(payeeLabel).addComponent(payee);
+		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel)
+				.addComponent(datePicker).addComponent(payeeLabel).addComponent(payee);
 		var dlgRowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(okButton)
 				.addComponent(cancelButton);
 		layout.setVerticalGroup(layout.createSequentialGroup().addGroup(rowV).addComponent(addRowButton).addGroup(rows)
@@ -132,6 +151,29 @@ class TransactionWindow extends JFrame {
 		SwingUtilities.getRootPane(okButton).setDefaultButton(okButton);
 		pack();
 		setMinimumSize(getPreferredSize());
+	}
+
+	void render() {
+		System.out.println("render start");
+		try {
+			var xact = new Transaction(datePicker.getDate(), payee.getText());
+			for (var group : data) {
+				var acctCat = (String) group.acctCat.getSelectedItem();
+				switch (model.getIdentifierType(acctCat)) {
+				case ACCOUNT -> {
+					xact = xact.withEntry(new AccountTransactionEntry(acctCat)
+							.withAmount(new Amount(new BigDecimal(group.amount.getText()))));
+				}
+//				case CATEGORY -> 0;
+//				case OWNER -> 0;
+				default -> throw new IllegalArgumentException("Unexpected value: " + model.getIdentifierType(acctCat));
+				}
+			}
+			model = model.withTransaction(xact);
+		} catch (ModelException ex) {
+			ex.printStackTrace();
+		}
+		System.out.println("render done");
 	}
 
 	public static void main(String[] args) throws ModelException {
