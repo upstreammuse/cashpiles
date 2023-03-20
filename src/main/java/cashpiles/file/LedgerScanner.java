@@ -105,7 +105,6 @@ class LedgerScanner {
 	}
 
 	Amount nextAmount() {
-
 		var indexBackup = index;
 		skipWhitespace();
 		var resetPosition = new ParsePosition(index);
