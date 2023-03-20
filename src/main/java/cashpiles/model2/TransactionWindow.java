@@ -4,6 +4,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,12 +33,15 @@ class TransactionWindow extends JFrame {
 
 		var info = new JLabel();
 		var acctCat = new JComboBox<String>();
+		acctCat.addItem("");
 		for (var accountName : model.accountNames(true)) {
 			acctCat.addItem(accountName);
 		}
 		var trackingAcct = new JComboBox<String>();
+		trackingAcct.setVisible(false);
 		var amount = new JTextField();
 		amount.setColumns(10);
+		amount.setVisible(false);
 		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(info).addComponent(acctCat)
 				.addComponent(trackingAcct).addComponent(amount);
 
@@ -57,7 +61,11 @@ class TransactionWindow extends JFrame {
 					trackingAcct.setVisible(true);
 				}
 				}
+				amount.setVisible(true);
 			} catch (ModelException ex) {
+				info.setText("");
+				trackingAcct.setVisible(false);
+				amount.setVisible(false);
 			}
 		});
 
@@ -93,15 +101,18 @@ class TransactionWindow extends JFrame {
 		var payeeLabel = new JLabel("Payee:");
 		var payee = new JTextField();
 		payee.setColumns(30);
-
 		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePick)
 				.addComponent(payeeLabel).addComponent(payee);
 		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
-		layout.setHorizontalGroup(layout.createParallelGroup().addGroup(rowH).addGroup(colsH));
+		var addRowButton = new JButton("+");
+		addRowButton.addActionListener(event -> addRow());
+		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.TRAILING).addGroup(rowH).addGroup(colsH)
+				.addComponent(addRowButton));
 
 		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel).addComponent(datePick)
 				.addComponent(payeeLabel).addComponent(payee);
 		rows.addGroup(rowV);
+		rows.addComponent(addRowButton);
 		layout.setVerticalGroup(rows);
 
 		var label1 = new JLabel("Account / Category");
