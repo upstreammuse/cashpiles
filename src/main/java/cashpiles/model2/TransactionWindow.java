@@ -1,6 +1,9 @@
 package cashpiles.model2;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,15 +167,23 @@ class TransactionWindow extends JFrame {
 	}
 
 	void render() {
-		System.out.println("render start");
 		try {
 			var xact = new Transaction(datePicker.getDate(), payee.getText());
 			for (var group : data) {
 				var acctCat = (String) group.acctCat.getSelectedItem();
 				switch (model.getIdentifierType(acctCat)) {
 				case ACCOUNT -> {
-					xact = xact.withEntry(new AccountTransactionEntry(acctCat)
-							.withAmount(new Amount(new BigDecimal(group.amount.getText()))));
+					try {
+						var format = (DecimalFormat) NumberFormat.getCurrencyInstance();
+						format.setParseBigDecimal(true);
+						var number = (BigDecimal) format.parse(group.amount.getText());
+						xact = xact.withEntry(new AccountTransactionEntry(acctCat).withAmount(new Amount(number)));
+					} catch (ParseException ex) {
+						var format = (DecimalFormat) NumberFormat.getNumberInstance();
+						format.setParseBigDecimal(true);
+						var number = (BigDecimal) format.parse(group.amount.getText());
+						xact = xact.withEntry(new AccountTransactionEntry(acctCat).withAmount(new Amount(number)));
+					}
 				}
 //				case CATEGORY -> 0;
 //				case OWNER -> 0;
@@ -185,7 +196,6 @@ class TransactionWindow extends JFrame {
 			pack();
 			setMinimumSize(getPreferredSize());
 		}
-		System.out.println("render done");
 	}
 
 	public static void main(String[] args) throws ModelException {
