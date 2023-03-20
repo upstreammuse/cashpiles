@@ -9,6 +9,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import com.github.lgooddatepicker.components.DatePicker;
+
 @SuppressWarnings("serial")
 class TransactionWindow extends JFrame {
 
@@ -35,6 +37,7 @@ class TransactionWindow extends JFrame {
 		}
 		var trackingAcct = new JComboBox<String>();
 		var amount = new JTextField();
+		amount.setColumns(10);
 		var row = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(info).addComponent(acctCat)
 				.addComponent(trackingAcct).addComponent(amount);
 
@@ -65,7 +68,7 @@ class TransactionWindow extends JFrame {
 		col4.addComponent(amount);
 
 		pack();
-
+		setMinimumSize(getPreferredSize());
 	}
 
 	void initUI() {
@@ -84,8 +87,21 @@ class TransactionWindow extends JFrame {
 		col3 = layout.createParallelGroup();
 		col4 = layout.createParallelGroup();
 		rows = layout.createSequentialGroup();
-		layout.setHorizontalGroup(
-				layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4));
+
+		var dateLabel = new JLabel("Date:");
+		var datePick = new DatePicker();
+		var payeeLabel = new JLabel("Payee:");
+		var payee = new JTextField();
+		payee.setColumns(30);
+
+		var rowH = layout.createSequentialGroup().addComponent(dateLabel).addComponent(datePick)
+				.addComponent(payeeLabel).addComponent(payee);
+		var colsH = layout.createSequentialGroup().addGroup(col1).addGroup(col2).addGroup(col3).addGroup(col4);
+		layout.setHorizontalGroup(layout.createParallelGroup().addGroup(rowH).addGroup(colsH));
+
+		var rowV = layout.createParallelGroup(Alignment.BASELINE, false).addComponent(dateLabel).addComponent(datePick)
+				.addComponent(payeeLabel).addComponent(payee);
+		rows.addGroup(rowV);
 		layout.setVerticalGroup(rows);
 
 		var label1 = new JLabel("Account / Category");
@@ -98,6 +114,7 @@ class TransactionWindow extends JFrame {
 		col4.addComponent(label3);
 
 		pack();
+		setMinimumSize(getPreferredSize());
 	}
 
 	public static void main(String[] args) throws ModelException {
