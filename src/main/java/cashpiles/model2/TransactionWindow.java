@@ -16,6 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
 
 import cashpiles.currency.Amount;
 
@@ -117,7 +118,10 @@ class TransactionWindow extends JFrame {
 		rows = layout.createSequentialGroup();
 
 		var dateLabel = new JLabel("Date:");
-		datePicker = new DatePicker();
+		var settings = new DatePickerSettings();
+		settings.setAllowEmptyDates(false);
+		datePicker = new DatePicker(settings);
+		datePicker.getComponentDateTextField().selectAll();
 
 		var payeeLabel = new JLabel("Payee:");
 		payee = new JTextField();
