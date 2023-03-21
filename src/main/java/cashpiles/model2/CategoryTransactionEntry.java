@@ -1,5 +1,7 @@
 package cashpiles.model2;
 
+import java.util.Optional;
+
 class CategoryTransactionEntry extends TransactionEntry {
 
 	private String category;
@@ -43,6 +45,16 @@ class CategoryTransactionEntry extends TransactionEntry {
 	@Override
 	Model removeFromModel(Model model) throws ModelException {
 		return model.withoutTransactionEntry(this);
+	}
+
+	@Override
+	Optional<Transaction.Status> status() {
+		return Optional.of(Transaction.Status.CLEARED);
+	}
+
+	@Override
+	CategoryTransactionEntry withMergedStatus(Transaction.Status status) {
+		return this;
 	}
 
 }

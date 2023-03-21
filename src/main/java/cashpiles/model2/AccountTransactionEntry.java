@@ -1,8 +1,11 @@
 package cashpiles.model2;
 
+import java.util.Optional;
+
 class AccountTransactionEntry extends TransactionEntry {
 
 	private String account;
+	private Optional<Transaction.Status> status = Optional.empty();
 
 	AccountTransactionEntry(String account) {
 		this.account = account;
@@ -43,6 +46,23 @@ class AccountTransactionEntry extends TransactionEntry {
 	@Override
 	Model removeFromModel(Model model) throws ModelException {
 		return model.withoutTransactionEntry(this);
+	}
+
+	@Override
+	Optional<Transaction.Status> status() {
+		return status;
+	}
+
+	@Override
+	AccountTransactionEntry withMergedStatus(Transaction.Status status) {
+		var entry = clone();
+		entry.status = Optional.of(entry.status.orElse(status));
+		return entry;
+	}
+
+	@Override
+	protected AccountTransactionEntry clone() {
+		return (AccountTransactionEntry) super.clone();
 	}
 
 }

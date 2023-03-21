@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
@@ -40,9 +41,10 @@ class DummyWindow extends JFrame {
 		xact = xact.balanced();
 		model = model.withTransaction(xact);
 		accountOnTable = new JTable(new AccountsTableModel(model, true));
+		var scroller = new JScrollPane(accountOnTable);
 
-		layout.setVerticalGroup(layout.createParallelGroup().addComponent(accountOnTable));
-		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(accountOnTable));
+		layout.setVerticalGroup(layout.createParallelGroup().addComponent(scroller));
+		layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(scroller));
 		pack();
 	}
 

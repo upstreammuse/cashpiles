@@ -77,11 +77,10 @@ class Transaction extends ModelItem {
 	}
 
 	Model removeFromModel(Model model) throws ModelException {
-		var m = model;
 		for (var entry : entries) {
-			m = entry.removeFromModel(m);
+			model = entry.removeFromModel(model);
 		}
-		return m;
+		return model;
 	}
 
 	Status status() {
@@ -90,7 +89,36 @@ class Transaction extends ModelItem {
 
 	Transaction withEntry(TransactionEntry entry) {
 		var xact = clone();
-		xact.entries.add(entry.withParent(xact));
+		xact.entries.add(entry.withMergedStatus(xact.status).withParent(xact));
+		if (xact.status == Status.PENDING) {
+			xact.status = Status.CLEARED;
+		}
+		for (var e : xact.entries) {
+			// TODO fix eclipse or find a better formatter
+			xact.status = e.status().map(status -> switch (xact.status) {
+			// if transaction is cleared
+			case CLEARED -> switch (status) {
+			// change to pending if the entry is pending, otherwise do not change
+			case CLEARED -> Status.CLEARED;
+			case DISPUTED -> Status.CLEARED;
+			case PENDING -> Status.PENDING;
+			};
+			// if transaction is disputed
+			case DISPUTED -> switch (status) {
+			// do not change
+			case CLEARED -> Status.DISPUTED;
+			case DISPUTED -> Status.DISPUTED;
+			case PENDING -> Status.DISPUTED;
+			};
+			// if transaction is pending
+			case PENDING -> switch (status) {
+			// do not change
+			case CLEARED -> Status.PENDING;
+			case DISPUTED -> Status.PENDING;
+			case PENDING -> Status.PENDING;
+			};
+			}).orElse(xact.status);
+		}
 		return xact;
 	}
 

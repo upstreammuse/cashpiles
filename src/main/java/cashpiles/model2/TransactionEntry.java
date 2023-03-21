@@ -7,7 +7,7 @@ import cashpiles.currency.Amount;
 abstract class TransactionEntry extends ModelItem {
 
 	private Optional<Amount> amount = Optional.empty();
-	Transaction parent;
+	private Transaction parent;
 
 	abstract void addToBalance(TransactionBalancer balancer) throws ModelException;
 
@@ -19,13 +19,21 @@ abstract class TransactionEntry extends ModelItem {
 
 	abstract TransactionEntry getFromBalance(TransactionBalancer balancer);
 
+	Transaction parent() {
+		return parent;
+	}
+
 	abstract Model removeFromModel(Model m) throws ModelException;
+
+	abstract Optional<Transaction.Status> status();
 
 	TransactionEntry withAmount(Amount amount) {
 		var entry = clone();
 		entry.amount = Optional.of(amount);
 		return entry;
 	}
+
+	abstract TransactionEntry withMergedStatus(Transaction.Status status);
 
 	TransactionEntry withParent(Transaction transaction) {
 		var entry = clone();
