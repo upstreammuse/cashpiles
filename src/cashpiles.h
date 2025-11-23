@@ -1,5 +1,4 @@
-#ifndef CASHPILES_H
-#define CASHPILES_H
+#pragma once
 
 #include <string>
 
@@ -21,5 +20,3 @@ void warn(std::string const& message);
 
 void warn(std::string const& fileName, size_t lineNum,
           std::string const& message);
-
-#endif

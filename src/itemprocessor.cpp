@@ -12,6 +12,10 @@ void ItemProcessor::processItem(LedgerAccount const&)
 {
 }
 
+void ItemProcessor::processItem(LedgerAccountBalance const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerBlank const&)
 {
 }
@@ -21,11 +25,19 @@ bool ItemProcessor::processItem(LedgerBudget const&)
    return true;
 }
 
+void ItemProcessor::processItem(LedgerBudgetCancelEntry const&)
+{
+}
+
 void ItemProcessor::processItem(LedgerBudgetCloseEntry const&)
 {
 }
 
 void ItemProcessor::processItem(LedgerBudgetGoalEntry const&)
+{
+}
+
+void ItemProcessor::processItem(LedgerBudgetGoalsEntry const&)
 {
 }
 
@@ -57,16 +69,24 @@ void ItemProcessor::processItem(LedgerError const&)
 {
 }
 
-bool ItemProcessor::processItem(LedgerReserve const&)
+void ItemProcessor::processItem(LedgerTransaction const&)
+{
+}
+
+bool ItemProcessor::processItem(LedgerTransactionV2 const&)
 {
    return true;
 }
 
-void ItemProcessor::processItem(LedgerReserveEntry const&)
+void ItemProcessor::processItem(LedgerTransactionV2AccountEntry const&)
 {
 }
 
-void ItemProcessor::processItem(LedgerTransaction const&)
+void ItemProcessor::processItem(LedgerTransactionV2CategoryEntry const&)
+{
+}
+
+void ItemProcessor::processItem(LedgerTransactionV2OwnerEntry const&)
 {
 }
 

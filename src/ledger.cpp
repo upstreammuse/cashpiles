@@ -1,6 +1,5 @@
 #include "ledger.h"
 
-#include <cassert>
 #include "itemprocessor.h"
 #include "ledgeritem.h"
 
@@ -9,6 +8,7 @@ void Ledger::appendAfterCurrent(std::shared_ptr<LedgerItem> item)
    m_currentItem = m_items.insert(m_currentItem + 1, item) - 1;
 }
 
+// TODO need a way to ensure that this isn't called from a processor in tandem with appendAfterCurrent, since it will invalidate m_currentItem if it reallocates the vector
 void Ledger::appendItem(std::shared_ptr<LedgerItem> item)
 {
    m_items.push_back(item);
@@ -27,13 +27,8 @@ void Ledger::processItems(ItemProcessor& processor)
    {
       // copy the pointer out of the vector so we can replace it recursively
       // while this call is in progress
-      std::shared_ptr<LedgerItem> ptr(*m_currentItem);
+      auto ptr = *m_currentItem;
       ptr->processItem(processor);
    }
    processor.finish();
 }
-
-//void Ledger::replaceItem(std::shared_ptr<LedgerItem> item)
-//{
-//   *m_currentItem = item;
-//}

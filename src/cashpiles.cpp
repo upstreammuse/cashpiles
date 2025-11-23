@@ -1,5 +1,6 @@
 #include "cashpiles.h"
 
+#include <cassert>
 #include <clocale>
 #include <iostream>
 #include <regex>
@@ -11,7 +12,6 @@
 #include "ipbudgetallocator.h"
 #include "ipdatevalidator.h"
 #include "iptransactioncategorizer.h"
-#include "iptransferbalancer.h"
 #include "ledger.h"
 #include "ynabregisterreader.h"
 
@@ -107,9 +107,6 @@ int main(int argc, char** argv)
       IPDateValidator dv(ledger);
       ledger.processItems(dv);
 
-      IPTransferBalancer tb;
-      ledger.processItems(tb);
-
       if (!convertYnab)
       {
          IPTransactionCategorizer tc;
@@ -120,6 +117,8 @@ int main(int argc, char** argv)
 
          IPBudgetAllocator budAlloc(today, ledger);
          ledger.processItems(budAlloc);
+
+         assert(ab.budgetable() == budAlloc.budgetable());
       }
 
       if (outFileName != "")

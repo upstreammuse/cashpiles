@@ -95,7 +95,7 @@ void CsvReader::parseBackslash()
          break;
       case FieldMode::CLOSED:
          m_fieldValue += '"';
-         m_fieldMode = FieldMode::NORMAL_ESCAPED;
+         m_fieldMode = FieldMode::QUOTED_ESCAPED;
          break;
    }
 }
@@ -120,7 +120,7 @@ void CsvReader::parseChar(char c)
       case FieldMode::CLOSED:
          m_fieldValue += '"';
          m_fieldValue += c;
-         m_fieldMode = FieldMode::NORMAL;
+         m_fieldMode = FieldMode::QUOTED;
          break;
    }
 }
